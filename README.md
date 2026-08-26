@@ -42,6 +42,8 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 
 ## 本地开发与测试
 
+> 零基础环境搭建与逐步测试手册见 [use.md](use.md)，包含 MySQL/Redis/Node 安装、数据库初始化、启动命令、功能验证清单和常见问题排查。
+
 1. 准备 JDK 21、Maven、MySQL 8 和 Redis。
 2. 导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`；需要管理后台生产工单菜单时，继续执行 `vendor/platform-wxshop/_sql/carat_craft_menu.sql`。旧版本数据库升级另见 `carat_craft_customization_v2.sql`。
 3. 修改 `vendor/platform-wxshop/platform-api/src/main/resources/application-dev.yml` 中的本地数据库与 Redis 配置。

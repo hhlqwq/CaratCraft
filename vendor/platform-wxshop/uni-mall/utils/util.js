@@ -1,6 +1,6 @@
 const utils = {
 	// 域名
-	// domain: 'https://openwtai.com/',
+	// domain: 'https://845367567@qq.com/',
 	domain: 'http://localhost:8081/',
 	//接口地址
 	interfaceUrl: function() {

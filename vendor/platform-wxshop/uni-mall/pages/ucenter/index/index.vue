@@ -34,7 +34,7 @@
 			</navigator>
 		</view>
 
-		<view class="company">安徽微同科技有限公司提供技术支持 © openwtai.com</view>
+		<view class="company">何海龙(845367567@qq.com)提供技术支持 © 845367567@qq.com</view>
 		<view class="logout" v-if="userInfo.userName != '点击去登录'" @tap="exitLogin">退出登录</view>
 	</view>
 </template>

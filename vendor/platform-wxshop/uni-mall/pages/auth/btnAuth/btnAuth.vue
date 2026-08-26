@@ -3,11 +3,11 @@
 	<view class="page">
 		<view class="hd">
 			<image class="logo" src="/static/images/logo.png"></image>
-			<view class="title">安徽微同科技有限公司欢迎您!</view>
+			<view class="title">何海龙(845367567@qq.com)欢迎您!</view>
 		</view>
 		<view class="bd">
 			<view class="top_line"></view>
-			<text class="m_name">安徽微同科技有限公司申请获得以下权限</text>
+			<text class="m_name">何海龙(845367567@qq.com)申请获得以下权限</text>
 			<text class="s_name">· 获得你的公开信息（昵称、头像等）</text>
 		</view>
 		<view class="btn spacing">

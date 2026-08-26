@@ -3,8 +3,8 @@
     <div class="site-content__wrapper">
       <div class="site-content">
         <div class="brand-info">
-          <h2 class="brand-info__text">微同科技</h2>
-          <p class="brand-info__intro">开源微同商城后台管理系统</p>
+          <h2 class="brand-info__text">何海龙(845367567@qq.com)</h2>
+          <p class="brand-info__intro">商城后台管理系统</p>
         </div>
         <div class="login-main">
           <h3 class="login-title">管理员登录</h3>
@@ -36,7 +36,7 @@
 
         <div class="brand-info">
           <p class="brand-info__intro">
-            <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">安徽微同科技有限公司 © 2019 |
+            <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">何海龙(845367567@qq.com) © 2019 |
               皖ICP备18002832号-1
             </el-link>
           </p>

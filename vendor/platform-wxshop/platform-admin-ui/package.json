@@ -1,8 +1,8 @@
 {
   "name": "platform-admin-ui",
   "version": "1.0.0",
-  "description": "微同软件管理平台",
-  "author": "何海龙 <939961241@qq.com>",
+  "description": "商城后台管理系统",
+  "author": "何海龙 <845367567@qq.com>",
   "private": false,
   "repository": "https://gitee.com/hehailong/platform",
   "scripts": {
