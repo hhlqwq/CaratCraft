@@ -90,6 +90,8 @@ Vue 管理后台
 | `cc_production_work_order` | `order_item_id`、`work_order_no`、`status`、`craft_json` | 可供生产执行的工单。 |
 | `cc_order_review` | `order_item_id`、`review_status`、`review_note` | 人工审核和补差价记录。 |
 
+> 当前一期简化实现映射：素材与图层信息并入 `CC_COMPONENT_OPTION`（`asset_url`、`z_index`），设计与快照合并为 `CC_DESIGN_SNAPSHOT`（以 `status` 区分 DRAFT/LOCKED/ORDERED），兼容与加价校验暂由报价服务内置逻辑实现。`cc_design`、`cc_component_asset`、`cc_compatibility_rule`、`cc_price_rule`、`cc_order_review` 为二期扩展位，建表脚本见 `_sql/carat_craft_customization.sql`。
+
 ### 订单状态
 
 ```text

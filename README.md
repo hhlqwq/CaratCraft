@@ -43,12 +43,14 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 ## 本地开发与测试
 
 1. 准备 JDK 21、Maven、MySQL 8 和 Redis。
-2. 新数据库导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`。已有旧版定制表的数据库只需额外执行一次 `carat_craft_customization_v2.sql`。
+2. 导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`；需要管理后台生产工单菜单时，继续执行 `vendor/platform-wxshop/_sql/carat_craft_menu.sql`。旧版本数据库升级另见 `carat_craft_customization_v2.sql`。
 3. 修改 `vendor/platform-wxshop/platform-api/src/main/resources/application-dev.yml` 中的本地数据库与 Redis 配置。
-4. 在 `vendor/platform-wxshop` 下执行 `mvn test`，再执行 `node --test wx-mall/tests/model3d.test.js`。
+4. 在 `vendor/platform-wxshop` 下定向执行定制模块测试：
+   `mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest"`。
+   注意：底座其余单元测试含真实外部副作用（发送邮件、退款、生成小程序码等），不要全量执行 `mvn test`。
 5. 启动 `platform-api`，微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。小程序 API 默认指向 `http://localhost:8081/platform-framework-api/app/`，也可预先通过 Storage 中的 `apiBaseUrl` 覆盖。
 
-管理后台菜单可配置页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。
+管理后台菜单可由上述种子 SQL 自动导入；如需手工配置，页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。工单状态流转由服务端状态机约束（PENDING→REVIEWED→PRODUCING→QUALITY_CHECK→COMPLETED，审核前后均可 CANCELLED）。
 
 本地自动化测试覆盖服务端报价、必选与互斥组件、设计锁价绑定、支付金额校验、支付后工单幂等，以及 3D 变换参数安全回退。真实微信扣款和真机 GPU 渲染仍需在微信公众平台配置合法 AppID、商户号、证书、回调及资源域名后联调。
 

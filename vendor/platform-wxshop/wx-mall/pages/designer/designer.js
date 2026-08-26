@@ -44,6 +44,8 @@ Page({
         xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame'))
       });
       that.refresh3dPreview();
+    }).catch(function () {
+      wx.showToast({ title: '定制配置加载失败', icon: 'none' });
     });
   },
 
@@ -129,11 +131,15 @@ Page({
   /** 请求服务端报价 / Requests server-side quote. */
   refreshQuote: function () {
     var that = this;
+    // 递增序号丢弃过期响应, 避免快速切换选项时旧报价覆盖新报价 /
+    // Bump a sequence to drop stale responses racing with newer selections.
+    var seq = (this._quoteSeq = (this._quoteSeq || 0) + 1);
     util.request(api.CustomizationQuote, {
       goodsId: that.data.goodsId,
       optionIds: that.data.selectedOptionIds,
       engraving: that.data.engraving
     }, 'POST', 'application/json').then(function (res) {
+      if (seq !== that._quoteSeq) return;
       if (res.code === 0) that.setData({ quote: res.data });
     });
   },

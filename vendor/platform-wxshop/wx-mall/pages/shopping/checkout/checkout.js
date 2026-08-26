@@ -196,7 +196,7 @@ Page({
           });
         });
       } else {
-        util.showErrorToast('下单失败');
+        util.showErrorToast(res.msg || '下单失败');
       }
     });
   }

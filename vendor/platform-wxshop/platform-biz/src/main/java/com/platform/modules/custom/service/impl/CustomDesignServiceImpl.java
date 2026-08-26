@@ -150,9 +150,16 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (binding == null) {
             return;
         }
-        binding.setStatus("PAID");
-        binding.setUpdateTime(new Date());
-        orderCustomizationDao.updateById(binding);
+        // 仅允许未支付绑定流转为已支付, 防止迟到回调复活已取消订单 /
+        // Only UNPAID bindings may become PAID so late callbacks cannot revive cancelled orders.
+        int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
+                .eq("id", binding.getId())
+                .eq("status", "UNPAID")
+                .set("status", "PAID")
+                .set("update_time", new Date()));
+        if (updated != 1) {
+            return;
+        }
         Long count = workOrderDao.selectCount(new LambdaQueryWrapper<ProductionWorkOrderEntity>()
                 .eq(ProductionWorkOrderEntity::getOrderId, orderId));
         if (count > 0) {
@@ -174,7 +181,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         workOrderDao.insert(workOrder);
     }
 
-    /** 取消尚未完成的定制生产流程 / Cancels an unfinished production workflow. */
+    /** 取消尚未完成的定制生产流程, 未支付时释放设计 / Cancels the workflow and releases unpaid designs. */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Integer orderId) {
@@ -184,13 +191,38 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (binding == null) {
             return;
         }
-        binding.setStatus("CANCELLED");
-        binding.setUpdateTime(new Date());
-        orderCustomizationDao.updateById(binding);
+        boolean wasUnpaid = "UNPAID".equals(binding.getStatus());
+        if (wasUnpaid) {
+            // 条件更新防止与支付回调并发时误改已支付状态 /
+            // Conditional update avoids racing with a concurrent payment callback.
+            int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
+                    .eq("id", binding.getId())
+                    .eq("status", "UNPAID")
+                    .set("status", "CANCELLED")
+                    .set("update_time", new Date()));
+            if (updated != 1) {
+                return;
+            }
+        } else {
+            binding.setStatus("CANCELLED");
+            binding.setUpdateTime(new Date());
+            orderCustomizationDao.updateById(binding);
+        }
+        // 未支付取消时将设计快照恢复为草稿, 允许用户重新下单 /
+        // Restore an unpaid design back to DRAFT so the user can reorder it.
+        if (wasUnpaid && binding.getSnapshotId() != null) {
+            CustomDesignSnapshotEntity snapshot = snapshotDao.selectById(binding.getSnapshotId());
+            if (snapshot != null && "ORDERED".equals(snapshot.getStatus())) {
+                snapshot.setStatus("DRAFT");
+                snapshot.setUpdateTime(new Date());
+                snapshotDao.updateById(snapshot);
+            }
+        }
         ProductionWorkOrderEntity workOrder = workOrderDao.selectOne(
                 new LambdaQueryWrapper<ProductionWorkOrderEntity>()
                         .eq(ProductionWorkOrderEntity::getOrderId, orderId));
-        if (workOrder != null && !"COMPLETED".equals(workOrder.getStatus())) {
+        if (workOrder != null && !"COMPLETED".equals(workOrder.getStatus())
+                && !"CANCELLED".equals(workOrder.getStatus())) {
             workOrder.setStatus("CANCELLED");
             workOrder.setUpdateTime(new Date());
             workOrderDao.updateById(workOrder);
