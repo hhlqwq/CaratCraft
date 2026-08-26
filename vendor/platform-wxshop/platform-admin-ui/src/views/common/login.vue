@@ -36,9 +36,7 @@
 
         <div class="brand-info">
           <p class="brand-info__intro">
-            <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">何海龙(845367567@qq.com) © 2019 |
-              皖ICP备18002832号-1
-            </el-link>
+            <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">何海龙(845367567@qq.com) © 2019</el-link>
           </p>
         </div>
       </div>

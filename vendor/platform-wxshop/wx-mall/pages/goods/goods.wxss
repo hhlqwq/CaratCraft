@@ -711,3 +711,10 @@
 }
 
 
+
+/* 定制入口按钮 / Custom designer entry button */
+.bottom-btn .c.custom{
+    border: 1px solid #d4af37;
+    background: #d4af37;
+    color: #ffffff;
+}

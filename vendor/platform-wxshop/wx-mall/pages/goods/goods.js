@@ -22,7 +22,8 @@ Page({
     openAttr: false,
     noCollectImage: "/static/images/icon_collect.png",
     hasCollectImage: "/static/images/icon_collect_checked.png",
-    collectBackImage: "/static/images/icon_collect.png"
+    collectBackImage: "/static/images/icon_collect.png",
+    isCustom: false
   },
   getGoodsInfo: function () {
     let that = this;
@@ -185,6 +186,12 @@ Page({
     });
     var that = this;
     this.getGoodsInfo();
+    // 已开启定制的商品展示"定制这款"入口 / Shows the designer entry for custom-enabled goods.
+    util.request(api.CustomizationConfig, { goodsId: that.data.id }).then(function (res) {
+      if (res.code === 0) {
+        that.setData({ isCustom: true });
+      }
+    });
     util.request(api.CartGoodsCount).then(function (res) {
       if (res.code === 0) {
         that.setData({
@@ -197,6 +204,12 @@ Page({
   onReady: function () {
     // 页面渲染完成
 
+  },
+  /** 跳转到 DIY 定制器 / Navigates to the DIY designer page. */
+  openDesigner: function () {
+    wx.navigateTo({
+      url: '/pages/designer/designer?goodsId=' + this.data.id
+    });
   },
   onShow: function () {
     // 页面显示

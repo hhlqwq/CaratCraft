@@ -30,9 +30,7 @@
       </keep-alive>
     </el-card>
     <div style="text-align: center">
-      <el-link icon="el-icon-link" type="info" target="_blank" href="mailto:845367567@qq.com">何海龙(845367567@qq.com) © 2019 |
-        皖ICP备18002832号-1
-      </el-link>
+      <el-link icon="el-icon-link" type="info" target="_blank" href="mailto:845367567@qq.com">何海龙(845367567@qq.com) © 2019</el-link>
     </div>
   </main>
 </template>
