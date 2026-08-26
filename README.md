@@ -1,37 +1,27 @@
 # CaratCraft
 
-#### 介绍
-手工克拉，珠宝匠心（CaratCraft珠宝定制）
+CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的微信小程序商城。用户可 DIY 项链款式并在小程序内完成微信支付下单；商家通过后台维护商品、规则、订单和生产工单。
 
-#### 软件架构
-软件架构说明
+## 一期目标
 
+- 支持链条、吊坠、材质、长度、刻字和宝石等标准化项链选项。
+- 使用二维透明图层与 Canvas 实现稳定的实时定制预览。
+- 服务端校验组合、重新报价，并将设计与价格快照固化到订单。
+- 对接微信支付，完成审核、制作、质检、发货的履约闭环。
 
-#### 安装教程
+## 技术方向
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- 商城底座：优先评估 `platform-wxshop`，并新增定制器、规则报价、设计快照和工单模块。
+- 小程序：原生微信小程序优先，DIY 页面使用 Canvas 2D。
+- 服务端：Spring Boot、MySQL、Redis。
+- 管理端：Vue 与 Element UI。
 
-#### 使用说明
+完整的产品范围、架构、数据模型、接口和实施里程碑见 [项目蓝图](docs/project-blueprint.md)。
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## 当前进度
 
-#### 参与贡献
+项目处于 P0 业务建模阶段，尚未导入商城底座或配置运行环境。下一步需要确认首批 5-10 个可销售款式、每个款式的组件组合、价格规则与生产工艺字段。
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+## 贡献说明
 
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+提交前请确认未提交支付证书、密钥、数据库密码、真实用户数据或对象存储凭证。
