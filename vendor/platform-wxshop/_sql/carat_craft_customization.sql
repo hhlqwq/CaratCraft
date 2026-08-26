@@ -39,3 +39,29 @@ CREATE TABLE IF NOT EXISTS `CC_DESIGN_SNAPSHOT` (
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`), KEY `idx_cc_snapshot_user` (`user_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft设计快照 / design snapshot';
+
+CREATE TABLE IF NOT EXISTS `CC_ORDER_CUSTOMIZATION` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `order_id` int NOT NULL,
+  `order_goods_id` int NOT NULL,
+  `snapshot_id` bigint NOT NULL,
+  `status` varchar(32) NOT NULL DEFAULT 'LOCKED',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`), UNIQUE KEY `uk_cc_order_customization` (`order_id`),
+  UNIQUE KEY `uk_cc_order_snapshot` (`snapshot_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft定制订单关联 / custom order binding';
+
+CREATE TABLE IF NOT EXISTS `CC_PRODUCTION_WORK_ORDER` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `work_order_no` varchar(64) NOT NULL,
+  `order_id` int NOT NULL,
+  `order_goods_id` int NOT NULL,
+  `snapshot_id` bigint NOT NULL,
+  `status` varchar(32) NOT NULL DEFAULT 'PENDING_REVIEW',
+  `craft_json` json NOT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`), UNIQUE KEY `uk_cc_work_order_no` (`work_order_no`),
+  UNIQUE KEY `uk_cc_work_order_order` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft生产工单 / production work order';

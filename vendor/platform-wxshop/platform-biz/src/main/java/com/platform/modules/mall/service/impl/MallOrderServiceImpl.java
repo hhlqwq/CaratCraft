@@ -30,6 +30,8 @@ import com.platform.modules.mall.dao.*;
 import com.platform.modules.mall.dto.BuyGoodsRequest;
 import com.platform.modules.mall.entity.*;
 import com.platform.modules.mall.service.MallOrderService;
+import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,8 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     private MallCouponDao couponDao;
     @Autowired
     private RedisTemplateUtil redisTemplateUtil;
+    @Autowired
+    private CustomDesignService customDesignService;
 
     /**
      * 查询订单列表。
@@ -131,7 +135,14 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         Integer couponId = jsonParam.getInteger("couponId");
         String type = jsonParam.getString("type");
         String postscript = jsonParam.getString("postscript");
+        Long designSnapshotId = jsonParam.getLong("designSnapshotId");
         MallAddressEntity addressVo = addressDao.selectById(jsonParam.getInteger("addressId"));
+        if (addressVo == null || !loginUser.getId().equals(addressVo.getUserId())) {
+            throw new IllegalArgumentException("收货地址不存在或无权使用");
+        }
+        if (designSnapshotId != null && "cart".equals(type)) {
+            throw new IllegalArgumentException("定制商品仅支持立即购买");
+        }
 
         Integer freightPrice = 0;
 
@@ -160,6 +171,17 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             //计算订单的费用
             //商品总价
             goodsTotalPrice = productInfo.getRetailPrice().multiply(new BigDecimal(goodsVo.getNumber()));
+            if (designSnapshotId != null) {
+                if (goodsVo.getNumber() != 1) {
+                    throw new IllegalArgumentException("每个定制设计只能购买一件");
+                }
+                CustomDesignSnapshotEntity snapshot = customDesignService.getOwned(
+                        designSnapshotId, loginUser.getId());
+                if (!goodsVo.getGoodsId().equals(snapshot.getGoodsId())) {
+                    throw new IllegalArgumentException("设计与购买商品不匹配");
+                }
+                goodsTotalPrice = customDesignService.lockAndGetPrice(designSnapshotId, loginUser.getId());
+            }
 
             MallCartEntity MallCartEntity = new MallCartEntity();
             BeanUtils.copyProperties(productInfo, MallCartEntity);
@@ -240,11 +262,18 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             orderGoodsVo.setListPicUrl(goodsItem.getListPicUrl());
             orderGoodsVo.setMarketPrice(goodsItem.getMarketPrice());
             orderGoodsVo.setRetailPrice(goodsItem.getRetailPrice());
+            if (designSnapshotId != null) {
+                orderGoodsVo.setRetailPrice(goodsTotalPrice);
+            }
             orderGoodsVo.setNumber(goodsItem.getNumber());
             orderGoodsVo.setGoodsSpecifitionNameValue(goodsItem.getGoodsSpecifitionNameValue());
             orderGoodsVo.setGoodsSpecifitionIds(goodsItem.getGoodsSpecifitionIds());
             orderGoodsData.add(orderGoodsVo);
             orderGoodsDao.insert(orderGoodsVo);
+        }
+        if (designSnapshotId != null) {
+            customDesignService.bindOrder(designSnapshotId, loginUser.getId(), orderInfo.getId(),
+                    orderGoodsData.get(0).getId());
         }
 
         //清空已购买的商品

@@ -18,6 +18,7 @@ import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
+import com.platform.modules.custom.service.CustomDesignService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,8 @@ public class AppPayController extends AppBaseController {
     private MallOrderGoodsService orderGoodsService;
     @Autowired
     private WxPayService weixinPayService;
+    @Autowired
+    private CustomDesignService customDesignService;
     @Value("${wx.pay.baseNotifyUrl}")
     private String baseNotifyUrl;
 
@@ -129,6 +132,9 @@ public class AppPayController extends AppBaseController {
         }
 
         MallOrderEntity orderDetail = orderService.getById(orderId);
+        if (orderDetail == null || !loginUser.getId().equals(orderDetail.getUserId())) {
+            return RestResponse.fail("订单不存在或无权访问");
+        }
         try {
             WxPayOrderQueryResult result = weixinPayService.queryOrder("", orderDetail.getOrderSn());
 
@@ -142,6 +148,7 @@ public class AppPayController extends AppBaseController {
                 orderInfo.setShippingStatus(0);
                 orderInfo.setPayTime(new Date());
                 orderService.update(orderInfo);
+                customDesignService.markOrderPaid(orderId);
                 return RestResponse.ok("支付成功");
             } else if ("USERPAYING".equals(tradeState)) {
                 return RestResponse.fail("订单支付中，请稍后重试");
@@ -195,6 +202,7 @@ public class AppPayController extends AppBaseController {
                 orderInfo.setShippingStatus(0);
                 orderInfo.setPayTime(new Date());
                 orderService.update(orderInfo);
+                customDesignService.markOrderPaid(orderInfo.getId());
                 response.getWriter().write(setXml("SUCCESS", "OK"));
             }
         } catch (Exception e) {

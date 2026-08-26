@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import me.chanjar.weixin.common.error.WxErrorException;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.io.File;
  */
 @RequiredArgsConstructor
 @SpringBootTest
+@Disabled("包含真实邮件、支付和小程序接口，仅允许配置凭证后手工执行。")
 public class PlatformApiApplicationTests {
 
     private final MailService mailService;

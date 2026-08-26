@@ -20,7 +20,8 @@ Page({
     isBuy: false,
     couponDesc: '',
     couponCode: '',
-    buyType: ''
+    buyType: '',
+    designSnapshotId: null
   },
   onLoad: function (options) {
 
@@ -29,6 +30,9 @@ Page({
       this.data.isBuy = options.isBuy
     }
     this.data.buyType = this.data.isBuy?'buy':'cart'
+    if (this.data.isBuy) {
+      this.setData({ designSnapshotId: wx.getStorageSync('designSnapshotId') || null });
+    }
     //每次重新加载界面，清空数据
     app.globalData.userCoupon = 'NO_USE_COUPON'
     app.globalData.courseCouponCode = {}
@@ -40,16 +44,20 @@ Page({
     let buyType = this.data.isBuy ? 'buy' : 'cart'
     util.request(url, { addressId: that.data.addressId, couponId: that.data.couponId, type: buyType }).then(function (res) {
       if (res.code === 0) {
+        var designQuote = that.data.designSnapshotId ? wx.getStorageSync('designQuote') : null;
+        var displayGoodsTotal = designQuote ? Number(designQuote.totalPrice) : res.data.goodsTotalPrice;
+        var displayOrderTotal = designQuote ? displayGoodsTotal + Number(res.data.freightPrice || 0) : res.data.orderTotalPrice;
+        var displayActual = designQuote ? Math.max(0, displayOrderTotal - Number(res.data.couponPrice || 0)) : res.data.actualPrice;
         that.setData({
           checkedGoodsList: res.data.checkedGoodsList,
           checkedAddress: res.data.checkedAddress,
-          actualPrice: res.data.actualPrice,
+          actualPrice: displayActual,
           checkedCoupon: res.data.checkedCoupon ? res.data.checkedCoupon : "",
           couponList: res.data.couponList ? res.data.couponList : "",
           couponPrice: res.data.couponPrice,
           freightPrice: res.data.freightPrice,
-          goodsTotalPrice: res.data.goodsTotalPrice,
-          orderTotalPrice: res.data.orderTotalPrice
+          goodsTotalPrice: displayGoodsTotal,
+          orderTotalPrice: displayOrderTotal
         });
         //设置默认收获地址
         if (that.data.checkedAddress.id){
@@ -148,8 +156,15 @@ Page({
       util.showErrorToast('请选择收货地址');
       return false;
     }
-    util.request(api.OrderSubmit, { addressId: this.data.addressId, couponId: this.data.couponId, type: this.data.buyType }, 'POST', 'application/json').then(res => {
+    util.request(api.OrderSubmit, {
+      addressId: this.data.addressId,
+      couponId: this.data.couponId,
+      type: this.data.buyType,
+      designSnapshotId: this.data.designSnapshotId
+    }, 'POST', 'application/json').then(res => {
       if (res.code === 0) {
+        wx.removeStorageSync('designSnapshotId');
+        wx.removeStorageSync('designQuote');
         const orderId = res.data.orderInfo.id;
         pay.payOrder(parseInt(orderId)).then(res => {
           wx.redirectTo({

@@ -136,27 +136,7 @@ public class AppOrderController extends AppBaseController {
     @Operation(summary = "修改订单")
     @PostMapping("updateSuccess")
     public RestResponse<Object> updateSuccess(Integer orderId, @LoginUser WxUserEntity loginUser) {
-        MallOrderEntity orderInfo = orderService.getById(orderId);
-        if (orderInfo == null) {
-            return RestResponse.fail("订单不存在");
-        } else if (orderInfo.getOrderStatus() != 0) {
-            return RestResponse.fail("订单状态不正确orderStatus" + orderInfo.getOrderStatus() + "payStatus" + orderInfo.getPayStatus());
-        }
-
-        if (!loginUser.getId().equals(orderInfo.getUserId())) {
-            return RestResponse.fail("越权操作！");
-        }
-        orderInfo.setId(orderId);
-        orderInfo.setPayStatus(2);
-        orderInfo.setOrderStatus(201);
-        orderInfo.setShippingStatus(0);
-        orderInfo.setPayTime(new Date());
-        boolean num = orderService.update(orderInfo);
-        if (num) {
-            return RestResponse.ok("修改订单成功");
-        } else {
-            return RestResponse.fail("修改订单失败");
-        }
+        return RestResponse.fail("支付状态只能通过微信支付查询或签名回调更新");
     }
 
     /**
@@ -179,6 +159,9 @@ public class AppOrderController extends AppBaseController {
             }
             if (request.getPostscript() != null) {
                 payload.put("postscript", request.getPostscript());
+            }
+            if (request.getDesignSnapshotId() != null) {
+                payload.put("designSnapshotId", request.getDesignSnapshotId());
             }
             resultObj = orderService.submit(payload, loginUser);
             if (null != resultObj) {

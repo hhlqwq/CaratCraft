@@ -1,6 +1,5 @@
-const API_BASE_URL = 'https://openwtai.com/platform-framework-api/app/';
-// const API_BASE_URL = 'http://localhost:8081/platform-framework-api/app/'
-wx.setStorageSync('apiBaseUrl', API_BASE_URL)
+const API_BASE_URL = wx.getStorageSync('apiBaseUrl') ||
+  'http://localhost:8081/platform-framework-api/app/';
 
 module.exports = {
   IndexUrlNewGoods: API_BASE_URL + 'index/newGoods', //新品首发
@@ -24,6 +23,8 @@ module.exports = {
   GoodsRelated: API_BASE_URL + 'goods/related', //商品详情页的关联商品（大家都在看）
   CustomizationConfig: API_BASE_URL + 'customization/config', //获取定制器配置
   CustomizationQuote: API_BASE_URL + 'customization/quote', //服务端定制报价
+  CustomizationSave: API_BASE_URL + 'customization/save', //保存定制设计
+  CustomizationList: API_BASE_URL + 'customization/list', //我的定制设计
 
   BrandList: API_BASE_URL + 'brand/list', //品牌列表
   BrandDetail: API_BASE_URL + 'brand/detail', //品牌详情

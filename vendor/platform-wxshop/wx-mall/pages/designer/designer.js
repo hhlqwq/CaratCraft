@@ -11,7 +11,9 @@ Page({
     selectedOptionIds: [],
     selectedLayers: [],
     engraving: '',
-    quote: {}
+    quote: {},
+    primaryProductId: 0,
+    saving: false
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
@@ -29,7 +31,10 @@ Page({
         }
         groups[option.componentType].options.push(option);
       });
-      that.setData({ componentGroups: Object.keys(groups).map(function (key) { return groups[key]; }) });
+      that.setData({
+        componentGroups: Object.keys(groups).map(function (key) { return groups[key]; }),
+        primaryProductId: res.data.primaryProductId
+      });
     });
   },
 
@@ -47,7 +52,14 @@ Page({
       }
     });
     selected.push(optionId);
-    this.setData({ selectedOptionIds: selected });
+    var groups = this.data.componentGroups.map(function (group) {
+      group.options = group.options.map(function (option) {
+        option.selected = selected.indexOf(option.id) >= 0;
+        return option;
+      });
+      return group;
+    });
+    this.setData({ selectedOptionIds: selected, componentGroups: groups });
     this.refreshPreview();
     this.refreshQuote();
   },
@@ -82,14 +94,53 @@ Page({
     });
   },
 
-  /** 暂存设计提示 / Shows draft-save guidance. */
+  /** 保存设计草稿 / Saves a design draft. */
   saveDraft: function () {
-    wx.showToast({ title: '设计保存将在订单模块接入后启用', icon: 'none' });
+    this.persistDesign(false).catch(function () {});
   },
 
-  /** 引导确认设计 / Guides customer to confirmation. */
+  /** 保存设计，可选进入结算 / Saves a design and optionally starts checkout. */
+  persistDesign: function (startCheckout) {
+    var that = this;
+    if (that.data.saving) return Promise.reject(new Error('正在保存'));
+    that.setData({ saving: true });
+    return util.request(api.CustomizationSave, {
+      goodsId: that.data.goodsId,
+      optionIds: that.data.selectedOptionIds,
+      engraving: that.data.engraving
+    }, 'POST', 'application/json').then(function (res) {
+      that.setData({ saving: false });
+      if (res.code !== 0) throw new Error(res.msg || '保存失败');
+      if (!startCheckout) {
+        wx.setStorageSync('lastSavedDesignSnapshotId', res.data.snapshotId);
+        wx.showToast({ title: '设计已保存', icon: 'success' });
+        return res.data.snapshotId;
+      }
+      wx.setStorageSync('designSnapshotId', res.data.snapshotId);
+      wx.setStorageSync('designQuote', res.data.quote);
+      return util.request(api.BuyAdd, {
+        goodsId: that.data.goodsId,
+        number: 1,
+        productId: that.data.primaryProductId
+      }, 'POST', 'application/json').then(function (buyRes) {
+        if (buyRes.code !== 0) throw new Error(buyRes.msg || '创建购买信息失败');
+        wx.navigateTo({ url: '/pages/shopping/checkout/checkout?isBuy=true' });
+        return res.data.snapshotId;
+      });
+    }).catch(function (error) {
+      that.setData({ saving: false });
+      wx.showToast({ title: error.message || '操作失败', icon: 'none' });
+      throw error;
+    });
+  },
+
+  /** 确认设计并进入结算 / Confirms a design and starts checkout. */
   submitDesign: function () {
-    wx.showToast({ title: '订单快照模块开发中', icon: 'none' });
+    if (!this.data.primaryProductId) {
+      wx.showToast({ title: '商品规格未配置', icon: 'none' });
+      return;
+    }
+    this.persistDesign(true).catch(function () {});
   },
 
   /** 初始化页面 / Initializes page state. */

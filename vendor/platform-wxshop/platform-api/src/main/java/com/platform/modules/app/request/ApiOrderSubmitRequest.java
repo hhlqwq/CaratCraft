@@ -13,4 +13,5 @@ public class ApiOrderSubmitRequest {
     private Integer couponId;
     private String type;
     private String postscript;
+    private Long designSnapshotId;
 }

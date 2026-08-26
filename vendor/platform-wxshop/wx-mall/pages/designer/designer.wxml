@@ -12,7 +12,7 @@
   <view class="section" wx:for="{{componentGroups}}" wx:key="type">
     <view class="section-title">{{item.name}}</view>
     <scroll-view class="option-scroll" scroll-x="true">
-      <view class="option {{selectedOptionIds.includes(option.id) ? 'selected' : ''}}" wx:for="{{item.options}}" wx:key="id" data-id="{{option.id}}" data-type="{{item.type}}" bindtap="selectOption">
+      <view class="option {{option.selected ? 'selected' : ''}}" wx:for="{{item.options}}" wx:key="id" data-id="{{option.id}}" data-type="{{item.type}}" bindtap="selectOption">
         <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit"></image>
         <view>{{option.name}}</view>
         <view class="option-price">{{option.priceDelta > 0 ? '+' : ''}}¥{{option.priceDelta}}</view>
@@ -26,7 +26,7 @@
   </view>
 
   <view class="bottom-bar">
-    <button class="secondary" bindtap="saveDraft">保存设计</button>
-    <button class="primary" bindtap="submitDesign" disabled="{{!quote.totalPrice}}">确认设计</button>
+    <button class="secondary" bindtap="saveDraft" loading="{{saving}}">保存设计</button>
+    <button class="primary" bindtap="submitDesign" loading="{{saving}}" disabled="{{!quote.totalPrice || saving}}">确认设计</button>
   </view>
 </view>

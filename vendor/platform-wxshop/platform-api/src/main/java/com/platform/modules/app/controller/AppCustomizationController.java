@@ -9,6 +9,11 @@ import com.platform.modules.custom.dto.CustomQuoteRequest;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomQuoteService;
+import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.modules.mall.entity.MallGoodsEntity;
+import com.platform.modules.mall.service.MallGoodsService;
+import com.platform.annotation.LoginUser;
+import com.platform.modules.wx.entity.WxUserEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,13 +35,19 @@ public class AppCustomizationController {
     private final CustomProductDao customProductDao;
     private final CustomComponentOptionDao componentOptionDao;
     private final CustomQuoteService customQuoteService;
+    private final CustomDesignService customDesignService;
+    private final MallGoodsService mallGoodsService;
 
     public AppCustomizationController(CustomProductDao customProductDao,
                                      CustomComponentOptionDao componentOptionDao,
-                                     CustomQuoteService customQuoteService) {
+                                     CustomQuoteService customQuoteService,
+                                     CustomDesignService customDesignService,
+                                     MallGoodsService mallGoodsService) {
         this.customProductDao = customProductDao;
         this.componentOptionDao = componentOptionDao;
         this.customQuoteService = customQuoteService;
+        this.customDesignService = customDesignService;
+        this.mallGoodsService = mallGoodsService;
     }
 
     /**
@@ -64,6 +75,8 @@ public class AppCustomizationController {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("product", product);
         result.put("options", options);
+        MallGoodsEntity goods = mallGoodsService.getById(goodsId);
+        result.put("primaryProductId", goods == null ? null : goods.getPrimaryProductId());
         return RestResponse.ok(result);
     }
 
@@ -82,5 +95,24 @@ public class AppCustomizationController {
         } catch (IllegalArgumentException exception) {
             return RestResponse.fail(exception.getMessage());
         }
+    }
+
+    /** 保存当前用户的设计草稿 / Saves the current user's design draft. */
+    @Operation(summary = "保存定制设计")
+    @PostMapping("save")
+    public RestResponse<Object> save(@LoginUser WxUserEntity loginUser,
+                                     @RequestBody CustomQuoteRequest request) {
+        try {
+            return RestResponse.ok(customDesignService.saveDraft(loginUser.getId(), request));
+        } catch (IllegalArgumentException exception) {
+            return RestResponse.fail(exception.getMessage());
+        }
+    }
+
+    /** 查询当前用户的设计列表 / Lists the current user's designs. */
+    @Operation(summary = "查询我的定制设计")
+    @PostMapping("list")
+    public RestResponse<Object> list(@LoginUser WxUserEntity loginUser) {
+        return RestResponse.ok(customDesignService.listOwned(loginUser.getId()));
     }
 }

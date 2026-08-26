@@ -18,9 +18,28 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 
 完整的产品范围、架构、数据模型、接口和实施里程碑见 [项目蓝图](docs/project-blueprint.md)。
 
-## 当前进度
+## 当前实现
 
-项目已进入 P1 基础建设阶段：商城底座已导入，定制配置与服务端报价骨架已创建。3D 通过模型 URL 和材质参数预留扩展位；当前范围明确不包含 AR。下一步将接入订单快照、工单和后台运营页面。
+已完成首个可运行的业务闭环：
+
+- 小程序选择项链组件、二维图层预览、刻字和实时服务端报价。
+- 登录用户保存设计快照，确认后以立即购买方式进入结算。
+- 提交订单时服务端重新校验选项并锁价，禁止客户端篡改定制价格。
+- 设计快照与订单商品绑定，微信支付查询或签名回调成功后幂等生成生产工单。
+- 管理端提供生产工单列表和状态流转接口。
+- 预留 `model_url` 和 `material_params` 作为后续 3D 扩展字段，当前不实现 AR。
+
+## 本地开发与测试
+
+1. 准备 JDK 21、Maven、MySQL 8 和 Redis。
+2. 导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`。
+3. 修改 `vendor/platform-wxshop/platform-api/src/main/resources/application-dev.yml` 中的本地数据库与 Redis 配置。
+4. 在 `vendor/platform-wxshop` 下执行 `mvn test`，执行单元测试和全模块编译。
+5. 启动 `platform-api`，微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。小程序 API 默认指向 `http://localhost:8081/platform-framework-api/app/`，也可预先通过 Storage 中的 `apiBaseUrl` 覆盖。
+
+管理后台菜单可配置页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。
+
+本地自动化测试覆盖服务端报价、同类选项互斥、设计保存、订单锁价绑定和支付后工单幂等创建。真实微信扣款仍需在微信公众平台配置合法 AppID、商户号、证书和回调域名后联调。
 
 ## 贡献说明
 

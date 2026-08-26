@@ -12,4 +12,5 @@ public class CustomQuoteRequest {
     private Integer goodsId;
     private List<Long> optionIds;
     private String engraving;
+    private String previewUrl;
 }
