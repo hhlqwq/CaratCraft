@@ -24,6 +24,7 @@ import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 import java.util.Map;
@@ -58,4 +59,17 @@ public interface MallOrderDao extends BaseMapper<MallOrderEntity> {
     List<MallOrderEntity> selectMallOrderPage(Page<MallOrderEntity> page, @Param("params") Map<String, Object> params);
 
     List<MallOrderEntity> queryList(Map<String, Object> param);
+
+    /** 原子取消待支付订单 / Atomically cancels an unpaid order. */
+    @Update("UPDATE MALL_ORDER SET order_status = 101 "
+            + "WHERE id = #{orderId} AND user_id = #{userId} AND pay_status = 0 AND order_status = 0")
+    int cancelUnpaid(@Param("orderId") Integer orderId, @Param("userId") Long userId);
+
+    /** 原子标记退款完成 / Atomically marks an order as refunded. */
+    @Update("UPDATE MALL_ORDER SET pay_status = 4, order_status = #{orderStatus} "
+            + "WHERE id = #{orderId} AND pay_status = 2 AND "
+            + "((#{orderStatus} = 401 AND order_status = 201) "
+            + "OR (#{orderStatus} = 402 AND order_status = 300))")
+    int markRefunded(@Param("orderId") Integer orderId,
+                     @Param("orderStatus") Integer orderStatus);
 }

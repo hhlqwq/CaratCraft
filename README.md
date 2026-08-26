@@ -5,14 +5,14 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 ## 一期目标
 
 - 支持链条、吊坠、材质、长度、刻字和宝石等标准化项链选项。
-- 使用二维透明图层与 Canvas 实现稳定的实时定制预览。
+- 使用二维透明图层提供稳定预览，并通过 XR-Frame 提供可旋转缩放的 3D 预览。
 - 服务端校验组合、重新报价，并将设计与价格快照固化到订单。
 - 对接微信支付，完成审核、制作、质检、发货的履约闭环。
 
 ## 技术方向
 
 - 商城底座：已导入 `vendor/platform-wxshop`，并新增定制器、规则报价、设计快照和工单模块。
-- 小程序：原生微信小程序优先，DIY 页面使用 Canvas 2D。
+- 小程序：原生微信小程序，DIY 页面提供 2D 图层与 XR-Frame 3D 双模式，不申请相机权限、不包含 AR。
 - 服务端：Spring Boot、MySQL、Redis。
 - 管理端：Vue 与 Element UI。
 
@@ -27,19 +27,30 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 - 提交订单时服务端重新校验选项并锁价，禁止客户端篡改定制价格。
 - 设计快照与订单商品绑定，微信支付查询或签名回调成功后幂等生成生产工单。
 - 管理端提供生产工单列表和状态流转接口。
-- 预留 `model_url` 和 `material_params` 作为后续 3D 扩展字段，当前不实现 AR。
+- 已支持 XR-Frame 3D 预览及 2D 自动降级；基础项链和选中组件可分别加载 GLB/glTF 模型，不实现 AR。
+- 下单事务会重新校验商品、库存、必选组件、优惠券和最终金额，并原子扣减库存、占用优惠券。
+- 支付查询与签名回调统一校验微信实付金额，再以事务方式更新订单和幂等生成生产工单。
+- 未支付取消或退款完成后恢复库存、释放优惠券并关闭定制流程；进入制作、质检或完成状态后禁止用户直接退款。
+
+## 3D 模型配置
+
+- `CC_CUSTOM_PRODUCT.model_url`：基础项链 GLB/glTF 的 HTTPS 地址。
+- `CC_COMPONENT_OPTION.model_url`：链条、吊坠、宝石等选项模型地址；选中后与基础模型组合展示。
+- `CC_COMPONENT_OPTION.material_params`：JSON 变换参数，例如 `{"position":[0,0,0],"rotation":[0,0,0],"scale":[1,1,1]}`。
+- 各模型应使用一致的坐标原点、尺度和朝向；金属、宝石材质建议直接烘焙进 GLB。资源域名需加入微信小程序合法下载域名。
+- 未配置模型、设备不支持 XR-Frame 或模型加载失败时，页面保持或自动回到 2D 预览。
 
 ## 本地开发与测试
 
 1. 准备 JDK 21、Maven、MySQL 8 和 Redis。
-2. 导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`。
+2. 新数据库导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`。已有旧版定制表的数据库只需额外执行一次 `carat_craft_customization_v2.sql`。
 3. 修改 `vendor/platform-wxshop/platform-api/src/main/resources/application-dev.yml` 中的本地数据库与 Redis 配置。
-4. 在 `vendor/platform-wxshop` 下执行 `mvn test`，执行单元测试和全模块编译。
+4. 在 `vendor/platform-wxshop` 下执行 `mvn test`，再执行 `node --test wx-mall/tests/model3d.test.js`。
 5. 启动 `platform-api`，微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。小程序 API 默认指向 `http://localhost:8081/platform-framework-api/app/`，也可预先通过 Storage 中的 `apiBaseUrl` 覆盖。
 
 管理后台菜单可配置页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。
 
-本地自动化测试覆盖服务端报价、同类选项互斥、设计保存、订单锁价绑定和支付后工单幂等创建。真实微信扣款仍需在微信公众平台配置合法 AppID、商户号、证书和回调域名后联调。
+本地自动化测试覆盖服务端报价、必选与互斥组件、设计锁价绑定、支付金额校验、支付后工单幂等，以及 3D 变换参数安全回退。真实微信扣款和真机 GPU 渲染仍需在微信公众平台配置合法 AppID、商户号、证书、回调及资源域名后联调。
 
 ## 贡献说明
 

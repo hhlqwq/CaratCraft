@@ -71,6 +71,7 @@ class CustomDesignServiceImplTest {
         when(snapshotDao.update(any(), any(Wrapper.class))).thenReturn(1);
 
         assertEquals(new BigDecimal("219.00"), service.lockAndGetPrice(88L, 7L));
+        snapshot.setStatus("LOCKED");
         service.bindOrder(88L, 7L, 100, 101);
         verify(bindingDao).insert(any(CustomOrderCustomizationEntity.class));
         assertEquals("ORDERED", snapshot.getStatus());

@@ -203,6 +203,9 @@ public class AppOrderController extends AppBaseController {
         }
         // 需要退款
         if (orderVo.getPayStatus() == 2) {
+            if (!Integer.valueOf(201).equals(orderVo.getOrderStatus())) {
+                return RestResponse.fail("当前订单状态不允许取消");
+            }
             try {
                 customDesignService.assertOrderCancellable(orderId);
                 WxPayRefundRequest refundRequest = new WxPayRefundRequest();

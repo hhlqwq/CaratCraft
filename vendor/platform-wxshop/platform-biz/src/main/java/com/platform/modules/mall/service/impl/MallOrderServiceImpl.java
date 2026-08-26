@@ -368,9 +368,10 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                 || !Integer.valueOf(0).equals(order.getOrderStatus())) {
             throw new IllegalArgumentException("订单状态不允许取消");
         }
+        if (baseMapper.cancelUnpaid(orderId, userId) != 1) {
+            throw new IllegalArgumentException("订单状态已变化，请刷新后重试");
+        }
         restoreOrderResources(orderId);
-        order.setOrderStatus(101);
-        baseMapper.updateById(order);
         customDesignService.cancelOrder(orderId);
     }
 
@@ -385,10 +386,13 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         if (Integer.valueOf(4).equals(order.getPayStatus())) {
             return;
         }
+        if (!Set.of(401, 402).contains(refundedOrderStatus)) {
+            throw new IllegalArgumentException("退款订单状态不正确");
+        }
+        if (baseMapper.markRefunded(orderId, refundedOrderStatus) != 1) {
+            throw new IllegalArgumentException("订单状态不允许退款");
+        }
         restoreOrderResources(orderId);
-        order.setPayStatus(4);
-        order.setOrderStatus(refundedOrderStatus);
-        baseMapper.updateById(order);
         customDesignService.cancelOrder(orderId);
     }
 

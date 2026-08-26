@@ -232,6 +232,12 @@ public class AppPayController extends AppBaseController {
         } catch (IllegalStateException e) {
             return RestResponse.fail(e.getMessage());
         }
+        int refundedStatus;
+        if (orderInfo.getOrderStatus() == 201) {
+            refundedStatus = 401;
+        } else {
+            return RestResponse.fail("已发货订单请联系客服办理退货退款");
+        }
         WxPayRefundRequest request = new WxPayRefundRequest();
         request.setOutTradeNo(orderInfo.getOrderSn());
         request.setOutRefundNo(orderInfo.getOrderSn());
@@ -246,14 +252,6 @@ public class AppPayController extends AppBaseController {
         }
 
         if ("SUCCESS".equals(result.getResultCode())) {
-            int refundedStatus;
-            if (orderInfo.getOrderStatus() == 201) {
-                refundedStatus = 401;
-            } else if (orderInfo.getOrderStatus() == 300) {
-                refundedStatus = 402;
-            } else {
-                return RestResponse.fail("当前订单状态不允许退款");
-            }
             orderService.completeRefund(orderId, refundedStatus);
             return RestResponse.ok("成功退款");
         } else {

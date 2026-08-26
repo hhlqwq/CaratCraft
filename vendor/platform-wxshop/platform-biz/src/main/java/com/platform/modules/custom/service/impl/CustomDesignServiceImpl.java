@@ -2,7 +2,7 @@ package com.platform.modules.custom.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
@@ -106,13 +106,13 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         CustomQuoteRequest request = JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
         Map<String, Object> quote = quoteService.quote(request);
         BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
-        int updated = snapshotDao.update(null, new LambdaUpdateWrapper<CustomDesignSnapshotEntity>()
-                .eq(CustomDesignSnapshotEntity::getId, snapshotId)
-                .eq(CustomDesignSnapshotEntity::getUserId, userId)
-                .eq(CustomDesignSnapshotEntity::getStatus, "DRAFT")
-                .set(CustomDesignSnapshotEntity::getPriceBreakdownJson, JSON.toJSONString(quote))
-                .set(CustomDesignSnapshotEntity::getStatus, "LOCKED")
-                .set(CustomDesignSnapshotEntity::getUpdateTime, new Date()));
+        int updated = snapshotDao.update(null, new UpdateWrapper<CustomDesignSnapshotEntity>()
+                .eq("id", snapshotId)
+                .eq("user_id", userId)
+                .eq("status", "DRAFT")
+                .set("price_breakdown_json", JSON.toJSONString(quote))
+                .set("status", "LOCKED")
+                .set("update_time", new Date()));
         if (updated != 1) {
             throw new IllegalArgumentException("设计已被其他结算请求占用");
         }
@@ -178,7 +178,6 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Integer orderId) {
-        assertOrderCancellable(orderId);
         CustomOrderCustomizationEntity binding = orderCustomizationDao.selectOne(
                 new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
                         .eq(CustomOrderCustomizationEntity::getOrderId, orderId));
