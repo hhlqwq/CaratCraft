@@ -177,9 +177,9 @@ wx:
     aesKey:
   miniapp:
     #微信小程序的appid
-    appid:
+    appid: wxc9a3e86a266c5979
     #微信小程序的Secret
-    secret:
+    secret: REDACTED_CREDENTIAL
     #微信小程序消息服务器配置的token
     token:
     #微信小程序消息服务器配置的EncodingAESKey

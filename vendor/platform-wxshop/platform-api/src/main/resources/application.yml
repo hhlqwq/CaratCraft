@@ -160,7 +160,7 @@ wx:
     token: # 接口配置里的Token值
     aesKey: # 接口配置里的EncodingAESKey值
   miniapp:
-    appid: wx7d1077edf1fd3ae5 #微信小程序的appid
+    appid: wxc9a3e86a266c5979 #微信小程序的appid
     secret: REDACTED_CREDENTIAL #微信小程序的Secret
     token: #微信小程序消息服务器配置的token
     aesKey: #微信小程序消息服务器配置的EncodingAESKey
@@ -168,7 +168,7 @@ wx:
   #微信支付配置
   pay:
     #微信公众号或者小程序等的appid
-    appId: wx7d1077edf1fd3ae5
+    appId: wxc9a3e86a266c5979
     #微信支付商户号
     mchId: 1540420821
     #微信支付商户密钥
