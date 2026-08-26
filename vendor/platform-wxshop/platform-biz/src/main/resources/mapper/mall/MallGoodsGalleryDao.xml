@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallGoodsGalleryDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.GOODS_ID,
+        T.IMG_URL,
+        T.IMG_DESC,
+        T.SORT_ORDER
+        FROM MALL_GOODS_GALLERY T
+        WHERE 1=1
+        <if test="params.id != null and params.id != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.goodsId != null and params.goodsId != ''">
+            AND T.GOODS_ID = #{params.goodsId}
+        </if>
+    </sql>
+
+    <select id="selectMallGoodsGalleryPage" resultType="com.platform.modules.mall.entity.MallGoodsGalleryEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallGoodsGalleryEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallGoodsGalleryEntity">
+        select
+        <if test="fields != null and fields != ''">
+            ${fields}
+        </if>
+        <if test="fields == null or fields == ''">
+            *
+        </if>
+        from mall_goods_gallery
+        <where>
+            <if test="goodsId != null">
+                and goods_id = #{goodsId}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+</mapper>

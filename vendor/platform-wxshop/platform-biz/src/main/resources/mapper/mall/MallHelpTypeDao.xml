@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallHelpTypeDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.TYPE_NAME,
+        T.SORT
+        FROM MALL_HELP_TYPE T
+        WHERE 1=1
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.typeName != null and params.typeName.trim() != ''">
+            AND T.TYPE_NAME LIKE CONCAT('%', #{params.typeName}, '%')
+        </if>
+    </sql>
+
+    <select id="selectMallHelpTypePage" resultType="com.platform.modules.mall.entity.MallHelpTypeEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallHelpTypeEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallHelpTypeEntity">
+        select
+        `id`,
+        `type_name`,
+        `sort`
+        from mall_help_type
+        WHERE 1=1
+        <if test="name != null and name.trim() != ''">
+            AND name LIKE concat('%',#{name},'%')
+        </if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by sort asc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+</mapper>

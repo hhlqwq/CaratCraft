@@ -1,0 +1,18 @@
+.page { background: #f7f5f2; min-height: 100vh; padding: 24rpx 24rpx 136rpx; }
+.preview-card, .section { background: #fff; border-radius: 20rpx; margin-bottom: 24rpx; padding: 24rpx; }
+.preview-stage { background: #f1ede7; height: 560rpx; position: relative; overflow: hidden; border-radius: 12rpx; }
+.preview-layer { height: 100%; left: 0; position: absolute; top: 0; width: 100%; }
+.preview-placeholder { color: #998f86; left: 0; position: absolute; text-align: center; top: 250rpx; width: 100%; }
+.price-label, .price-note, .option-price { color: #8c837c; font-size: 24rpx; }
+.price-label { margin-top: 24rpx; }
+.price { color: #b47a3f; font-size: 48rpx; font-weight: 600; }
+.section-title { color: #302923; font-size: 30rpx; font-weight: 600; margin-bottom: 18rpx; }
+.option-scroll { white-space: nowrap; }
+.option { border: 2rpx solid #e8e2dc; border-radius: 12rpx; display: inline-block; margin-right: 16rpx; min-height: 150rpx; padding: 16rpx; text-align: center; vertical-align: top; width: 150rpx; }
+.option.selected { border-color: #b47a3f; color: #8b5b2d; }
+.option-image { height: 76rpx; width: 76rpx; }
+.engraving { background: #f7f5f2; border-radius: 12rpx; box-sizing: border-box; padding: 22rpx; width: 100%; }
+.bottom-bar { background: #fff; bottom: 0; box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, .06); display: flex; gap: 16rpx; left: 0; padding: 18rpx 24rpx; position: fixed; right: 0; }
+.bottom-bar button { flex: 1; font-size: 28rpx; }
+.secondary { background: #fff; border: 2rpx solid #b47a3f; color: #8b5b2d; }
+.primary { background: #b47a3f; color: #fff; }

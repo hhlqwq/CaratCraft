@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="header">
+    <button class="profile-btn" bindtap="getUserProfile">
+      <image class="avatar" src="{{ avatarUrl }}" mode="aspectFill"></image>
+      <view class="meta">
+        <text class="nickname">{{ nicknameText }}</text>
+      </view>
+    </button>
+  </view>
+
+  <view class="menu-card">
+    <navigator wx:for="{{menuItems}}" wx:key="url" class="menu-item" url="{{item.url}}">
+      <view class="icon-badge">{{ item.badge }}</view>
+      <text class="txt">{{ item.title }}</text>
+    </navigator>
+
+    <button class="menu-item contact-btn" open-type="contact">
+      <view class="icon-badge">服</view>
+      <text class="txt">联系客服</text>
+    </button>
+
+    <navigator wx:if="{{!hasMobile}}" class="menu-item" url="/pages/auth/mobile/mobile">
+      <view class="icon-badge">绑</view>
+      <text class="txt">绑定手机</text>
+    </navigator>
+  </view>
+
+  <view class="company">安徽微同科技有限公司提供技术支持 © openwtai.com</view>
+  <view class="logout" wx:if="{{ userInfo.userName != '点击去登录' }}" bindtap="exitLogin">退出登录</view>
+</view>

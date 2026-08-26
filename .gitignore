@@ -1,0 +1,5 @@
+.tools/
+vendor/platform-wxshop/deploy/data/
+vendor/platform-wxshop/deploy/packages/
+vendor/platform-wxshop/**/target/
+vendor/platform-wxshop/**/node_modules/
