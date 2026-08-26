@@ -2,6 +2,7 @@ package com.platform.modules.custom.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 定制设计服务实现 / Custom design service implementation.
@@ -56,6 +58,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         snapshot.setPreviewUrl(request.getPreviewUrl());
         snapshot.setStatus("DRAFT");
         snapshot.setCreateTime(new Date());
+        snapshot.setUpdateTime(new Date());
         snapshotDao.insert(snapshot);
 
         Map<String, Object> result = new LinkedHashMap<>();
@@ -83,20 +86,36 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                 .orderByDesc(CustomDesignSnapshotEntity::getCreateTime));
     }
 
+    /** 解析快照并返回最新报价 / Parses a snapshot and returns its latest quote. */
+    @Override
+    public Map<String, Object> quoteOwned(Long snapshotId, Long userId) {
+        CustomDesignSnapshotEntity snapshot = getOwned(snapshotId, userId);
+        CustomQuoteRequest request = JSON.parseObject(
+                snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+        return quoteService.quote(request);
+    }
+
     /** 按最新商品和选项价格重新报价并锁定 / Requotes with current prices and locks the design. */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public BigDecimal lockAndGetPrice(Long snapshotId, Long userId) {
         CustomDesignSnapshotEntity snapshot = getOwned(snapshotId, userId);
-        if ("ORDERED".equals(snapshot.getStatus())) {
-            throw new IllegalArgumentException("该设计已提交订单");
+        if (!"DRAFT".equals(snapshot.getStatus())) {
+            throw new IllegalArgumentException("该设计正在结算或已提交订单");
         }
         CustomQuoteRequest request = JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
         Map<String, Object> quote = quoteService.quote(request);
         BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
-        snapshot.setPriceBreakdownJson(JSON.toJSONString(quote));
-        snapshot.setStatus("LOCKED");
-        snapshotDao.updateById(snapshot);
+        int updated = snapshotDao.update(null, new LambdaUpdateWrapper<CustomDesignSnapshotEntity>()
+                .eq(CustomDesignSnapshotEntity::getId, snapshotId)
+                .eq(CustomDesignSnapshotEntity::getUserId, userId)
+                .eq(CustomDesignSnapshotEntity::getStatus, "DRAFT")
+                .set(CustomDesignSnapshotEntity::getPriceBreakdownJson, JSON.toJSONString(quote))
+                .set(CustomDesignSnapshotEntity::getStatus, "LOCKED")
+                .set(CustomDesignSnapshotEntity::getUpdateTime, new Date()));
+        if (updated != 1) {
+            throw new IllegalArgumentException("设计已被其他结算请求占用");
+        }
         return totalPrice;
     }
 
@@ -117,6 +136,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         binding.setUpdateTime(new Date());
         orderCustomizationDao.insert(binding);
         snapshot.setStatus("ORDERED");
+        snapshot.setUpdateTime(new Date());
         snapshotDao.updateById(snapshot);
     }
 
@@ -139,6 +159,9 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             return;
         }
         CustomDesignSnapshotEntity snapshot = snapshotDao.selectById(binding.getSnapshotId());
+        if (snapshot == null) {
+            throw new IllegalStateException("定制设计快照不存在");
+        }
         ProductionWorkOrderEntity workOrder = new ProductionWorkOrderEntity();
         workOrder.setWorkOrderNo("CC-" + orderId);
         workOrder.setOrderId(orderId);
@@ -149,5 +172,44 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         workOrder.setCreateTime(new Date());
         workOrder.setUpdateTime(new Date());
         workOrderDao.insert(workOrder);
+    }
+
+    /** 取消尚未完成的定制生产流程 / Cancels an unfinished production workflow. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelOrder(Integer orderId) {
+        assertOrderCancellable(orderId);
+        CustomOrderCustomizationEntity binding = orderCustomizationDao.selectOne(
+                new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
+                        .eq(CustomOrderCustomizationEntity::getOrderId, orderId));
+        if (binding == null) {
+            return;
+        }
+        binding.setStatus("CANCELLED");
+        binding.setUpdateTime(new Date());
+        orderCustomizationDao.updateById(binding);
+        ProductionWorkOrderEntity workOrder = workOrderDao.selectOne(
+                new LambdaQueryWrapper<ProductionWorkOrderEntity>()
+                        .eq(ProductionWorkOrderEntity::getOrderId, orderId));
+        if (workOrder != null && !"COMPLETED".equals(workOrder.getStatus())) {
+            workOrder.setStatus("CANCELLED");
+            workOrder.setUpdateTime(new Date());
+            workOrderDao.updateById(workOrder);
+        }
+    }
+
+    /** 校验已开工的定制订单不可直接退款 / Prevents direct refunds after production starts. */
+    @Override
+    public void assertOrderCancellable(Integer orderId) {
+        ProductionWorkOrderEntity workOrder = workOrderDao.selectOne(
+                new LambdaQueryWrapper<ProductionWorkOrderEntity>()
+                        .eq(ProductionWorkOrderEntity::getOrderId, orderId));
+        if (workOrder == null) {
+            return;
+        }
+        Set<String> nonCancellable = Set.of("PRODUCING", "QUALITY_CHECK", "COMPLETED");
+        if (nonCancellable.contains(workOrder.getStatus())) {
+            throw new IllegalStateException("定制商品已进入生产，请联系客服处理退款");
+        }
     }
 }

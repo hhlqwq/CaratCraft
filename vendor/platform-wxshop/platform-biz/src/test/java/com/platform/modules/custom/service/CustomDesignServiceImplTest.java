@@ -11,6 +11,7 @@ import com.platform.modules.custom.service.impl.CustomDesignServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -67,6 +68,7 @@ class CustomDesignServiceImplTest {
         verify(snapshotDao).insert(snapshotCaptor.capture());
         CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
+        when(snapshotDao.update(any(), any(Wrapper.class))).thenReturn(1);
 
         assertEquals(new BigDecimal("219.00"), service.lockAndGetPrice(88L, 7L));
         service.bindOrder(88L, 7L, 100, 101);

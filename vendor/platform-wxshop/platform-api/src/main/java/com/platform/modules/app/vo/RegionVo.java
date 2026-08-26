@@ -4,7 +4,7 @@ import com.platform.modules.sys.entity.SysRegionEntity;
 import lombok.Data;
 
 /**
- * @author lipengjun
+ * @author hehailong
  * @email 939961241@qq.com
  * @date 2017-08-15 08:03:41
  */

@@ -329,7 +329,7 @@ CREATE TABLE `SYS_CONFIG` (
 -- Records of SYS_CONFIG
 -- ----------------------------
 INSERT INTO `SYS_CONFIG` VALUES ('1', 'CLOUD_STORAGE_CONFIG_KEY', '{\"type\":2,\"qiniuDomain\":\"\",\"qiniuPrefix\":\"\",\"qiniuAccessKey\":\"\",\"qiniuSecretKey\":\"\",\"qiniuBucketName\":\"\",\"aliyunDomain\":\"https://platform-wxmall.oss-cn-beijing.aliyuncs.com\",\"aliyunPrefix\":\"image\",\"aliyunEndPoint\":\"oss-cn-beijing.aliyuncs.com\",\"aliyunAccessKeyId\":\"\",\"aliyunAccessKeySecret\":\"\",\"aliyunBucketName\":\"platform-wxmall\",\"qcloudDomain\":\"\",\"qcloudPrefix\":\"\",\"qcloudSecretId\":\"\",\"qcloudSecretKey\":\"\",\"qcloudBucketName\":\"\",\"diskPath\":\"/usr/local/nginx/html/upload\",\"proxyServer\":\"http://132.232.89.47/upload\"}', '0', '云存储配置信息');
-INSERT INTO `SYS_CONFIG` VALUES ('2', 'SMS_CONFIG_KEY', '{\"domain\":\"http://web.cr6868.com/asmx/smsservice.aspx?\",\"name\":\"lipengjun\",\"pwd\":\"\",\"sign\":\"【微同科技】\",\"type\":1}', '0', '短信配置');
+INSERT INTO `SYS_CONFIG` VALUES ('2', 'SMS_CONFIG_KEY', '{\"domain\":\"http://web.cr6868.com/asmx/smsservice.aspx?\",\"name\":\"hehailong\",\"pwd\":\"\",\"sign\":\"【微同科技】\",\"type\":1}', '0', '短信配置');
 
 -- ----------------------------
 -- Table structure for `SYS_DICT`
@@ -734,7 +734,7 @@ CREATE TABLE `SYS_USER` (
 -- ----------------------------
 -- Records of SYS_USER
 -- ----------------------------
-INSERT INTO `SYS_USER` VALUES ('1', 'admin', '李鹏军', '1', '01', 'YzcmCZNvbXocrsz9dm8e', 'smtp.qq.com', '939961241@qq.com', '', '15209831990', '1', '9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d', '', NULL, '2016-11-11 11:11:11');
+INSERT INTO `SYS_USER` VALUES ('1', 'admin', '何海龙', '1', '01', 'YzcmCZNvbXocrsz9dm8e', 'smtp.qq.com', '939961241@qq.com', '', '15209831990', '1', '9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d', '', NULL, '2016-11-11 11:11:11');
 
 -- ----------------------------
 -- Table structure for `SYS_USER_ROLE`

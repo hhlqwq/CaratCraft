@@ -22,5 +22,6 @@ public class CustomProductEntity implements Serializable {
     private Integer previewWidth;
     private Integer previewHeight;
     private String modelUrl;
+    private String requiredComponentTypes;
     private Integer enabled;
 }

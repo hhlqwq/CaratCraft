@@ -28,7 +28,7 @@ import java.util.Map;
  * 作者: @author Harmon <br>
  * 时间: 2017-08-11 08:32<br>
  *
- * @gitee https://gitee.com/fuyang_lipengjun/platform
+ * @gitee https://gitee.com/hehailong/platform
  * 描述: AppController <br>
  */
 @Tag(name = "购物车-AppCartController")

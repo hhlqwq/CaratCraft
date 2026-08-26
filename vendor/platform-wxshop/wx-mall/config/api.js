@@ -25,6 +25,7 @@ module.exports = {
   CustomizationQuote: API_BASE_URL + 'customization/quote', //服务端定制报价
   CustomizationSave: API_BASE_URL + 'customization/save', //保存定制设计
   CustomizationList: API_BASE_URL + 'customization/list', //我的定制设计
+  CustomizationCheckoutQuote: API_BASE_URL + 'customization/checkout-quote', //结算前最新报价
 
   BrandList: API_BASE_URL + 'brand/list', //品牌列表
   BrandDetail: API_BASE_URL + 'brand/detail', //品牌详情

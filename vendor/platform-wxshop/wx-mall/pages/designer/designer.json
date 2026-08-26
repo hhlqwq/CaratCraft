@@ -1,5 +1,8 @@
 {
   "navigationBarTitleText": "定制项链",
   "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "xr-necklace-viewer": "/components/xr-necklace-viewer/index"
+  }
 }

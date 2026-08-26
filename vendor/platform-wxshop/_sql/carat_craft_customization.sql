@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `CC_CUSTOM_PRODUCT` (
   `preview_width` int NOT NULL DEFAULT 750,
   `preview_height` int NOT NULL DEFAULT 750,
   `model_url` varchar(512) DEFAULT NULL,
+  `required_component_types` varchar(512) DEFAULT NULL,
   `enabled` tinyint NOT NULL DEFAULT 1,
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS `CC_DESIGN_SNAPSHOT` (
   `preview_url` varchar(512) DEFAULT NULL,
   `status` varchar(32) NOT NULL DEFAULT 'DRAFT',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`), KEY `idx_cc_snapshot_user` (`user_id`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft设计快照 / design snapshot';
 

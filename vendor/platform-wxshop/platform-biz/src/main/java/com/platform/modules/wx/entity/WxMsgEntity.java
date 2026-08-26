@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.wx.entity;
@@ -36,7 +36,7 @@ import java.util.Date;
  * 使用mybatis-plus可以提高应用程序操作数据库的效率，让开发人员专注于业务逻辑实现。在使用mybatis-plus操作json字段的要点主要有:
  * 在需要处理的字段上使用@TableField(typeHandler = JacksonTypeHandler.class)，同时实体开启@TableName(autoResultMap = true)
  *
- * @author 李鹏军
+ * @author 何海龙
  * @date 2021-05-06 18:30:15
  */
 @Data

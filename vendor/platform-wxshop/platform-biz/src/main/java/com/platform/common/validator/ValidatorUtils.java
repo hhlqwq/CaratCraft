@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.common.validator;
@@ -30,7 +30,7 @@ import java.util.Set;
  * <p>
  * 参考文档：http://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/
  *
- * @author 李鹏军
+ * @author 何海龙
  */
 public class ValidatorUtils {
     private static Validator validator;

@@ -42,9 +42,26 @@ Page({
     let that = this;
     var url = api.CartCheckout
     let buyType = this.data.isBuy ? 'buy' : 'cart'
-    util.request(url, { addressId: that.data.addressId, couponId: that.data.couponId, type: buyType }).then(function (res) {
+    var checkoutRequest = util.request(url, {
+      addressId: that.data.addressId,
+      couponId: that.data.couponId,
+      type: buyType
+    });
+    var quoteRequest = that.data.designSnapshotId
+      ? util.request(api.CustomizationCheckoutQuote, {
+        snapshotId: that.data.designSnapshotId
+      })
+      : Promise.resolve({code: 0, data: null});
+    Promise.all([checkoutRequest, quoteRequest]).then(function (results) {
+      var res = results[0];
+      var quoteRes = results[1];
+      if (quoteRes.code !== 0) {
+        util.showErrorToast(quoteRes.msg || '定制报价已失效');
+        wx.hideLoading();
+        return;
+      }
       if (res.code === 0) {
-        var designQuote = that.data.designSnapshotId ? wx.getStorageSync('designQuote') : null;
+        var designQuote = quoteRes.data;
         var displayGoodsTotal = designQuote ? Number(designQuote.totalPrice) : res.data.goodsTotalPrice;
         var displayOrderTotal = designQuote ? displayGoodsTotal + Number(res.data.freightPrice || 0) : res.data.orderTotalPrice;
         var displayActual = designQuote ? Math.max(0, displayOrderTotal - Number(res.data.couponPrice || 0)) : res.data.actualPrice;
@@ -78,6 +95,9 @@ Page({
         }
       }
       wx.hideLoading();
+    }).catch(function () {
+      wx.hideLoading();
+      util.showErrorToast('结算信息加载失败');
     });
   },
   selectAddress() {

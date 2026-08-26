@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.mall.dao;
@@ -23,6 +23,7 @@ import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallProductEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 import java.util.Map;
@@ -37,4 +38,13 @@ public interface MallProductDao extends BaseMapper<MallProductEntity> {
     List<MallProductEntity> queryAll(@Param("params") Map<String, Object> params);
 
     List<MallProductEntity> queryList(Map<String, Object> param);
+
+    /** 原子扣减库存 / Atomically deducts stock. */
+    @Update("UPDATE MALL_PRODUCT SET goods_number = goods_number - #{number} "
+            + "WHERE id = #{productId} AND goods_number >= #{number}")
+    int deductStock(@Param("productId") Integer productId, @Param("number") Integer number);
+
+    /** 恢复库存 / Restores stock. */
+    @Update("UPDATE MALL_PRODUCT SET goods_number = goods_number + #{number} WHERE id = #{productId}")
+    int restoreStock(@Param("productId") Integer productId, @Param("number") Integer number);
 }

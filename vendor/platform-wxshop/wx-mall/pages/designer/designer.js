@@ -1,5 +1,6 @@
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
+var model3d = require('../../utils/model3d.js');
 
 /**
  * 项链 DIY 页面 / Necklace DIY page.
@@ -13,7 +14,12 @@ Page({
     engraving: '',
     quote: {},
     primaryProductId: 0,
-    saving: false
+    saving: false,
+    productConfig: {},
+    previewMode: '2d',
+    xrSupported: false,
+    xrFailed: false,
+    models3d: []
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
@@ -33,8 +39,11 @@ Page({
       });
       that.setData({
         componentGroups: Object.keys(groups).map(function (key) { return groups[key]; }),
-        primaryProductId: res.data.primaryProductId
+        primaryProductId: res.data.primaryProductId,
+        productConfig: res.data.product,
+        xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame'))
       });
+      that.refresh3dPreview();
     });
   },
 
@@ -61,6 +70,7 @@ Page({
     });
     this.setData({ selectedOptionIds: selected, componentGroups: groups });
     this.refreshPreview();
+    this.refresh3dPreview();
     this.refreshQuote();
   },
 
@@ -75,6 +85,40 @@ Page({
     });
     layers.sort(function (left, right) { return left.zIndex - right.zIndex; });
     this.setData({ selectedLayers: layers });
+  },
+
+  /** 刷新当前选择对应的三维模型 / Refreshes 3D models for the current selection. */
+  refresh3dPreview: function () {
+    var models = [];
+    var product = this.data.productConfig;
+    if (product && product.modelUrl) {
+      models.push(model3d.createXrModel('base', product.modelUrl, null));
+    }
+    var selected = this.data.selectedOptionIds;
+    this.data.componentGroups.forEach(function (group) {
+      group.options.forEach(function (option) {
+        if (selected.indexOf(option.id) >= 0 && option.modelUrl) {
+          models.push(model3d.createXrModel(option.id, option.modelUrl, option.materialParams));
+        }
+      });
+    });
+    this.setData({ models3d: models });
+  },
+
+  /** 切换二维或三维预览 / Switches between 2D and 3D previews. */
+  switchPreview: function (event) {
+    var mode = event.currentTarget.dataset.mode;
+    if (mode === '3d' && (!this.data.xrSupported || !this.data.models3d.length)) {
+      wx.showToast({ title: '当前设备或商品暂不支持 3D', icon: 'none' });
+      return;
+    }
+    this.setData({ previewMode: mode, xrFailed: false });
+  },
+
+  /** 三维加载失败时回退二维预览 / Falls back to 2D when 3D loading fails. */
+  handleXrError: function () {
+    this.setData({ previewMode: '2d', xrFailed: true });
+    wx.showToast({ title: '3D 加载失败，已切换 2D', icon: 'none' });
   },
 
   /** 更新刻字 / Updates engraving text. */
@@ -147,5 +191,10 @@ Page({
   onLoad: function (options) {
     this.setData({ goodsId: Number(options.goodsId || 0) });
     if (this.data.goodsId) this.loadConfig();
+  },
+
+  /** 页面卸载时释放三维数据引用 / Releases 3D data references on unload. */
+  onUnload: function () {
+    this.setData({ models3d: [], previewMode: '2d' });
   }
 });

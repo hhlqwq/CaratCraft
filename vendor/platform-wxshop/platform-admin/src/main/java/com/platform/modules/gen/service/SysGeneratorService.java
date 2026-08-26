@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.gen.service;
@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 代码生成器
  *
- * @author lipengjun
+ * @author hehailong
  * @email 939961241@qq.com
  * @since 2016年12月19日 下午3:33:38
  */

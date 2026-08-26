@@ -13,12 +13,13 @@ import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.RestResponse;
+import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
-import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.modules.mall.service.OrderPaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ import java.util.Map;
  * 作者: @author Harmon <br>
  * 时间: 2017-08-11 08:32<br>
  *
- * @gitee https://gitee.com/fuyang_lipengjun/platform
+ * @gitee https://gitee.com/hehailong/platform
  * 描述: AppController <br>
  */
 @Tag(name = "商户支付-AppPayController")
@@ -55,6 +55,8 @@ public class AppPayController extends AppBaseController {
     private MallOrderGoodsService orderGoodsService;
     @Autowired
     private WxPayService weixinPayService;
+    @Autowired
+    private OrderPaymentService orderPaymentService;
     @Autowired
     private CustomDesignService customDesignService;
     @Value("${wx.pay.baseNotifyUrl}")
@@ -140,15 +142,7 @@ public class AppPayController extends AppBaseController {
 
             String tradeState = result.getTradeState();
             if ("SUCCESS".equals(tradeState)) {
-                // 更改订单状态
-                MallOrderEntity orderInfo = new MallOrderEntity();
-                orderInfo.setId(orderId);
-                orderInfo.setPayStatus(2);
-                orderInfo.setOrderStatus(201);
-                orderInfo.setShippingStatus(0);
-                orderInfo.setPayTime(new Date());
-                orderService.update(orderInfo);
-                customDesignService.markOrderPaid(orderId);
+                orderPaymentService.markPaid(orderId, result.getTotalFee());
                 return RestResponse.ok("支付成功");
             } else if ("USERPAYING".equals(tradeState)) {
                 return RestResponse.fail("订单支付中，请稍后重试");
@@ -194,19 +188,23 @@ public class AppPayController extends AppBaseController {
                 log.error("订单" + outTradeNo + "支付失败");
                 response.getWriter().write(setXml("SUCCESS", "OK"));
             } else if ("SUCCESS".equalsIgnoreCase(resultCode)) {
-                log.error("订单" + outTradeNo + "支付成功");
+                log.info("订单{}支付成功", outTradeNo);
                 // 业务处理
                 MallOrderEntity orderInfo = orderService.getOne(new QueryWrapper<MallOrderEntity>().eq("order_sn", outTradeNo));
-                orderInfo.setPayStatus(2);
-                orderInfo.setOrderStatus(201);
-                orderInfo.setShippingStatus(0);
-                orderInfo.setPayTime(new Date());
-                orderService.update(orderInfo);
-                customDesignService.markOrderPaid(orderInfo.getId());
+                if (orderInfo == null) {
+                    response.getWriter().write(setXml("FAIL", "ORDER_NOT_FOUND"));
+                    return;
+                }
+                orderPaymentService.markPaid(orderInfo.getId(), result.getTotalFee());
                 response.getWriter().write(setXml("SUCCESS", "OK"));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("处理微信支付回调失败", e);
+            try {
+                response.getWriter().write(setXml("FAIL", "PROCESS_ERROR"));
+            } catch (Exception writeException) {
+                log.error("写入微信支付回调响应失败", writeException);
+            }
         }
     }
 
@@ -229,6 +227,11 @@ public class AppPayController extends AppBaseController {
         if (orderInfo.getOrderStatus() == 401 || orderInfo.getOrderStatus() == 402) {
             return RestResponse.fail("订单已退款");
         }
+        try {
+            customDesignService.assertOrderCancellable(orderId);
+        } catch (IllegalStateException e) {
+            return RestResponse.fail(e.getMessage());
+        }
         WxPayRefundRequest request = new WxPayRefundRequest();
         request.setOutTradeNo(orderInfo.getOrderSn());
         request.setOutRefundNo(orderInfo.getOrderSn());
@@ -243,12 +246,15 @@ public class AppPayController extends AppBaseController {
         }
 
         if ("SUCCESS".equals(result.getResultCode())) {
+            int refundedStatus;
             if (orderInfo.getOrderStatus() == 201) {
-                orderInfo.setOrderStatus(401);
+                refundedStatus = 401;
             } else if (orderInfo.getOrderStatus() == 300) {
-                orderInfo.setOrderStatus(402);
+                refundedStatus = 402;
+            } else {
+                return RestResponse.fail("当前订单状态不允许退款");
             }
-            orderService.update(orderInfo);
+            orderService.completeRefund(orderId, refundedStatus);
             return RestResponse.ok("成功退款");
         } else {
             return RestResponse.fail("退款失败");

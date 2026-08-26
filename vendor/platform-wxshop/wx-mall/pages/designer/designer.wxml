@@ -1,9 +1,19 @@
 <view class="page">
   <view class="preview-card">
-    <view class="preview-stage">
-      <image class="preview-layer" wx:for="{{selectedLayers}}" wx:key="id" src="{{item.assetUrl}}" mode="aspectFit" style="z-index: {{item.zIndex}}"></image>
-      <view wx:if="{{!selectedLayers.length}}" class="preview-placeholder">请选择组件开始设计</view>
+    <view class="preview-tabs">
+      <view class="preview-tab {{previewMode === '2d' ? 'active' : ''}}"
+            data-mode="2d" bindtap="switchPreview">2D 预览</view>
+      <view class="preview-tab {{previewMode === '3d' ? 'active' : ''}}"
+            data-mode="3d" bindtap="switchPreview">3D 预览</view>
     </view>
+    <view class="preview-stage">
+      <block wx:if="{{previewMode === '2d'}}">
+        <image class="preview-layer" wx:for="{{selectedLayers}}" wx:key="id" src="{{item.assetUrl}}" mode="aspectFit" style="z-index: {{item.zIndex}}"></image>
+        <view wx:if="{{!selectedLayers.length}}" class="preview-placeholder">请选择组件开始设计</view>
+      </block>
+      <xr-necklace-viewer wx:else models="{{models3d}}" bind:error="handleXrError" />
+    </view>
+    <view wx:if="{{xrFailed}}" class="preview-warning">3D 模型加载失败，当前使用 2D 预览。</view>
     <view class="price-label">预估价格</view>
     <view class="price">¥ {{quote.totalPrice || '--'}}</view>
     <view class="price-note">最终价格以提交订单时的服务端报价为准</view>

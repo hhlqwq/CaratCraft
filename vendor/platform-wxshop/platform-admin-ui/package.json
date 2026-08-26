@@ -2,9 +2,9 @@
   "name": "platform-admin-ui",
   "version": "1.0.0",
   "description": "微同软件管理平台",
-  "author": "李鹏军 <939961241@qq.com>",
+  "author": "何海龙 <939961241@qq.com>",
   "private": false,
-  "repository": "https://gitee.com/fuyang_lipengjun/platform",
+  "repository": "https://gitee.com/hehailong/platform",
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",

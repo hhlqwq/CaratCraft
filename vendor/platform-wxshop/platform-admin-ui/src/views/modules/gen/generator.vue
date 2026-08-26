@@ -80,7 +80,7 @@ export default {
         tableName: '',
         projectName: 'platform',
         packageName: 'com.platform.modules',
-        author: '李鹏军'
+        author: '何海龙'
       },
       dataList: [],
       pageIndex: 1,

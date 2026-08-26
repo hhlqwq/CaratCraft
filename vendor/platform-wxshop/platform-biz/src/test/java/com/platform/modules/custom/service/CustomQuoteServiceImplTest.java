@@ -1,8 +1,10 @@
 package com.platform.modules.custom.service;
 
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
+import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
+import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.impl.CustomQuoteServiceImpl;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.when;
 class CustomQuoteServiceImplTest {
     private MallGoodsService goodsService;
     private CustomComponentOptionDao optionDao;
+    private CustomProductDao productDao;
     private CustomQuoteServiceImpl service;
 
     /** 初始化报价依赖 / Initializes quote dependencies. */
@@ -32,13 +35,19 @@ class CustomQuoteServiceImplTest {
     void setUp() {
         goodsService = mock(MallGoodsService.class);
         optionDao = mock(CustomComponentOptionDao.class);
-        service = new CustomQuoteServiceImpl(goodsService, optionDao);
+        productDao = mock(CustomProductDao.class);
+        service = new CustomQuoteServiceImpl(goodsService, optionDao, productDao);
 
         MallGoodsEntity goods = new MallGoodsEntity();
         goods.setId(10);
         goods.setIsOnSale(1);
         goods.setRetailPrice(new BigDecimal("199.00"));
         when(goodsService.getById(10)).thenReturn(goods);
+        CustomProductEntity product = new CustomProductEntity();
+        product.setGoodsId(10);
+        product.setEnabled(1);
+        product.setRequiredComponentTypes("CHAIN,PENDANT");
+        when(productDao.selectOne(any())).thenReturn(product);
         when(optionDao.selectList(any())).thenReturn(Arrays.asList(
                 option(1L, "CHAIN", "20.00"), option(2L, "PENDANT", "35.00"),
                 option(3L, "CHAIN", "50.00")));
@@ -56,6 +65,13 @@ class CustomQuoteServiceImplTest {
     @Test
     void quoteRejectsTwoOptionsFromSameGroup() {
         CustomQuoteRequest request = request(1L, 3L);
+        assertThrows(IllegalArgumentException.class, () -> service.quote(request));
+    }
+
+    /** 验证缺少必选组件时拒绝报价 / Verifies required component validation. */
+    @Test
+    void quoteRejectsMissingRequiredGroup() {
+        CustomQuoteRequest request = request(1L);
         assertThrows(IllegalArgumentException.class, () -> service.quote(request));
     }
 

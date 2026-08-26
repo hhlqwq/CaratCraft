@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.mall.service.impl;
@@ -30,6 +30,7 @@ import com.platform.modules.mall.dao.*;
 import com.platform.modules.mall.dto.BuyGoodsRequest;
 import com.platform.modules.mall.entity.*;
 import com.platform.modules.mall.service.MallOrderService;
+import com.platform.modules.mall.service.MallGoodsService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
@@ -47,7 +48,7 @@ import java.util.*;
  * 基于 MyBatis-Plus 的 ServiceImpl 提供订单模块的 CRUD 与分页查询实现。
  * </p>
  *
- * @author 李鹏军
+ * @author 何海龙
  * @since 2026-03-15 14:30:00
  */
 @Service("mallOrderService")
@@ -62,6 +63,10 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     private MallOrderGoodsDao orderGoodsDao;
     @Autowired
     private MallCouponDao couponDao;
+    @Autowired
+    private MallUserCouponDao userCouponDao;
+    @Autowired
+    private MallGoodsService goodsService;
     @Autowired
     private RedisTemplateUtil redisTemplateUtil;
     @Autowired
@@ -140,6 +145,9 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         if (addressVo == null || !loginUser.getId().equals(addressVo.getUserId())) {
             throw new IllegalArgumentException("收货地址不存在或无权使用");
         }
+        if (!"cart".equals(type) && !"buy".equals(type)) {
+            throw new IllegalArgumentException("不支持的购买类型");
+        }
         if (designSnapshotId != null && "cart".equals(type)) {
             throw new IllegalArgumentException("定制商品仅支持立即购买");
         }
@@ -155,7 +163,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             param.put("SESSION_ID", 1);
             param.put("CHECKED", 1);
             checkedGoodsList = cartDao.selectByMap(param);
-            if (null == checkedGoodsList) {
+            if (checkedGoodsList == null || checkedGoodsList.isEmpty()) {
                 resultObj.put("code", 400);
                 resultObj.put("msg", "请选择商品");
                 return resultObj;
@@ -163,14 +171,22 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             //统计商品总价
             goodsTotalPrice = new BigDecimal(0.00);
             for (MallCartEntity cartItem : checkedGoodsList) {
-                goodsTotalPrice = goodsTotalPrice.add(cartItem.getRetailPrice().multiply(new BigDecimal(cartItem.getNumber())));
+                MallProductEntity currentProduct = validateProduct(
+                        cartItem.getProductId(), cartItem.getGoodsId(), cartItem.getNumber());
+                cartItem.setRetailPrice(currentProduct.getRetailPrice());
+                goodsTotalPrice = goodsTotalPrice.add(
+                        currentProduct.getRetailPrice().multiply(BigDecimal.valueOf(cartItem.getNumber())));
             }
         } else {
             BuyGoodsRequest goodsVo = (BuyGoodsRequest) redisTemplateUtil.get(Constant.MTM_CACHE + "goods" + loginUser.getId());
-            MallProductEntity productInfo = productDao.selectById(goodsVo.getProductId());
+            if (goodsVo == null) {
+                throw new IllegalArgumentException("购买信息已失效，请重新选择商品");
+            }
+            MallProductEntity productInfo = validateProduct(
+                    goodsVo.getProductId(), goodsVo.getGoodsId(), goodsVo.getNumber());
             //计算订单的费用
             //商品总价
-            goodsTotalPrice = productInfo.getRetailPrice().multiply(new BigDecimal(goodsVo.getNumber()));
+            goodsTotalPrice = productInfo.getRetailPrice().multiply(BigDecimal.valueOf(goodsVo.getNumber()));
             if (designSnapshotId != null) {
                 if (goodsVo.getNumber() != 1) {
                     throw new IllegalArgumentException("每个定制设计只能购买一件");
@@ -196,14 +212,14 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         MallCouponEntity couponVo = null;
         if (couponId != null && couponId != 0) {
             couponVo = couponDao.getUserCoupon(couponId, loginUser.getId());
-            if (couponVo != null && couponVo.getCouponStatus() == 1) {
-                couponPrice = couponVo.getTypeMoney();
-            }
+            couponPrice = validateCoupon(couponVo, goodsTotalPrice);
         }
 
         //订单价格计算
         BigDecimal orderTotalPrice = goodsTotalPrice.add(new BigDecimal(freightPrice));
 
+        BigDecimal maximumDiscount = orderTotalPrice.subtract(new BigDecimal("0.01"));
+        couponPrice = couponPrice.min(maximumDiscount.max(BigDecimal.ZERO));
         BigDecimal actualPrice = orderTotalPrice.subtract(couponPrice);
 
         //
@@ -250,9 +266,16 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             resultObj.put("msg", "订单提交失败");
             return resultObj;
         }
+        if (couponVo != null && userCouponDao.claim(
+                couponId, loginUser.getId(), orderInfo.getId(), new Date()) != 1) {
+            throw new IllegalArgumentException("优惠券已被使用，请重新结算");
+        }
         //统计商品总价
         List<MallOrderGoodsEntity> orderGoodsData = new ArrayList<MallOrderGoodsEntity>();
         for (MallCartEntity goodsItem : checkedGoodsList) {
+            if (productDao.deductStock(goodsItem.getProductId(), goodsItem.getNumber()) != 1) {
+                throw new IllegalArgumentException("商品库存不足，请重新结算");
+            }
             MallOrderGoodsEntity orderGoodsVo = new MallOrderGoodsEntity();
             orderGoodsVo.setOrderId(orderInfo.getId());
             orderGoodsVo.setGoodsId(goodsItem.getGoodsId());
@@ -276,8 +299,12 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                     orderGoodsData.get(0).getId());
         }
 
-        //清空已购买的商品
-        cartDao.deleteByCart(loginUser.getId(), 1, 1);
+        // 清理本次购买上下文 / Clears the current purchase context.
+        if ("cart".equals(type)) {
+            cartDao.deleteByCart(loginUser.getId(), 1, 1);
+        } else {
+            redisTemplateUtil.del(Constant.MTM_CACHE + "goods" + loginUser.getId());
+        }
         resultObj.put("code", 0);
         resultObj.put("msg", "订单提交成功");
         //
@@ -285,17 +312,94 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         orderInfoMap.put("orderInfo", orderInfo);
         //
         resultObj.put("data", orderInfoMap);
-        // 优惠券标记已用
-        if (couponVo != null && couponVo.getCouponStatus() == 1) {
-            couponVo.setCouponStatus(2);
-            couponDao.updateUserCoupon(couponVo);
-        }
-
         return resultObj;
+    }
+
+    /** 校验商品、规格和库存 / Validates goods, SKU, and stock. */
+    private MallProductEntity validateProduct(Integer productId, Integer goodsId, Integer number) {
+        if (productId == null || goodsId == null || number == null || number <= 0) {
+            throw new IllegalArgumentException("商品购买参数不正确");
+        }
+        MallProductEntity product = productDao.selectById(productId);
+        MallGoodsEntity goods = goodsService.getById(goodsId);
+        if (product == null || !goodsId.equals(product.getGoodsId())) {
+            throw new IllegalArgumentException("商品规格不存在");
+        }
+        if (goods == null || !Integer.valueOf(1).equals(goods.getIsOnSale())) {
+            throw new IllegalArgumentException("商品已下架");
+        }
+        if (product.getGoodsNumber() == null || product.getGoodsNumber() < number) {
+            throw new IllegalArgumentException("商品库存不足");
+        }
+        return product;
+    }
+
+    /** 校验优惠券使用条件 / Validates coupon usage conditions. */
+    private BigDecimal validateCoupon(MallCouponEntity coupon, BigDecimal goodsTotalPrice) {
+        if (coupon == null || !Integer.valueOf(1).equals(coupon.getCouponStatus())) {
+            throw new IllegalArgumentException("优惠券不存在或已使用");
+        }
+        Date now = new Date();
+        if ((coupon.getUseStartDate() != null && now.before(coupon.getUseStartDate()))
+                || (coupon.getUseEndDate() != null && now.after(coupon.getUseEndDate()))) {
+            throw new IllegalArgumentException("优惠券不在有效期内");
+        }
+        if (coupon.getMinGoodsAmount() != null
+                && goodsTotalPrice.compareTo(coupon.getMinGoodsAmount()) < 0) {
+            throw new IllegalArgumentException("订单金额未达到优惠券使用门槛");
+        }
+        return Objects.requireNonNullElse(coupon.getTypeMoney(), BigDecimal.ZERO).max(BigDecimal.ZERO);
     }
 
     @Override
     public List<MallOrderEntity> queryList(Map<String, Object> params) {
         return baseMapper.queryList(params);
+    }
+
+    /** 取消未支付订单并恢复库存和优惠券 / Cancels an unpaid order and restores resources. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelUnpaid(Integer orderId, Long userId) {
+        MallOrderEntity order = baseMapper.selectById(orderId);
+        if (order == null || !userId.equals(order.getUserId())) {
+            throw new IllegalArgumentException("订单不存在或无权访问");
+        }
+        if (!Integer.valueOf(0).equals(order.getPayStatus())
+                || !Integer.valueOf(0).equals(order.getOrderStatus())) {
+            throw new IllegalArgumentException("订单状态不允许取消");
+        }
+        restoreOrderResources(orderId);
+        order.setOrderStatus(101);
+        baseMapper.updateById(order);
+        customDesignService.cancelOrder(orderId);
+    }
+
+    /** 完成退款并确保资源只恢复一次 / Completes a refund and restores resources once. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void completeRefund(Integer orderId, Integer refundedOrderStatus) {
+        MallOrderEntity order = baseMapper.selectById(orderId);
+        if (order == null) {
+            throw new IllegalArgumentException("订单不存在");
+        }
+        if (Integer.valueOf(4).equals(order.getPayStatus())) {
+            return;
+        }
+        restoreOrderResources(orderId);
+        order.setPayStatus(4);
+        order.setOrderStatus(refundedOrderStatus);
+        baseMapper.updateById(order);
+        customDesignService.cancelOrder(orderId);
+    }
+
+    /** 恢复订单库存并释放优惠券 / Restores order stock and releases its coupon. */
+    private void restoreOrderResources(Integer orderId) {
+        List<MallOrderGoodsEntity> goods = orderGoodsDao.selectList(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<MallOrderGoodsEntity>()
+                        .eq(MallOrderGoodsEntity::getOrderId, orderId));
+        for (MallOrderGoodsEntity item : goods) {
+            productDao.restoreStock(item.getProductId(), item.getNumber());
+        }
+        userCouponDao.releaseByOrder(orderId);
     }
 }

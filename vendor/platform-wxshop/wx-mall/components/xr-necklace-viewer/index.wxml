@@ -1,0 +1,20 @@
+<view class="xr-viewer">
+  <xr-scene id="xr-scene" bind:ready="handleReady" bind:error="handleError">
+    <xr-assets bind:progress="handleProgress" bind:loaded="handleLoaded">
+      <xr-asset-load wx:for="{{models}}" wx:key="assetId" type="gltf"
+                     asset-id="{{item.assetId}}" src="{{item.modelUrl}}" />
+    </xr-assets>
+    <xr-env env-data="xr-frame-team-workspace-day" />
+    <xr-light type="ambient" color="1 1 1" intensity="1.5" />
+    <xr-light type="directional" rotation="35 45 0" color="1 1 1"
+              intensity="2.5" cast-shadow />
+    <xr-node node-id="necklace-root">
+      <xr-gltf wx:for="{{models}}" wx:key="assetId" node-id="{{item.assetId}}"
+               model="{{item.assetId}}" position="{{item.position}}"
+               rotation="{{item.rotation}}" scale="{{item.scale}}" cast-shadow />
+    </xr-node>
+    <xr-camera position="0 0 4" target="necklace-root"
+               clear-color="0.945 0.925 0.9 1" camera-orbit-control />
+  </xr-scene>
+  <view wx:if="{{!loaded}}" class="xr-loading">3D 模型加载中 {{progress}}%</view>
+</view>

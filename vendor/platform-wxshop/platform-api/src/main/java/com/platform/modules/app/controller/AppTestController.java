@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * API测试接口
  *
- * @author lipengjun
+ * @author hehailong
  * @email 939961241@qq.com
- * @gitee https://gitee.com/fuyang_lipengjun/platform
+ * @gitee https://gitee.com/hehailong/platform
  * @date 2017-03-23 15:47
  */
 @Tag(name = "测试接口-AppTestController")

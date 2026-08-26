@@ -115,4 +115,15 @@ public class AppCustomizationController {
     public RestResponse<Object> list(@LoginUser WxUserEntity loginUser) {
         return RestResponse.ok(customDesignService.listOwned(loginUser.getId()));
     }
+
+    /** 获取结算前最新定制报价 / Gets the latest customization quote before checkout. */
+    @Operation(summary = "获取定制结算报价")
+    @PostMapping("checkout-quote")
+    public RestResponse<Object> checkoutQuote(@LoginUser WxUserEntity loginUser, Long snapshotId) {
+        try {
+            return RestResponse.ok(customDesignService.quoteOwned(snapshotId, loginUser.getId()));
+        } catch (IllegalArgumentException exception) {
+            return RestResponse.fail(exception.getMessage());
+        }
+    }
 }

@@ -13,7 +13,7 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /**
- * @author 李鹏军
+ * @author 何海龙
  */
 public class HttpUtils {
     /**

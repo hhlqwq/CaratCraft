@@ -52,7 +52,7 @@ public class PlatformApiApplicationTests {
         request.setPartnerTradeNo("APP20200717171910474277266");
         request.setOpenid("ouby15OpFirvjeut_CjDhWYAcm0s");
         request.setCheckName("NO_CHECK");// 不校验真实姓名
-        request.setReUserName("李鹏军");
+        request.setReUserName("何海龙");
         request.setDescription("佣金提现");
         request.setSpbillCreateIp(IpUtils.getLocalHostAdress());
         request.setAmount(30);// amount是以分为单位
@@ -70,7 +70,7 @@ public class PlatformApiApplicationTests {
         EntPayBankRequest request = new EntPayBankRequest();
         request.setPartnerTradeNo("APP20200717171910474277266");
         request.setEncBankNo("6214991630490547");
-        request.setEncTrueName("李鹏军");
+        request.setEncTrueName("何海龙");
         //建设银行
         request.setBankCode("1003");
         request.setAmount(1);// amount是以分为单位

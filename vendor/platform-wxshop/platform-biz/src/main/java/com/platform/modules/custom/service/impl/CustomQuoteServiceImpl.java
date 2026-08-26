@@ -2,8 +2,10 @@ package com.platform.modules.custom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
+import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
+import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomQuoteService;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
@@ -24,11 +26,14 @@ import java.util.Set;
 public class CustomQuoteServiceImpl implements CustomQuoteService {
     private final MallGoodsService mallGoodsService;
     private final CustomComponentOptionDao componentOptionDao;
+    private final CustomProductDao customProductDao;
 
     public CustomQuoteServiceImpl(MallGoodsService mallGoodsService,
-                                  CustomComponentOptionDao componentOptionDao) {
+                                  CustomComponentOptionDao componentOptionDao,
+                                  CustomProductDao customProductDao) {
         this.mallGoodsService = mallGoodsService;
         this.componentOptionDao = componentOptionDao;
+        this.customProductDao = customProductDao;
     }
 
     /**
@@ -72,13 +77,38 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                 optionTotal = optionTotal.add(Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO));
             }
         }
+        CustomProductEntity customProduct = customProductDao.selectOne(
+                new LambdaQueryWrapper<CustomProductEntity>()
+                        .eq(CustomProductEntity::getGoodsId, request.getGoodsId())
+                        .eq(CustomProductEntity::getEnabled, 1));
+        validateRequiredTypes(customProduct, selectedTypes);
+        BigDecimal totalPrice = basePrice.add(optionTotal);
+        if (totalPrice.compareTo(new BigDecimal("0.01")) < 0) {
+            throw new IllegalArgumentException("定制商品价格配置无效");
+        }
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("goodsId", goods.getId());
         result.put("basePrice", basePrice);
         result.put("optionTotal", optionTotal);
-        result.put("totalPrice", basePrice.add(optionTotal));
+        result.put("totalPrice", totalPrice);
         result.put("selectedOptionIds", request.getOptionIds());
         result.put("engraving", request.getEngraving());
         return result;
+    }
+
+    /** 校验商品配置的必选组件组 / Validates required component groups. */
+    private void validateRequiredTypes(CustomProductEntity product, Set<String> selectedTypes) {
+        if (product == null) {
+            throw new IllegalArgumentException("该商品未开放定制");
+        }
+        if (product.getRequiredComponentTypes() == null
+                || product.getRequiredComponentTypes().isBlank()) {
+            return;
+        }
+        for (String requiredType : product.getRequiredComponentTypes().split(",")) {
+            if (!requiredType.isBlank() && !selectedTypes.contains(requiredType.trim())) {
+                throw new IllegalArgumentException("请选择必选组件：" + requiredType.trim());
+            }
+        }
     }
 }

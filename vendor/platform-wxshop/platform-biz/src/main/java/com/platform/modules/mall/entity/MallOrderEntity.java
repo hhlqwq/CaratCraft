@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.mall.entity;
@@ -39,7 +39,7 @@ import java.util.Map;
  * 该实体用于后台订单管理模块的基础 CRUD，保存订单主信息、收货信息、支付信息、金额信息以及时间信息。
  * </p>
  *
- * @author 李鹏军
+ * @author 何海龙
  * @since 2026-03-15 14:30:00
  */
 @Data

@@ -11,6 +11,7 @@ import com.platform.annotation.LoginUser;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.app.request.ApiOrderSubmitRequest;
+import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallBrandEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
@@ -41,6 +42,8 @@ public class AppOrderController extends AppBaseController {
     private MallOrderGoodsService orderGoodsService;
     @Autowired
     private WxPayService wxPayService;
+    @Autowired
+    private CustomDesignService customDesignService;
 
     /**
      *
@@ -171,6 +174,8 @@ public class AppOrderController extends AppBaseController {
                 }
                 return RestResponse.fail(MapUtils.getString(resultObj, "msg", "提交失败"));
             }
+        } catch (IllegalArgumentException e) {
+            return RestResponse.fail(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -199,6 +204,7 @@ public class AppOrderController extends AppBaseController {
         // 需要退款
         if (orderVo.getPayStatus() == 2) {
             try {
+                customDesignService.assertOrderCancellable(orderId);
                 WxPayRefundRequest refundRequest = new WxPayRefundRequest();
                 refundRequest.setOutTradeNo(orderVo.getOrderSn());
                 refundRequest.setOutRefundNo(orderVo.getOrderSn());
@@ -206,22 +212,17 @@ public class AppOrderController extends AppBaseController {
                 refundRequest.setRefundFee(BaseWxPayRequest.yuanToFen(orderVo.getActualPrice().toString()));
                 WxPayRefundResult result = wxPayService.refund(refundRequest);
                 if ("SUCCESS".equals(result.getResultCode())) {
-                    if (orderVo.getOrderStatus() == 201) {
-                        orderVo.setOrderStatus(401);
-                    } else if (orderVo.getOrderStatus() == 300) {
-                        orderVo.setOrderStatus(402);
-                    }
-                    orderVo.setPayStatus(4);
-                    orderService.update(orderVo);
+                    orderService.completeRefund(orderId, 401);
                     return RestResponse.ok("取消成功");
                 }
             } catch (WxPayException e) {
                 return RestResponse.fail("取消失败：" + e.getErrCode());
+            } catch (IllegalStateException e) {
+                return RestResponse.fail(e.getMessage());
             }
             return RestResponse.fail("取消失败");
         } else {
-            orderVo.setOrderStatus(101);
-            orderService.update(orderVo);
+            orderService.cancelUnpaid(orderId, loginUser.getId());
             return RestResponse.ok("取消成功");
         }
     }

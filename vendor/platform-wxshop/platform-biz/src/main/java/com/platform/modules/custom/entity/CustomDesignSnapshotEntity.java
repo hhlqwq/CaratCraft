@@ -25,4 +25,5 @@ public class CustomDesignSnapshotEntity implements Serializable {
     private String previewUrl;
     private String status;
     private Date createTime;
+    private Date updateTime;
 }

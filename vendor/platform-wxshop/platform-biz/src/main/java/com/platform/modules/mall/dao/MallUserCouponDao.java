@@ -1,6 +1,6 @@
 /*
  *
- *      Copyright (c) 2018-2099, lipengjun All rights reserved.
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -13,7 +13,7 @@
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
  *  this software without specific prior written permission.
- *  Author: lipengjun (939961241@qq.com)
+ *  Author: hehailong(845367567@qq.com)
  *
  */
 package com.platform.modules.mall.dao;
@@ -24,6 +24,9 @@ import com.platform.modules.mall.entity.MallProductEntity;
 import com.platform.modules.mall.entity.MallUserCouponEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
+
+import java.util.Date;
 
 import java.util.List;
 import java.util.Map;
@@ -31,7 +34,7 @@ import java.util.Map;
 /**
  * Dao
  *
- * @author 李鹏军
+ * @author 何海龙
  * @since 2024-07-19 21:02:38
  */
 @Mapper
@@ -55,4 +58,15 @@ public interface MallUserCouponDao extends BaseMapper<MallUserCouponEntity> {
     List<MallUserCouponEntity> selectMallUserCouponPage(Page<MallUserCouponEntity> page, @Param("params") Map<String, Object> params);
 
     List<MallUserCouponEntity> queryList(Map<String, Object> param);
+
+    /** 原子占用用户优惠券 / Atomically claims a user coupon. */
+    @Update("UPDATE MALL_USER_COUPON SET coupon_status = 2, used_time = #{usedTime}, order_id = #{orderId} "
+            + "WHERE id = #{id} AND user_id = #{userId} AND coupon_status = 1")
+    int claim(@Param("id") Integer id, @Param("userId") Long userId,
+              @Param("orderId") Integer orderId, @Param("usedTime") Date usedTime);
+
+    /** 释放未支付订单占用的优惠券 / Releases a coupon claimed by an unpaid order. */
+    @Update("UPDATE MALL_USER_COUPON SET coupon_status = 1, used_time = NULL, order_id = 0 "
+            + "WHERE order_id = #{orderId} AND coupon_status = 2")
+    int releaseByOrder(@Param("orderId") Integer orderId);
 }

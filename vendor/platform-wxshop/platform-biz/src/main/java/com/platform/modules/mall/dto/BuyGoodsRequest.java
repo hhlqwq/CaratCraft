@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * @author 李鹏军
+ * @author 何海龙
  */
 @Data
 @Schema(description = "立即购买类")

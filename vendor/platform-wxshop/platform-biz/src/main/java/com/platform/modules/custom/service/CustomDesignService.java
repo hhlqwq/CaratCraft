@@ -20,6 +20,9 @@ public interface CustomDesignService {
     /** 查询当前用户的设计列表 / Lists owned designs. */
     List<CustomDesignSnapshotEntity> listOwned(Long userId);
 
+    /** 获取设计的最新服务端报价 / Gets the latest server quote for a design. */
+    Map<String, Object> quoteOwned(Long snapshotId, Long userId);
+
     /** 重新报价并锁定设计 / Requotes and locks a design. */
     BigDecimal lockAndGetPrice(Long snapshotId, Long userId);
 
@@ -28,4 +31,10 @@ public interface CustomDesignService {
 
     /** 支付成功后生成生产工单 / Creates a work order after payment. */
     void markOrderPaid(Integer orderId);
+
+    /** 取消关联的定制生产流程 / Cancels the related production workflow. */
+    void cancelOrder(Integer orderId);
+
+    /** 校验定制订单是否仍可退款取消 / Validates whether a custom order can be cancelled. */
+    void assertOrderCancellable(Integer orderId);
 }
