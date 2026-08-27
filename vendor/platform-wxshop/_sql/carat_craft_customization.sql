@@ -80,3 +80,13 @@ CREATE TABLE IF NOT EXISTS `CC_WORK_ORDER_LOG` (
   PRIMARY KEY (`id`), KEY `idx_cc_wol_work_order` (`work_order_id`),
   KEY `idx_cc_wol_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft工单操作日志 / work order operation log';
+
+CREATE TABLE IF NOT EXISTS `CC_COMPONENT_STOCK` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `goods_id` int NOT NULL,
+  `component_type` varchar(32) NOT NULL,
+  `option_code` varchar(64) NOT NULL,
+  `stock` int NOT NULL DEFAULT 0,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`), UNIQUE KEY `uk_cc_stock` (`goods_id`, `component_type`, `option_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft组件库存 / component stock';

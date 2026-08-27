@@ -64,7 +64,7 @@ public class CustomWorkOrderController {
     @Operation(summary = "查询工单操作日志")
     @GetMapping("log/{workOrderId}")
     @RequiresPermissions("custom:work-order:list")
-    public RestResponse<List<WorkOrderLogEntity>> log(@RequestParam Long workOrderId) {
+    public RestResponse<List<WorkOrderLogEntity>> log(@PathVariable Long workOrderId) {
         LambdaQueryWrapper<WorkOrderLogEntity> wrapper =
                 new LambdaQueryWrapper<WorkOrderLogEntity>()
                         .eq(WorkOrderLogEntity::getWorkOrderId, workOrderId)

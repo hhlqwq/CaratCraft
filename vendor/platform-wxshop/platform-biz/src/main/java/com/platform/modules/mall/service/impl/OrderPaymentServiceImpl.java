@@ -33,7 +33,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
             throw new IllegalArgumentException("支付订单不存在");
         }
         int expectedAmount = order.getActualPrice().movePointRight(2)
-                .setScale(0, RoundingMode.HAL_UP).intValueExact();
+                .setScale(0, RoundingMode.HALF_UP).intValueExact();
         if (paidAmountInCents != null && expectedAmount != paidAmountInCents) {
             throw new IllegalArgumentException("支付金额与订单金额不一致");
         }

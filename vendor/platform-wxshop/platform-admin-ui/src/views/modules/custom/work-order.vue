@@ -45,7 +45,7 @@ export default {
       status: '',
       workOrders: [],
       statusOptions: [
-        {value: 'PENDING', label: '待审核'},
+        {value: 'PENDING_REVIEW', label: '待审核'},
         {value: 'REVIEWED', label: '已审核'},
         {value: 'PRODUCING', label: '制作中'},
         {value: 'QUALITY_CHECK', label: '质检中'},
