@@ -131,15 +131,8 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (!"LOCKED".equals(snapshot.getStatus())) {
             throw new IllegalArgumentException("设计尚未锁定");
         }
-        // 扣减组件库存 / Deduct component stock
-        CustomQuoteRequest request = JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
-        if (request.getOptionIds() != null) {
-            for (Long optionId : request.getOptionIds()) {
-                // 查找组件选项获取 componentType 和 optionCode
-                // 这里简化处理，实际应该查询 component_option 表
-                componentStockDao.deductByOptionId(snapshot.getGoodsId(), optionId, 1);
-            }
-        }
+        // 扣减组件库存 / Deduct component stock.
+        deductComponentStock(snapshot);
         CustomOrderCustomizationEntity binding = new CustomOrderCustomizationEntity();
         binding.setOrderId(orderId);
         binding.setOrderGoodsId(orderGoodsId);
@@ -151,6 +144,33 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         snapshot.setStatus("ORDERED");
         snapshot.setUpdateTime(new Date());
         snapshotDao.updateById(snapshot);
+    }
+
+    /** 扣减设计所选组件库存, 条件更新未命中说明库存不足, 防止并发超售 /
+     * Deducts stock for each selected option; a missed conditional update means oversold. */
+    private void deductComponentStock(CustomDesignSnapshotEntity snapshot) {
+        CustomQuoteRequest request = JSON.parseObject(
+                snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+        if (request == null || request.getOptionIds() == null) {
+            return;
+        }
+        for (Long optionId : request.getOptionIds()) {
+            if (componentStockDao.deductByOptionId(snapshot.getGoodsId(), optionId, 1) != 1) {
+                throw new IllegalArgumentException("组件库存不足，请重新选择设计");
+            }
+        }
+    }
+
+    /** 恢复设计所选组件库存 / Restores stock for each selected option. */
+    private void restoreComponentStock(CustomDesignSnapshotEntity snapshot) {
+        CustomQuoteRequest request = JSON.parseObject(
+                snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+        if (request == null || request.getOptionIds() == null) {
+            return;
+        }
+        for (Long optionId : request.getOptionIds()) {
+            componentStockDao.restoreByOptionId(snapshot.getGoodsId(), optionId, 1);
+        }
     }
 
     /** 幂等更新定制状态并创建待生产工单 / Idempotently marks paid and creates a work order. */
@@ -194,7 +214,8 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         workOrderDao.insert(workOrder);
     }
 
-    /** 取消尚未完成的定制生产流程, 未支付时释放设计 / Cancels the workflow and releases unpaid designs. */
+    /** 取消尚未完成的定制生产流程, 释放设计并恢复组件库存 /
+     * Cancels the workflow, releases the design and restores component stock. */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Integer orderId) {
@@ -205,30 +226,28 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             return;
         }
         boolean wasUnpaid = "LOCKED".equals(binding.getStatus());
-        if (wasUnpaid) {
-            // 条件更新防止与支付回调并发时误改已支付状态 /
-            // Conditional update avoids racing with a concurrent payment callback.
-            int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
-                    .eq("id", binding.getId())
-                    .eq("status", "LOCKED")
-                    .set("status", "CANCELLED")
-                    .set("update_time", new Date()));
-            if (updated != 1) {
-                return;
-            }
-        } else {
-            binding.setStatus("CANCELLED");
-            binding.setUpdateTime(new Date());
-            orderCustomizationDao.updateById(binding);
+        // 条件更新保证取消只执行一次, 防止与支付回调并发或重复调用导致重复恢复库存 /
+        // Conditional update ensures cancellation runs once, avoiding double stock restoration.
+        int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
+                .eq("id", binding.getId())
+                .eq("status", binding.getStatus())
+                .set("status", "CANCELLED")
+                .set("update_time", new Date()));
+        if (updated != 1) {
+            return;
         }
-        // 未支付取消时将设计快照恢复为草稿, 允许用户重新下单 /
-        // Restore an unpaid design back to DRAFT so the user can reorder it.
-        if (wasUnpaid && binding.getSnapshotId() != null) {
+        if (binding.getSnapshotId() != null) {
             CustomDesignSnapshotEntity snapshot = snapshotDao.selectById(binding.getSnapshotId());
-            if (snapshot != null && "ORDERED".equals(snapshot.getStatus())) {
-                snapshot.setStatus("DRAFT");
-                snapshot.setUpdateTime(new Date());
-                snapshotDao.updateById(snapshot);
+            if (snapshot != null) {
+                // 恢复组件库存 / Restore component stock.
+                restoreComponentStock(snapshot);
+                // 未支付取消时将设计快照恢复为草稿, 允许用户重新下单 /
+                // Restore an unpaid design back to DRAFT so the user can reorder it.
+                if (wasUnpaid && "ORDERED".equals(snapshot.getStatus())) {
+                    snapshot.setStatus("DRAFT");
+                    snapshot.setUpdateTime(new Date());
+                    snapshotDao.updateById(snapshot);
+                }
             }
         }
         ProductionWorkOrderEntity workOrder = workOrderDao.selectOne(

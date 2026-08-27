@@ -117,9 +117,7 @@ class CustomDesignServiceImplTest {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
         when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
-        CustomDesignSnapshotEntity snapshot = new CustomDesignSnapshotEntity();
-        snapshot.setId(88L);
-        snapshot.setStatus("ORDERED");
+        CustomDesignSnapshotEntity snapshot = orderedSnapshot();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
         when(workOrderDao.selectOne(any())).thenReturn(null);
 
@@ -127,6 +125,8 @@ class CustomDesignServiceImplTest {
 
         assertEquals("DRAFT", snapshot.getStatus());
         verify(snapshotDao).updateById(snapshot);
+        // 取消时应恢复组件库存 / Component stock must be restored on cancellation.
+        verify(stockDao).restoreByOptionId(10, 1L, 1);
     }
 
     /** 验证已支付退款取消不释放设计 / Verifies paid refunds do not release the design. */
@@ -135,9 +135,9 @@ class CustomDesignServiceImplTest {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         binding.setStatus("PAID");
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        CustomDesignSnapshotEntity snapshot = new CustomDesignSnapshotEntity();
-        snapshot.setId(88L);
-        snapshot.setStatus("ORDERED");
+        // 条件更新命中说明取消成功 / Hit means the cancellation succeeded.
+        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        CustomDesignSnapshotEntity snapshot = orderedSnapshot();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
         when(workOrderDao.selectOne(any())).thenReturn(null);
 
@@ -145,7 +145,63 @@ class CustomDesignServiceImplTest {
 
         assertEquals("ORDERED", snapshot.getStatus());
         verify(snapshotDao, times(0)).updateById(snapshot);
-        org.mockito.Mockito.verify(bindingDao).updateById(binding);
+        // 已支付退款同样恢复组件库存 / Paid refunds restore component stock too.
+        verify(stockDao).restoreByOptionId(10, 1L, 1);
+    }
+
+    /** 验证重复取消不会二次恢复库存 / Verifies repeated cancellation does not restore stock twice. */
+    @Test
+    void repeatedCancellationDoesNotRestoreStockTwice() {
+        CustomOrderCustomizationEntity binding = unpaidBinding();
+        when(bindingDao.selectOne(any())).thenReturn(binding);
+        // 第二次调用条件更新未命中 / Second conditional update misses.
+        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1, 0);
+        when(snapshotDao.selectById(88L)).thenReturn(orderedSnapshot());
+        when(workOrderDao.selectOne(any())).thenReturn(null);
+
+        service.cancelOrder(100);
+        service.cancelOrder(100);
+
+        verify(stockDao, times(1)).restoreByOptionId(10, 1L, 1);
+    }
+
+    /** 验证组件库存不足时绑定失败并抛异常 / Verifies binding fails when component stock is insufficient. */
+    @Test
+    void bindOrderFailsWhenComponentStockInsufficient() {
+        CustomQuoteRequest request = new CustomQuoteRequest();
+        request.setGoodsId(10);
+        request.setOptionIds(Collections.singletonList(1L));
+        Map<String, Object> quote = new LinkedHashMap<>();
+        quote.put("totalPrice", new BigDecimal("219.00"));
+        when(quoteService.quote(any())).thenReturn(quote);
+        org.mockito.Mockito.doAnswer(invocation -> {
+            CustomDesignSnapshotEntity snapshot = invocation.getArgument(0);
+            snapshot.setId(88L);
+            return 1;
+        }).when(snapshotDao).insert(any(CustomDesignSnapshotEntity.class));
+        service.saveDraft(7L, request);
+        ArgumentCaptor<CustomDesignSnapshotEntity> snapshotCaptor =
+                ArgumentCaptor.forClass(CustomDesignSnapshotEntity.class);
+        verify(snapshotDao).insert(snapshotCaptor.capture());
+        CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
+        snapshot.setStatus("LOCKED");
+        when(snapshotDao.selectById(88L)).thenReturn(snapshot);
+        when(stockDao.deductByOptionId(10, 1L, 1)).thenReturn(0);
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class, () -> service.bindOrder(88L, 7L, 100, 101));
+        // 库存不足时不允许绑定订单 / No binding allowed when stock is insufficient.
+        verify(bindingDao, times(0)).insert(any(CustomOrderCustomizationEntity.class));
+    }
+
+    /** 创建已下单状态的设计快照 / Creates a snapshot in ORDERED status. */
+    private CustomDesignSnapshotEntity orderedSnapshot() {
+        CustomDesignSnapshotEntity snapshot = new CustomDesignSnapshotEntity();
+        snapshot.setId(88L);
+        snapshot.setGoodsId(10);
+        snapshot.setConfigurationJson("{\"goodsId\":10,\"optionIds\":[1]}");
+        snapshot.setStatus("ORDERED");
+        return snapshot;
     }
 
     /** 创建未支付定制绑定 / Creates an unpaid customization binding. */

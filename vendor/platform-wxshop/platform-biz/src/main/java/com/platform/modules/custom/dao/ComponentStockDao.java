@@ -45,4 +45,21 @@ public interface ComponentStockDao extends BaseMapper<ComponentStockEntity> {
     int deductByOptionId(@Param("goodsId") Integer goodsId,
                          @Param("optionId") Long optionId,
                          @Param("quantity") int quantity);
+
+    /**
+     * 根据选项ID恢复库存 / Restores stock by option id.
+     *
+     * @param goodsId 商品ID / goods id
+     * @param optionId 选项ID / option id
+     * @param quantity 恢复数量 / quantity to restore
+     * @return 影响行数 / affected rows
+     */
+    @Update("UPDATE CC_COMPONENT_STOCK s "
+            + "INNER JOIN CC_COMPONENT_OPTION o ON s.goods_id = o.goods_id "
+            + "AND s.component_type = o.component_type AND s.option_code = o.option_code "
+            + "SET s.stock = s.stock + #{quantity} "
+            + "WHERE s.goods_id = #{goodsId} AND o.id = #{optionId}")
+    int restoreByOptionId(@Param("goodsId") Integer goodsId,
+                          @Param("optionId") Long optionId,
+                          @Param("quantity") int quantity);
 }
