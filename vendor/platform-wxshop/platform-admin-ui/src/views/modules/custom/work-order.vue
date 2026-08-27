@@ -23,7 +23,7 @@
       </el-table-column>
       <el-table-column prop="craftJson" label="生产参数" min-width="280" show-overflow-tooltip></el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160"></el-table-column>
-      <el-table-column fixed="right" label="操作" width="150">
+      <el-table-column fixed="right" label="操作" width="200">
         <template slot-scope="scope">
           <el-dropdown v-if="isAuth('custom:work-order:update')" @command="updateStatus(scope.row.id, $event)">
             <el-button type="text">流转状态<i class="el-icon-arrow-down el-icon--right"></i></el-button>
@@ -32,9 +32,24 @@
                                 :command="item.value">{{ item.label }}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
+          <el-button v-if="isAuth('custom:work-order:list')" type="text" size="small"
+                     @click="showLogs(scope.row)">日志</el-button>
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog title="工单操作日志" :visible.sync="logVisible" width="720px">
+      <el-table :data="logs" border size="small">
+        <el-table-column prop="createTime" label="时间" min-width="150"></el-table-column>
+        <el-table-column prop="operatorName" label="操作人" width="110"></el-table-column>
+        <el-table-column label="状态流转" min-width="180">
+          <template slot-scope="scope">
+            {{ statusText(scope.row.fromStatus) || '—' }} → {{ statusText(scope.row.toStatus) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" min-width="140" show-overflow-tooltip></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -51,7 +66,9 @@ export default {
         {value: 'QUALITY_CHECK', label: '质检中'},
         {value: 'COMPLETED', label: '已完成'},
         {value: 'CANCELLED', label: '已取消'}
-      ]
+      ],
+      logVisible: false,
+      logs: []
     }
   },
   activated () {
@@ -87,6 +104,20 @@ export default {
     statusText (status) {
       const option = this.statusOptions.find(item => item.value === status)
       return option ? option.label : status
+    },
+    // 查看工单操作日志 / Shows the work order operation logs.
+    showLogs (row) {
+      this.$http({
+        url: `/custom/work-order/log/${row.id}`,
+        method: 'get'
+      }).then(({data}) => {
+        if (data && data.code === 0) {
+          this.logs = data.data || []
+          this.logVisible = true
+        } else {
+          this.$message.error(data.msg || '日志查询失败')
+        }
+      })
     }
   }
 }

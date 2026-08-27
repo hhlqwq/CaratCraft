@@ -183,3 +183,7 @@ wx:
     spbillCreateIp: 116.62.148.248
     #支付回调通知地址
     baseNotifyUrl: ${WX_PAY_NOTIFY_URL:http://localhost:8081/platform-framework-api/app/pay/notify}
+    #是否启用支付回调 IP 白名单
+    notifyIpWhitelistEnabled: ${WX_PAY_NOTIFY_IP_WHITELIST_ENABLED:true}
+    #支付回调 IP 白名单(逗号分隔, 支持精确 IP 与 CIDR), 默认为微信支付回调通知网段, 上线前请与微信支付官方文档核对
+    notifyIpWhitelist: ${WX_PAY_NOTIFY_IP_WHITELIST:101.226.62.0/24,101.226.103.0/24,101.226.233.0/24,101.227.97.0/24,101.227.169.0/24,121.51.30.0/24,140.206.219.0/24,157.255.119.0/24,162.62.182.0/24,162.62.183.0/24}

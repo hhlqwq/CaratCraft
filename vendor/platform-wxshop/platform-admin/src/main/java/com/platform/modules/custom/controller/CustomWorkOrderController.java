@@ -6,9 +6,11 @@ import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.custom.dao.WorkOrderLogDao;
 import com.platform.modules.custom.entity.ProductionWorkOrderEntity;
 import com.platform.modules.custom.entity.WorkOrderLogEntity;
+import com.platform.modules.sys.controller.AbstractController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +31,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("custom/work-order")
 @Tag(name = "CustomWorkOrderController|定制生产工单")
-public class CustomWorkOrderController {
+public class CustomWorkOrderController extends AbstractController {
     /** 工单合法状态列表 / All supported work order statuses. */
     private static final List<String> ALLOWED_STATUSES = Arrays.asList(
             "PENDING_REVIEW", "REVIEWED", "PRODUCING", "QUALITY_CHECK", "COMPLETED", "CANCELLED");
@@ -94,9 +96,11 @@ public class CustomWorkOrderController {
         workOrder.setStatus(status);
         workOrder.setUpdateTime(new Date());
         workOrderDao.updateById(workOrder);
-        // 记录操作日志 / Record operation log.
+        // 记录操作日志, 包含操作人便于工艺追溯 / Record operation log with operator for traceability.
         WorkOrderLogEntity log = new WorkOrderLogEntity();
         log.setWorkOrderId(id);
+        log.setOperatorId(NumberUtils.toLong(getUserId()));
+        log.setOperatorName(getUser().getRealName());
         log.setFromStatus(fromStatus);
         log.setToStatus(status);
         log.setRemark(remark);

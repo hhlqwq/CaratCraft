@@ -12,6 +12,7 @@ import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
+import com.platform.common.utils.IpWhitelistUtil;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
@@ -61,6 +62,14 @@ public class AppPayController extends AppBaseController {
     private CustomDesignService customDesignService;
     @Value("${wx.pay.baseNotifyUrl}")
     private String baseNotifyUrl;
+
+    /** 是否启用支付回调 IP 白名单 / Whether the notify IP whitelist is enabled. */
+    @Value("${wx.pay.notifyIpWhitelistEnabled:true}")
+    private boolean notifyIpWhitelistEnabled;
+
+    /** 支付回调 IP 白名单, 支持精确 IP 与 CIDR / Notify IP whitelist, exact ip or cidr. */
+    @Value("${wx.pay.notifyIpWhitelist:}")
+    private String notifyIpWhitelist;
 
     /**
      * 获取支付的请求参数
@@ -174,6 +183,14 @@ public class AppPayController extends AppBaseController {
             response.setCharacterEncoding("UTF-8");
             response.setContentType("text/html;charset=UTF-8");
             response.setHeader("Access-Control-Allow-Origin", "*");
+            // 回调来源 IP 白名单校验, 拦截伪造请求(签名校验之外的纵深防御) /
+            // Whitelist the notify source IP as defense in depth on top of signature checks.
+            String clientIp = resolveNotifyIp();
+            if (!isTrustedNotifyIp(clientIp)) {
+                log.warn("拒绝来自非白名单 IP 的支付回调, ip={}", clientIp);
+                response.getWriter().write(setXml("FAIL", "FORBIDDEN"));
+                return;
+            }
             InputStream in = request.getInputStream();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buffer = new byte[1024];
@@ -265,6 +282,53 @@ public class AppPayController extends AppBaseController {
         }
     }
 
+
+    /**
+     * 解析回调请求的真实来源 IP / Resolves the trusted source IP of the notify request.
+     * <p>
+     * 优先 X-Real-IP(Nginx 从 TCP 连接写入, 不可伪造), 其次 X-Forwarded-For 首段, 最后 remoteAddr。
+     * 不直接信任完整 XFF 头, 防止客户端伪造白名单 IP 绕过校验。
+     * Prefers X-Real-IP (written by nginx from the TCP peer, cannot be spoofed), then the
+     * first entry of X-Forwarded-For, then the remote address.
+     * </p>
+     */
+    private String resolveNotifyIp() {
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return firstIp(realIp);
+        }
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return firstIp(forwarded);
+        }
+        return request.getRemoteAddr();
+    }
+
+    /** 取链式 IP 头的第一段 / Returns the first entry of a chained IP header. */
+    private String firstIp(String header) {
+        int idx = header.indexOf(',');
+        return idx > 0 ? header.substring(0, idx).trim() : header.trim();
+    }
+
+    /**
+     * 校验回调来源 IP 是否在白名单内 / Checks whether the notify source IP is whitelisted.
+     * <p>
+     * 白名单未启用或未配置时不拦截, 依赖 XML 签名校验兜底 /
+     * Skips the check when disabled or unconfigured, signature verification still applies.
+     * </p>
+     *
+     * @param clientIp 回调来源 IP / notify source ip
+     * @return 是否放行 / true when trusted
+     */
+    private boolean isTrustedNotifyIp(String clientIp) {
+        if (!notifyIpWhitelistEnabled) {
+            return true;
+        }
+        if (notifyIpWhitelist == null || notifyIpWhitelist.isBlank()) {
+            return true;
+        }
+        return IpWhitelistUtil.matchesAny(clientIp, notifyIpWhitelist);
+    }
 
     //返回微信服务
     public static String setXml(String returnCode, String returnMsg) {
