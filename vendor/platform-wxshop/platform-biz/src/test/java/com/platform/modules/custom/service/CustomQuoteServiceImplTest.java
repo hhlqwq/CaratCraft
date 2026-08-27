@@ -1,8 +1,10 @@
 package com.platform.modules.custom.service;
 
+import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
+import com.platform.modules.custom.entity.ComponentStockEntity;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.impl.CustomQuoteServiceImpl;
@@ -28,6 +30,7 @@ class CustomQuoteServiceImplTest {
     private MallGoodsService goodsService;
     private CustomComponentOptionDao optionDao;
     private CustomProductDao productDao;
+    private ComponentStockDao stockDao;
     private CustomQuoteServiceImpl service;
 
     /** 初始化报价依赖 / Initializes quote dependencies. */
@@ -36,7 +39,8 @@ class CustomQuoteServiceImplTest {
         goodsService = mock(MallGoodsService.class);
         optionDao = mock(CustomComponentOptionDao.class);
         productDao = mock(CustomProductDao.class);
-        service = new CustomQuoteServiceImpl(goodsService, optionDao, productDao);
+        stockDao = mock(ComponentStockDao.class);
+        service = new CustomQuoteServiceImpl(goodsService, optionDao, productDao, stockDao);
 
         MallGoodsEntity goods = new MallGoodsEntity();
         goods.setId(10);
@@ -51,6 +55,10 @@ class CustomQuoteServiceImplTest {
         when(optionDao.selectList(any())).thenReturn(Arrays.asList(
                 option(1L, "CHAIN", "20.00"), option(2L, "PENDANT", "35.00"),
                 option(3L, "CHAIN", "50.00")));
+        // 组件库存 mock / Mock component stock
+        ComponentStockEntity stock = new ComponentStockEntity();
+        stock.setStock(100);
+        when(stockDao.selectOne(any())).thenReturn(stock);
     }
 
     /** 验证基础价和组件加价 / Verifies base and option prices. */

@@ -3,6 +3,7 @@ package com.platform.modules.custom.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
@@ -31,15 +32,18 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     private final CustomOrderCustomizationDao orderCustomizationDao;
     private final ProductionWorkOrderDao workOrderDao;
     private final CustomQuoteService quoteService;
+    private final ComponentStockDao componentStockDao;
 
     public CustomDesignServiceImpl(CustomDesignSnapshotDao snapshotDao,
                                    CustomOrderCustomizationDao orderCustomizationDao,
                                    ProductionWorkOrderDao workOrderDao,
-                                   CustomQuoteService quoteService) {
+                                   CustomQuoteService quoteService,
+                                   ComponentStockDao componentStockDao) {
         this.snapshotDao = snapshotDao;
         this.orderCustomizationDao = orderCustomizationDao;
         this.workOrderDao = workOrderDao;
         this.quoteService = quoteService;
+        this.componentStockDao = componentStockDao;
     }
 
     /** 保存设计草稿，并固化当时的服务端报价 / Saves a draft and its server quote. */
@@ -126,6 +130,15 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         CustomDesignSnapshotEntity snapshot = getOwned(snapshotId, userId);
         if (!"LOCKED".equals(snapshot.getStatus())) {
             throw new IllegalArgumentException("设计尚未锁定");
+        }
+        // 扣减组件库存 / Deduct component stock
+        CustomQuoteRequest request = JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+        if (request.getOptionIds() != null) {
+            for (Long optionId : request.getOptionIds()) {
+                // 查找组件选项获取 componentType 和 optionCode
+                // 这里简化处理，实际应该查询 component_option 表
+                componentStockDao.deductByOptionId(snapshot.getGoodsId(), optionId, 1);
+            }
         }
         CustomOrderCustomizationEntity binding = new CustomOrderCustomizationEntity();
         binding.setOrderId(orderId);

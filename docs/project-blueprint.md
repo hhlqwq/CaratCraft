@@ -31,7 +31,7 @@ CaratCraft 是面向珠宝定制商家的微信小程序商城。用户可以选
 
 | 模块 | 一期方案 | 说明 |
 | --- | --- | --- |
-| 商城底座 | platform-wxshop | Apache-2.0 许可，含 Java 后端、管理端、uni-app 与原生小程序端。 |
+| 商城底座 | platform-wxshop | Apache-2.0 许可，含 Java 后端、管理端、原生小程序端。 |
 | 用户端 | 原生微信小程序优先 | 保留底座的 wx-mall；DIY 页面使用 Canvas。 |
 | 后端 | Spring Boot + MySQL + Redis | 延续底座技术栈，降低支付与订单改造成本。 |
 | 管理端 | Vue + Element UI | 复用后台，新增定制商品和生产工单页面。 |

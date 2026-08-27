@@ -1,9 +1,11 @@
 package com.platform.modules.custom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
+import com.platform.modules.custom.entity.ComponentStockEntity;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomQuoteService;
@@ -27,13 +29,16 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
     private final MallGoodsService mallGoodsService;
     private final CustomComponentOptionDao componentOptionDao;
     private final CustomProductDao customProductDao;
+    private final ComponentStockDao componentStockDao;
 
     public CustomQuoteServiceImpl(MallGoodsService mallGoodsService,
                                   CustomComponentOptionDao componentOptionDao,
-                                  CustomProductDao customProductDao) {
+                                  CustomProductDao customProductDao,
+                                  ComponentStockDao componentStockDao) {
         this.mallGoodsService = mallGoodsService;
         this.componentOptionDao = componentOptionDao;
         this.customProductDao = customProductDao;
+        this.componentStockDao = componentStockDao;
     }
 
     /**
@@ -73,6 +78,15 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                         .orElseThrow(() -> new IllegalArgumentException("包含无效的定制选项"));
                 if (!selectedTypes.add(option.getComponentType())) {
                     throw new IllegalArgumentException("同类组件只能选择一个");
+                }
+                // 校验组件库存 / Validate component stock
+                ComponentStockEntity stock = componentStockDao.selectOne(
+                        new LambdaQueryWrapper<ComponentStockEntity>()
+                                .eq(ComponentStockEntity::getGoodsId, request.getGoodsId())
+                                .eq(ComponentStockEntity::getComponentType, option.getComponentType())
+                                .eq(ComponentStockEntity::getOptionCode, option.getOptionCode()));
+                if (stock == null || stock.getStock() <= 0) {
+                    throw new IllegalArgumentException("组件 " + option.getName() + " 库存不足");
                 }
                 optionTotal = optionTotal.add(Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO));
             }

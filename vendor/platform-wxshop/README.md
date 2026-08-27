@@ -60,7 +60,6 @@ platform
 |--platform-api 微信小程序商城api接口服务
 |--platform-biz 业务代码
 |--platform-common 公共模块
-|--uni-mall uniapp版商城
 |--wx-mall 微信小程序原生商城
 ~~~
 

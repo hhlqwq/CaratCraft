@@ -28,4 +28,21 @@ public interface ComponentStockDao extends BaseMapper<ComponentStockEntity> {
                     @Param("componentType") String componentType,
                     @Param("optionCode") String optionCode,
                     @Param("quantity") int quantity);
+
+    /**
+     * 根据选项ID扣减库存 / Deducts stock by option id.
+     *
+     * @param goodsId 商品ID / goods id
+     * @param optionId 选项ID / option id
+     * @param quantity 扣减数量 / quantity to deduct
+     * @return 影响行数 / affected rows
+     */
+    @Update("UPDATE CC_COMPONENT_STOCK s "
+            + "INNER JOIN CC_COMPONENT_OPTION o ON s.goods_id = o.goods_id "
+            + "AND s.component_type = o.component_type AND s.option_code = o.option_code "
+            + "SET s.stock = s.stock - #{quantity} "
+            + "WHERE s.goods_id = #{goodsId} AND o.id = #{optionId} AND s.stock >= #{quantity}")
+    int deductByOptionId(@Param("goodsId") Integer goodsId,
+                         @Param("optionId") Long optionId,
+                         @Param("quantity") int quantity);
 }

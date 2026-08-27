@@ -1,5 +1,6 @@
 package com.platform.modules.custom.service;
 
+import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,6 +35,7 @@ class CustomDesignServiceImplTest {
     private CustomOrderCustomizationDao bindingDao;
     private ProductionWorkOrderDao workOrderDao;
     private CustomQuoteService quoteService;
+    private ComponentStockDao stockDao;
     private CustomDesignServiceImpl service;
 
     /** 初始化设计服务依赖 / Initializes design service dependencies. */
@@ -42,7 +45,9 @@ class CustomDesignServiceImplTest {
         bindingDao = mock(CustomOrderCustomizationDao.class);
         workOrderDao = mock(ProductionWorkOrderDao.class);
         quoteService = mock(CustomQuoteService.class);
-        service = new CustomDesignServiceImpl(snapshotDao, bindingDao, workOrderDao, quoteService);
+        stockDao = mock(ComponentStockDao.class);
+        service = new CustomDesignServiceImpl(snapshotDao, bindingDao, workOrderDao, quoteService, stockDao);
+        when(stockDao.deductByOptionId(any(), any(), anyInt())).thenReturn(1);
     }
 
     /** 验证设计保存、锁价和订单绑定 / Verifies save, price lock, and order binding. */

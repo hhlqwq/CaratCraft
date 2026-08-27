@@ -183,14 +183,16 @@ Page({
       designSnapshotId: this.data.designSnapshotId
     }, 'POST', 'application/json').then(res => {
       if (res.code === 0) {
-        wx.removeStorageSync('designSnapshotId');
-        wx.removeStorageSync('designQuote');
         const orderId = res.data.orderInfo.id;
         pay.payOrder(parseInt(orderId)).then(res => {
+          // 支付成功后才清除设计快照 / Clear design snapshot only after successful payment
+          wx.removeStorageSync('designSnapshotId');
+          wx.removeStorageSync('designQuote');
           wx.redirectTo({
             url: '/pages/payResult/payResult?status=1&orderId=' + orderId
           });
         }).catch(res => {
+          // 支付失败时保留设计快照，允许用户重新支付 / Keep design snapshot on payment failure
           wx.redirectTo({
             url: '/pages/payResult/payResult?status=0&orderId=' + orderId
           });
