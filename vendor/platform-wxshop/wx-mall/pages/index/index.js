@@ -20,15 +20,15 @@ Page({
       menus: ['shareAppMessage', 'shareTimeline']
     })
     return {
-      title: 'NideShop',
-      desc: '仿网易严选微信小程序商城',
+      title: '克拉匠造 | 手工克拉 · 珠宝匠心',
+      desc: 'DIY 定制你的专属珠宝',
       path: '/pages/index/index'
     }
   },
   onShareTimeline: function () { //用户点击右上角分享朋友圈
     return {
-      title: 'NideShop',
-      query: "id=110101&name=heyzqt",
+      title: '克拉匠造 | 手工克拉 · 珠宝匠心',
+      query: '',
       imageUrl: '/static/images/logo.png'
     }
   },

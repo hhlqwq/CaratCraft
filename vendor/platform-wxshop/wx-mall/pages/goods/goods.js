@@ -205,12 +205,14 @@ Page({
     // 页面渲染完成
 
   },
-  /** 跳转到 DIY 定制器 / Navigates to the DIY designer page. */
-  openDesigner: function () {
-    wx.navigateTo({
-      url: '/pages/designer/designer?goodsId=' + this.data.id
-    });
-  },
+    /** 跳转到 DIY 定制器 / Navigates to the DIY designer tab. */
+    openDesigner: function () {
+      // tabBar 页不支持带参跳转, 通过 storage 传递商品 ID / Tab pages take no query; pass via storage.
+      wx.setStorageSync('designerGoodsId', this.data.id);
+      wx.switchTab({
+        url: '/pages/designer/designer'
+      });
+    },
   onShow: function () {
     // 页面显示
 

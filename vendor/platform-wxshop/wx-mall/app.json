@@ -42,14 +42,14 @@
   "window": {
     "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#fff",
-    "navigationBarTitleText": "仿网易严选",
+    "navigationBarTitleText": "克拉匠造",
     "navigationBarTextStyle": "black",
     "enablePullDownRefresh": true
   },
   "tabBar": {
     "backgroundColor": "#fafafa",
     "borderStyle": "white",
-    "selectedColor": "#b4282d",
+    "selectedColor": "#b47a3f",
     "color": "#666",
     "list": [{
         "pagePath": "pages/index/index",
@@ -58,16 +58,10 @@
         "text": "首页"
       },
       {
-        "pagePath": "pages/topic/topic",
+        "pagePath": "pages/designer/designer",
         "iconPath": "static/images/ic_menu_topic_nor.png",
         "selectedIconPath": "static/images/ic_menu_topic_pressed.png",
-        "text": "专题"
-      },
-      {
-        "pagePath": "pages/catalog/catalog",
-        "iconPath": "static/images/ic_menu_sort_nor.png",
-        "selectedIconPath": "static/images/ic_menu_sort_pressed.png",
-        "text": "分类"
+        "text": "定制"
       },
       {
         "pagePath": "pages/cart/cart",
@@ -132,6 +126,6 @@
       "pages": []
     }
   ],
-  "debug": true,
+  "debug": false,
   "sitemapLocation": "sitemap.json"
 }

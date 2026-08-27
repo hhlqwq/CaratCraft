@@ -46,7 +46,7 @@ import java.io.File;
 /**
  * wechat ma configuration
  *
- * @author 何海龙
+ * @author 何海�?
  */
 @AllArgsConstructor
 @Slf4j
@@ -95,22 +95,22 @@ public class WxMaConfiguration {
     public WxMaMessageRouter newRouter(WxMaService service) {
         final WxMaMessageRouter router = new WxMaMessageRouter(service);
         router.rule().handler(logHandler).next()
-                .rule().async(false).content("旗舰版").handler(textHandler).end()
-                .rule().async(false).content("推广码").handler(qrcodeHandler).end();
+                .rule().async(false).content("旗舰�?).handler(textHandler).end()
+                .rule().async(false).content("推广�?).handler(qrcodeHandler).end();
         return router;
     }
 
     private final WxMaMessageHandler logHandler = (wxMessage, context, service, sessionManager) -> {
-        System.out.println("收到消息：" + wxMessage.toString());
+        System.out.println("收到消息�? + wxMessage.toString());
         service.getMsgService().sendKefuMsg(
-                WxMaKefuMessage.newTextBuilder().content("fromUser：" + wxMessage.getFromUser() + "；自动回复：您好，微同商城商业版，销售价格两万元，提供所有源码以及文档！如有需要请加客服微信（15209831990）咨询")
+                WxMaKefuMessage.newTextBuilder().content("fromUser�? + wxMessage.getFromUser() + "；自动回复：您好，微同商城商业版，销售价格两万元，提供所有源码以及文档！如有需要请加客服微信（15209831990）咨�?)
                         .toUser(wxMessage.getFromUser()).build());
         return null;
     };
 
     private final WxMaMessageHandler textHandler = (wxMessage, context, service, sessionManager) -> {
         service.getMsgService().sendKefuMsg(
-                WxMaKefuMessage.newTextBuilder().content("您好，旗舰版支持多商户模式，使用uni-app重构移动端，支持iOS、Android、H5、以及微信小程序等多个平台。如有需要请加客服微信（15209831990）咨询。")
+                WxMaKefuMessage.newTextBuilder().content("您好，旗舰版支持多商户模式，使用uni-app重构移动端，支持iOS、Android、H5、以及微信小程序等多个平台。如有需要请加客服微信（15209831990）咨询�?)
                         .toUser(wxMessage.getFromUser()).build());
         return null;
     };

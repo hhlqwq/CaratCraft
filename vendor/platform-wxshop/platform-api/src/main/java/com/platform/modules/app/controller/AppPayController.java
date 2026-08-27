@@ -98,13 +98,13 @@ public class AppPayController extends AppBaseController {
             WxPayUnifiedOrderRequest request = new WxPayUnifiedOrderRequest();
 
             // 商品描述
-            request.setBody("微同商城-支付");
+            request.setBody("克拉匠造-支付");
             //订单的商品
             Map<String, Object> orderGoodsParam = new HashMap<>(4);
             orderGoodsParam.put("orderId", orderId);
             List<MallOrderGoodsEntity> orderGoods = orderGoodsService.queryList(orderGoodsParam);
             if (null != orderGoods) {
-                String body = "微同商城-";
+                String body = "克拉匠造-";
                 for (MallOrderGoodsEntity goodsVo : orderGoods) {
                     body = body + goodsVo.getGoodsName() + "、";
                 }

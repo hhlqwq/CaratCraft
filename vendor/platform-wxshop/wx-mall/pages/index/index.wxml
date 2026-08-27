@@ -16,34 +16,20 @@
     </view>
   </view>
 
-  <view class="a-section a-topic" wx:if="{{brand.length > 0}}">
-    <view class="a-section a-brand">
-      <view class="h">
-        <navigator url="../brand/brand">
-          <text class="txt">品牌制造商直供</text>
-        </navigator>
+  <view class="a-section a-design">
+    <navigator class="design-entry" open-type="switchTab" url="/pages/designer/designer">
+      <view class="design-meta">
+        <text class="design-title">DIY 定制</text>
+        <text class="design-desc">选链 · 选坠 · 镶宝石 · 刻字，定制你的专属项链</text>
       </view>
-      <view class="b">
-        <view class="item item-1" wx:for="{{brand}}" wx:key="id" wx:if="{{item.newPicUrl}}">
-          <navigator url="/pages/brandDetail/brandDetail?id={{item.id}}">
-            <view class="wrap">
-              <image class="img" src="{{item.newPicUrl}}" mode="aspectFill"></image>
-              <view class="mt">
-                <text class="brand">{{item.name}}</text>
-                <text class="price">{{item.floorPrice}}</text>
-                <text class="unit">元起</text>
-              </view>
-            </view>
-          </navigator>
-        </view>
-      </view>
-    </view>
+      <text class="design-go">开始定制 ›</text>
+    </navigator>
   </view>
 
   <view class="a-section a-topic" wx:if="{{topics.length > 0}}">
     <view class="h">
       <view>
-        <navigator url="../topic/topic" open-type="switchTab">
+        <navigator url="../topic/topic">
           <text class="txt">专题精选</text>
         </navigator>
       </view>
@@ -68,7 +54,7 @@
     <view class="h">
       <view>
         <navigator url="../newGoods/newGoods">
-          <text class="txt">周一周四 · 新品首发</text>
+          <text class="txt">新品首发</text>
         </navigator>
       </view>
     </view>

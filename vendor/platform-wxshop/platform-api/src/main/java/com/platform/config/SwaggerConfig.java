@@ -50,10 +50,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * "string",
  * "object",
  * <p>
- * 注意：
- * integer、double、float、long、byte、需要给example的值
+ * 注意�?
+ * integer、double、float、long、byte、需要给example的�?
  *
- * @author 何海龙
+ * @author 何海�?
  */
 @Configuration
 @EnableWebMvc
@@ -71,14 +71,14 @@ public class SwaggerConfig {
     private Info apiInfo() {
         return new Info()
                 .title("微同软件")
-                .description("微同软件移动端接口文档")
+                .description("微同软件移动端接口文�?)
                 .termsOfService("https://openwtai.com")
-                .contact(new Contact().name("何海龙").email("939961241@qq.com").url("https://gitee.com/hehailong"))
+                .contact(new Contact().name("何海�?).email("939961241@qq.com").url("https://gitee.com/hehailong"))
                 .version("Application Version: " + projectVersion + ", Spring Boot Version: " + SpringBootVersion.getVersion());
     }
 
     /**
-     * 根据 @Tag 上的排序，写入 x-order
+     * 根据 @Tag 上的排序，写�?x-order
      *
      * @return the global open api customizer
      */

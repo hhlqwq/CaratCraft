@@ -376,3 +376,10 @@
   width: 70rpx;
   height: 70rpx;
 }
+/* DIY 定制入口卡 / DIY designer entry card */
+.a-design { padding: 0 20rpx; }
+.design-entry { background: #f7f5f2; border: 2rpx solid #e8ddd0; border-radius: 20rpx; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; padding: 32rpx 28rpx; }
+.design-meta { display: flex; flex-direction: column; }
+.design-title { color: #8b5b2d; font-size: 34rpx; font-weight: 600; }
+.design-desc { color: #8c837c; font-size: 24rpx; margin-top: 10rpx; }
+.design-go { background: #b47a3f; border-radius: 999rpx; color: #fff; font-size: 26rpx; padding: 12rpx 28rpx; }

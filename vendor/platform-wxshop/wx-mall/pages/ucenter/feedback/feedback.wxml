@@ -4,13 +4,13 @@
     <view class="picker">
       <view class="fb-type">
         <view class="type-label">{{array[index]}}</view>
-        <image class="type-icon" src="http://yanxuan.nosdn.127.net/hxm/yanxuan-wap/p/20161201/style/img/icon-normal/pickerArrow-a8b918f05f.png"></image>
+        <image class="type-icon" src="/static/images/address_right.png"></image>
 
       </view>
     </view>
   </picker>
   <view class="fb-body">
-    <textarea class="content" placeholder="对我们网站、商品、服务，你还有什么建议吗？你还希望在严选上买到什么？请告诉我们..."  bindinput ="contentInput" maxlength="500" auto-focus="true" value="{{content}}"/>
+    <textarea class="content" placeholder="对我们的小程序、商品、服务，你还有什么建议吗？你还希望克拉匠造上线什么新品？请告诉我们..."  bindinput ="contentInput" maxlength="500" auto-focus="true" value="{{content}}"/>
     <view class="text-count">{{contentLength}}/500</view>
   </view>
   <view class="fb-mobile">

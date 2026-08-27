@@ -198,10 +198,29 @@ Page({
     this.persistDesign(true).catch(function () {});
   },
 
+  /** 默认定制商品 / Default custom goods id. */
+  DEFAULT_GOODS_ID: 1006002,
+
   /** 初始化页面 / Initializes page state. */
   onLoad: function (options) {
-    this.setData({ goodsId: Number(options.goodsId || 0) });
-    if (this.data.goodsId) this.loadConfig();
+    var goodsId = Number(options && options.goodsId || 0);
+    // tabBar 入口不带参数, 优先取商品页传入的 ID, 再回退默认演示商品 /
+    // Tab entry carries no query; prefer the id stashed by the goods page, then the default.
+    if (!goodsId) goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
+    if (!goodsId) goodsId = this.DEFAULT_GOODS_ID;
+    wx.removeStorageSync('designerGoodsId');
+    this.setData({ goodsId: goodsId });
+    this.loadConfig();
+  },
+
+  /** 每次 tab 展示时重载配置, 保证从商品页带入新 ID / Reloads config on each tab show. */
+  onShow: function () {
+    var goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
+    if (goodsId && goodsId !== this.data.goodsId) {
+      wx.removeStorageSync('designerGoodsId');
+      this.setData({ goodsId: goodsId, selectedOptionIds: [], selectedLayers: [], engraving: '', quote: {} });
+      this.loadConfig();
+    }
   },
 
   /** 页面卸载时释放三维数据引用 / Releases 3D data references on unload. */
