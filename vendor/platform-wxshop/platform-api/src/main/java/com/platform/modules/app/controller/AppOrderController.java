@@ -176,10 +176,11 @@ public class AppOrderController extends AppBaseController {
             }
         } catch (IllegalArgumentException e) {
             return RestResponse.fail(e.getMessage());
+        } catch (IllegalStateException e) {
+            return RestResponse.fail(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            return RestResponse.fail("提交失败：" + e.getMessage());
         }
-        return RestResponse.fail("提交失败");
     }
 
     /**
@@ -249,9 +250,10 @@ public class AppOrderController extends AppBaseController {
             orderVo.setConfirmTime(new Date());
             orderService.update(orderVo);
             return RestResponse.ok("确认收货成功");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return RestResponse.fail(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
-            return RestResponse.fail("提交失败");
+            return RestResponse.fail("确认收货失败：" + e.getMessage());
         }
     }
 }
