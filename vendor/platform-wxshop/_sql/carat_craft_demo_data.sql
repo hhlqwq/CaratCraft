@@ -5,6 +5,7 @@
 
 DELETE FROM `CC_COMPONENT_OPTION` WHERE `goods_id` = 1006002;
 DELETE FROM `CC_CUSTOM_PRODUCT` WHERE `goods_id` = 1006002;
+DELETE FROM `CC_COMPONENT_STOCK` WHERE `goods_id` = 1006002;
 
 INSERT INTO `CC_CUSTOM_PRODUCT` (`goods_id`, `template_code`, `required_component_types`) VALUES
 (1006002, 'necklace-v1', 'chain,pendant');
@@ -20,3 +21,17 @@ INSERT INTO `CC_COMPONENT_OPTION` (`goods_id`, `component_type`, `option_code`, 
 (1006002, 'gem',     'gem-none',       '不加宝石',      0.00, NULL, 30, 1),
 (1006002, 'gem',     'gem-diamond',    '配钻 10 分', 2000.00, NULL, 30, 1),
 (1006002, 'gem',     'gem-ruby',       '红宝石 30 分',1500.00, NULL, 30, 1);
+
+-- 组件初始库存, 与上方 CC_COMPONENT_OPTION 一一对应, 缺失会导致报价校验"库存不足" /
+-- Initial component stock, must match CC_COMPONENT_OPTION rows above; missing rows fail the quote stock check.
+INSERT INTO `CC_COMPONENT_STOCK` (`goods_id`, `component_type`, `option_code`, `stock`) VALUES
+(1006002, 'chain',   'chain-18k',         50),
+(1006002, 'chain',   'chain-rose',        50),
+(1006002, 'chain',   'chain-pt950',       30),
+(1006002, 'length',  'len-40',           100),
+(1006002, 'length',  'len-45',           100),
+(1006002, 'pendant', 'pendant-solitaire', 40),
+(1006002, 'pendant', 'pendant-heart',     40),
+(1006002, 'gem',     'gem-none',         500),
+(1006002, 'gem',     'gem-diamond',      20),
+(1006002, 'gem',     'gem-ruby',         15);

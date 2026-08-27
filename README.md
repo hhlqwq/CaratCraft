@@ -52,6 +52,14 @@ Windows PowerShell：
 .\dev.ps1
 ```
 
+Windows 双击启动：
+
+```text
+start-local-test.cmd
+```
+
+该启动入口会复用现有镜像且不重新构建代码，兼容 Windows PowerShell 5.1 对 UTF-8 脚本的编码限制。
+
 Ubuntu 或 macOS：
 
 ```bash
@@ -84,7 +92,7 @@ chmod +x dev.sh
 
 微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。开发工具访问本机 HTTP 接口时，需要开启“不校验合法域名、web-view、TLS 版本以及 HTTPS 证书”。真机测试需配置可访问的 HTTPS 域名，不能使用手机自身的 `localhost`。
 
-不使用 Docker 时仍可手动准备本地依赖，并在 `vendor/platform-wxshop` 下定向运行：`mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false"`。底座其他测试包含真实外部副作用，不建议直接全量执行。已有旧版定制表的数据库升级时，手动执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_customization_v2.sql`。
+不使用 Docker 时仍可手动准备本地依赖，并在 `vendor/platform-wxshop` 下定向运行：`mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false"`。底座其他测试包含真实外部副作用，不建议直接全量执行。已有旧版定制表的数据库升级时，手动执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_customization_v2.sql`；组件库存功能上线后，已有演示数据的环境还需手动执行一次 `_sql/carat_craft_demo_data.sql`（幂等，会重建演示商品 1006002 的定制选项与初始组件库存），否则定制报价会提示"组件库存不足"。
 
 管理后台菜单可由上述种子 SQL 自动导入；如需手工配置，页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。工单状态流转由服务端状态机约束（PENDING_REVIEW→REVIEWED→PRODUCING→QUALITY_CHECK→COMPLETED，审核前后均可 CANCELLED）。每次状态变更会记录操作日志到 `CC_WORK_ORDER_LOG` 表，可通过 `GET /custom/work-order/log/{workOrderId}` 查询。
 
