@@ -181,7 +181,7 @@ public class MallOrderController extends AbstractController {
         if (order == null) {
             return RestResponse.fail("订单不存在");
         }
-        if (order.getPayStatus() == null || order.getPayStatus() != 1) {
+        if (order.getPayStatus() == null || order.getPayStatus() != 2) {
             return RestResponse.fail("未支付订单不能发货");
         }
         if (order.getShippingStatus() != null && order.getShippingStatus() == 1) {
@@ -189,7 +189,7 @@ public class MallOrderController extends AbstractController {
         }
 
         order.setShippingStatus(1);
-        order.setOrderStatus(2);
+        order.setOrderStatus(300);
         order.setShippingNo(String.valueOf(shippingNoObj).trim());
         order.setShippingName(String.valueOf(shippingNameObj).trim());
 

@@ -67,3 +67,16 @@ CREATE TABLE IF NOT EXISTS `CC_PRODUCTION_WORK_ORDER` (
   PRIMARY KEY (`id`), UNIQUE KEY `uk_cc_work_order_no` (`work_order_no`),
   UNIQUE KEY `uk_cc_work_order_order` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft生产工单 / production work order';
+
+CREATE TABLE IF NOT EXISTS `CC_WORK_ORDER_LOG` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `work_order_id` bigint NOT NULL,
+  `operator_id` bigint DEFAULT NULL,
+  `operator_name` varchar(64) DEFAULT NULL,
+  `from_status` varchar(32) DEFAULT NULL,
+  `to_status` varchar(32) NOT NULL,
+  `remark` varchar(512) DEFAULT NULL,
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`), KEY `idx_cc_wol_work_order` (`work_order_id`),
+  KEY `idx_cc_wol_create_time` (`create_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='CaratCraft工单操作日志 / work order operation log';

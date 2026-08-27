@@ -123,9 +123,14 @@ Page({
     wx.showToast({ title: '3D 加载失败，已切换 2D', icon: 'none' });
   },
 
-  /** 更新刻字 / Updates engraving text. */
+  /** 更新刻字并刷新报价（防抖）/ Updates engraving and refreshes quote with debounce. */
   changeEngraving: function (event) {
-    this.setData({ engraving: event.detail.value });
+    var that = this;
+    that.setData({ engraving: event.detail.value });
+    if (that._engravingTimer) clearTimeout(that._engravingTimer);
+    that._engravingTimer = setTimeout(function () {
+      that.refreshQuote();
+    }, 300);
   },
 
   /** 请求服务端报价 / Requests server-side quote. */

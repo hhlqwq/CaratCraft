@@ -70,7 +70,7 @@ public class AppPayController extends AppBaseController {
     public RestResponse<Object> payPrepay(@LoginUser WxUserEntity loginUser, Integer orderId) {
         MallOrderEntity orderInfo = orderService.getById(orderId);
         if (orderInfo == null) {
-            return RestResponse.fail("订单已取消");
+            return RestResponse.fail("订单不存在");
         }
         if (!loginUser.getId().equals(orderInfo.getUserId())) {
             return RestResponse.fail("越权操作！");
@@ -78,6 +78,10 @@ public class AppPayController extends AppBaseController {
 
         if (orderInfo.getPayStatus() == 2) {
             return RestResponse.fail("订单已支付，请不要重复操作");
+        }
+
+        if (orderInfo.getOrderStatus() != null && orderInfo.getOrderStatus() != 0) {
+            return RestResponse.fail("订单状态不允许支付");
         }
 
         try {
@@ -185,8 +189,8 @@ public class AppPayController extends AppBaseController {
             String resultCode = result.getResultCode();
             String outTradeNo = result.getOutTradeNo();
             if ("FAIL".equalsIgnoreCase(resultCode)) {
-                log.error("订单" + outTradeNo + "支付失败");
-                response.getWriter().write(setXml("SUCCESS", "OK"));
+                log.error("订单{}支付失败", outTradeNo);
+                response.getWriter().write(setXml("FAIL", "PAY_FAILED"));
             } else if ("SUCCESS".equalsIgnoreCase(resultCode)) {
                 log.info("订单{}支付成功", outTradeNo);
                 // 业务处理
@@ -235,8 +239,10 @@ public class AppPayController extends AppBaseController {
         int refundedStatus;
         if (orderInfo.getOrderStatus() == 201) {
             refundedStatus = 401;
+        } else if (orderInfo.getOrderStatus() == 300 || orderInfo.getOrderStatus() == 301) {
+            refundedStatus = 402;
         } else {
-            return RestResponse.fail("已发货订单请联系客服办理退货退款");
+            return RestResponse.fail("当前订单状态不支持退款");
         }
         WxPayRefundRequest request = new WxPayRefundRequest();
         request.setOutTradeNo(orderInfo.getOrderSn());

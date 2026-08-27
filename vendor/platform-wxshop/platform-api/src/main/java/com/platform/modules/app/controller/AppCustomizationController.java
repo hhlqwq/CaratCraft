@@ -1,28 +1,21 @@
 package com.platform.modules.app.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.platform.annotation.IgnoreAuth;
+import com.platform.annotation.LoginUser;
 import com.platform.common.utils.RestResponse;
-import com.platform.modules.custom.dao.CustomComponentOptionDao;
-import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
-import com.platform.modules.custom.entity.CustomComponentOptionEntity;
-import com.platform.modules.custom.entity.CustomProductEntity;
+import com.platform.modules.custom.service.CustomProductService;
 import com.platform.modules.custom.service.CustomQuoteService;
 import com.platform.modules.custom.service.CustomDesignService;
-import com.platform.modules.mall.entity.MallGoodsEntity;
-import com.platform.modules.mall.service.MallGoodsService;
-import com.platform.annotation.LoginUser;
 import com.platform.modules.wx.entity.WxUserEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,24 +24,11 @@ import java.util.Map;
 @Tag(name = "CaratCraft定制")
 @RestController
 @RequestMapping("/app/customization")
+@RequiredArgsConstructor
 public class AppCustomizationController {
-    private final CustomProductDao customProductDao;
-    private final CustomComponentOptionDao componentOptionDao;
+    private final CustomProductService customProductService;
     private final CustomQuoteService customQuoteService;
     private final CustomDesignService customDesignService;
-    private final MallGoodsService mallGoodsService;
-
-    public AppCustomizationController(CustomProductDao customProductDao,
-                                     CustomComponentOptionDao componentOptionDao,
-                                     CustomQuoteService customQuoteService,
-                                     CustomDesignService customDesignService,
-                                     MallGoodsService mallGoodsService) {
-        this.customProductDao = customProductDao;
-        this.componentOptionDao = componentOptionDao;
-        this.customQuoteService = customQuoteService;
-        this.customDesignService = customDesignService;
-        this.mallGoodsService = mallGoodsService;
-    }
 
     /**
      * 获取定制器配置 / Gets customizer configuration.
@@ -60,24 +40,11 @@ public class AppCustomizationController {
     @Operation(summary = "获取定制器配置")
     @PostMapping("config")
     public RestResponse<Object> config(Integer goodsId) {
-        CustomProductEntity product = customProductDao.selectOne(
-                new LambdaQueryWrapper<CustomProductEntity>()
-                        .eq(CustomProductEntity::getGoodsId, goodsId)
-                        .eq(CustomProductEntity::getEnabled, 1));
-        if (product == null) {
-            return RestResponse.fail("该商品暂未开放定制");
+        try {
+            return RestResponse.ok(customProductService.getConfig(goodsId));
+        } catch (IllegalArgumentException e) {
+            return RestResponse.fail(e.getMessage());
         }
-        List<CustomComponentOptionEntity> options = componentOptionDao.selectList(
-                new LambdaQueryWrapper<CustomComponentOptionEntity>()
-                        .eq(CustomComponentOptionEntity::getGoodsId, goodsId)
-                        .eq(CustomComponentOptionEntity::getEnabled, 1)
-                        .orderByAsc(CustomComponentOptionEntity::getZIndex));
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("product", product);
-        result.put("options", options);
-        MallGoodsEntity goods = mallGoodsService.getById(goodsId);
-        result.put("primaryProductId", goods == null ? null : goods.getPrimaryProductId());
-        return RestResponse.ok(result);
     }
 
     /**
@@ -92,8 +59,8 @@ public class AppCustomizationController {
     public RestResponse<Object> quote(@RequestBody CustomQuoteRequest request) {
         try {
             return RestResponse.ok(customQuoteService.quote(request));
-        } catch (IllegalArgumentException exception) {
-            return RestResponse.fail(exception.getMessage());
+        } catch (IllegalArgumentException e) {
+            return RestResponse.fail(e.getMessage());
         }
     }
 
@@ -104,8 +71,8 @@ public class AppCustomizationController {
                                      @RequestBody CustomQuoteRequest request) {
         try {
             return RestResponse.ok(customDesignService.saveDraft(loginUser.getId(), request));
-        } catch (IllegalArgumentException exception) {
-            return RestResponse.fail(exception.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return RestResponse.fail(e.getMessage());
         }
     }
 
@@ -122,8 +89,8 @@ public class AppCustomizationController {
     public RestResponse<Object> checkoutQuote(@LoginUser WxUserEntity loginUser, Long snapshotId) {
         try {
             return RestResponse.ok(customDesignService.quoteOwned(snapshotId, loginUser.getId()));
-        } catch (IllegalArgumentException exception) {
-            return RestResponse.fail(exception.getMessage());
+        } catch (IllegalArgumentException e) {
+            return RestResponse.fail(e.getMessage());
         }
     }
 }

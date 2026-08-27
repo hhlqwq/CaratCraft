@@ -131,7 +131,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         binding.setOrderId(orderId);
         binding.setOrderGoodsId(orderGoodsId);
         binding.setSnapshotId(snapshotId);
-        binding.setStatus("UNPAID");
+        binding.setStatus("LOCKED");
         binding.setCreateTime(new Date());
         binding.setUpdateTime(new Date());
         orderCustomizationDao.insert(binding);
@@ -151,10 +151,10 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             return;
         }
         // 仅允许未支付绑定流转为已支付, 防止迟到回调复活已取消订单 /
-        // Only UNPAID bindings may become PAID so late callbacks cannot revive cancelled orders.
+        // Only LOCKED bindings may become PAID so late callbacks cannot revive cancelled orders.
         int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
                 .eq("id", binding.getId())
-                .eq("status", "UNPAID")
+                .eq("status", "LOCKED")
                 .set("status", "PAID")
                 .set("update_time", new Date()));
         if (updated != 1) {
@@ -174,7 +174,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         workOrder.setOrderId(orderId);
         workOrder.setOrderGoodsId(binding.getOrderGoodsId());
         workOrder.setSnapshotId(binding.getSnapshotId());
-        workOrder.setStatus("PENDING");
+        workOrder.setStatus("PENDING_REVIEW");
         workOrder.setCraftJson(snapshot.getConfigurationJson());
         workOrder.setCreateTime(new Date());
         workOrder.setUpdateTime(new Date());
@@ -191,13 +191,13 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (binding == null) {
             return;
         }
-        boolean wasUnpaid = "UNPAID".equals(binding.getStatus());
+        boolean wasUnpaid = "LOCKED".equals(binding.getStatus());
         if (wasUnpaid) {
             // 条件更新防止与支付回调并发时误改已支付状态 /
             // Conditional update avoids racing with a concurrent payment callback.
             int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
                     .eq("id", binding.getId())
-                    .eq("status", "UNPAID")
+                    .eq("status", "LOCKED")
                     .set("status", "CANCELLED")
                     .set("update_time", new Date()));
             if (updated != 1) {

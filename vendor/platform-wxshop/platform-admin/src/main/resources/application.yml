@@ -162,7 +162,7 @@ ali:
     #通信协议，通常填写https
     protocol: https
     #支付回调通知地址
-    baseNotifyUrl: https://openwtai.com/platform-framework-api
+    baseNotifyUrl: ${ALI_PAY_NOTIFY_URL:https://openwtai.com/platform-framework-api}
     encryptKey:
 
 wx:
@@ -177,9 +177,9 @@ wx:
     aesKey:
   miniapp:
     #微信小程序的appid
-    appid: wxc9a3e86a266c5979
+    appid: ${WX_MINIAPP_APPID:}
     #微信小程序的Secret
-    secret: REDACTED_CREDENTIAL
+    secret: ${WX_MINIAPP_SECRET:}
     #微信小程序消息服务器配置的token
     token:
     #微信小程序消息服务器配置的EncodingAESKey
@@ -200,4 +200,4 @@ wx:
     # p12证书的位置，可以指定绝对路径，也可以指定类路径（以classpath:开头）
     keyPath: classpath:/apiclient_cert.p12
     #支付回调通知地址
-    baseNotifyUrl: https://openwtai.com/platform-framework-api
+    baseNotifyUrl: ${WX_PAY_NOTIFY_URL:http://localhost:8081/platform-framework-api/app/pay/notify}

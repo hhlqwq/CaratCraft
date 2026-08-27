@@ -98,7 +98,7 @@ class CustomDesignServiceImplTest {
     @Test
     void cancelledBindingIsNotRevivedByLateCallback() {
         when(bindingDao.selectOne(any())).thenReturn(unpaidBinding());
-        // 条件更新未命中说明绑定已不是 UNPAID / Miss means the binding is no longer UNPAID.
+        // 条件更新未命中说明绑定已不是 LOCKED / Miss means the binding is no longer LOCKED.
         when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(0);
 
         service.markOrderPaid(100);
@@ -150,7 +150,7 @@ class CustomDesignServiceImplTest {
         binding.setOrderId(100);
         binding.setOrderGoodsId(101);
         binding.setSnapshotId(88L);
-        binding.setStatus("UNPAID");
+        binding.setStatus("LOCKED");
         return binding;
     }
 }

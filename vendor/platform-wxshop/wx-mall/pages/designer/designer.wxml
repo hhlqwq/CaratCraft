@@ -32,7 +32,7 @@
 
   <view class="section">
     <view class="section-title">刻字</view>
-    <input class="engraving" maxlength="20" placeholder="最多 20 个字符" value="{{engraving}}" bindinput="changeEngraving" bindblur="refreshQuote"></input>
+    <input class="engraving" maxlength="20" placeholder="最多 20 个字符" value="{{engraving}}" bindinput="changeEngraving"></input>
   </view>
 
   <view class="bottom-bar">
