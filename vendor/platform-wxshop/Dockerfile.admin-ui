@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 FROM node:20-alpine AS builder
 
 WORKDIR /workspace
@@ -7,8 +5,7 @@ WORKDIR /workspace
 RUN npm install --global pnpm@9.15.9
 
 COPY platform-admin-ui/package.json platform-admin-ui/pnpm-lock.yaml ./
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY platform-admin-ui/ ./
 RUN pnpm run build

@@ -63,6 +63,7 @@ chmod +x dev.sh
 
 | 操作 | Windows | Ubuntu / macOS |
 |---|---|---|
+| BuildKit 网络异常兼容启动 | `powershell -File dev.ps1 -LegacyBuild` | `./dev.sh --legacy-build` |
 | 启动或更新 | `.\dev.ps1` | `./dev.sh` |
 | 不重新构建 | `.\dev.ps1 -NoBuild` | `./dev.sh --no-build` |
 | 查看状态 | `.\dev.ps1 -Action status` | `./dev.sh status` |
@@ -72,6 +73,8 @@ chmod +x dev.sh
 | 清空测试数据重建 | `.\dev.ps1 -ResetData` | `./dev.sh --reset-data` |
 
 `ResetData` 会删除本项目的 MySQL 和 Redis Docker 数据卷，只用于需要全新测试数据的场景。默认启动会保留数据。
+
+默认构建使用 BuildKit 缓存。当 Docker Hub 可通过普通 `docker pull` 访问、但 BuildKit 拉取镜像失败时，可使用 `LegacyBuild` / `--legacy-build` 临时关闭 BuildKit 和 Compose Bake；该模式不影响镜像功能，但首次构建会较慢。
 
 启动完成后的默认地址：
 

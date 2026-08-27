@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.7
-
 FROM maven:3.9.11-eclipse-temurin-21 AS builder
 
 WORKDIR /workspace
@@ -14,8 +12,7 @@ COPY platform-biz/src platform-biz/src
 COPY platform-admin/src platform-admin/src
 COPY platform-api/src platform-api/src
 
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn -B -Pdev -pl platform-admin,platform-api -am package -DskipTests
+RUN mvn -B -Pdev -pl platform-admin,platform-api -am package -DskipTests
 
 FROM eclipse-temurin:21-jre
 

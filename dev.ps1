@@ -3,7 +3,8 @@ param(
     [ValidateSet('start', 'stop', 'restart', 'status', 'logs')]
     [string]$Action = 'start',
     [switch]$ResetData,
-    [switch]$NoBuild
+    [switch]$NoBuild,
+    [switch]$LegacyBuild
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +36,13 @@ function Initialize-Environment {
     }
 }
 
+# 启用传统构建器兼容模式 / Enables legacy builder compatibility mode.
+function Enable-LegacyBuild {
+    $env:COMPOSE_BAKE = 'false'
+    $env:DOCKER_BUILDKIT = '0'
+    Write-Warning '已启用传统构建器兼容模式：本次构建不会使用 BuildKit 缓存。'
+}
+
 # 执行统一的 Compose 命令 / Runs a unified Compose command.
 function Invoke-Compose {
     param([Parameter(Mandatory = $true)][string[]]$Arguments)
@@ -61,6 +69,10 @@ function Show-AccessInfo {
 
 Assert-DockerReady
 Initialize-Environment
+
+if ($LegacyBuild) {
+    Enable-LegacyBuild
+}
 
 if ($ResetData -and $Action -notin @('start', 'restart')) {
     throw '-ResetData 只能与 start 或 restart 一起使用。'

@@ -11,10 +11,11 @@ ENV_EXAMPLE="$PROJECT_DIR/deploy/.env.example"
 ACTION="start"
 RESET_DATA="false"
 NO_BUILD="false"
+LEGACY_BUILD="false"
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
-  echo "用法: ./dev.sh [start|stop|restart|status|logs] [--reset-data] [--no-build]"
+  echo "用法: ./dev.sh [start|stop|restart|status|logs] [--reset-data] [--no-build] [--legacy-build]"
 }
 
 # 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
@@ -36,6 +37,13 @@ initialize_environment() {
     cp "$ENV_EXAMPLE" "$ENV_FILE"
     echo "已生成默认配置: $ENV_FILE"
   fi
+}
+
+# 启用传统构建器兼容模式 / Enables legacy builder compatibility mode.
+enable_legacy_build() {
+  export COMPOSE_BAKE=false
+  export DOCKER_BUILDKIT=0
+  echo "警告: 已启用传统构建器兼容模式，本次构建不会使用 BuildKit 缓存。"
 }
 
 # 执行统一的 Compose 命令 / Runs a unified Compose command.
@@ -65,6 +73,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --reset-data) RESET_DATA="true" ;;
     --no-build) NO_BUILD="true" ;;
+    --legacy-build) LEGACY_BUILD="true" ;;
     -h|--help) usage; exit 0 ;;
     *) echo "未知参数: $1"; usage; exit 1 ;;
   esac
@@ -83,6 +92,10 @@ fi
 
 assert_docker_ready
 initialize_environment
+
+if [[ "$LEGACY_BUILD" == "true" ]]; then
+  enable_legacy_build
+fi
 
 case "$ACTION" in
   stop)
