@@ -69,14 +69,22 @@ axios.interceptors.response.use(response => {
   if (response.data && response.data.code === 401) {
     clearLoginInfo()
     router.push({name: 'login'})
+    // 跳转登录页后不再弹出错误提示, 避免长文本弹窗 /
+    // Skip the error toast once redirected to the login page.
+    return response
   }
   if (!(response.data && response.data.code === 0)) {
     if (showError) {
+      let msg = (response.data && response.data.msg) || '操作失败'
+      // 纯文本展示并截断超长内容, 防止整段堆栈刷屏 /
+      // Render as plain text and truncate long payloads.
+      if (msg.length > 200) {
+        msg = msg.substring(0, 200) + '…'
+      }
       Message({
-        message: response.data.msg,
+        message: msg,
         type: 'error',
         showClose: true,
-        dangerouslyUseHTMLString: true,
         duration: 5000
       })
     }

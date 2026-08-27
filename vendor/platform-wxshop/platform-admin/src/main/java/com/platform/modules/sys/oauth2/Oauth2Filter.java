@@ -24,6 +24,7 @@ import com.platform.common.utils.RestResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.session.SessionException;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -73,6 +74,26 @@ public class Oauth2Filter extends AuthenticatingFilter {
         }
 
         return executeLogin(request, response);
+    }
+
+    /**
+     * 执行登录, 会话已过期或停止时返回干净的 401, 避免堆栈逸出到页面 /
+     * Executes login; returns a clean 401 when the session is expired or stopped.
+     */
+    @Override
+    protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+        try {
+            return super.executeLogin(request, response);
+        } catch (SessionException e) {
+            // 旧会话已过期(StoppedSessionException 等), 清理后要求重新登录 /
+            // The stale session has expired; ask the client to re-authenticate.
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setContentType("application/json;charset=utf-8");
+            httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
+            httpResponse.setHeader("Access-Control-Allow-Origin", "*");
+            httpResponse.getWriter().print(JSONObject.toJSONString(RestResponse.fail(401, "登录已过期，请重新登录")));
+            return false;
+        }
     }
 
     @Override

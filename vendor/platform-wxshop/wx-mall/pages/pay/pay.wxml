@@ -6,16 +6,6 @@
     <view class="pay-list">
         <view class="h">请选择支付方式</view>
         <view class="b">
-            <!--<view class="item">
-                <view class="checkbox checked"></view>
-                <view class="icon-alipay"></view>
-                <view class="name">支付宝</view>
-            </view>
-            <view class="item">
-                <view class="checkbox"></view>
-                <view class="icon-net"></view>
-                <view class="name">网易支付</view>
-            </view>-->
             <view class="item">
                 <view class="checkbox checked"></view>
                 <image src="/static/images/wxpay.png" class="icon"></image>
