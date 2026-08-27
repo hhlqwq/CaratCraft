@@ -1,7 +1,28 @@
 # CaratCraft 本地环境搭建与测试指南
 
-> 目标读者：第一次接触本项目的人。按本文档从零开始，可以在一台全新的 Windows 电脑上把整个系统跑起来并完成核心功能验证。
-> 全程不需要安装 JDK 和 Maven（项目自带），需要自行安装的只有 MySQL、Redis、Node.js 三样。
+> 目标读者：第一次接触本项目的人。推荐先使用下方 Docker 方式；后半部分保留手动安装流程，便于不使用 Docker 时排查和开发。
+
+## 零、推荐：Docker 一键启动
+
+只需提前安装并启动 Docker Desktop。项目会在容器内构建 Java 和 Vue，并自动启动 MySQL、Redis、后端与管理台。
+
+```powershell
+# 在仓库根目录执行 / Run from the repository root.
+.\dev.ps1
+```
+
+常用操作：
+
+```powershell
+.\dev.ps1 -Action status   # 查看状态 / Shows status.
+.\dev.ps1 -Action logs     # 查看日志 / Follows logs.
+.\dev.ps1 -Action stop     # 停止并保留数据 / Stops and keeps data.
+.\dev.ps1 -ResetData       # 清空测试数据并重建 / Resets test data.
+```
+
+启动成功后访问 `http://localhost:8888`。商城接口为 `http://localhost:8888/platform-framework-api`。
+
+以下章节仅适用于不使用 Docker、希望分别启动各进程的场景。
 
 ## 一、系统组成（一共 6 个进程）
 
@@ -204,4 +225,3 @@ Set-Location D:\code\gitee\carat-craft\vendor\platform-wxshop
 | gem 宝石 | 不加宝石 / 配钻 10 分 / 红宝石 30 分 | +0 / +2000 / +1500 |
 
 成交价 = 商品基础价 + 所选选项加价之和，由服务端计算，客户端传价格无效。
-

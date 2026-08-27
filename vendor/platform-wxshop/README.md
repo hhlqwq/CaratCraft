@@ -96,18 +96,7 @@ platform
 
 ## Docker 一键启动
 
-适用前提：
-
-```bash
-scripts/build-jars.sh
-scripts/build-admin-ui.sh
-```
-
-输出到：
-
-* `deploy/packages/platform-admin.jar`
-* `deploy/packages/platform-api.jar`
-* `deploy/packages/platform-admin-ui-dist/`
+Docker 使用多阶段构建在容器内完成后端和管理端编译，宿主机只需安装 Docker 和 Compose V2。
 
 首次启动前，如需调整 Maven profile、端口、数据库密码或 JVM 参数，先复制配置文件：
 
@@ -121,10 +110,16 @@ cp deploy/.env.example deploy/.env
 * `NGINX_PORT` 默认 `8888`
 * `MYSQL_ROOT_PASSWORD` 默认 `REDACTED_CREDENTIAL`
 
-启动：
+在仓库根目录一键启动，Windows 使用：
+
+```powershell
+.\dev.ps1
+```
+
+Ubuntu / macOS 使用：
 
 ```bash
-scripts/docker-up.sh
+./dev.sh
 ```
 
 停止：
@@ -144,7 +139,8 @@ scripts/docker-down.sh
 * `docker-compose.yml` 会一键启动 `mysql`、`redis`、`platform-admin`、`platform-api`、`nginx`
 * `nginx` 负责托管前端静态资源，并反向代理两个后端服务
 * 后端容器运行时启用 `docker` profile，自动加载 `application-docker.yml`
-* MySQL 首次启动会自动执行仓库 `_sql/` 目录下的初始化脚本；如果 `deploy/data/mysql` 已有数据，则不会重复导入
+* MySQL 首次创建命名数据卷时自动执行仓库 `_sql/` 根目录下的初始化脚本，`_sql/migrations` 仅供已有数据库手动升级
+* 普通停止保留 MySQL 和 Redis 数据；只有显式执行 `-ResetData` 或 `--reset-data` 才清空测试数据
 
 ## 页面展示
 ### 管理端

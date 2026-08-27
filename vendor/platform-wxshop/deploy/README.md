@@ -1,15 +1,20 @@
 # Docker 部署说明
 
-## 产物准备
+## 一键开发测试
 
-1. 执行 `scripts/build-jars.sh`
-2. 执行 `scripts/build-admin-ui.sh`
+Docker 会通过多阶段构建自动编译 Java 后端和 Vue 管理端，不需要预先准备 JAR 或 dist。
 
-产物会输出到：
+在仓库根目录执行：
 
-- `deploy/packages/platform-admin.jar`
-- `deploy/packages/platform-api.jar`
-- `deploy/packages/platform-admin-ui-dist/`
+```powershell
+.\dev.ps1
+```
+
+Ubuntu 或 macOS：
+
+```bash
+./dev.sh
+```
 
 ## 启动
 
@@ -19,14 +24,12 @@
 cp deploy/.env.example deploy/.env
 ```
 
-其中：
+其中 `NGINX_PORT`、数据库密码和 JVM 参数都可以按本机情况修改。`MAVEN_PROFILE` 仅供旧的独立 JAR 构建脚本使用。
 
-- `MAVEN_PROFILE` 控制 `scripts/build-jars.sh` 使用的 Maven profile，默认是 `dev`
-
-然后执行：
+也可以直接执行标准 Compose 命令：
 
 ```bash
-scripts/docker-up.sh
+docker compose --env-file deploy/.env up --build -d --wait
 ```
 
 ## 停止
@@ -37,6 +40,8 @@ scripts/docker-down.sh
 
 ## 说明
 
-- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次启动会按文件名顺序执行。
-- `nginx` 对外暴露默认端口 `80`，同时托管前端静态资源并反代两个后端服务。
+- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次创建数据卷时按文件名顺序执行；`_sql/migrations` 不会自动执行。
+- `nginx` 在容器内监听 `80`，宿主机默认通过 `8888` 访问，同时托管前端静态资源并反代两个后端服务。
 - 后端容器运行时启用 `docker` profile，只覆盖 MySQL 和 Redis 地址，不改你现有 `dev/test/prod` 配置。
+- MySQL 和 Redis 使用 Docker 命名数据卷，普通停止不会丢失数据；只有显式使用 `--reset-data` 或 `-ResetData` 才会删除测试数据。
+- `scripts/build-jars.sh` 和 `scripts/build-admin-ui.sh` 保留给需要导出独立部署产物的场景，一键测试不再依赖它们。

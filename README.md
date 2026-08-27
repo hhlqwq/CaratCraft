@@ -44,13 +44,44 @@ CaratCraft（手工克拉，珠宝匠心）是一款面向珠宝定制商家的�
 
 > 零基础环境搭建与逐步测试手册见 [use.md](use.md)，包含 MySQL/Redis/Node 安装、数据库初始化、启动命令、功能验证清单和常见问题排查。
 
-1. 准备 JDK 21、Maven、MySQL 8 和 Redis。
-2. 导入底座 SQL 后，再执行 `vendor/platform-wxshop/_sql/carat_craft_customization.sql`；需要管理后台生产工单菜单时，继续执行 `vendor/platform-wxshop/_sql/carat_craft_menu.sql`。旧版本数据库升级另见 `carat_craft_customization_v2.sql`。
-3. 修改 `vendor/platform-wxshop/platform-api/src/main/resources/application-dev.yml` 中的本地数据库与 Redis 配置。
-4. 在 `vendor/platform-wxshop` 下定向执行定制模块测试：
-   `mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest"`。
-   注意：底座其余单元测试含真实外部副作用（发送邮件、退款、生成小程序码等），不要全量执行 `mvn test`。
-5. 启动 `platform-api`，微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。小程序 API 默认指向 `http://localhost:8081/platform-framework-api/app/`，也可预先通过 Storage 中的 `apiBaseUrl` 覆盖。
+推荐使用 Docker 一键启动，宿主机不需要安装 JDK、Maven、Node、MySQL 或 Redis。
+
+Windows PowerShell：
+
+```powershell
+.\dev.ps1
+```
+
+Ubuntu 或 macOS：
+
+```bash
+chmod +x dev.sh
+./dev.sh
+```
+
+首次运行会在容器内构建 Java 后端和 Vue 管理端，然后启动 MySQL、Redis、两个后端服务及 Nginx。
+
+| 操作 | Windows | Ubuntu / macOS |
+|---|---|---|
+| 启动或更新 | `.\dev.ps1` | `./dev.sh` |
+| 不重新构建 | `.\dev.ps1 -NoBuild` | `./dev.sh --no-build` |
+| 查看状态 | `.\dev.ps1 -Action status` | `./dev.sh status` |
+| 查看日志 | `.\dev.ps1 -Action logs` | `./dev.sh logs` |
+| 重启 | `.\dev.ps1 -Action restart` | `./dev.sh restart` |
+| 停止 | `.\dev.ps1 -Action stop` | `./dev.sh stop` |
+| 清空测试数据重建 | `.\dev.ps1 -ResetData` | `./dev.sh --reset-data` |
+
+`ResetData` 会删除本项目的 MySQL 和 Redis Docker 数据卷，只用于需要全新测试数据的场景。默认启动会保留数据。
+
+启动完成后的默认地址：
+
+- 管理台：`http://localhost:8888`
+- 商城 API：`http://localhost:8888/platform-framework-api`
+- 小程序 API：`http://localhost:8888/platform-framework-api/app/`
+
+微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。开发工具访问本机 HTTP 接口时，需要开启“不校验合法域名、web-view、TLS 版本以及 HTTPS 证书”。真机测试需配置可访问的 HTTPS 域名，不能使用手机自身的 `localhost`。
+
+不使用 Docker 时仍可手动准备本地依赖，并在 `vendor/platform-wxshop` 下定向运行：`mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false"`。底座其他测试包含真实外部副作用，不建议直接全量执行。已有旧版定制表的数据库升级时，手动执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_customization_v2.sql`。
 
 管理后台菜单可由上述种子 SQL 自动导入；如需手工配置，页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。工单状态流转由服务端状态机约束（PENDING→REVIEWED→PRODUCING→QUALITY_CHECK→COMPLETED，审核前后均可 CANCELLED）。
 

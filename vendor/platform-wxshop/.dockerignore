@@ -1,0 +1,9 @@
+.git
+.idea
+**/target
+**/*.log
+deploy/.env
+deploy/data
+deploy/packages
+platform-admin-ui/dist
+platform-admin-ui/node_modules
