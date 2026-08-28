@@ -1,3 +1,5 @@
+@import "../../styles/product-editorial.wxss";
+
 .container{
     background: #f9f9f9;
 }

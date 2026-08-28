@@ -1,3 +1,5 @@
+@import "../../../styles/auth-identity.wxss";
+
 .form-box{
     width: 100%;
     height: auto;

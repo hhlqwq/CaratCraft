@@ -4,8 +4,10 @@
       <el-col :span="24">
         <el-card shadow="hover">
           <div slot="header" class="clearfix">
-            <b>服务器监控</b>
+            <b>服务器实时监控</b>
+            <span class="monitor-source">数据来源：当前部署服务器 /sys/monitor/server</span>
           </div>
+          <el-alert v-if="monitorError" :title="monitorError" type="error" :closable="false" show-icon></el-alert>
           <el-col :span="6">
             <el-card shadow="hover">
               <div id="cpuChart" class="chart-box"></div>
@@ -648,6 +650,7 @@ export default {
       visitDistributionStayTimeChart: null,
       visitDistributionDeepChart: null,
       monitorVisible: false,
+      monitorError: '',
       monitorData: [],
       cpuChart: null,
       memoryChart: null,
@@ -1098,105 +1101,73 @@ export default {
         }
       })
     },
+    /** 创建紧凑型服务器仪表盘配置 / Builds a compact server gauge option. */
+    buildMonitorGaugeOption (name, value) {
+      return {
+        series: [{
+          type: 'gauge',
+          radius: '82%',
+          center: ['50%', '55%'],
+          axisLine: {
+            lineStyle: {
+              width: 14,
+              color: [[0.55, '#4f7668'], [0.8, '#c39a59'], [1, '#b45f55']]
+            }
+          },
+          pointer: {width: 4, length: '56%', itemStyle: {color: '#283b34'}},
+          axisTick: {distance: -20, length: 5, lineStyle: {color: '#fff', width: 1}},
+          splitLine: {distance: -22, length: 10, lineStyle: {color: '#fff', width: 2}},
+          axisLabel: {distance: 20, color: '#7d857f', fontSize: 10},
+          title: {offsetCenter: [0, '65%'], color: '#657069', fontSize: 13},
+          detail: {
+            valueAnimation: true,
+            formatter: '{value}%',
+            offsetCenter: [0, '24%'],
+            color: '#26352f',
+            fontSize: 26,
+            fontWeight: 600
+          },
+          data: [{value: value, name: name}]
+        }]
+      }
+    },
+    /** 获取当前服务器实时状态 / Loads live status from the current server. */
     monitor () {
+      this.monitorError = ''
       this.$http({
         url: '/sys/monitor/server',
-        method: 'post'
+        method: 'post',
+        showError: false
       }).then(({data}) => {
         if (data && data.code === 0) {
           this.monitorVisible = true
           this.monitorData = data.data
-          let option = {
-            series: [
-              {
-                type: 'gauge',
-                axisLine: {
-                  lineStyle: {
-                    width: 30,
-                    color: [
-                      [0.3, '#67e0e3'],
-                      [0.7, '#37a2da'],
-                      [1, '#fd666d']
-                    ]
-                  }
-                },
-                detail: {
-                  valueAnimation: true,
-                  formatter: '{value}%'
-                },
-                data: [{
-                  value: Math.round(this.monitorData.cupInfo.usePercent * 100),
-                  name: 'CPU'
-                }]
-              }
-            ]
-          }
+          let option = this.buildMonitorGaugeOption('CPU', Math.round(this.monitorData.cupInfo.usePercent * 100))
           this.cpuChart = this.$echarts.init(document.getElementById('cpuChart'))
           this.cpuChart.setOption(option)
           window.addEventListener('resize', () => {
             this.cpuChart.resize()
           })
-          option = {
-            series: [
-              {
-                type: 'gauge',
-                axisLine: {
-                  lineStyle: {
-                    width: 30,
-                    color: [
-                      [0.3, '#67e0e3'],
-                      [0.7, '#37a2da'],
-                      [1, '#fd666d']
-                    ]
-                  }
-                },
-                detail: {
-                  valueAnimation: true,
-                  formatter: '{value}%'
-                },
-                data: [{
-                  value: Math.round(this.monitorData.memoryInfo.usePercent * 100),
-                  name: '内存'
-                }]
-              }
-            ]
-          }
+          option = this.buildMonitorGaugeOption('内存', Math.round(this.monitorData.memoryInfo.usePercent * 100))
           this.memoryChart = this.$echarts.init(document.getElementById('memoryChart'))
           this.memoryChart.setOption(option)
           window.addEventListener('resize', () => {
             this.memoryChart.resize()
           })
-          option = {
-            series: [
-              {
-                type: 'gauge',
-                axisLine: {
-                  lineStyle: {
-                    width: 30,
-                    color: [
-                      [0.3, '#67e0e3'],
-                      [0.7, '#37a2da'],
-                      [1, '#fd666d']
-                    ]
-                  }
-                },
-                detail: {
-                  valueAnimation: true,
-                  formatter: '{value}%'
-                },
-                data: [{
-                  value: Math.round(this.monitorData.diskUsePercent),
-                  name: '磁盘'
-                }]
-              }
-            ]
-          }
+          option = this.buildMonitorGaugeOption('磁盘', Math.round(this.monitorData.diskUsePercent))
           this.diskChart = this.$echarts.init(document.getElementById('diskChart'))
           this.diskChart.setOption(option)
           window.addEventListener('resize', () => {
             this.diskChart.resize()
           })
+        } else {
+          this.monitorError = `无法获取服务器状态：${(data && data.msg) || '接口返回异常'}`
         }
+      }).catch(error => {
+        const status = error.response && error.response.status
+        this.monitorError = status
+          ? `无法获取服务器状态：HTTP ${status}`
+          : '无法获取服务器状态：后台服务不可达'
       })
     },
     translateScene (sceneId) {
@@ -1376,6 +1347,13 @@ export default {
 
 <style lang="scss">
 .chart-box {
-  min-height: 400px;
+  min-height: 260px;
+}
+
+.monitor-source {
+  color: #8a928d;
+  float: right;
+  font-size: 12px;
+  font-weight: 400;
 }
 </style>

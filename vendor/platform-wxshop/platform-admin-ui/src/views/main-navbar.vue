@@ -2,8 +2,11 @@
   <nav class="site-navbar" :class="'site-navbar--' + navbarLayoutType">
     <div class="site-navbar__header">
       <h1 class="site-navbar__brand" @click="$router.push({ name: 'home' })">
-        <a class="site-navbar__brand-lg" href="javascript:;">商城软件管理平台</a>
-        <a class="site-navbar__brand-mini" href="javascript:;">商城</a>
+        <a class="site-navbar__brand-lg" href="javascript:;">
+          <span class="brand-en">CARAT CRAFT</span>
+          <span class="brand-cn">克拉匠造 · 商家工作台</span>
+        </a>
+        <a class="site-navbar__brand-mini" href="javascript:;">克拉</a>
       </h1>
     </div>
     <div class="site-navbar__body clearfix">
@@ -123,3 +126,28 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.site-navbar__brand-lg {
+  align-items: flex-start;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+  text-align: left;
+}
+
+.brand-en {
+  color: #c9a86b;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+}
+
+.brand-cn {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+</style>

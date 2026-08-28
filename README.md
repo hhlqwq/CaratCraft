@@ -4,10 +4,10 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 
 ## 品牌与 UI 规范
 
-- 小程序品牌名"克拉匠造"，主色为金棕色 `#b47a3f`（tabBar 选中色与定制器一致），导航栏标题"克拉匠造"，图片在data\profile_photo.png。
+- 小程序品牌名“克拉匠造”，新版以深珠宝绿 `#183d35`、暖金 `#b98545` 和象牙白 `#fffdf8` 为核心色；导航栏标题为“克拉匠造”，tabBar 选中态仍保留暖金色以保证识别度。
 - tabBar 为四个页签：首页 / **定制**（designer 一级入口）/ 购物车 / 我的。"定制"页签图标暂复用原专题图标占位，待替换为钻石主题图标；tab 页传参通过 `designerGoodsId` storage 键中转。
 - 商品详情页仍保留"开始定制"按钮（switchTab 进入定制器）；原"品牌制造商直供"栏目已移除，首页新增 DIY 定制入口卡。
-- 遗留待办：约 45 处页面样式仍引用网易严选 CDN 图片素材（图标/背景，功能正常），需设计素材后批量替换为本地图。
+- 页面不再采用单一商城模板：商品陈列、交易流程、账户档案和身份认证分别使用杂志式、票据式、档案式和珠宝盒式视觉语言；公共排版和空状态由全局样式兜底。
 
 ### 待生成图标清单（放入 `wx-mall/static/images/icons/`）
 
@@ -59,6 +59,9 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 - 支付查询与签名回调统一校验微信实付金额，再以事务方式更新订单和幂等生成生产工单。
 - 未支付取消或退款完成后恢复库存、释放优惠券并关闭定制流程；进入制作、质检或完成状态后禁止用户直接退款。已发货订单支持退货退款（状态码 402）。
 - “我的”页面已提供“我的设计”入口，订单详情会展示该订单绑定的定制预览、设计状态与刻字内容。
+- 首页提供款式搜索、关键词快捷检索和八个业务入口，并将“商家成品”与“自己定制”明确分区；搜索结果复用现有商品检索接口，不是静态展示。
+- DIY 演示款已提供材质、长度、款式和珍珠种类四个必选分组，每组各三条明确标注的演示选项。生产环境中的真实选项由商家在后台“定制配置”页面新增、修改、删除或完整 JSON 导入。
+- 管理后台采用独立的深绿侧栏、暖白内容区和紧凑数据表视觉体系；首页 CPU、内存、磁盘数据来自 `/sys/monitor/server` 实时接口，接口失败时会显示具体原因，不会使用伪造百分比代替。
 
 ## 稳定性与部署配置
 
@@ -150,7 +153,7 @@ chmod +x dev.sh
 
 微信开发者工具导入 `vendor/platform-wxshop/wx-mall`。开发工具访问本机 HTTP 接口时，需要开启“不校验合法域名、web-view、TLS 版本以及 HTTPS 证书”。真机测试需配置可访问的 HTTPS 域名，不能使用手机自身的 `localhost`。
 
-不使用 Docker 时仍可手动准备本地依赖，并在 `vendor/platform-wxshop` 下定向运行：`mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false"`。底座其他测试包含真实外部副作用，不建议直接全量执行。已有旧版定制表的数据库升级时，手动执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_customization_v2.sql`；组件库存功能上线后，已有演示数据的环境还需手动执行一次 `_sql/carat_craft_demo_data.sql`（幂等，会重建演示商品 1006002 的定制选项与初始组件库存），否则定制报价会提示"组件库存不足"。
+不使用 Docker 时仍可手动准备本地依赖，并在 `vendor/platform-wxshop` 下定向运行：`mvn test -pl platform-biz -am "-Dtest=Custom*Test,OrderPaymentServiceImplTest" "-Dsurefire.failIfNoSpecifiedTests=false"`。底座其他测试包含真实外部副作用，不建议直接全量执行。已有旧版定制表的数据库升级时，手动执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_customization_v2.sql`；需要补齐四类 DIY 演示选项的已有环境，再执行一次 `vendor/platform-wxshop/_sql/migrations/carat_craft_demo_components_v2.sql`。该迁移仅重建演示商品 1006002 的选项和组件库存，不影响商家维护的其他商品。
 
 管理后台菜单可由上述种子 SQL 自动导入；如需手工配置，页面 URL 为 `custom/work-order`，对应权限为 `custom:work-order:list` 和 `custom:work-order:update`。工单状态流转由服务端状态机约束（PENDING_REVIEW→REVIEWED→PRODUCING→QUALITY_CHECK→COMPLETED，审核前后均可 CANCELLED）。每次状态变更会记录操作日志到 `CC_WORK_ORDER_LOG` 表，可通过 `GET /custom/work-order/log/{workOrderId}` 查询。
 

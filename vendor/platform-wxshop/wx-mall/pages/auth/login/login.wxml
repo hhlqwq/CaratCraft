@@ -11,7 +11,7 @@
     		<image class="clear" id="clear-password" wx:if="{{ password.length > 0 }}" src="/static/images/clear_input.png" catchtap="clearInput"></image>
     	</view>
 
-		<view class="form-item-code" wx-if="{{loginErrorCount >= 3}}">
+		<view class="form-item-code" wx:if="{{loginErrorCount >= 3}}">
 			<view class="form-item code-item">
 				<input class="code" value="{{code}}" bindinput="bindCodeInput" placeholder="验证码"/>
 				<image class="clear" id="clear-code" wx:if="{{ code.length > 0 }}" src="/static/images/clear_input.png" catchtap="clearInput"></image>

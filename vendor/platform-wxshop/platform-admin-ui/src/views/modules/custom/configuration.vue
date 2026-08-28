@@ -28,7 +28,7 @@
         <el-row :gutter="18">
           <el-col :span="6"><el-form-item label="预览宽度"><el-input-number v-model="product.previewWidth" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
           <el-col :span="6"><el-form-item label="预览高度"><el-input-number v-model="product.previewHeight" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="chain,pendant,gem"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="material,length,style,pearl"></el-input></el-form-item></el-col>
         </el-row>
         <el-form-item label="商品模型 URL"><el-input v-model="product.modelUrl" placeholder="可填写 GLB/GLTF 模型地址"></el-input></el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct">保存商品配置</el-button>
@@ -50,7 +50,13 @@
       <el-alert v-if="!selectedGoodsId" title="请先从上方列表选择一个已保存的定制商品。" type="warning" :closable="false"></el-alert>
       <el-form label-width="105px">
         <el-row :gutter="18">
-          <el-col :span="6"><el-form-item label="组件类型"><el-input v-model="option.componentType" placeholder="chain"></el-input></el-form-item></el-col>
+          <el-col :span="6">
+            <el-form-item label="组件类型">
+              <el-select v-model="option.componentType" filterable allow-create default-first-option placeholder="请选择或输入类型" class="full-width">
+                <el-option v-for="item in componentTypes" :key="item.value" :label="item.label" :value="item.value"></el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
           <el-col :span="6"><el-form-item label="选项代码"><el-input v-model="option.optionCode" placeholder="chain-18k"></el-input></el-form-item></el-col>
           <el-col :span="6"><el-form-item label="显示名称"><el-input v-model="option.name" placeholder="18K 金链"></el-input></el-form-item></el-col>
           <el-col :span="6"><el-form-item label="启用"><el-switch v-model="option.enabled" :active-value="1" :inactive-value="0"></el-switch></el-form-item></el-col>
@@ -73,7 +79,12 @@
         <el-table-column prop="assetUrl" label="2D 图层" min-width="210" show-overflow-tooltip></el-table-column>
         <el-table-column prop="modelUrl" label="3D 模型" min-width="180" show-overflow-tooltip></el-table-column>
         <el-table-column prop="zIndex" label="图层" width="70"></el-table-column>
-        <el-table-column label="操作" width="80"><template slot-scope="scope"><el-button type="text" @click="editOption(scope.row)">编辑</el-button></template></el-table-column>
+        <el-table-column label="操作" width="130">
+          <template slot-scope="scope">
+            <el-button type="text" @click="editOption(scope.row)">编辑</el-button>
+            <el-button v-if="isAuth('custom:config:update')" type="text" class="danger-action" @click="deleteOption(scope.row)">删除</el-button>
+          </template>
+        </el-table-column>
       </el-table>
     </el-card>
   </div>
@@ -86,7 +97,7 @@ const createProduct = () => ({
   previewWidth: 750,
   previewHeight: 750,
   modelUrl: '',
-  requiredComponentTypes: 'chain,pendant,gem',
+  requiredComponentTypes: 'material,length,style,pearl',
   enabled: 1
 })
 const createOption = () => ({
@@ -104,7 +115,20 @@ const createOption = () => ({
 
 export default {
   data () {
-    return {goods: [], products: [], options: [], selectedGoodsId: null, product: createProduct(), option: createOption()}
+    return {
+      goods: [],
+      products: [],
+      options: [],
+      selectedGoodsId: null,
+      product: createProduct(),
+      option: createOption(),
+      componentTypes: [
+        {value: 'material', label: '材质（material）'},
+        {value: 'length', label: '长度（length）'},
+        {value: 'style', label: '款式（style）'},
+        {value: 'pearl', label: '珍珠种类（pearl）'}
+      ]
+    }
   },
   computed: {
     selectedGoodsName () {
@@ -190,6 +214,30 @@ export default {
         this.loadOptions()
       })
     },
+    // 删除配件及其库存 / Deletes a component option and its stock.
+    deleteOption (row) {
+      this.$confirm(`确定删除“${row.name}”吗？对应组件库存也会一并删除。`, '删除配件', {type: 'warning'})
+        .then(() => this.$http({
+          url: '/custom/configuration/option/delete',
+          method: 'post',
+          params: {id: row.id},
+          showError: false
+        }))
+        .then(({data}) => {
+          if (!data || data.code !== 0) {
+            throw new Error((data && data.msg) || '删除失败')
+          }
+          this.$message.success('配件已删除')
+          if (this.option.id === row.id) {
+            this.resetOption()
+          }
+          this.loadOptions()
+        }).catch(error => {
+          if (error !== 'cancel' && error !== 'close') {
+            this.$message.error(`删除失败：${error.message || error}`)
+          }
+        })
+    },
     // 导入完整定制商品配件配置 / Imports a complete customization configuration.
     importConfiguration (file) {
       const reader = new FileReader()
@@ -227,13 +275,32 @@ export default {
       const payload = {
         product: Object.assign(createProduct(), {goodsId: 1006002}),
         replaceOptions: true,
-        options: [Object.assign(createOption(), {
-          componentType: 'chain',
-          optionCode: 'chain-18k',
-          name: '18K 金链',
-          assetUrl: '/static/images/designer/chain-gold.svg',
-          materialParams: '{"metalness":0.8}'
-        })]
+        options: [
+          Object.assign(createOption(), {
+            componentType: 'material',
+            optionCode: 'material-18k',
+            name: '演示 · 18K 黄金',
+            assetUrl: '/static/images/designer/chain-gold.svg',
+            materialParams: '{"metalness":0.8}'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'length',
+            optionCode: 'length-45',
+            name: '演示 · 45cm'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'style',
+            optionCode: 'style-classic',
+            name: '演示 · 经典单珠',
+            assetUrl: '/static/images/designer/pendant-solitaire.svg'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'pearl',
+            optionCode: 'pearl-akoya',
+            name: '演示 · Akoya 海水珍珠',
+            assetUrl: '/static/images/designer/pearl-akoya.svg'
+          })
+        ]
       }
       const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json;charset=utf-8'})
       const link = document.createElement('a')
@@ -251,4 +318,5 @@ export default {
 .card { margin-top: 16px; }
 .table-space { margin-top: 18px; }
 .full-width { width: 100%; }
+.danger-action { color: #c45656; }
 </style>

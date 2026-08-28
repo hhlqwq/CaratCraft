@@ -1,0 +1,53 @@
+/* 账户档案页：以卡片索引和安静的蓝灰色形成与商城不同的个人空间。 */
+page {
+  background: #edf1f4;
+  color: #243542;
+}
+
+page .collect-list,
+page .footprint-list,
+page .order-list,
+page .coupon-list,
+page .help-list,
+page .design-list,
+page .feedback-box {
+  padding: 22rpx;
+}
+
+page .collect-list .item,
+page .footprint-list .item,
+page .order-list .order,
+page .coupon-list .item,
+page .help-list .item,
+page .design-list .item {
+  margin-bottom: 18rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(36, 53, 66, 0.1);
+  border-radius: 20rpx;
+  background: #ffffff;
+  box-shadow: 0 10rpx 28rpx rgba(36, 53, 66, 0.06);
+}
+
+page .name,
+page .title {
+  color: #243542;
+  font-weight: 650;
+}
+
+page .price,
+page .status,
+page .tag {
+  color: #9a642d;
+}
+
+page .empty-state {
+  margin: 120rpx 32rpx 0;
+  border: 1rpx dashed rgba(36, 53, 66, 0.24);
+  border-radius: 26rpx;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+page .empty-action {
+  background: #243542;
+  color: #ffffff;
+}

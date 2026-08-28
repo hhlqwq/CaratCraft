@@ -2,9 +2,10 @@
   <div class="site-wrapper site-page--login min300">
     <div class="site-content__wrapper">
       <div class="site-content">
-        <div class="brand-info">
-          <h2 class="brand-info__text">何海龙(845367567@qq.com)</h2>
-          <p class="brand-info__intro">商城后台管理系统</p>
+        <div class="brand-info brand-info--intro">
+          <div class="brand-info__kicker">CARAT CRAFT · MERCHANT</div>
+          <h2 class="brand-info__text">克拉匠造</h2>
+          <p class="brand-info__intro">珠宝商品、定制组件与订单生产的一站式商家工作台。</p>
         </div>
         <div class="login-main">
           <h3 class="login-title">管理员登录</h3>
@@ -35,7 +36,7 @@
           </el-form>
         </div>
 
-        <div class="brand-info">
+        <div class="brand-info brand-info--footer">
           <p class="brand-info__intro">
             <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">何海龙(845367567@qq.com) © 2019</el-link>
           </p>
@@ -151,86 +152,164 @@ export default {
 
 <style lang="scss">
 body {
+  background: #16231f;
   height: auto;
-  background: url(~@/assets/img/login_bg.jpg) no-repeat center fixed;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
 }
 
 .site-wrapper.site-page--login {
-  text-align: center;
-  position: absolute;
-  top: 0;
-  right: 0;
   bottom: 0;
   left: 0;
   overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
 
   .site-content__wrapper {
-    position: absolute;
-    top: 0;
-    right: 0;
     bottom: 0;
     left: 0;
-    padding: 0;
     margin: 0;
     overflow-x: hidden;
     overflow-y: auto;
-    background-color: transparent;
+    padding: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background:
+      linear-gradient(90deg, #16231f 0, #16231f 52%, #eeeae2 52%, #eeeae2 100%);
+  }
+
+  .site-content {
+    align-items: center;
+    display: grid;
+    grid-template-columns: 52% 48%;
+    grid-template-rows: 1fr auto;
+    min-height: 100vh;
+    padding: 0;
   }
 
   .brand-info {
-    margin: 10% 100px 0 90px;
     color: #fff;
+    margin: 0;
+  }
+
+  .brand-info--intro {
+    grid-column: 1;
+    padding: 0 10vw;
+  }
+
+  .brand-info__kicker {
+    color: #c8a96e;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 5px;
   }
 
   .brand-info__text {
-    margin: 0 0 22px 0;
-    font-size: 28px;
-    font-weight: 400;
-    text-transform: uppercase;
+    color: #fff;
+    font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+    font-size: 52px;
+    font-weight: 500;
+    letter-spacing: 8px;
+    margin: 22px 0 18px;
   }
 
   .brand-info__intro {
-    margin: 10px 0;
-    font-size: 16px;
-    line-height: 1.58;
-    opacity: .6;
+    color: rgba(255, 255, 255, .58);
+    font-size: 14px;
+    line-height: 1.8;
+    margin: 0;
+    max-width: 430px;
   }
 
   .login-main {
-    border: 0px solid;
-    border-radius: 20px;
+    background: #fff;
+    border-left: 4px solid #b88d4e;
+    box-shadow: 0 24px 70px rgba(26, 33, 29, .18);
+    grid-column: 2;
     margin: 0 auto;
-    max-width: 400px;
-    min-width: 300px;
-    top: 0;
-    right: 0;
-    padding: 10px 60px 10px;
-    color: #fff;
-    background: rgba(109, 109, 109, 0.23);
+    max-width: 430px;
+    min-width: 340px;
+    padding: 48px 52px 40px;
+    width: 60%;
+
+    .el-form {
+      border: 0;
+      padding: 0;
+    }
+
+    .el-input__inner {
+      background: #f7f5f0;
+      border: 0;
+      border-bottom: 1px solid #cfc8bd;
+      border-radius: 0;
+      height: 46px;
+    }
+
+    .el-input__inner:focus {
+      border-bottom-color: #a77b3f;
+    }
+
+    .el-button--primary {
+      background: #17231f;
+      border-color: #17231f;
+      border-radius: 0;
+      height: 46px;
+      letter-spacing: 6px;
+      margin-top: 10px;
+    }
   }
 
   .login-title {
-    font-size: 16px;
+    color: #27332e;
+    font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    margin: 0 0 34px;
+    text-align: left;
   }
 
   .login-captcha {
+    align-items: center;
+    display: flex;
+    height: 46px;
     overflow: hidden;
 
     > img {
-      width: 100%;
       cursor: pointer;
+      height: 38px !important;
+      width: 100% !important;
+    }
+  }
+
+  .brand-info--footer {
+    bottom: 22px;
+    grid-column: 1 / 3;
+    position: fixed;
+    text-align: center;
+
+    .brand-info__intro {
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .site-content__wrapper {
+      background: #eeeae2;
     }
 
-  }
+    .site-content {
+      display: flex;
+      justify-content: center;
+    }
 
-  .login-btn-submit {
-    width: 100%;
-    margin-top: 38px;
-  }
+    .brand-info--intro {
+      display: none;
+    }
 
+    .login-main {
+      width: calc(100% - 48px);
+    }
+  }
 }
 </style>

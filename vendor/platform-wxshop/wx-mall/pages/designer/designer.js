@@ -33,6 +33,9 @@ Page({
       }
       var groups = {};
       var groupNames = {
+        material: '材质',
+        style: '款式',
+        pearl: '珍珠种类',
         chain: '链条材质',
         length: '项链长度',
         pendant: '吊坠款式',

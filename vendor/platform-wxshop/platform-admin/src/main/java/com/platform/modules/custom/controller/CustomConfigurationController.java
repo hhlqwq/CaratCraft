@@ -5,6 +5,8 @@ import com.platform.common.utils.RestResponse;
 import com.platform.modules.custom.dto.CustomConfigurationImportRequest;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomProductDao;
+import com.platform.modules.custom.dao.ComponentStockDao;
+import com.platform.modules.custom.entity.ComponentStockEntity;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.mall.service.MallGoodsService;
@@ -38,6 +40,7 @@ import java.util.Set;
 public class CustomConfigurationController {
     private final CustomProductDao customProductDao;
     private final CustomComponentOptionDao componentOptionDao;
+    private final ComponentStockDao componentStockDao;
     private final MallGoodsService mallGoodsService;
 
     /** 查询已配置的定制商品 / Lists configured custom products. */
@@ -131,6 +134,24 @@ public class CustomConfigurationController {
         } else {
             componentOptionDao.updateById(option);
         }
+        return RestResponse.ok();
+    }
+
+    /** 删除组件选项及对应库存 / Deletes a component option and its stock row. */
+    @Operation(summary = "删除定制组件选项")
+    @PostMapping("option/delete")
+    @RequiresPermissions("custom:config:update")
+    @Transactional(rollbackFor = Exception.class)
+    public RestResponse<String> deleteOption(@RequestParam Long id) {
+        CustomComponentOptionEntity option = componentOptionDao.selectById(id);
+        if (option == null) {
+            return RestResponse.fail("组件选项不存在或已删除");
+        }
+        componentStockDao.delete(new LambdaQueryWrapper<ComponentStockEntity>()
+                .eq(ComponentStockEntity::getGoodsId, option.getGoodsId())
+                .eq(ComponentStockEntity::getComponentType, option.getComponentType())
+                .eq(ComponentStockEntity::getOptionCode, option.getOptionCode()));
+        componentOptionDao.deleteById(id);
         return RestResponse.ok();
     }
 
