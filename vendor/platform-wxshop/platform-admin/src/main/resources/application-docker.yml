@@ -3,6 +3,11 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     dynamic:
       primary: master
+      druid:
+        initialSize: 5
+        minIdle: 5
+        maxActive: 30
+        maxWait: 5000
       datasource:
         master:
           url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai

@@ -1,6 +1,7 @@
 package com.platform.modules.app.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.binarywang.wxpay.bean.request.BaseWxPayRequest;
 import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
 import com.github.binarywang.wxpay.bean.result.WxPayRefundResult;
@@ -12,6 +13,10 @@ import com.platform.common.utils.Query;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.app.request.ApiOrderSubmitRequest;
 import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
+import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
+import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
+import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
 import com.platform.modules.mall.entity.MallBrandEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
@@ -44,6 +49,10 @@ public class AppOrderController extends AppBaseController {
     private WxPayService wxPayService;
     @Autowired
     private CustomDesignService customDesignService;
+    @Autowired
+    private CustomOrderCustomizationDao customOrderCustomizationDao;
+    @Autowired
+    private CustomDesignSnapshotDao customDesignSnapshotDao;
 
     /**
      *
@@ -74,22 +83,32 @@ public class AppOrderController extends AppBaseController {
         //查询列表数据
         Query<MallOrderEntity> query = new Query<>(params);
         List<MallOrderEntity> orderEntityList = orderService.queryList(query);
-        int total = orderEntityList.size();
+        long total = orderService.count(new LambdaQueryWrapper<MallOrderEntity>()
+                .eq(MallOrderEntity::getUserId, loginUser.getId()));
         Map<String, Object> pageData = new HashMap<>();
-        //
-        orderEntityList.forEach(item -> {
-            Map<String, Object> orderGoodsParam = new HashMap<>();
-            orderGoodsParam.put("orderId", item.getId());
-            //订单的商品
-            List<MallOrderGoodsEntity> goodsList = orderGoodsService.queryList(orderGoodsParam);
-            Integer goodsCount = 0;
-            item.setGoodsCount(goodsCount);
-            for (MallOrderGoodsEntity orderGoodsEntity : goodsList) {
-                goodsCount += orderGoodsEntity.getNumber();
-                item.setGoodsCount(goodsCount);
+        List<Integer> orderIds = new ArrayList<>();
+        for (MallOrderEntity order : orderEntityList) {
+            orderIds.add(order.getId());
+        }
+        Map<Integer, List<MallOrderGoodsEntity>> goodsByOrderId = new HashMap<>();
+        if (!orderIds.isEmpty()) {
+            List<MallOrderGoodsEntity> goodsList = orderGoodsService.list(
+                    new LambdaQueryWrapper<MallOrderGoodsEntity>()
+                            .in(MallOrderGoodsEntity::getOrderId, orderIds));
+            for (MallOrderGoodsEntity goods : goodsList) {
+                goodsByOrderId.computeIfAbsent(goods.getOrderId(), ignored -> new ArrayList<>()).add(goods);
             }
-            item.setGoodsList(goodsList);
-        });
+        }
+        // 批量装配商品，避免每个订单单独查询 / Batch assemble goods to avoid N+1 queries.
+        for (MallOrderEntity order : orderEntityList) {
+            List<MallOrderGoodsEntity> goodsList = goodsByOrderId.getOrDefault(order.getId(), Collections.emptyList());
+            int goodsCount = 0;
+            for (MallOrderGoodsEntity goods : goodsList) {
+                goodsCount += goods.getNumber();
+            }
+            order.setGoodsCount(goodsCount);
+            order.setGoodsList(goodsList);
+        }
         pageData.put("list", orderEntityList);
         pageData.put("total", total);
         pageData.put("limit", size);
@@ -132,8 +151,36 @@ public class AppOrderController extends AppBaseController {
         resultObj.put("orderInfo", orderInfo);
         resultObj.put("orderGoods", orderGoods);
         resultObj.put("handleOption", handleOption);
+        resultObj.put("customization", getOrderCustomization(orderId));
         resultObj.put("shippingList", new ArrayList<>());
         return RestResponse.ok(resultObj);
+    }
+
+    /**
+     * 查询订单绑定的定制快照，订单已在调用方完成归属校验。
+     *
+     * @param orderId 订单 ID
+     * @return 面向小程序展示的定制信息；普通订单返回 null
+     */
+    private Map<String, Object> getOrderCustomization(Integer orderId) {
+        CustomOrderCustomizationEntity binding = customOrderCustomizationDao.selectOne(
+                new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
+                        .eq(CustomOrderCustomizationEntity::getOrderId, orderId));
+        if (binding == null) {
+            return null;
+        }
+        CustomDesignSnapshotEntity snapshot = customDesignSnapshotDao.selectById(binding.getSnapshotId());
+        if (snapshot == null) {
+            return null;
+        }
+        Map<String, Object> customization = new HashMap<>();
+        customization.put("snapshotId", snapshot.getId());
+        customization.put("status", binding.getStatus());
+        customization.put("designStatus", snapshot.getStatus());
+        customization.put("configurationJson", snapshot.getConfigurationJson());
+        customization.put("priceBreakdownJson", snapshot.getPriceBreakdownJson());
+        customization.put("previewUrl", snapshot.getPreviewUrl());
+        return customization;
     }
 
     @Operation(summary = "修改订单")

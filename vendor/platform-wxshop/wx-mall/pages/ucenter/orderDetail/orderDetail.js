@@ -6,7 +6,8 @@ Page({
     orderId: 0,
     orderInfo: {},
     orderGoods: [],
-    handleOption: {}
+    handleOption: {},
+    customization: null
   },
   onLoad: function (options) {
     // 页面初始化 options为页面跳转所带来的参数
@@ -24,11 +25,27 @@ Page({
         that.setData({
           orderInfo: res.data.orderInfo,
           orderGoods: res.data.orderGoods,
-          handleOption: res.data.handleOption
+          handleOption: res.data.handleOption,
+          customization: that.formatCustomization(res.data.customization)
         });
         //that.payTimer();
       }
     });
+  },
+  /** 将后端快照转换为订单展示字段 / Formats customization snapshot for display. */
+  formatCustomization: function (customization) {
+    if (!customization) return null;
+    var engraving = '';
+    try {
+      engraving = (JSON.parse(customization.configurationJson || '{}').engraving || '').trim();
+    } catch (error) {
+      engraving = '';
+    }
+    return {
+      previewUrl: customization.previewUrl || '/static/images/logo.png',
+      status: customization.designStatus || customization.status || '已保存',
+      engraving: engraving || '未填写'
+    };
   },
   payTimer() {
     let that = this;

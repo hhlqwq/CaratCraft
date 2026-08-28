@@ -1,7 +1,7 @@
 var util = require('../../../utils/util.js');
 var user = require('../../../services/user.js');
 var app = getApp();
-var DEFAULT_AVATAR = 'https://platform-wxmall.oss-cn-beijing.aliyuncs.com/upload/20180727/150547696d798c.png';
+var DEFAULT_AVATAR = '/static/images/logo.png';
 
 Page({
   data: {
@@ -11,6 +11,7 @@ Page({
     nicknameText: 'Hi, 游客',
     menuItems: [
       { title: '我的订单', url: '/pages/ucenter/order/order', badge: '单' },
+      { title: '我的设计', url: '/pages/ucenter/design/design', badge: '设' },
       { title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券' },
       { title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏' },
       { title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹' },

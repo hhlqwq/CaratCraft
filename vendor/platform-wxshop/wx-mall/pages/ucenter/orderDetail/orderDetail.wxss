@@ -253,3 +253,30 @@ page{
     width: 140rpx;
     color: #b4282d;
 }
+
+.customization-card{
+    margin-top: 20rpx;
+    padding: 25rpx 31.25rpx;
+    overflow: hidden;
+    background: #fff;
+}
+
+.customization-title{
+    margin-bottom: 16rpx;
+    color: #333;
+    font-size: 30rpx;
+}
+
+.customization-preview{
+    float: left;
+    width: 120rpx;
+    height: 120rpx;
+    margin-right: 20rpx;
+    background: #f4f4f4;
+}
+
+.customization-text{
+    margin-top: 10rpx;
+    color: #666;
+    font-size: 25rpx;
+}

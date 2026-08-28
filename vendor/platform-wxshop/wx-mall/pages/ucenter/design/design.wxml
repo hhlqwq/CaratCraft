@@ -1,0 +1,12 @@
+<view class="container">
+  <view wx:if="{{!loading && designList.length === 0}}" class="empty">暂未保存设计，去定制一件专属作品吧。</view>
+  <view wx:for="{{designList}}" wx:key="id" class="design-card">
+    <image class="preview" src="{{item.previewUrl}}" mode="aspectFill"></image>
+    <view class="content">
+      <view class="title">设计 #{{item.id}}</view>
+      <view class="meta">{{item.statusText}} · {{item.createTime}}</view>
+      <view class="price">{{item.priceText}}</view>
+      <button class="continue" size="mini" data-goods-id="{{item.goodsId}}" bindtap="continueDesign">继续定制</button>
+    </view>
+  </view>
+</view>

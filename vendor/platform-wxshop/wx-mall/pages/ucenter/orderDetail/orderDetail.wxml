@@ -42,6 +42,13 @@
         </view>
     </view>
 
+    <view wx:if="{{customization}}" class="customization-card">
+        <view class="customization-title">定制配置</view>
+        <image class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill"></image>
+        <view class="customization-text">设计状态：{{customization.status}}</view>
+        <view class="customization-text">刻字内容：{{customization.engraving}}</view>
+    </view>
+
     <view class="order-bottom">
         <view class="address">
             <view class="t">

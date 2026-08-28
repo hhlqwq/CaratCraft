@@ -6,7 +6,6 @@ import com.platform.modules.mall.service.MallOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -32,7 +31,6 @@ public class OrderTimeoutTask {
      * 关闭超时未支付的订单 / Closes unpaid orders that exceeded the timeout.
      */
     @SuppressWarnings("unused")
-    @Transactional(rollbackFor = Exception.class)
     public void closeExpiredOrders() {
         log.info("开始执行订单超时关闭任务");
         Calendar calendar = Calendar.getInstance();

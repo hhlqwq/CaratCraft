@@ -12,6 +12,7 @@
     "pages/ucenter/feedback/feedback",
     "pages/ucenter/coupon/coupon",
     "pages/ucenter/collect/collect",
+    "pages/ucenter/design/design",
     "pages/auth/login/login",
     "pages/auth/register/register",
     "pages/auth/reset/reset",
@@ -80,12 +81,6 @@
   "networkTimeout": {
     "request": 10000,
     "downloadFile": 10000
-  },
-  "plugins": {
-    "wt-logistics": {
-      "version": "1.2.0",
-      "provider": "wx7d1077edf1fd3ae5"
-    }
   },
   "agent": {
     "instruction": "agent/AGENTS.md",
