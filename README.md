@@ -68,6 +68,7 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 - 已新增 [稳定性索引迁移](vendor/platform-wxshop/_sql/migrations/carat_craft_stability_v1.sql)，已有数据库升级时执行一次即可；它会为订单列表、超时关单和生产工单状态查询创建幂等索引。
 - 小程序默认头像改用本地 `static/images/logo.png`，不再依赖失效的 OSS 外链。未发现 `wt-logistics` 插件的调用代码，已移除未启用的插件声明，避免未授权插件阻止小程序编译。
 - 后台公众号功能应通过部署环境变量配置 `WX_MP_APPID` 与 `WX_MP_SECRET`。未配置时，公众号标签列表安全返回空数组，后台账号登录不再因微信接口 `appid missing` 弹错；配置后即可恢复标签管理能力。
+- Docker 对外统一使用 Nginx 的 `8888` 端口；容器内部的管理服务 `8080` 与商城服务 `8081` 不直接暴露。小程序默认 API 和 Docker 支付回调均已使用 `http://localhost:8888/platform-framework-api/...`；仅在不使用 Docker 的本地直启场景下使用 `8080/8081`。
 
 ## 3D 模型配置
 

@@ -170,7 +170,7 @@ npm run dev
 
 ### 微信开发者工具
 
-导入目录 `vendor/platform-wxshop/wx-mall`，小程序 API 默认指向 `http://localhost:8081/platform-framework-api/app/`。
+导入目录 `vendor/platform-wxshop/wx-mall`。使用 Docker 时，小程序 API 默认指向 `http://localhost:8888/platform-framework-api/app/`；不使用 Docker 且单独启动 platform-api 时，将 `apiBaseUrl` 覆盖为 `http://localhost:8081/platform-framework-api/app/`。
 
 ## 五、功能验证清单
 
@@ -207,7 +207,7 @@ Set-Location D:\code\gitee\carat-craft\vendor\platform-wxshop
 | 启动报 `Table 'platform.sys_region' doesn't exist` | 漏导 `_sql/sys_region.sql`，补导即可 |
 | 后端窗口"没反应" | 不是卡死。启动完成后日志静止、命令不退出就是正常运行中 |
 | localhost:8000 打不开 | 管理前端没启动，执行第四节的 npm run dev |
-| 登录页请求失败 | 前端接口地址必须指向 8080（`static/config/index.js` 的 baseUrl 已修复为 8080） |
+| 登录页请求失败 | Docker 模式访问 `http://localhost:8888`；本地直启模式下管理接口为 8080、管理前端为 8000，确认前端代理地址与启动模式一致 |
 | 前端编译报 OpenSSL/EVP 错误 | Node 版本高于 16，换 Node 16 |
 | `npm ERR! ENOENT ... package.json` | 执行目录不对，确认路径包含 `platform-wxshop\platform-admin-ui` |
 | 控制台中文乱码 | Windows 终端 GBK 与 UTF-8 显示差异，不影响功能 |

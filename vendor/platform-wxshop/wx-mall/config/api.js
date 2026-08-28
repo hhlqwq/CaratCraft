@@ -1,5 +1,5 @@
 const API_BASE_URL = wx.getStorageSync('apiBaseUrl') ||
-  'http://localhost:8081/platform-framework-api/app/';
+  'http://localhost:8888/platform-framework-api/app/';
 
 module.exports = {
   IndexUrlNewGoods: API_BASE_URL + 'index/newGoods', //新品首发
