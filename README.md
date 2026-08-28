@@ -85,7 +85,7 @@ Windows 双击启动：
 start-local-test.cmd
 ```
 
-该启动入口会复用现有镜像且不重新构建代码，兼容 Windows PowerShell 5.1 对 UTF-8 脚本的编码限制。
+该启动入口会复用现有镜像且不重新构建代码。它提交 Docker 后台启动后会立即返回；可在 Docker Desktop 中确认容器健康，或直接访问本地地址。
 
 Windows 双击停止：
 
