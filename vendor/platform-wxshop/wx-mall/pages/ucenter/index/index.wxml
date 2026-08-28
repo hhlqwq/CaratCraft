@@ -25,6 +25,22 @@
     </navigator>
   </view>
 
-  <view class="company">何海龙(845367567@qq.com)提供技术支持 © 845367567@qq.com</view>
+  <view class="company">何海龙(845367567@qq.com)提供技术支持</view>
   <view class="logout" wx:if="{{ userInfo.userName != '点击去登录' }}" bindtap="exitLogin">退出登录</view>
+
+  <view class="profile-mask" wx:if="{{profileVisible}}" bindtap="closeProfileEditor"></view>
+  <view class="profile-editor" wx:if="{{profileVisible}}">
+    <view class="profile-editor-title">编辑个人资料</view>
+    <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="chooseAvatar">
+      <image src="{{profileForm.avatarUrl}}" mode="aspectFill"></image>
+      <text>更换头像</text>
+    </button>
+    <button class="wechat-profile" bindtap="syncWeChatProfile" disabled="{{profileSaving}}">使用微信昵称和头像</button>
+    <input class="nickname-input" type="nickname" maxlength="32" value="{{profileForm.nickname}}"
+           bindinput="inputNickname" placeholder="请输入昵称" />
+    <view class="profile-actions">
+      <button bindtap="closeProfileEditor" disabled="{{profileSaving}}">取消</button>
+      <button class="primary" bindtap="saveProfile" loading="{{profileSaving}}">保存</button>
+    </view>
+  </view>
 </view>

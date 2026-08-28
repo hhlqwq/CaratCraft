@@ -39,7 +39,7 @@ Page({
             });
             return false
         }
-        if (!mobile.match(/^1[3-9][0-9]\d{8}$/)) {
+        if (!/^1[3-9]\d{9}$/.test(mobile)) {
             wx.showModal({
                 title: '错误',
                 content: '手机号格式不正确，仅支持国内手机号码'
@@ -93,7 +93,7 @@ Page({
                     }, 1000);
                 } else {
                     wx.showToast({
-                        title: '发送失败',
+                        title: res.msg || '发送失败',
                         icon: 'none',
                         duration: 1000
                     })
@@ -129,7 +129,7 @@ Page({
                 } else {
                     wx.showModal({
                         title: '提示',
-                        content: '验证码错误',
+                        content: res.msg || '绑定失败',
                         showCancel: false
                     })
                 }

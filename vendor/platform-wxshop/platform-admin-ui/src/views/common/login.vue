@@ -29,7 +29,8 @@
               </el-row>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="dataFormSubmit()" style="width: 100%">登录</el-button>
+              <el-button type="primary" :loading="loginSubmitting" :disabled="loginSubmitting"
+                         @click="dataFormSubmit()" style="width: 100%">登录</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -80,7 +81,8 @@ export default {
           }
         ]
       },
-      captchaPath: ''
+      captchaPath: '',
+      loginSubmitting: false
     }
   },
   created () {
@@ -89,11 +91,17 @@ export default {
   methods: {
     // 提交表单
     dataFormSubmit () {
+      if (this.loginSubmitting) {
+        return
+      }
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
+          this.loginSubmitting = true
           this.$http({
             url: '/sys/login',
             method: 'post',
+            loading: false,
+            showError: false,
             data: {
               'userName': this.dataForm.userName,
               'password': Encrypt(this.dataForm.password),
@@ -105,10 +113,31 @@ export default {
               this.$cookie.set('token', data.data)
               this.$router.push({path: '/home'})
             } else {
+              this.showLoginError((data && data.msg) || '账号、密码或验证码不正确')
+              this.dataForm.captcha = ''
               this.getCaptcha()
             }
+          }).catch((error) => {
+            const status = error.response && error.response.status
+            const message = status
+              ? `后台服务请求失败（HTTP ${status}）`
+              : '无法连接后台服务，请确认服务已启动并使用端口 8888 访问'
+            this.showLoginError(message)
+            this.dataForm.captcha = ''
+            this.getCaptcha()
+          }).finally(() => {
+            this.loginSubmitting = false
           })
         }
+      })
+    },
+    // 显示唯一的登录错误提示 / Shows one concise login error message.
+    showLoginError (message) {
+      this.$message.closeAll()
+      this.$message.error({
+        message: `登录失败：${String(message).substring(0, 120)}`,
+        showClose: true,
+        duration: 5000
       })
     },
     // 获取验证码

@@ -89,3 +89,37 @@ page{
   color: #333;
   line-height: 40rpx;
 }
+
+.empty-state {
+  padding: 220rpx 48rpx 80rpx;
+  text-align: center;
+  color: #8b96a5;
+}
+
+.empty-icon {
+  color: #c69a69;
+  font-size: 96rpx;
+  line-height: 1;
+}
+
+.empty-title {
+  margin-top: 28rpx;
+  color: #263a50;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.empty-desc {
+  margin-top: 16rpx;
+  font-size: 25rpx;
+}
+
+.empty-action {
+  width: 240rpx;
+  margin: 42rpx auto 0;
+  padding: 20rpx 0;
+  border-radius: 44rpx;
+  color: #fff;
+  background: #b47a3f;
+  font-size: 27rpx;
+}

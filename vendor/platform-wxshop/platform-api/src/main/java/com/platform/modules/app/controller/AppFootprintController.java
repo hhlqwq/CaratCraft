@@ -70,7 +70,7 @@ public class AppFootprintController extends AppBaseController {
         List<MallFootprintEntity> footprintVos = footprintService.queryListFootprint(loginUser.getId() + "");
 
         Page<MallFootprintEntity> page = new Query<MallFootprintEntity>(params).getPage();
-        page.setRecords(footprintService.queryListFootprint(loginUser.getId() + ""));
+        page.setRecords(footprintVos);
 
         //
         Map<String, List<MallFootprintEntity>> footPrintMap = new TreeMap<String, List<MallFootprintEntity>>(new Comparator<String>() {
@@ -88,6 +88,7 @@ public class AppFootprintController extends AppBaseController {
             }
         });
 
+        List<List<MallFootprintEntity>> footprintVoList = new ArrayList<List<MallFootprintEntity>>();
         if (null != footprintVos && footprintVos.size() > 0) {
             for (MallFootprintEntity footprintVo : footprintVos) {
                 String addTime = DateUtils.timeToStr(footprintVo.getAddTime(), DateUtils.DATE_PATTERN);
@@ -98,16 +99,15 @@ public class AppFootprintController extends AppBaseController {
                 tmpList.add(footprintVo);
                 footPrintMap.put(addTime, tmpList);
             }
-            List<List<MallFootprintEntity>> footprintVoList = new ArrayList<List<MallFootprintEntity>>();
             for (Map.Entry<String, List<MallFootprintEntity>> entry : footPrintMap.entrySet()) {
                 footprintVoList.add(entry.getValue());
             }
-            resultObj.put("count", page.getTotal());
-            resultObj.put("totalPages", page.getPages());
-            resultObj.put("numsPerPage", page.getSize());
-            resultObj.put("currentPage", page.getCurrent());
-            resultObj.put("data", footprintVoList);
         }
+        resultObj.put("count", footprintVos == null ? 0 : footprintVos.size());
+        resultObj.put("totalPages", page.getPages());
+        resultObj.put("numsPerPage", page.getSize());
+        resultObj.put("currentPage", page.getCurrent());
+        resultObj.put("data", footprintVoList);
 
         return RestResponse.ok(resultObj);
     }

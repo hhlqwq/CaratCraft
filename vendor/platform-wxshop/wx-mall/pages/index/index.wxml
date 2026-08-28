@@ -1,21 +1,5 @@
 <!--index.wxml-->
 <view class="container">
-  <swiper class="banner" indicator-dots="true" autoplay="true" interval="3000" duration="1000">
-    <swiper-item wx:for="{{banner}}" wx:key="id">
-      <navigator url="{{item.link}}">
-        <image src="{{item.imageUrl}}" background-size="cover"></image>
-      </navigator>
-    </swiper-item>
-  </swiper>
-  <view class="a-section a-topic" wx:if="{{channel.length > 0}}">
-    <view class="m-menu">
-      <navigator class="item" url="{{item.url}}" wx:for="{{channel}}" wx:key="id">
-        <image src="{{item.iconUrl}}" background-size="cover"></image>
-        <text>{{item.name}}</text>
-      </navigator>
-    </view>
-  </view>
-
   <view class="a-section a-design">
     <navigator class="design-entry" open-type="switchTab" url="/pages/designer/designer">
       <view class="design-meta">
@@ -24,30 +8,6 @@
       </view>
       <text class="design-go">开始定制 ›</text>
     </navigator>
-  </view>
-
-  <view class="a-section a-topic" wx:if="{{topics.length > 0}}">
-    <view class="h">
-      <view>
-        <navigator url="../topic/topic">
-          <text class="txt">专题精选</text>
-        </navigator>
-      </view>
-    </view>
-    <view class="b">
-      <scroll-view scroll-x="true" class="list">
-        <view class="item" wx:for="{{topics}}" wx:for-index="index" wx:for-item="item" wx:key="id">
-          <navigator url="../topicDetail/topicDetail?id={{item.id}}">
-            <image class="img" src="{{item.scenePicUrl}}" background-size="cover"></image>
-            <view class="np">
-              <text class="name">{{item.title}}</text>
-              <text class="price">￥{{item.priceInfo}}元起</text>
-            </view>
-            <text class="desc">{{item.subtitle}}</text>
-          </navigator>
-        </view>
-      </scroll-view>
-    </view>
   </view>
 
   <view class="a-section a-new" wx:if="{{newGoods.length > 0}}">
@@ -88,31 +48,6 @@
               <text class="price">￥{{item.retailPrice}}</text>
             </view>
           </view>
-        </navigator>
-      </view>
-    </view>
-  </view>
-
-  <view class="good-grid" wx:for="{{floorGoods}}" wx:key="id">
-    <view class="h">
-      <view>
-        <text>{{item.name}}</text>
-      </view>
-    </view>
-    <view class="b">
-      <block wx:for="{{item.goodsList}}" wx:for-index="iindex" wx:for-item="iitem" wx:key="id">
-        <view class="item {{iindex % 2 == 0 ? '' : 'item-b'}}">
-          <navigator url="../goods/goods?id={{iitem.id}}" class="a">
-            <image class="img" src="{{iitem.listPicUrl}}" background-size="cover"></image>
-            <text class="name">{{iitem.name}}</text>
-            <text class="price">￥{{iitem.retailPrice}}</text>
-          </navigator>
-        </view>
-      </block>
-      <view class="item item-b item-more">
-        <navigator url="/pages/category/category?id={{item.id}}" class="more-a">
-          <view class="txt">{{'更多'+item.name+'好物'}}</view>
-          <image class="icon" src="../../static/images/icon_go_more.png" background-size="cover"></image>
         </navigator>
       </view>
     </view>

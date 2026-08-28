@@ -11,10 +11,9 @@ Page({
   },
   onPullDownRefresh(){
     // 增加下拉刷新数据的功能
-    var self = this;
-    this.getFootprintList();
+    this.getFootprintList(true);
   },
-  getFootprintList() {
+  getFootprintList(stopRefresh) {
     let that = this;
     var tmpFootPrint;
     util.request(api.FootprintList).then(function (res) {
@@ -29,6 +28,13 @@ Page({
         that.setData({
           footprintList: tmpFootPrint
         });
+      }
+      if (stopRefresh) {
+        wx.stopPullDownRefresh();
+      }
+    }).catch(function () {
+      if (stopRefresh) {
+        wx.stopPullDownRefresh();
       }
     });
   },
@@ -74,7 +80,7 @@ Page({
 
   },
   onShow: function () {
-
+    this.getFootprintList();
   },
   onHide: function () {
     // 页面隐藏

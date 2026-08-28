@@ -21,18 +21,13 @@ axios.BASE_URL = BASE_URL
 /**
  * 请求拦截
  */
-let loading
-let showError = true
 axios.interceptors.request.use(config => {
-  let showLoading = true
-  if (config.loading === false) {
-    showLoading = false
+  config.requestOptions = {
+    showError: config.showError !== false,
+    loadingInstance: null
   }
-  if (config.showError === false) {
-    showError = false
-  }
-  if (showLoading) {
-    loading = Loading.service({
+  if (config.loading !== false) {
+    config.requestOptions.loadingInstance = Loading.service({
       text: 'Loading...',
       spinner: 'el-icon-loading',
       background: 'rgba(0, 0, 0, 0.7)'
@@ -64,7 +59,7 @@ axios.interceptors.request.use(config => {
  * 响应拦截
  */
 axios.interceptors.response.use(response => {
-  loading.close()
+  closeLoading(response.config)
   // 401, token失效
   if (response.data && response.data.code === 401) {
     clearLoginInfo()
@@ -74,7 +69,7 @@ axios.interceptors.response.use(response => {
     return response
   }
   if (!(response.data && response.data.code === 0)) {
-    if (showError) {
+    if (response.config.requestOptions && response.config.requestOptions.showError) {
       let msg = (response.data && response.data.msg) || '操作失败'
       // 纯文本展示并截断超长内容, 防止整段堆栈刷屏 /
       // Render as plain text and truncate long payloads.
@@ -91,14 +86,27 @@ axios.interceptors.response.use(response => {
   }
   return response
 }, error => {
-  loading.close()
-  Message({
-    message: '网络异常，请稍后重试',
-    type: 'error',
-    showClose: true,
-    duration: 3000
-  })
+  const config = error.config || {}
+  closeLoading(config)
+  if (!config.requestOptions || config.requestOptions.showError) {
+    const status = error.response && error.response.status
+    const message = status
+      ? `请求失败（HTTP ${status}），请稍后重试`
+      : '无法连接后台服务，请检查服务是否启动及网络配置'
+    Message({message, type: 'error', showClose: true, duration: 3000})
+  }
   return Promise.reject(error)
 })
+
+/**
+ * 关闭当前请求的加载层 / Closes the loading overlay for the current request.
+ * @param {Object} config Axios 请求配置 / Axios request configuration.
+ */
+function closeLoading (config) {
+  const options = config && config.requestOptions
+  if (options && options.loadingInstance) {
+    options.loadingInstance.close()
+  }
+}
 
 export default axios

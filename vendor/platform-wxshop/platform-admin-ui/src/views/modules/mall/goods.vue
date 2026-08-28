@@ -7,6 +7,11 @@
       <el-form-item>
         <el-button @click="getDataList(1)">查询</el-button>
         <el-button v-if="isAuth('mall:goods:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
+        <el-upload v-if="isAuth('mall:goods:save')" class="inline-upload" action="" accept=".json"
+                   :auto-upload="false" :show-file-list="false" :on-change="importGoodsJson">
+          <el-button type="success">导入完整商品 JSON</el-button>
+        </el-upload>
+        <el-button type="text" @click="downloadGoodsTemplate">下载导入模板</el-button>
         <el-button v-if="isAuth('mall:goods:delete')" type="danger" @click="deleteHandle()"
                    :disabled="dataListSelections.length <= 0">批量删除
         </el-button>
@@ -154,7 +159,84 @@ export default {
         })
       }).catch(() => {
       })
+    },
+    // 导入商品、相册、参数、规格和 SKU / Imports a complete product aggregate from JSON.
+    importGoodsJson (file) {
+      const reader = new FileReader()
+      reader.onload = event => {
+        try {
+          const aggregate = JSON.parse(event.target.result)
+          if (!aggregate.goods || !aggregate.goods.name || !aggregate.goods.categoryId) {
+            throw new Error('JSON 必须包含 goods.name 和 goods.categoryId')
+          }
+          aggregate.goods.id = null
+          this.$confirm(`确认导入商品“${aggregate.goods.name}”及其相册、参数、规格和 SKU？`, '导入确认', {
+            type: 'warning'
+          }).then(() => this.$http({
+            url: '/mall/goods/aggregate/save',
+            method: 'post',
+            data: aggregate,
+            showError: false
+          })).then(({data}) => {
+            if (!data || data.code !== 0) {
+              throw new Error((data && data.msg) || '导入失败')
+            }
+            this.$message.success(`商品导入成功，商品 ID：${data.data}`)
+            this.getDataList(1)
+          }).catch(error => {
+            if (error !== 'cancel' && error !== 'close') {
+              this.$message.error(`导入失败：${error.message || error}`)
+            }
+          })
+        } catch (error) {
+          this.$message.error(`JSON 解析失败：${error.message}`)
+        }
+      }
+      reader.onerror = () => this.$message.error('无法读取所选 JSON 文件')
+      reader.readAsText(file.raw, 'UTF-8')
+    },
+    // 下载完整商品导入模板 / Downloads a complete product import template.
+    downloadGoodsTemplate () {
+      const template = {
+        goods: {
+          name: '演示商品名称',
+          categoryId: 1999001,
+          goodsSn: 'DEMO-IMPORT-001',
+          goodsNumber: 10,
+          retailPrice: 999,
+          marketPrice: 1299,
+          isOnSale: 1,
+          isNew: 1,
+          isHot: 0,
+          goodsBrief: '商品简介',
+          goodsDesc: '<p>商品详情</p>',
+          primaryPicUrl: '',
+          listPicUrl: '',
+          goodsUnit: '件'
+        },
+        attributes: [],
+        gallery: [{imgUrl: '', imgDesc: '主图', sortOrder: 1}],
+        specs: [],
+        skuList: [{goodsSn: 'DEMO-IMPORT-001-STD', goodsNumber: 10, retailPrice: 999, marketPrice: 1299}]
+      }
+      this.downloadJson('完整商品导入模板.json', template)
+    },
+    // 下载 JSON 文件 / Downloads a JSON file.
+    downloadJson (filename, data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json;charset=utf-8'})
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = filename
+      link.click()
+      URL.revokeObjectURL(link.href)
     }
   }
 }
 </script>
+
+<style scoped>
+.inline-upload {
+  display: inline-block;
+  margin-left: 10px;
+}
+</style>

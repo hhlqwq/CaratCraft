@@ -40,7 +40,7 @@ scripts/docker-down.sh
 
 ## 说明
 
-- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次创建数据卷时按文件名顺序执行；`_sql/migrations` 不会自动执行。已有数据卷需要手动执行 `carat_craft_demo_jewelry_v1.sql`，以写入明确标注为演示的珠宝成品和 DIY 本地图层数据。
+- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次创建数据卷时按文件名顺序执行；`_sql/migrations` 不会自动执行。已有数据卷需要手动执行 `carat_craft_demo_jewelry_v1.sql`，以写入明确标注为演示的珠宝成品和 DIY 本地图层数据。该脚本包含 `SET NAMES utf8mb4`；Windows 下不要删除这行，否则通过管道导入中文时可能发生二次编码乱码。
 - `nginx` 在容器内监听 `80`，宿主机默认通过 `8888` 访问，同时托管前端静态资源并反代两个后端服务。
 - 后端容器运行时启用 `docker` profile，只覆盖 MySQL 和 Redis 地址，不改你现有 `dev/test/prod` 配置。
 - MySQL 和 Redis 使用 Docker 命名数据卷，普通停止不会丢失数据；只有显式使用 `--reset-data` 或 `-ResetData` 才会删除测试数据。

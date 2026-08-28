@@ -2,6 +2,9 @@
 -- 可重复执行，仅清理本脚本创建的固定 ID，不影响原商城样例商品 /
 -- Idempotent; only removes rows created by this script and keeps legacy demo products.
 
+-- 明确声明客户端字符集，避免 Windows 管道导入时发生 UTF-8 二次编码 / Declares the client charset explicitly.
+SET NAMES utf8mb4;
+
 DELETE FROM `mall_product` WHERE `goods_id` IN (1999101, 1999102, 1999103, 1999104);
 DELETE FROM `mall_goods` WHERE `id` IN (1999101, 1999102, 1999103, 1999104);
 DELETE FROM `mall_category` WHERE `id` IN (1999001, 1999000);

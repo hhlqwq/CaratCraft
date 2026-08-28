@@ -75,6 +75,9 @@ module.exports = {
   FeedbackAdd: API_BASE_URL + 'feedback/save', //添加反馈
   SmsCode: API_BASE_URL + 'user/smscode', //发送短信
   BindMobile: API_BASE_URL + 'user/bindMobile', //绑定手机
+  UserProfile: API_BASE_URL + 'user/profile', //获取个人资料
+  UpdateUserProfile: API_BASE_URL + 'user/profile/update', //更新个人资料
+  UploadFile: API_BASE_URL + 'upload/upload', //上传个人头像
   Login: API_BASE_URL + 'auth/login', //账号登录
   Code: API_BASE_URL + 'auth/', //静默登录
   Register: API_BASE_URL + 'auth/register', //注册

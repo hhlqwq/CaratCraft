@@ -1,18 +1,9 @@
 const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
-const user = require('../../services/user.js');
-
-//获取应用实例
-const app = getApp()
 Page({
   data: {
     newGoods: [],
-    hotGoods: [],
-    topics: [],
-    brands: [],
-    floorGoods: [],
-    banner: [],
-    channel: []
+    hotGoods: []
   },
   onShareAppMessage: function () {
     wx.showShareMenu({
@@ -34,7 +25,6 @@ Page({
   },
   onPullDownRefresh() {
     // 增加下拉刷新数据的功能
-    var self = this;
     this.getIndexData();
   },
   getIndexData: function () {
@@ -50,36 +40,6 @@ Page({
 
       if (res.code === 0) {
         data.hotGoods = res.data.hotGoodsList
-        that.setData(data);
-      }
-    });
-    util.request(api.IndexUrlTopic).then(function (res) {
-      if (res.code === 0) {
-        data.topics = res.data.topicList
-        that.setData(data);
-      }
-    });
-    util.request(api.IndexUrlBrand).then(function (res) {
-      if (res.code === 0) {
-        data.brand = res.data.brandList
-        that.setData(data);
-      }
-    });
-    util.request(api.IndexUrlCategory).then(function (res) {
-      if (res.code === 0) {
-        data.floorGoods = res.data.categoryList
-        that.setData(data);
-      }
-    });
-    util.request(api.IndexUrlBanner).then(function (res) {
-      if (res.code === 0) {
-        data.banner = res.data.banner
-        that.setData(data);
-      }
-    });
-    util.request(api.IndexUrlChannel).then(function (res) {
-      if (res.code === 0) {
-        data.channel = res.data.channel
         that.setData(data);
       }
     });

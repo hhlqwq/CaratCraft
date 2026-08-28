@@ -5,6 +5,7 @@ import com.platform.annotation.LoginUser;
 import com.platform.common.utils.*;
 import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.app.request.ApiUserBindMobileRequest;
+import com.platform.modules.app.request.ApiUserProfileRequest;
 import com.platform.modules.app.request.ApiUserSmsCodeRequest;
 import com.platform.modules.sys.entity.SmsConfig;
 import com.platform.modules.sys.service.SysConfigService;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.regex.Pattern;
+
 /**
  * 会员操作接口
  * @author pengjun
@@ -25,6 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/app/user")
 public class AppUserController extends AppBaseController {
+    private static final Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
+    private static final int MAX_NICKNAME_LENGTH = 32;
     private final WxUserService userService;
     private final SysConfigService sysConfigService;
     private final RedisTemplateUtil redisTemplateUtil;
@@ -44,6 +49,9 @@ public class AppUserController extends AppBaseController {
         String phone = request.getPhone();
         if (StringUtils.isNullOrEmpty(phone)) {
             return RestResponse.fail("手机号不能为空");
+        }
+        if (!isValidMobile(phone)) {
+            return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
         }
         String cacheKey = Constant.PRE_SMS + loginUser.getId();
         if (redisTemplateUtil.get(cacheKey) != null) {
@@ -95,6 +103,9 @@ public class AppUserController extends AppBaseController {
         if (StringUtils.isNullOrEmpty(mobile) || StringUtils.isNullOrEmpty(mobileCode)) {
             return RestResponse.fail("参数不完整");
         }
+        if (!isValidMobile(mobile)) {
+            return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
+        }
         String cacheKey = Constant.PRE_SMS + loginUser.getId();
         Object smsCode = redisTemplateUtil.get(cacheKey);
         if (smsCode == null || !mobileCode.equals(smsCode.toString())) {
@@ -108,5 +119,48 @@ public class AppUserController extends AppBaseController {
         userService.updateById(userEntity);
         redisTemplateUtil.del(cacheKey);
         return RestResponse.ok("手机绑定成功");
+    }
+
+    /**
+     * 获取当前用户资料 / Returns the current user profile.
+     */
+    @Operation(summary = "获取用户资料")
+    @PostMapping("profile")
+    public RestResponse<WxUserEntity> profile(@LoginUser WxUserEntity loginUser) {
+        WxUserEntity userEntity = userService.getById(loginUser.getId());
+        return userEntity == null ? RestResponse.fail("用户不存在") : RestResponse.ok(userEntity);
+    }
+
+    /**
+     * 更新当前用户昵称和头像 / Updates the current user's nickname and avatar.
+     */
+    @Operation(summary = "更新用户资料")
+    @PostMapping("profile/update")
+    public RestResponse<WxUserEntity> updateProfile(@LoginUser WxUserEntity loginUser,
+                                                     @RequestBody ApiUserProfileRequest request) {
+        if (request == null || StringUtils.isNullOrEmpty(request.getNickname())) {
+            return RestResponse.fail("昵称不能为空");
+        }
+        String nickname = request.getNickname().trim();
+        if (nickname.isEmpty() || nickname.length() > MAX_NICKNAME_LENGTH) {
+            return RestResponse.fail("昵称长度应为1到32个字符");
+        }
+        WxUserEntity userEntity = userService.getById(loginUser.getId());
+        if (userEntity == null) {
+            return RestResponse.fail("用户不存在");
+        }
+        userEntity.setNickname(nickname);
+        if (!StringUtils.isNullOrEmpty(request.getAvatarUrl())) {
+            userEntity.setHeadImgUrl(request.getAvatarUrl().trim());
+        }
+        userService.updateById(userEntity);
+        return RestResponse.ok(userEntity);
+    }
+
+    /**
+     * 校验中国大陆手机号 / Validates a mainland China mobile number.
+     */
+    private boolean isValidMobile(String mobile) {
+        return mobile != null && MOBILE_PATTERN.matcher(mobile).matches();
     }
 }
