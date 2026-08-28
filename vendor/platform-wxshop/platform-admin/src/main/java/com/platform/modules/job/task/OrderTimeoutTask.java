@@ -16,7 +16,7 @@ import java.util.List;
  * 订单超时自动关闭任务 / Auto-close expired unpaid orders task.
  * <p>
  * Bean 名称为 orderTimeoutTask，在定时任务管理页面配置。
- * 建议 cron: 0 */5 * * * ?（每5分钟执行一次）
+ * 建议 cron: 0 0/5 星号星号 星号？(即每5分钟执行一次, 表达式见 base.sql 种子数据)
  * </p>
  */
 @Slf4j
@@ -39,7 +39,7 @@ public class OrderTimeoutTask {
         calendar.add(Calendar.HOUR_OF_DAY, -DEFAULT_TIMEOUT_HOURS);
         Date expireTime = calendar.getTime();
 
-        List<MallOrderEntity> expiredOrders = orderService.queryList(
+        List<MallOrderEntity> expiredOrders = orderService.list(
                 new LambdaQueryWrapper<MallOrderEntity>()
                         .eq(MallOrderEntity::getOrderStatus, 0)
                         .eq(MallOrderEntity::getPayStatus, 0)

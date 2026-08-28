@@ -6,9 +6,7 @@
  *  modification, are permitted provided that the following conditions are met:
  *
  * Redistributions of source code must retain the above copyright notice,
- *  this list of conditions and the following disclaimer.
- *  Redistributions in binary form must reproduce the above copyright
- *  notice, this list of conditions and the following disclaimer in the
+ *  this list of conditions and the following disclaimer in the
  *  documentation and/or other materials provided with the distribution.
  *  Neither the name of the openwtai.com developer nor the names of its
  *  contributors may be used to endorse or promote products derived from
@@ -50,10 +48,10 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * "string",
  * "object",
  * <p>
- * 注意�?
- * integer、double、float、long、byte、需要给example的�?
+ * 注意：
+ * integer、double、float、long、byte、需要给example的值
  *
- * @author 何海�?
+ * @author 何海龙
  */
 @Configuration
 @EnableWebMvc
@@ -70,15 +68,15 @@ public class SwaggerConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("微同软件")
-                .description("微同软件管理端接口文�?)
+                .title("克拉匠造")
+                .description("克拉匠造管理端接口文档")
                 .termsOfService("https://openwtai.com")
-                .contact(new Contact().name("何海�?).email("939961241@qq.com").url("https://gitee.com/hehailong"))
+                .contact(new Contact().name("何海龙").email("939961241@qq.com").url("https://gitee.com/hehailong"))
                 .version("Application Version: " + projectVersion + ", Spring Boot Version: " + SpringBootVersion.getVersion());
     }
 
     /**
-     * 根据 @Tag 上的排序，写�?x-order
+     * 根据 @Tag 上的排序，写入 x-order
      *
      * @return the global open api customizer
      */

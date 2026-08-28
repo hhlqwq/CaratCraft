@@ -40,7 +40,7 @@ public class AppOrderController extends AppBaseController {
     private MallOrderService orderService;
     @Autowired
     private MallOrderGoodsService orderGoodsService;
-    @Autowired
+    @Autowired(required = false)
     private WxPayService wxPayService;
     @Autowired
     private CustomDesignService customDesignService;
@@ -174,6 +174,7 @@ public class AppOrderController extends AppBaseController {
                 }
                 return RestResponse.fail(MapUtils.getString(resultObj, "msg", "提交失败"));
             }
+            return RestResponse.fail("提交失败");
         } catch (IllegalArgumentException e) {
             return RestResponse.fail(e.getMessage());
         } catch (IllegalStateException e) {
@@ -206,6 +207,9 @@ public class AppOrderController extends AppBaseController {
         if (orderVo.getPayStatus() == 2) {
             if (!Integer.valueOf(201).equals(orderVo.getOrderStatus())) {
                 return RestResponse.fail("当前订单状态不允许取消");
+            }
+            if (wxPayService == null) {
+                return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
             }
             try {
                 customDesignService.assertOrderCancellable(orderId);

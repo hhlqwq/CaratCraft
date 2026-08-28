@@ -54,7 +54,7 @@ public class AppPayController extends AppBaseController {
     private MallOrderService orderService;
     @Autowired
     private MallOrderGoodsService orderGoodsService;
-    @Autowired
+    @Autowired(required = false)
     private WxPayService weixinPayService;
     @Autowired
     private OrderPaymentService orderPaymentService;
@@ -91,6 +91,10 @@ public class AppPayController extends AppBaseController {
 
         if (orderInfo.getOrderStatus() != null && orderInfo.getOrderStatus() != 0) {
             return RestResponse.fail("订单状态不允许支付");
+        }
+        // 支付服务未配置时直接提示 / Fail fast when pay service is not configured.
+        if (weixinPayService == null) {
+            return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
         }
 
         try {
@@ -150,6 +154,9 @@ public class AppPayController extends AppBaseController {
         if (orderDetail == null || !loginUser.getId().equals(orderDetail.getUserId())) {
             return RestResponse.fail("订单不存在或无权访问");
         }
+        if (weixinPayService == null) {
+            return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
+        }
         try {
             WxPayOrderQueryResult result = weixinPayService.queryOrder("", orderDetail.getOrderSn());
 
@@ -186,6 +193,11 @@ public class AppPayController extends AppBaseController {
             // 回调来源 IP 白名单校验, 拦截伪造请求(签名校验之外的纵深防御) /
             // Whitelist the notify source IP as defense in depth on top of signature checks.
             String clientIp = resolveNotifyIp();
+            if (weixinPayService == null) {
+                log.warn("支付服务未配置, 忽略支付回调, ip={}", clientIp);
+                response.getWriter().write(setXml("FAIL", "PAY_NOT_CONFIGURED"));
+                return;
+            }
             if (!isTrustedNotifyIp(clientIp)) {
                 log.warn("拒绝来自非白名单 IP 的支付回调, ip={}", clientIp);
                 response.getWriter().write(setXml("FAIL", "FORBIDDEN"));
@@ -247,6 +259,9 @@ public class AppPayController extends AppBaseController {
 
         if (orderInfo.getOrderStatus() == 401 || orderInfo.getOrderStatus() == 402) {
             return RestResponse.fail("订单已退款");
+        }
+        if (weixinPayService == null) {
+            return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
         }
         try {
             customDesignService.assertOrderCancellable(orderId);
