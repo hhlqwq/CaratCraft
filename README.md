@@ -70,6 +70,7 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 - 后台公众号功能应通过部署环境变量配置 `WX_MP_APPID` 与 `WX_MP_SECRET`。未配置时，公众号标签列表安全返回空数组，后台账号登录不再因微信接口 `appid missing` 弹错；配置后即可恢复标签管理能力。
 - 后台首页的小程序概况趋势依赖 `WX_MINIAPP_APPID` 与 `WX_MINIAPP_SECRET`。未配置时，统计接口返回空数据且不请求微信，避免管理员登录后出现 `41002 appid missing`；配置后自动恢复真实统计数据。
 - 小程序微信登录同样依赖 `WX_MINIAPP_APPID`、`WX_MINIAPP_SECRET` 与 `JWT_SECRET`。Docker 会将它们注入商城 API 容器；登录页只有在服务端成功签发 token 后才返回购物车或原目标页。
+- 定制器读取商品主规格时使用与 Docker MySQL 一致的小写表名 `mall_goods`，定制选项能够正常返回；刻字输入框采用固定高度与行高，避免微信原生控件裁切占位文字。
 - 小程序模板已修复购物车和两个地址页的历史损坏闭合标签。所有小程序源码应保持 UTF-8 编码，避免 `�?/view>` 一类内容破坏 WXML 编译。
 - Docker 对外统一使用 Nginx 的 `8888` 端口；容器内部的管理服务 `8080` 与商城服务 `8081` 不直接暴露。小程序默认 API 和 Docker 支付回调均已使用 `http://localhost:8888/platform-framework-api/...`；仅在不使用 Docker 的本地直启场景下使用 `8080/8081`。
 
