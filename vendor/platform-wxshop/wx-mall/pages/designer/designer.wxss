@@ -15,6 +15,8 @@
 .option { border: 2rpx solid #e8e2dc; border-radius: 12rpx; display: inline-block; margin-right: 16rpx; min-height: 150rpx; padding: 16rpx; text-align: center; vertical-align: top; width: 150rpx; }
 .option.selected { border-color: #b47a3f; color: #8b5b2d; }
 .option-image { height: 76rpx; width: 76rpx; }
+.selected-summary { line-height: 1.8; }
+.selected-option { background: #f7f5f2; border-radius: 999rpx; color: #6d5c4d; display: inline-block; font-size: 24rpx; margin: 0 12rpx 12rpx 0; padding: 6rpx 16rpx; }
 .engraving { background: #f7f5f2; border-radius: 12rpx; box-sizing: border-box; height: 84rpx; line-height: 84rpx; padding: 0 22rpx; width: 100%; }
 .bottom-bar { background: #fff; bottom: 0; box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, .06); display: flex; gap: 16rpx; left: 0; padding: 18rpx 24rpx; position: fixed; right: 0; }
 .bottom-bar button { flex: 1; font-size: 28rpx; }

@@ -60,13 +60,13 @@ public interface MallUserCouponDao extends BaseMapper<MallUserCouponEntity> {
     List<MallUserCouponEntity> queryList(Map<String, Object> param);
 
     /** 原子占用用户优惠券 / Atomically claims a user coupon. */
-    @Update("UPDATE MALL_USER_COUPON SET coupon_status = 2, used_time = #{usedTime}, order_id = #{orderId} "
+    @Update("UPDATE mall_user_coupon SET coupon_status = 2, used_time = #{usedTime}, order_id = #{orderId} "
             + "WHERE id = #{id} AND user_id = #{userId} AND coupon_status = 1")
     int claim(@Param("id") Integer id, @Param("userId") Long userId,
               @Param("orderId") Integer orderId, @Param("usedTime") Date usedTime);
 
     /** 释放未支付订单占用的优惠券 / Releases a coupon claimed by an unpaid order. */
-    @Update("UPDATE MALL_USER_COUPON SET coupon_status = 1, used_time = NULL, order_id = 0 "
+    @Update("UPDATE mall_user_coupon SET coupon_status = 1, used_time = NULL, order_id = 0 "
             + "WHERE order_id = #{orderId} AND coupon_status = 2")
     int releaseByOrder(@Param("orderId") Integer orderId);
 }

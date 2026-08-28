@@ -32,7 +32,7 @@ import java.io.Serializable;
  * @since 2026-02-24 13:15:28
  */
 @Data
-@TableName("MALL_GOODS_SPECIFICATION")
+@TableName("mall_goods_specification")
 public class MallGoodsSpecificationEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

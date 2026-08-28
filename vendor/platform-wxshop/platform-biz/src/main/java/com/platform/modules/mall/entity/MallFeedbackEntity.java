@@ -34,7 +34,7 @@ import java.util.Date;
  * @since 2024-07-19 20:53:33
  */
 @Data
-@TableName("MALL_FEEDBACK")
+@TableName("mall_feedback")
 public class MallFeedbackEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

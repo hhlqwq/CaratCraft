@@ -33,7 +33,7 @@ import java.math.BigDecimal;
  * @author pengjun
  */
 @Data
-@TableName("MALL_PRODUCT")
+@TableName("mall_product")
 public class MallProductEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

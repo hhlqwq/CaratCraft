@@ -10,6 +10,7 @@ Page({
     goodsId: 0,
     componentGroups: [],
     selectedOptionIds: [],
+    selectedOptionNames: [],
     selectedLayers: [],
     engraving: '',
     quote: {},
@@ -31,19 +32,41 @@ Page({
         return;
       }
       var groups = {};
+      var groupNames = {
+        chain: '链条材质',
+        length: '项链长度',
+        pendant: '吊坠款式',
+        gem: '宝石搭配'
+      };
       res.data.options.forEach(function (option) {
         if (!groups[option.componentType]) {
-          groups[option.componentType] = { type: option.componentType, name: option.componentType, options: [] };
+          groups[option.componentType] = {
+            type: option.componentType,
+            name: groupNames[option.componentType] || option.componentType,
+            options: []
+          };
         }
         groups[option.componentType].options.push(option);
       });
+      var componentGroups = Object.keys(groups).map(function (key) { return groups[key]; });
+      var selectedOptionIds = [];
+      componentGroups.forEach(function (group) {
+        if (group.options.length > 0) {
+          group.options[0].selected = true;
+          selectedOptionIds.push(group.options[0].id);
+        }
+      });
       that.setData({
-        componentGroups: Object.keys(groups).map(function (key) { return groups[key]; }),
+        componentGroups: componentGroups,
+        selectedOptionIds: selectedOptionIds,
+        selectedOptionNames: that.getSelectedOptionNames(componentGroups, selectedOptionIds),
         primaryProductId: res.data.primaryProductId,
         productConfig: res.data.product,
         xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame'))
       });
+      that.refreshPreview();
       that.refresh3dPreview();
+      that.refreshQuote();
     }).catch(function () {
       wx.showToast({ title: '定制配置加载失败', icon: 'none' });
     });
@@ -70,10 +93,25 @@ Page({
       });
       return group;
     });
-    this.setData({ selectedOptionIds: selected, componentGroups: groups });
+    this.setData({
+      selectedOptionIds: selected,
+      componentGroups: groups,
+      selectedOptionNames: this.getSelectedOptionNames(groups, selected)
+    });
     this.refreshPreview();
     this.refresh3dPreview();
     this.refreshQuote();
+  },
+
+  /** 获取当前已选组件名称 / Gets the names of selected component options. */
+  getSelectedOptionNames: function (groups, selectedOptionIds) {
+    var names = [];
+    groups.forEach(function (group) {
+      group.options.forEach(function (option) {
+        if (selectedOptionIds.indexOf(option.id) >= 0) names.push(option.name);
+      });
+    });
+    return names;
   },
 
   /** 刷新叠层预览 / Refreshes layered preview. */

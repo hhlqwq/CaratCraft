@@ -34,7 +34,7 @@ import java.util.Date;
  * @since 2024-07-19 21:02:38
  */
 @Data
-@TableName("MALL_USER_COUPON")
+@TableName("mall_user_coupon")
 public class MallUserCouponEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

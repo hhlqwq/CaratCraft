@@ -40,11 +40,11 @@ public interface MallProductDao extends BaseMapper<MallProductEntity> {
     List<MallProductEntity> queryList(Map<String, Object> param);
 
     /** 原子扣减库存 / Atomically deducts stock. */
-    @Update("UPDATE MALL_PRODUCT SET goods_number = goods_number - #{number} "
+    @Update("UPDATE mall_product SET goods_number = goods_number - #{number} "
             + "WHERE id = #{productId} AND goods_number >= #{number}")
     int deductStock(@Param("productId") Integer productId, @Param("number") Integer number);
 
     /** 恢复库存 / Restores stock. */
-    @Update("UPDATE MALL_PRODUCT SET goods_number = goods_number + #{number} WHERE id = #{productId}")
+    @Update("UPDATE mall_product SET goods_number = goods_number + #{number} WHERE id = #{productId}")
     int restoreStock(@Param("productId") Integer productId, @Param("number") Integer number);
 }

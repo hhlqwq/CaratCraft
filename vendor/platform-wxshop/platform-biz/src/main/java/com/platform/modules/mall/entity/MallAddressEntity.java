@@ -34,7 +34,7 @@ import java.io.Serializable;
  * @since 2024-07-19 20:53:40
  */
 @Data
-@TableName("MALL_ADDRESS")
+@TableName("mall_address")
 public class MallAddressEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

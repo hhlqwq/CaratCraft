@@ -36,7 +36,7 @@ import java.util.List;
  * @date 2026-03-15 13:45:30
  */
 @Data
-@TableName("MALL_COMMENT")
+@TableName("mall_comment")
 public class MallCommentEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

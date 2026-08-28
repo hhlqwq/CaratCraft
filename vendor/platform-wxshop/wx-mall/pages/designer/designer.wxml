@@ -30,6 +30,11 @@
     </scroll-view>
   </view>
 
+  <view class="section selected-summary" wx:if="{{selectedOptionNames.length > 0}}">
+    <view class="section-title">当前设计</view>
+    <text class="selected-option" wx:for="{{selectedOptionNames}}" wx:key="*this">{{item}}</text>
+  </view>
+
   <view class="section">
     <view class="section-title">刻字</view>
     <input class="engraving" maxlength="20" placeholder="最多 20 个字符" value="{{engraving}}" bindinput="changeEngraving"></input>

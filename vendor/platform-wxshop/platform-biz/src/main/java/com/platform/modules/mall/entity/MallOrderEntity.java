@@ -43,7 +43,7 @@ import java.util.Map;
  * @since 2026-03-15 14:30:00
  */
 @Data
-@TableName("MALL_ORDER")
+@TableName("mall_order")
 public class MallOrderEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

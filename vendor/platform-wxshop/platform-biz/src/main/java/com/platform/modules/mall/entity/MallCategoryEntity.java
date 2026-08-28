@@ -34,7 +34,7 @@ import java.util.List;
  * @since 2024-07-19 21:57:50
  */
 @Data
-@TableName("MALL_CATEGORY")
+@TableName("mall_category")
 public class MallCategoryEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

@@ -19,8 +19,8 @@
   <view class="a-section a-design">
     <navigator class="design-entry" open-type="switchTab" url="/pages/designer/designer">
       <view class="design-meta">
-        <text class="design-title">DIY 定制</text>
-        <text class="design-desc">选链 · 选坠 · 镶宝石 · 刻字，定制你的专属项链</text>
+        <text class="design-title">自由 DIY 定制</text>
+        <text class="design-desc">选择链条、吊坠与宝石，实时预览并保存你的专属设计</text>
       </view>
       <text class="design-go">开始定制 ›</text>
     </navigator>
@@ -54,7 +54,7 @@
     <view class="h">
       <view>
         <navigator url="../newGoods/newGoods">
-          <text class="txt">新品首发</text>
+          <text class="txt">商家精选成品 · 演示</text>
         </navigator>
       </view>
     </view>
@@ -73,7 +73,7 @@
     <view class="h">
       <view>
         <navigator url="../hotGoods/hotGoods">
-          <text class="txt">人气推荐</text>
+          <text class="txt">热门珠宝成品 · 演示</text>
         </navigator>
       </view>
     </view>

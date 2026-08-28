@@ -34,7 +34,7 @@ import java.math.BigDecimal;
  * @since 2024-07-19 20:53:40
  */
 @Data
-@TableName("MALL_CART")
+@TableName("mall_cart")
 public class MallCartEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

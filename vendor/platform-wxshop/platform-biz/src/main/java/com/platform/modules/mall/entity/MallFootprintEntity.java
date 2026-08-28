@@ -36,7 +36,7 @@ import java.math.BigDecimal;
  * @since 2024-07-19 20:53:33
  */
 @Data
-@TableName("MALL_FOOTPRINT")
+@TableName("mall_footprint")
 public class MallFootprintEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 

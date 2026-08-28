@@ -34,7 +34,7 @@ import java.io.Serializable;
  * @since 2026-02-24 13:15:28
  */
 @Data
-@TableName("MALL_GOODS_GALLERY")
+@TableName("mall_goods_gallery")
 public class MallGoodsGalleryEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
