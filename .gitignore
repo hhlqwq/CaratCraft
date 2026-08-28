@@ -4,6 +4,7 @@ vendor/platform-wxshop/deploy/packages/
 vendor/platform-wxshop/**/target/
 vendor/platform-wxshop/**/node_modules/
 *.log
+.start-local-test-*.ps1
 # 本地配置（包含敏感信息）
 vendor/platform-wxshop/**/application-local.yml
 deploy/.env

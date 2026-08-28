@@ -117,7 +117,11 @@ chmod +x dev.sh
 
 `ResetData` 会删除本项目的 MySQL 和 Redis Docker 数据卷，只用于需要全新测试数据的场景。默认启动会保留数据。
 
+> Docker 的初始化 SQL 仅会在 MySQL 数据卷第一次创建时运行。若复用了旧数据卷而后端报 `Table 'platform.sys_region' doesn't exist`，请不要直接使用 `ResetData`：先备份数据，再按 [use.md](use.md) 第三节补导 `vendor/platform-wxshop/_sql/sys_region.sql`。只有明确不需要保留本地测试数据时，才使用 `ResetData` 重建全部初始化表与演示数据。
+
 默认构建使用 BuildKit 缓存。当 Docker Hub 可通过普通 `docker pull` 访问、但 BuildKit 拉取镜像失败时，可使用 `LegacyBuild` / `--legacy-build` 临时关闭 BuildKit 和 Compose Bake；该模式不影响镜像功能，但首次构建会较慢。
+
+后端容器健康检查不依赖 Bash，并兼容 JVM 的 IPv4/IPv6 监听；服务成功监听 8080/8081 后，Docker Compose 才会继续启动 Nginx。若 `docker compose up --wait` 超时，请先运行 `./dev.ps1 -Action logs`（Windows）或 `./dev.sh logs`（Linux/macOS）获取实际容器日志。
 
 启动完成后的默认地址：
 
@@ -139,6 +143,8 @@ chmod +x dev.sh
 管理端"定制管理"菜单包含两个页面：
 - 生产工单：状态流转（服务端状态机约束）与操作日志查看（`CC_WORK_ORDER_LOG` 记录操作人、状态流转和备注）。
 - 组件库存：维护每个定制组件选项的库存数量，报价与下单时会校验并扣减对应库存，防止超售。已有数据库需手动执行 `_sql/carat_craft_menu.sql` 中新增的菜单行（ID 2002/200201）导入入口。
+
+现增加“定制配置”页面：可启用/停用指定商城商品的定制器、维护模板和必选组件类型，并新增或编辑组件选项。新增选项后默认库存为 0，必须在“组件库存”中设置大于 0 的库存后才可参与报价和下单。已有数据库执行一次 `_sql/carat_craft_menu.sql` 即可幂等补充菜单与权限（ID 2003/200301/200302）。
 
 支付回调接口 `/app/pay/notify` 启用 IP 白名单校验（`wx.pay.notifyIpWhitelist`，支持精确 IP 与 CIDR 网段，默认内置微信支付回调通知网段，上线前请与微信支付官方文档核对），白名单之外来源的请求会被直接拒绝。该开关可通过 `wx.pay.notifyIpWhitelistEnabled` 关闭。
 

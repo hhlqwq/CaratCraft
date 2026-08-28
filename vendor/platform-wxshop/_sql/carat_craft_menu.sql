@@ -7,4 +7,8 @@ INSERT INTO `SYS_MENU` (`MENU_ID`, `PARENT_ID`, `NAME`, `URL`, `PERMS`, `TYPE`, 
 ('200101', '2001', '查看', NULL, 'custom:work-order:list', 2, NULL, 0),
 ('200102', '2001', '流转状态', NULL, 'custom:work-order:update', 2, NULL, 0),
 ('2002', '20', '组件库存', 'custom/component-stock', 'custom:stock:list', 1, 'databases', 2),
-('200201', '2002', '修改库存', NULL, 'custom:stock:update', 2, NULL, 0);
+('200201', '2002', '修改库存', NULL, 'custom:stock:update', 2, NULL, 0),
+('2003', '20', '定制配置', 'custom/configuration', 'custom:config:list', 1, 'setting', 3),
+('200301', '2003', '查看', NULL, 'custom:config:list', 2, NULL, 0),
+('200302', '2003', '保存配置', NULL, 'custom:config:update', 2, NULL, 0)
+ON DUPLICATE KEY UPDATE `NAME` = VALUES(`NAME`), `URL` = VALUES(`URL`), `PERMS` = VALUES(`PERMS`), `TYPE` = VALUES(`TYPE`), `ICON` = VALUES(`ICON`), `ORDER_NUM` = VALUES(`ORDER_NUM`);

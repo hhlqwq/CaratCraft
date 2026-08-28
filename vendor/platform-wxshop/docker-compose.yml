@@ -73,7 +73,8 @@ services:
       - -c
       - java $$JAVA_OPTS -jar /app/platform-admin.jar
     healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8080'"]
+      # JVM 默认监听 IPv6, 同时检查 IPv4/IPv6 表且不依赖 Bash / Checks IPv4 and IPv6 without bash dependency.
+      test: ["CMD-SHELL", "grep -q ':1F90 ' /proc/net/tcp /proc/net/tcp6"]
       interval: 10s
       timeout: 5s
       retries: 18
@@ -108,7 +109,8 @@ services:
       - -c
       - java $$JAVA_OPTS -jar /app/platform-api.jar
     healthcheck:
-      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8081'"]
+      # JVM 默认监听 IPv6, 同时检查 IPv4/IPv6 表且不依赖 Bash / Checks IPv4 and IPv6 without bash dependency.
+      test: ["CMD-SHELL", "grep -q ':1F91 ' /proc/net/tcp /proc/net/tcp6"]
       interval: 10s
       timeout: 5s
       retries: 18
