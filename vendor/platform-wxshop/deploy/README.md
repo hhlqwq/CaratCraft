@@ -24,7 +24,7 @@ Ubuntu 或 macOS：
 cp deploy/.env.example deploy/.env
 ```
 
-其中 `NGINX_PORT`、数据库密码和 JVM 参数都可以按本机情况修改。`MAVEN_PROFILE` 仅供旧的独立 JAR 构建脚本使用。
+其中 `NGINX_PORT`、数据库密码和 JVM 参数都可以按本机情况修改。`MAVEN_PROFILE` 仅供旧的独立 JAR 构建脚本使用。要启用小程序微信登录，必须填写 `WX_MINIAPP_APPID`、`WX_MINIAPP_SECRET` 和随机的 `JWT_SECRET`；这些变量会注入商城 API 和管理后台容器。
 
 也可以直接执行标准 Compose 命令：
 

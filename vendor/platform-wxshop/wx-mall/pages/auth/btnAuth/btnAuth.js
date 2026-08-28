@@ -54,34 +54,54 @@ Page({
   },
   loginByWeixin: function (userInfo) {
     let that = this;
-    if (that.data.code) {
+    util.login().then(loginResult => {
+      if (!loginResult.code) {
+        throw new Error('微信登录凭证为空');
+      }
       util.request(api.AuthLoginByWeixin, {
-        code: that.data.code,
+        code: loginResult.code,
         userInfo: userInfo
       }, 'POST', 'application/json').then(res => {
         if (res.code === 0) {
-          //存储用户信息
+          // 登录成功后存储用户信息, Store user information after login succeeds.
           wx.setStorageSync('userInfo', res.data.userInfo);
           wx.setStorageSync('token', res.data.token);
           wx.setStorageSync('userId', res.data.userId);
-
+          that.navigateAfterLogin();
         } else {
-          // util.showErrorToast(res.msg)
           wx.showModal({
             title: '提示',
             content: res.msg,
             showCancel: false
           });
         }
+      }).catch(() => {
+        wx.showModal({
+          title: '提示',
+          content: '登录请求失败，请检查网络后重试',
+          showCancel: false
+        });
       });
-    }
-    if (that.data.navUrl && that.data.navUrl == '/pages/index/index') {
+    }).catch(() => {
+      wx.showModal({
+        title: '提示',
+        content: '获取微信登录凭证失败，请重试',
+        showCancel: false
+      });
+    });
+  },
+  /**
+   * 登录成功后返回用户原本要访问的页面, Navigate only after successful login.
+   */
+  navigateAfterLogin: function () {
+    let navUrl = this.data.navUrl;
+    if (navUrl && navUrl == '/pages/index/index') {
       wx.switchTab({
-        url: that.data.navUrl,
+        url: navUrl,
       })
-    } else if (that.data.navUrl) {
+    } else if (navUrl) {
       wx.redirectTo({
-        url: that.data.navUrl,
+        url: navUrl,
       })
     }
   },
