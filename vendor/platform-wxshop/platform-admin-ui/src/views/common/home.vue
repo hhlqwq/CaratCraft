@@ -816,7 +816,7 @@ export default {
           date: this.value5
         }
       }).then(({data}) => {
-        if (data && data.code === 0) {
+        if (data && data.code === 0 && data.data && data.data.list) {
           this.visitDistribution = data.data
 
           // 访问来源分布

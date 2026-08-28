@@ -23,6 +23,7 @@ import cn.binarywang.wx.miniapp.bean.analysis.WxMaSummaryTrend;
 import cn.binarywang.wx.miniapp.bean.analysis.WxMaVisitDistribution;
 import cn.binarywang.wx.miniapp.bean.analysis.WxMaVisitPage;
 import cn.binarywang.wx.miniapp.bean.analysis.WxMaVisitTrend;
+import com.platform.config.WxMaProperties;
 import com.platform.common.utils.DateUtils;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.sys.controller.AbstractController;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +54,7 @@ import java.util.Map;
 @RequestMapping("manage/maanalysis")
 public class WxMaAnalysisController extends AbstractController {
     private final WxMaAnalysisService maAnalysisService;
+    private final WxMaProperties wxMaProperties;
 
     /**
      * 查询概况趋势
@@ -63,6 +66,9 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "查询概况趋势", description = "查询概况趋势")
     @GetMapping("/getDailySummaryTrend")
     public RestResponse<List<WxMaSummaryTrend>> getDailySummaryTrend(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            return RestResponse.ok(Collections.emptyList());
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         if (null == date) {
@@ -88,6 +94,9 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "获取日访问趋势", description = "获取日访问趋势")
     @GetMapping("/getDailyVisitTrend")
     public RestResponse<List<WxMaVisitTrend>> getDailyVisitTrend(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            return RestResponse.ok(Collections.emptyList());
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         if (null == date) {
@@ -113,6 +122,9 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "获取周访问趋势", description = "获取周访问趋势")
     @GetMapping("/getWeeklyVisitTrend")
     public RestResponse<List<WxMaVisitTrend>> getWeeklyVisitTrend(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            return RestResponse.ok(Collections.emptyList());
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         Date[] dates;
@@ -143,6 +155,9 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "获取月访问趋势", description = "获取月访问趋势")
     @GetMapping("/getMonthlyVisitTrend")
     public RestResponse<List<WxMaVisitTrend>> getMonthlyVisitTrend(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            return RestResponse.ok(Collections.emptyList());
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         Date[] dates;
@@ -173,6 +188,9 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "获取访问分布", description = "获取访问分布")
     @GetMapping("/getVisitDistribution")
     public RestResponse<WxMaVisitDistribution> getVisitDistribution(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            return RestResponse.ok(null);
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         if (null == date) {
@@ -197,6 +215,12 @@ public class WxMaAnalysisController extends AbstractController {
     @Operation(summary = "获取访问页面数据", description = "获取访问页面数据")
     @GetMapping("/getVisitPage")
     public RestResponse<Map<String, Object>> getVisitPage(@RequestParam Map<String, String> params) {
+        if (!isMiniAppConfigured()) {
+            Map<String, Object> emptyData = new HashMap<>(2);
+            emptyData.put("list", Collections.emptyList());
+            emptyData.put("date", "");
+            return RestResponse.ok(emptyData);
+        }
         String strDate = params.get("date");
         Date date = DateUtils.strToDate(strDate);
         if (null == date) {
@@ -212,5 +236,15 @@ public class WxMaAnalysisController extends AbstractController {
         } catch (WxErrorException e) {
             return RestResponse.fail("查询概况趋势失败，" + e.getMessage());
         }
+    }
+
+    /**
+     * 判断小程序分析接口所需凭据是否已配置。
+     *
+     * @return AppId 与 Secret 均非空时返回 true
+     */
+    private boolean isMiniAppConfigured() {
+        return wxMaProperties.getAppid() != null && !wxMaProperties.getAppid().trim().isEmpty()
+                && wxMaProperties.getSecret() != null && !wxMaProperties.getSecret().trim().isEmpty();
     }
 }
