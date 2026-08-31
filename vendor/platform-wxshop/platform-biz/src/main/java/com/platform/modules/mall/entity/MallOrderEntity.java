@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 订单实体，对应表：MALL_ORDER。
+ * 订单实体，对应表：mall_order。
  * <p>
  * 该实体用于后台订单管理模块的基础 CRUD，保存订单主信息、收货信息、支付信息、金额信息以及时间信息。
  * </p>

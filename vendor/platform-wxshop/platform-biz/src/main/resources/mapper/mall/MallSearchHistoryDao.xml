@@ -11,7 +11,7 @@
         T.ADD_TIME,
         T.USER_ID,
         WU.NICKNAME
-        FROM MALL_SEARCH_HISTORY T LEFT JOIN WX_USER WU ON WU.ID = T.USER_ID
+        FROM mall_search_history T LEFT JOIN WX_USER WU ON WU.ID = T.USER_ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

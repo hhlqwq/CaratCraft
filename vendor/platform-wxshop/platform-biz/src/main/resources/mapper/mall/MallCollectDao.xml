@@ -12,7 +12,7 @@
         T.IS_ATTENTION,
         T.TYPE_ID,
         U.NICKNAME
-        FROM MALL_COLLECT T
+        FROM mall_collect T
         LEFT JOIN WX_USER U ON T.USER_ID = U.ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">

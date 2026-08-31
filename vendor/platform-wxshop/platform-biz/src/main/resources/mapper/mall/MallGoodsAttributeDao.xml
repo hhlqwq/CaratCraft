@@ -9,7 +9,7 @@
         T.GOODS_ID,
         T.ATTRIBUTE_ID,
         T.VALUE
-        FROM MALL_GOODS_ATTRIBUTE T
+        FROM mall_goods_attribute T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

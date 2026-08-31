@@ -14,7 +14,7 @@
         T.CONTENT,
         T.END_TIME,
         T.ENABLED
-        FROM MALL_AD T
+        FROM mall_ad T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

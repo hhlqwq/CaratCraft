@@ -14,8 +14,8 @@
         T.ADD_TIME,
         T.STATUS,
         T.USER_ID
-        FROM MALL_COMMENT T
-        LEFT JOIN MALL_GOODS G ON G.ID = T.VALUE_ID
+        FROM mall_comment T
+        LEFT JOIN mall_goods G ON G.ID = T.VALUE_ID
         LEFT JOIN mall_user U ON U.ID = T.USER_ID
         WHERE 1=1
         <if test="params.id != null and params.id != ''">

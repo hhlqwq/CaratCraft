@@ -17,7 +17,7 @@
         T.SORT_ORDER,
         T.SCHEME_URL,
         T.TYPE
-        FROM MALL_KEYWORDS T
+        FROM mall_keywords T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

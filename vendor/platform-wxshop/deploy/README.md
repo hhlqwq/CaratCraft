@@ -40,8 +40,9 @@ scripts/docker-down.sh
 
 ## 说明
 
-- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次创建数据卷时按文件名顺序执行；`_sql/migrations` 不会自动执行。已有数据卷需要手动执行 `carat_craft_demo_jewelry_v1.sql`，以写入明确标注为演示的珠宝成品和 DIY 本地图层数据。该脚本包含 `SET NAMES utf8mb4`；Windows 下不要删除这行，否则通过管道导入中文时可能发生二次编码乱码。
+- `mysql` 初始化脚本直接挂载仓库 `_sql/` 目录，首次创建数据卷时按文件名顺序执行；`_sql/migrations` 不会自动执行。已有数据卷需要手动执行 `carat_craft_demo_jewelry_v1.sql` 写入珠宝成品演示数据，并执行 `_sql/carat_craft_demo_data.sql` 重建商品 `1006002` 的完整 DIY 演示配件与库存。脚本包含 `SET NAMES utf8mb4`；Windows 下不要删除该设置，否则通过管道导入中文时可能发生二次编码乱码。
 - `nginx` 在容器内监听 `80`，宿主机默认通过 `8888` 访问，同时托管前端静态资源并反代两个后端服务。
 - 后端容器运行时启用 `docker` profile，只覆盖 MySQL 和 Redis 地址，不改你现有 `dev/test/prod` 配置。
 - MySQL 和 Redis 使用 Docker 命名数据卷，普通停止不会丢失数据；只有显式使用 `--reset-data` 或 `-ResetData` 才会删除测试数据。
 - `scripts/build-jars.sh` 和 `scripts/build-admin-ui.sh` 保留给需要导出独立部署产物的场景，一键测试不再依赖它们。
+- Docker MySQL 的表名严格区分大小写。商城业务表统一使用小写 `mall_*`，而系统、微信和定制模块继续使用数据库中现有的大写 `SYS_*`、`WX_*`、`CC_*`。

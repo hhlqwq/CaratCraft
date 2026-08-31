@@ -19,12 +19,18 @@
     <view class="price-note">最终价格以提交订单时的服务端报价为准</view>
   </view>
 
-  <view class="section" wx:for="{{componentGroups}}" wx:key="type">
-    <view class="section-title">{{item.name}}</view>
+  <view class="section" wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type">
+    <view class="section-heading">
+      <text class="section-step">{{group.step}}</text>
+      <view>
+        <view class="section-title">{{group.name}}</view>
+        <view class="section-description">{{group.description}}</view>
+      </view>
+    </view>
     <scroll-view class="option-scroll" scroll-x="true">
-      <view class="option {{option.selected ? 'selected' : ''}}" wx:for="{{item.options}}" wx:key="id" data-id="{{option.id}}" data-type="{{item.type}}" bindtap="selectOption">
+      <view class="option {{option.selected ? 'selected' : ''}}" wx:for="{{group.options}}" wx:for-item="option" wx:key="id" data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
         <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit"></image>
-        <view>{{option.name}}</view>
+        <view class="option-name">{{option.name}}</view>
         <view class="option-price">{{option.priceDelta > 0 ? '+' : ''}}¥{{option.priceDelta}}</view>
       </view>
     </scroll-view>
@@ -36,8 +42,14 @@
   </view>
 
   <view class="section">
-    <view class="section-title">刻字</view>
-    <input class="engraving" maxlength="20" placeholder="最多 20 个字符" value="{{engraving}}" bindinput="changeEngraving"></input>
+    <view class="section-heading">
+      <text class="section-step">{{componentGroups.length + 1}}</text>
+      <view>
+        <view class="section-title">个性刻字</view>
+        <view class="section-description">最多输入 20 个字符，最终效果以商家工艺确认为准。</view>
+      </view>
+    </view>
+    <input class="engraving" maxlength="20" placeholder="请输入姓名、日期或纪念文字" value="{{engraving}}" bindinput="changeEngraving"></input>
   </view>
 
   <view class="bottom-bar">

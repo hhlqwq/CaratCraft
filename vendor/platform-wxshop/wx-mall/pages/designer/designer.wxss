@@ -108,13 +108,34 @@
   font-family: serif;
   font-size: 31rpx;
   font-weight: 500;
+}
+
+.section-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16rpx;
   margin-bottom: 20rpx;
 }
 
-.section-title::before {
-  color: #b88d51;
-  content: '—';
-  margin-right: 12rpx;
+.section-step {
+  align-items: center;
+  border: 1rpx solid #b88d51;
+  border-radius: 50%;
+  color: #d6b477;
+  display: flex;
+  flex: 0 0 42rpx;
+  font-size: 20rpx;
+  height: 42rpx;
+  justify-content: center;
+  margin-top: 2rpx;
+  width: 42rpx;
+}
+
+.section-description {
+  color: #849089;
+  font-size: 20rpx;
+  line-height: 1.55;
+  margin-top: 6rpx;
 }
 
 .option-scroll {
@@ -127,11 +148,12 @@
   color: #bdc5c0;
   display: inline-block;
   margin-right: 14rpx;
-  min-height: 164rpx;
+  min-height: 190rpx;
   padding: 15rpx;
   text-align: center;
   vertical-align: top;
-  width: 170rpx;
+  white-space: normal;
+  width: 210rpx;
 }
 
 .option.selected {
@@ -144,6 +166,13 @@
   height: 78rpx;
   margin-bottom: 8rpx;
   width: 78rpx;
+}
+
+.option-name {
+  font-size: 22rpx;
+  line-height: 1.45;
+  min-height: 64rpx;
+  overflow-wrap: break-word;
 }
 
 .option-price {
@@ -172,6 +201,7 @@
   height: 88rpx;
   line-height: 88rpx;
   padding: 0 22rpx;
+  box-sizing: border-box;
   width: 100%;
 }
 

@@ -11,7 +11,7 @@
         T.GOODS_NUMBER,
         T.RETAIL_PRICE,
         T.MARKET_PRICE
-        FROM MALL_PRODUCT T
+        FROM mall_product T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

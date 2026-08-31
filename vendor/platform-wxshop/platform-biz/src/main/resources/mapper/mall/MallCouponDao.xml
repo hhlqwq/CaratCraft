@@ -17,7 +17,7 @@
         T.USE_END_DATE,
         T.MIN_GOODS_AMOUNT,
         T.MIN_TRANSMIT_NUM
-        FROM MALL_COUPON T
+        FROM mall_coupon T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

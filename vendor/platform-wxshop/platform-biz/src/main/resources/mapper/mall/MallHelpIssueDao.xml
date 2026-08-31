@@ -11,7 +11,7 @@
         T.ANSWER,
         T.SORT,
         HT.TYPE_NAME
-        FROM MALL_HELP_ISSUE T LEFT JOIN MALL_HELP_TYPE HT ON T.TYPE_ID = HT.ID
+        FROM mall_help_issue T LEFT JOIN mall_help_type HT ON T.TYPE_ID = HT.ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

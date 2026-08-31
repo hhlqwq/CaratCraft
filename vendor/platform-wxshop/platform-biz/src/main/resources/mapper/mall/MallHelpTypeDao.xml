@@ -8,7 +8,7 @@
         T.ID,
         T.TYPE_NAME,
         T.SORT
-        FROM MALL_HELP_TYPE T
+        FROM mall_help_type T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

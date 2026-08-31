@@ -14,7 +14,7 @@
         T.STATUS,
         T.ADD_TIME,
         U.NICKNAME
-        FROM MALL_FEEDBACK T
+        FROM mall_feedback T
         LEFT JOIN WX_USER U ON T.USER_ID = U.ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">

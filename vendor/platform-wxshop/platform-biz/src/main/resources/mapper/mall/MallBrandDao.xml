@@ -17,7 +17,7 @@
         T.IS_NEW,
         T.NEW_PIC_URL,
         T.NEW_SORT_ORDER
-        FROM MALL_BRAND T
+        FROM mall_brand T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

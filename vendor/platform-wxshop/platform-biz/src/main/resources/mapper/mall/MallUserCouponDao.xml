@@ -16,7 +16,7 @@
         T.SOURCE_KEY,
         T.REFERRER,
         U.NICKNAME
-        FROM MALL_USER_COUPON T
+        FROM mall_user_coupon T
         LEFT JOIN WX_USER U ON T.USER_ID = U.ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">

@@ -9,7 +9,7 @@
         T.COMMENT_ID,
         T.PIC_URL,
         T.SORT_ORDER
-        FROM MALL_COMMENT_PICTURE T
+        FROM mall_comment_picture T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

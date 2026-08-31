@@ -10,7 +10,7 @@
         T.WIDTH,
         T.HEIGHT,
         T.`DESC`
-        FROM MALL_AD_POSITION T
+        FROM mall_ad_position T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

@@ -8,7 +8,7 @@
         T.ID,
         T.TITLE,
         T.PIC_URL
-        FROM MALL_TOPIC_CATEGORY T
+        FROM mall_topic_category T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

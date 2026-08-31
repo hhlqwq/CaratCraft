@@ -8,7 +8,7 @@
         T.ID,
         T.COUPON_ID,
         T.GOODS_ID
-        FROM MALL_COUPON_GOODS T
+        FROM mall_coupon_goods T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

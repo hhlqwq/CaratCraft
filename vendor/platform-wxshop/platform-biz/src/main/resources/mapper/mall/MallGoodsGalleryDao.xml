@@ -10,7 +10,7 @@
         T.IMG_URL,
         T.IMG_DESC,
         T.SORT_ORDER
-        FROM MALL_GOODS_GALLERY T
+        FROM mall_goods_gallery T
         WHERE 1=1
         <if test="params.id != null and params.id != ''">
             AND T.ID = #{params.id}

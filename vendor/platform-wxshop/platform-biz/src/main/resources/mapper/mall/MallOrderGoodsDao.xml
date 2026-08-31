@@ -18,7 +18,7 @@
         T.IS_REAL,
         T.GOODS_SPECIFITION_IDS,
         T.LIST_PIC_URL
-        FROM MALL_ORDER_GOODS T
+        FROM mall_order_goods T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

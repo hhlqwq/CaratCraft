@@ -17,7 +17,7 @@
         T.COUNTY_NAME,
         T.DETAIL_INFO,
         U.NICKNAME
-        FROM MALL_ADDRESS T
+        FROM mall_address T
         LEFT JOIN WX_USER U ON T.USER_ID = U.ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">

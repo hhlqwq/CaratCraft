@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 订单商品明细实体，对应表：MALL_ORDER_GOODS。
+ * 订单商品明细实体，对应表：mall_order_goods。
  * <p>
  * 该实体用于维护订单中的商品明细项，记录商品快照、购买数量、成交价及规格信息。
  * </p>

@@ -40,7 +40,7 @@
         T.UPDATE_USER_ID,
         T.UPDATE_TIME,
         T.CREATE_USER_DEPT_ID
-        FROM MALL_GOODS T
+        FROM mall_goods T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

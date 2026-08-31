@@ -10,7 +10,7 @@
         T.SPECIFICATION_ID,
         T.VALUE,
         T.PIC_URL
-        FROM MALL_GOODS_SPECIFICATION T
+        FROM mall_goods_specification T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

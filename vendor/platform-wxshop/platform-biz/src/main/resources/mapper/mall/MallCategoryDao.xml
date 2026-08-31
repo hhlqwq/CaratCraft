@@ -21,8 +21,8 @@
         T.TYPE,
         T.FRONT_NAME,
         C.NAME PARENT_NAME
-        FROM MALL_CATEGORY T
-        LEFT JOIN MALL_CATEGORY C ON T.PARENT_ID = C.ID
+        FROM mall_category T
+        LEFT JOIN mall_category C ON T.PARENT_ID = C.ID
         WHERE 1=1
         <if test="params.name != null and params.name.trim() != ''">
             AND T.NAME LIKE CONCAT('%', #{params.name}, '%')

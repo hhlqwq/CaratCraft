@@ -10,7 +10,7 @@
         T.URL,
         T.ICON_URL,
         T.SORT_ORDER
-        FROM MALL_CHANNEL T
+        FROM mall_channel T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

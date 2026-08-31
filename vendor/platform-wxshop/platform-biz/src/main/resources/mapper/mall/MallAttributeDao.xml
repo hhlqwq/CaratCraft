@@ -12,7 +12,7 @@
         T.VALUE,
         T.SORT_ORDER,
         MACC.NAME CATEGORY_NAME
-        FROM MALL_ATTRIBUTE T LEFT JOIN MALL_ATTRIBUTE_CATEGORY MACC ON MACC.ID = T.ATTRIBUTE_CATEGORY_ID
+        FROM mall_attribute T LEFT JOIN mall_attribute_category MACC ON MACC.ID = T.ATTRIBUTE_CATEGORY_ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

@@ -8,7 +8,7 @@
         T.ID,
         T.NAME,
         T.ENABLED
-        FROM MALL_ATTRIBUTE_CATEGORY T
+        FROM mall_attribute_category T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

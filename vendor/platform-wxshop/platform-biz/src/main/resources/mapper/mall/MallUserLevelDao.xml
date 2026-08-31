@@ -8,7 +8,7 @@
         T.ID,
         T.NAME,
         T.DESCRIPTION
-        FROM MALL_USER_LEVEL T
+        FROM mall_user_level T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

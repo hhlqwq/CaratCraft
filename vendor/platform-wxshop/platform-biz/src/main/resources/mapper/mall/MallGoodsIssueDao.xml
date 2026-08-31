@@ -8,7 +8,7 @@
         T.ID,
         T.QUESTION,
         T.ANSWER
-        FROM MALL_GOODS_ISSUE T
+        FROM mall_goods_issue T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

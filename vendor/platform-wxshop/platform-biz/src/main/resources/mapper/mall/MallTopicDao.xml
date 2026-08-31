@@ -18,8 +18,8 @@
         T.TOPIC_TEMPLATE_ID,
         T.TOPIC_TAG_ID,
         MTC.TITLE CATEGORY_NAME
-        FROM MALL_TOPIC T
-        LEFT JOIN MALL_TOPIC_CATEGORY MTC ON MTC.ID = T.TOPIC_CATEGORY_ID
+        FROM mall_topic T
+        LEFT JOIN mall_topic_category MTC ON MTC.ID = T.TOPIC_CATEGORY_ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

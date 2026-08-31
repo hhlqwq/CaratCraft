@@ -33,25 +33,42 @@ Page({
       }
       var groups = {};
       var groupNames = {
-        material: '材质',
-        style: '款式',
-        pearl: '珍珠种类',
+        pearl: '珍珠种类与规格',
+        material: '贵金属材质',
+        gem: '钻石与宝石',
+        fitting: '耳饰与连接配件',
+        style: '成品款式',
         chain: '链条材质',
         length: '项链长度',
         pendant: '吊坠款式',
-        gem: '宝石搭配'
+        engraving: '刻字工艺'
+      };
+      var groupDescriptions = {
+        pearl: '淡水与海水珍珠按品种、品质、尺寸分别报价。',
+        material: '选择 18K 金、铂金等主体或连接件材质。',
+        gem: '选择钻石、莫桑石、锆石等镶嵌方案。',
+        fitting: '选择耳钉、耳钩、耳夹或项链扣等配件。',
+        style: '确定珠宝的整体结构和佩戴方式。',
+        chain: '选择链条的金属和工艺。',
+        length: '选择适合佩戴场景的成品长度。',
+        pendant: '选择吊坠造型。',
+        engraving: '选择刻字位置或工艺。'
       };
       res.data.options.forEach(function (option) {
         if (!groups[option.componentType]) {
           groups[option.componentType] = {
             type: option.componentType,
             name: groupNames[option.componentType] || option.componentType,
+            description: groupDescriptions[option.componentType] || '请选择一个适合当前设计的选项。',
             options: []
           };
         }
         groups[option.componentType].options.push(option);
       });
-      var componentGroups = Object.keys(groups).map(function (key) { return groups[key]; });
+      var componentGroups = Object.keys(groups).map(function (key, index) {
+        groups[key].step = index + 1;
+        return groups[key];
+      });
       var selectedOptionIds = [];
       componentGroups.forEach(function (group) {
         if (group.options.length > 0) {

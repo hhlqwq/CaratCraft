@@ -28,7 +28,7 @@
         <el-row :gutter="18">
           <el-col :span="6"><el-form-item label="预览宽度"><el-input-number v-model="product.previewWidth" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
           <el-col :span="6"><el-form-item label="预览高度"><el-input-number v-model="product.previewHeight" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="material,length,style,pearl"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="pearl,material,gem,fitting,style,length"></el-input></el-form-item></el-col>
         </el-row>
         <el-form-item label="商品模型 URL"><el-input v-model="product.modelUrl" placeholder="可填写 GLB/GLTF 模型地址"></el-input></el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct">保存商品配置</el-button>
@@ -97,7 +97,7 @@ const createProduct = () => ({
   previewWidth: 750,
   previewHeight: 750,
   modelUrl: '',
-  requiredComponentTypes: 'material,length,style,pearl',
+  requiredComponentTypes: 'pearl,material,gem,fitting,style,length',
   enabled: 1
 })
 const createOption = () => ({
@@ -123,10 +123,14 @@ export default {
       product: createProduct(),
       option: createOption(),
       componentTypes: [
-        {value: 'material', label: '材质（material）'},
+        {value: 'pearl', label: '珍珠种类与规格（pearl）'},
+        {value: 'material', label: '贵金属材质（material）'},
+        {value: 'gem', label: '钻石与宝石（gem）'},
+        {value: 'fitting', label: '耳饰与连接配件（fitting）'},
         {value: 'length', label: '长度（length）'},
         {value: 'style', label: '款式（style）'},
-        {value: 'pearl', label: '珍珠种类（pearl）'}
+        {value: 'chain', label: '链条材质（chain）'},
+        {value: 'pendant', label: '吊坠款式（pendant）'}
       ]
     }
   },
@@ -273,32 +277,39 @@ export default {
     // 下载配件导入模板 / Downloads the component import template.
     downloadTemplate () {
       const payload = {
-        product: Object.assign(createProduct(), {goodsId: 1006002}),
+        product: Object.assign(createProduct(), {
+          goodsId: 1006002,
+          requiredComponentTypes: 'pearl,material,gem,fitting,style,length'
+        }),
         replaceOptions: true,
         options: [
           Object.assign(createOption(), {
-            componentType: 'material',
-            optionCode: 'material-18k',
-            name: '演示 · 18K 黄金',
-            assetUrl: '/static/images/designer/chain-gold.svg',
-            materialParams: '{"metalness":0.8}'
-          }),
-          Object.assign(createOption(), {
-            componentType: 'length',
-            optionCode: 'length-45',
-            name: '演示 · 45cm'
-          }),
-          Object.assign(createOption(), {
-            componentType: 'style',
-            optionCode: 'style-classic',
-            name: '演示 · 经典单珠',
-            assetUrl: '/static/images/designer/pendant-solitaire.svg'
-          }),
-          Object.assign(createOption(), {
             componentType: 'pearl',
-            optionCode: 'pearl-akoya',
-            name: '演示 · Akoya 海水珍珠',
+            optionCode: 'pearl-akoya-8-jewelry',
+            name: '演示 · Akoya 海水珠 · 珠宝级 · 8–8.5mm',
+            priceDelta: 1600,
             assetUrl: '/static/images/designer/pearl-akoya.svg'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'material',
+            optionCode: 'material-18k-white',
+            name: '演示 · 18K 白金',
+            priceDelta: 900,
+            assetUrl: '/static/images/designer/chain-platinum.svg',
+            materialParams: '{"metalness":0.8,"color":"#E8E5DF"}'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'gem',
+            optionCode: 'gem-diamond-010',
+            name: '演示 · 天然钻石 · 0.10ct',
+            priceDelta: 1200,
+            assetUrl: '/static/images/designer/gem-diamond.svg'
+          }),
+          Object.assign(createOption(), {
+            componentType: 'fitting',
+            optionCode: 'fitting-stud-18k',
+            name: '演示 · 18K 白金耳钉托',
+            priceDelta: 600
           })
         ]
       }
