@@ -71,9 +71,12 @@ public class Oauth2Realm extends AuthorizingRealm {
 
         //根据accessToken，查询用户信息
         SysUserTokenEntity tokenEntity = shiroService.queryByToken(accessToken);
-        //token失效
-        if (tokenEntity == null || tokenEntity.getExpireTime().getTime() < System.currentTimeMillis()) {
-            throw new IncorrectCredentialsException("token失效，请重新登录");
+        // 区分令牌被覆盖和自然过期，便于前端给出准确原因 / Distinguishes replacement from expiration.
+        if (tokenEntity == null) {
+            throw new IncorrectCredentialsException("当前登录令牌无效，可能已在其他标签页重新登录");
+        }
+        if (tokenEntity.getExpireTime().getTime() < System.currentTimeMillis()) {
+            throw new ExpiredCredentialsException("登录令牌已过期，请重新登录");
         }
 
         //查询用户信息

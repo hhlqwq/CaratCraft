@@ -67,7 +67,7 @@ axios.interceptors.response.use(response => {
   }
   // 401, token失效
   if (response.data && response.data.code === 401) {
-    handleUnauthorized(response.config)
+    handleUnauthorized(response.config, response.data.msg)
     return response
   }
   if (!(response.data && response.data.code === 0)) {
@@ -91,7 +91,8 @@ axios.interceptors.response.use(response => {
   const config = error.config || {}
   closeLoading(config)
   if (error.response && error.response.status === 401) {
-    handleUnauthorized(config)
+    const responseData = error.response.data || {}
+    handleUnauthorized(config, responseData.msg)
     return Promise.reject(error)
   }
   if (!config.requestOptions || config.requestOptions.showError) {
@@ -118,8 +119,9 @@ function closeLoading (config) {
 /**
  * 处理登录失效，并忽略旧令牌请求的迟到响应 / Handles authentication expiry while ignoring stale-token responses.
  * @param {Object} config Axios 请求配置 / Axios request configuration.
+ * @param {string} reason 服务端返回的失效原因 / Expiration reason returned by the server.
  */
-function handleUnauthorized (config) {
+function handleUnauthorized (config, reason) {
   const requestToken = (config && config.authToken) || ''
   const currentToken = Vue.cookie.get('token') || ''
   if (requestToken !== currentToken) {
@@ -134,8 +136,9 @@ function handleUnauthorized (config) {
   if (!authExpiredNotified) {
     authExpiredNotified = true
     Message.closeAll()
+    const failureReason = String(reason || '服务端拒绝了当前令牌，请重新登录').substring(0, 120)
     Message({
-      message: '登录状态已失效：服务端拒绝了当前令牌，请重新登录',
+      message: `登录状态已失效：${failureReason}`,
       type: 'warning',
       showClose: true,
       duration: 5000

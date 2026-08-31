@@ -20,6 +20,8 @@ package com.platform.config;
 
 import com.platform.modules.sys.oauth2.Oauth2Filter;
 import com.platform.modules.sys.oauth2.Oauth2Realm;
+import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
+import org.apache.shiro.mgt.DefaultSubjectDAO;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
@@ -46,8 +48,10 @@ public class ShiroConfig {
     @Bean("sessionManager")
     public SessionManager sessionManager() {
         DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
-        sessionManager.setSessionValidationSchedulerEnabled(true);
-        sessionManager.setSessionIdCookieEnabled(true);
+        // 管理端使用请求头令牌认证，不创建或读取共享 Web Session / Uses stateless header-token authentication.
+        sessionManager.setSessionValidationSchedulerEnabled(false);
+        sessionManager.setSessionIdCookieEnabled(false);
+        sessionManager.setSessionIdUrlRewritingEnabled(false);
         return sessionManager;
     }
 
@@ -56,6 +60,11 @@ public class ShiroConfig {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(oAuth2Realm);
         securityManager.setSessionManager(sessionManager);
+        DefaultSessionStorageEvaluator storageEvaluator = new DefaultSessionStorageEvaluator();
+        storageEvaluator.setSessionStorageEnabled(false);
+        DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
+        subjectDAO.setSessionStorageEvaluator(storageEvaluator);
+        securityManager.setSubjectDAO(subjectDAO);
 
         return securityManager;
     }
@@ -79,7 +88,7 @@ public class ShiroConfig {
         filterMap.put("/favicon.ico", "anon");
         filterMap.put("/webjars/**", "anon");
         filterMap.put("/v3/api-docs/**", "anon");
-        filterMap.put("/**", "oauth2");
+        filterMap.put("/**", "noSessionCreation,oauth2");
         shiroFilter.setFilterChainDefinitionMap(filterMap);
 
         return shiroFilter;
