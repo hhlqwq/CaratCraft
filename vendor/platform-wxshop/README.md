@@ -156,6 +156,10 @@ DIY 演示商品 `1006002` 使用 `_sql/carat_craft_demo_data.sql` 维护，包�
 
 Linux Docker 中的 MySQL 使用 `lower_case_table_names=0`，表名严格区分大小写。商城表的规范名称统一为小写 `mall_*`；实体 `@TableName`、Mapper XML 和手写 SQL 都必须使用小写。`SYS_*`、`WX_*` 和 `CC_*` 表在当前数据库中实际为大写，不得随商城表一起转换。
 
+管理后台的菜单名称存储在 `SYS_MENU`。`_sql/carat_craft_menu.sql` 会先执行 `SET NAMES utf8mb4`，再幂等写入定制管理菜单，避免 SQL 客户端使用错误字符集导致中文被保存为 `å®šåˆ¶` 一类乱码。修复已有数据库菜单后需要重新登录，后台会清理旧的菜单、权限和动态路由会话缓存并重新获取最新菜单。
+
+Docker 环境已启用控制台异常日志。页面出现“服务器内部错误”时，可通过 `docker compose --env-file deploy/.env logs --tail 200 platform-admin` 查看后端具体异常；不要仅依据通用提示判断为数据库故障。
+
 后台首页 CPU、内存和磁盘占用读取 `/sys/monitor/server` 的服务器实时数据。接口不可用时页面会明确显示失败原因，图表不会回退为模拟数值。
 
 ## 页面展示

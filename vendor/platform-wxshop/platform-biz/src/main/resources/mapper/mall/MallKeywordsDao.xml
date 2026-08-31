@@ -5,18 +5,22 @@
 
     <sql id="selectSql">
         SELECT
-            <if test="fields != null">
-                distinct T.keyword,T.is_hot
-            </if>
-
-        T.ID,
-        T.KEYWORD,
-        T.IS_HOT,
-        T.IS_DEFAULT,
-        T.IS_SHOW,
-        T.SORT_ORDER,
-        T.SCHEME_URL,
-        T.TYPE
+        <choose>
+            <when test="params.fields != null and params.fields != ''">
+                DISTINCT T.KEYWORD,
+                T.IS_HOT
+            </when>
+            <otherwise>
+                T.ID,
+                T.KEYWORD,
+                T.IS_HOT,
+                T.IS_DEFAULT,
+                T.IS_SHOW,
+                T.SORT_ORDER,
+                T.SCHEME_URL,
+                T.TYPE
+            </otherwise>
+        </choose>
         FROM mall_keywords T
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">

@@ -1,6 +1,8 @@
 -- CaratCraft 管理后台定制模块菜单种子 / Admin customization module menu seed.
 -- 幂等说明: 仅首次初始化执行一次, ID 段 20x 与底座 base.sql 不冲突 /
 -- Run once on a fresh database; the 20x id range does not clash with base.sql.
+SET NAMES utf8mb4;
+
 INSERT INTO `SYS_MENU` (`MENU_ID`, `PARENT_ID`, `NAME`, `URL`, `PERMS`, `TYPE`, `ICON`, `ORDER_NUM`) VALUES
 ('20', '0', '定制管理', NULL, NULL, 0, 'system', 20),
 ('2001', '20', '生产工单', 'custom/work-order', 'custom:work-order:list', 1, 'menu', 1),

@@ -167,6 +167,12 @@ export function openImg (imageUrl) {
  */
 export function clearLoginInfo () {
   Vue.cookie.delete('token')
+  sessionStorage.removeItem('menuList')
+  sessionStorage.removeItem('permissions')
+  sessionStorage.removeItem('dictList')
+  sessionStorage.removeItem('orgList')
+  sessionStorage.removeItem('userList')
+  sessionStorage.removeItem('dynamicMenuRoutes')
   store.commit('resetStore')
   router.options.isAddDynamicMenuRoutes = false
 }
