@@ -103,6 +103,40 @@
   padding: 34rpx 4rpx;
 }
 
+.config-state {
+  background: #202d28;
+  border-left: 4rpx solid #c39a59;
+  color: #d8cab1;
+  margin-top: 22rpx;
+  padding: 26rpx 24rpx;
+}
+
+.config-state.error {
+  border-left-color: #b76555;
+}
+
+.config-state-title {
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.config-state-description {
+  color: #98a29d;
+  font-size: 21rpx;
+  line-height: 1.6;
+  margin-top: 8rpx;
+}
+
+.config-retry {
+  background: transparent;
+  border: 1rpx solid #c39a59;
+  border-radius: 0;
+  color: #d8b87e;
+  font-size: 22rpx;
+  margin: 20rpx 0 0;
+  width: 190rpx;
+}
+
 .section-title {
   color: #e5d6bb;
   font-family: serif;

@@ -11,10 +11,10 @@ import com.platform.modules.wx.entity.WxUserEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -39,7 +39,7 @@ public class AppCustomizationController {
      */
     @IgnoreAuth
     @Operation(summary = "获取定制器配置")
-    @GetMapping("config")
+    @RequestMapping(value = "config", method = {RequestMethod.GET, RequestMethod.POST})
     public RestResponse<Object> config(Integer goodsId) {
         try {
             return RestResponse.ok(customProductService.getConfig(goodsId));

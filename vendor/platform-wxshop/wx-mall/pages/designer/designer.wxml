@@ -19,6 +19,16 @@
     <view class="price-note">最终价格以提交订单时的服务端报价为准</view>
   </view>
 
+  <view class="config-state" wx:if="{{loadingConfig}}">
+    <view class="config-state-title">正在读取商家配置</view>
+    <view class="config-state-description">正在加载珍珠、材质、宝石、配件、款式和长度。</view>
+  </view>
+  <view class="config-state error" wx:elif="{{configError}}">
+    <view class="config-state-title">定制选项加载失败</view>
+    <view class="config-state-description">{{configError}}</view>
+    <button class="config-retry" bindtap="retryLoadConfig">重新加载</button>
+  </view>
+
   <view class="section" wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type">
     <view class="section-heading">
       <text class="section-step">{{group.step}}</text>
@@ -53,7 +63,7 @@
   </view>
 
   <view class="bottom-bar">
-    <button class="secondary" bindtap="saveDraft" loading="{{saving}}">保存设计</button>
-    <button class="primary" bindtap="submitDesign" loading="{{saving}}" disabled="{{!quote.totalPrice || saving}}">确认设计</button>
+    <button class="secondary" bindtap="saveDraft" loading="{{saving}}" disabled="{{loadingConfig || configError || !componentGroups.length}}">保存设计</button>
+    <button class="primary" bindtap="submitDesign" loading="{{saving}}" disabled="{{loadingConfig || configError || !quote.totalPrice || saving}}">确认设计</button>
   </view>
 </view>

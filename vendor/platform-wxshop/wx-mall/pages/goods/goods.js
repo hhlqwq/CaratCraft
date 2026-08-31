@@ -187,7 +187,7 @@ Page({
     var that = this;
     this.getGoodsInfo();
     // 已开启定制的商品展示"定制这款"入口 / Shows the designer entry for custom-enabled goods.
-    util.request(api.CustomizationConfig, { goodsId: that.data.id }).then(function (res) {
+    util.request(api.CustomizationConfig, { goodsId: that.data.id }, 'GET').then(function (res) {
       if (res.code === 0) {
         that.setData({ isCustom: true });
       }

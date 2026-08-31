@@ -20,15 +20,18 @@ Page({
     previewMode: '2d',
     xrSupported: false,
     xrFailed: false,
-    models3d: []
+    models3d: [],
+    loadingConfig: false,
+    configError: ''
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
   loadConfig: function () {
     var that = this;
-    util.request(api.CustomizationConfig, { goodsId: that.data.goodsId }).then(function (res) {
+    that.setData({ loadingConfig: true, configError: '', componentGroups: [] });
+    util.request(api.CustomizationConfig, { goodsId: that.data.goodsId }, 'GET').then(function (res) {
       if (res.code !== 0) {
-        wx.showToast({ title: res.msg || '暂不可定制', icon: 'none' });
+        that.setData({ loadingConfig: false, configError: res.msg || '该商品暂不可定制' });
         return;
       }
       var groups = {};
@@ -54,7 +57,12 @@ Page({
         pendant: '选择吊坠造型。',
         engraving: '选择刻字位置或工艺。'
       };
-      res.data.options.forEach(function (option) {
+      var options = res.data && res.data.options ? res.data.options : [];
+      if (!options.length) {
+        that.setData({ loadingConfig: false, configError: '商家尚未配置可选组件' });
+        return;
+      }
+      options.forEach(function (option) {
         if (!groups[option.componentType]) {
           groups[option.componentType] = {
             type: option.componentType,
@@ -82,14 +90,24 @@ Page({
         selectedOptionNames: that.getSelectedOptionNames(componentGroups, selectedOptionIds),
         primaryProductId: res.data.primaryProductId,
         productConfig: res.data.product,
-        xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame'))
+        xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame')),
+        loadingConfig: false,
+        configError: ''
       });
       that.refreshPreview();
       that.refresh3dPreview();
       that.refreshQuote();
-    }).catch(function () {
-      wx.showToast({ title: '定制配置加载失败', icon: 'none' });
+    }).catch(function (error) {
+      that.setData({
+        loadingConfig: false,
+        configError: error && error.message ? error.message : '定制配置加载失败，请稍后重试'
+      });
     });
+  },
+
+  /** 重新加载定制配置 / Reloads customizer configuration. */
+  retryLoadConfig: function () {
+    this.loadConfig();
   },
 
   /** 选择互斥组件 / Selects one option in a component group. */
@@ -257,7 +275,7 @@ Page({
   },
 
   /** 默认定制商品 / Default custom goods id. */
-  DEFAULT_GOODS_ID: 1006002,
+  DEFAULT_GOODS_ID: 1999105,
 
   /** 初始化页面 / Initializes page state. */
   onLoad: function (options) {
