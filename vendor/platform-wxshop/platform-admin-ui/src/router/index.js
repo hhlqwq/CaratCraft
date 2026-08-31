@@ -74,7 +74,7 @@ const mainRoutes = {
     const token = Vue.cookie.get('token')
     if (!token || !/\S/.test(token)) {
       clearLoginInfo()
-      next({name: 'login'})
+      return next({name: 'login'})
     }
     next()
   }

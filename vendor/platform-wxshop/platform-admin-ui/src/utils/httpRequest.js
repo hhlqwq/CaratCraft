@@ -17,6 +17,7 @@ axios.defaults.headers = {'Content-Type': 'application/json; charset=utf-8'}
 const BASE_URL = process.env.NODE_ENV !== 'production' && process.env.OPEN_PROXY ? '/platform' : window.SITE_CONFIG.baseUrl
 // 对面暴露的基础请求路径
 axios.BASE_URL = BASE_URL
+let authExpiredNotified = false
 
 /**
  * 请求拦截
@@ -33,8 +34,9 @@ axios.interceptors.request.use(config => {
       background: 'rgba(0, 0, 0, 0.7)'
     })
   }
-  // 请求头带上token
-  config.headers['token'] = Vue.cookie.get('token') || ''
+  // 记录本次请求实际使用的令牌，避免旧请求的 401 清除新登录令牌 / Records the request token to isolate stale 401 responses.
+  config.authToken = Vue.cookie.get('token') || ''
+  config.headers['token'] = config.authToken
   // 请求地址处理
   config.url = BASE_URL + config.url
   const type = config.method
@@ -60,12 +62,12 @@ axios.interceptors.request.use(config => {
  */
 axios.interceptors.response.use(response => {
   closeLoading(response.config)
+  if (response.data && response.data.code === 0 && Vue.cookie.get('token')) {
+    authExpiredNotified = false
+  }
   // 401, token失效
   if (response.data && response.data.code === 401) {
-    clearLoginInfo()
-    router.push({name: 'login'})
-    // 跳转登录页后不再弹出错误提示, 避免长文本弹窗 /
-    // Skip the error toast once redirected to the login page.
+    handleUnauthorized(response.config)
     return response
   }
   if (!(response.data && response.data.code === 0)) {
@@ -88,6 +90,10 @@ axios.interceptors.response.use(response => {
 }, error => {
   const config = error.config || {}
   closeLoading(config)
+  if (error.response && error.response.status === 401) {
+    handleUnauthorized(config)
+    return Promise.reject(error)
+  }
   if (!config.requestOptions || config.requestOptions.showError) {
     const status = error.response && error.response.status
     const message = status
@@ -107,6 +113,35 @@ function closeLoading (config) {
   if (options && options.loadingInstance) {
     options.loadingInstance.close()
   }
+}
+
+/**
+ * 处理登录失效，并忽略旧令牌请求的迟到响应 / Handles authentication expiry while ignoring stale-token responses.
+ * @param {Object} config Axios 请求配置 / Axios request configuration.
+ */
+function handleUnauthorized (config) {
+  const requestToken = (config && config.authToken) || ''
+  const currentToken = Vue.cookie.get('token') || ''
+  if (requestToken !== currentToken) {
+    return
+  }
+
+  clearLoginInfo()
+  if (router.currentRoute.name === 'login') {
+    return
+  }
+
+  if (!authExpiredNotified) {
+    authExpiredNotified = true
+    Message.closeAll()
+    Message({
+      message: '登录状态已失效：服务端拒绝了当前令牌，请重新登录',
+      type: 'warning',
+      showClose: true,
+      duration: 5000
+    })
+  }
+  router.replace({name: 'login'}).catch(() => {})
 }
 
 export default axios

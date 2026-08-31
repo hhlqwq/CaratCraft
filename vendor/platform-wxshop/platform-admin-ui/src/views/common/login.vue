@@ -111,8 +111,21 @@ export default {
             }
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.$cookie.set('token', data.data)
-              this.$router.push({path: '/home'})
+              const token = String(data.data || '').trim()
+              if (!token) {
+                this.showLoginError('服务端未返回登录凭证')
+                this.dataForm.captcha = ''
+                this.getCaptcha()
+                return
+              }
+              this.$cookie.set('token', token)
+              if (this.$cookie.get('token') !== token) {
+                this.showLoginError('浏览器未能保存登录凭证，请检查 Cookie 设置')
+                this.dataForm.captcha = ''
+                this.getCaptcha()
+                return
+              }
+              this.$router.replace({path: '/home'})
             } else {
               this.showLoginError((data && data.msg) || '账号、密码或验证码不正确')
               this.dataForm.captcha = ''
