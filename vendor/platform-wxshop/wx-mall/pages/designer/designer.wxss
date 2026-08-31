@@ -37,8 +37,8 @@
 }
 
 .preview-card {
-  background: #e8e1d5;
-  padding: 18rpx;
+  background: #eee8de;
+  padding: 14rpx;
   position: relative;
 }
 
@@ -66,48 +66,79 @@
 }
 
 .preview-stage {
-  background: #f4f1eb;
-  height: 580rpx;
+  background: #f5f1e9;
+  height: 610rpx;
   overflow: hidden;
   position: relative;
 }
 
-.design-canvas {
-  height: 580rpx;
-  position: relative;
-  width: 100%;
-  z-index: 2;
-}
-
-.preview-stage::before {
-  border: 1rpx solid rgba(149, 122, 78, .24);
-  border-radius: 50%;
-  content: '';
-  height: 410rpx;
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 410rpx;
-}
-
-.preview-layer {
-  height: 100%;
-  left: 0;
-  position: absolute;
-  top: 0;
+.preview-photo {
+  display: block;
+  height: 610rpx;
   width: 100%;
 }
 
-.preview-placeholder {
-  color: #958c7f;
-  font-family: serif;
-  font-size: 28rpx;
-  left: 0;
+.demo-badge {
+  background: rgba(20, 30, 27, .86);
+  color: #e9d2a4;
+  font-size: 18rpx;
+  left: 18rpx;
+  letter-spacing: 2rpx;
+  padding: 9rpx 14rpx;
   position: absolute;
-  text-align: center;
-  top: 270rpx;
-  width: 100%;
+  top: 18rpx;
+}
+
+.zoom-hint {
+  background: rgba(255, 255, 255, .84);
+  bottom: 16rpx;
+  color: #66543c;
+  font-size: 18rpx;
+  padding: 8rpx 14rpx;
+  position: absolute;
+  right: 16rpx;
+}
+
+.preview-gallery {
+  margin-top: 12rpx;
+  white-space: nowrap;
+}
+
+.preview-thumbnail {
+  background: rgba(255, 255, 255, .52);
+  border: 2rpx solid transparent;
+  display: inline-block;
+  margin-right: 12rpx;
+  overflow: hidden;
+  vertical-align: top;
+  width: 174rpx;
+}
+
+.preview-thumbnail.active {
+  border-color: #9b7139;
+}
+
+.preview-thumbnail image {
+  display: block;
+  height: 130rpx;
+  width: 174rpx;
+}
+
+.preview-thumbnail-name {
+  color: #5c5144;
+  font-size: 18rpx;
+  line-height: 1.35;
+  overflow: hidden;
+  padding: 9rpx 10rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-disclaimer {
+  color: #83796c;
+  font-size: 18rpx;
+  line-height: 1.55;
+  margin-top: 12rpx;
 }
 
 .preview-warning {

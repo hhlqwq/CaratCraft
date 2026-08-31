@@ -2,6 +2,21 @@ var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 var model3d = require('../../utils/model3d.js');
 
+var DEFAULT_GOODS_ID = 1999105;
+var PREVIEW_BASE_PATH = '/static/images/designer/rendered/';
+var PREVIEW_ASSETS = {
+  necklace: [
+    { key: 'white', name: '白金 · Akoya 单珠', url: PREVIEW_BASE_PATH + 'necklace-white-gold-akoya.jpg' },
+    { key: 'gold', name: '黄金 · 南洋金珠', url: PREVIEW_BASE_PATH + 'necklace-yellow-gold-southsea.jpg' },
+    { key: 'rose', name: '玫瑰金 · 双珠', url: PREVIEW_BASE_PATH + 'necklace-rose-double-pearl.jpg' }
+  ],
+  earring: [
+    { key: 'stud', name: '白金 · Akoya 耳钉', url: PREVIEW_BASE_PATH + 'earring-white-pearl-stud.jpg' },
+    { key: 'drop', name: '白金 · 大溪地垂坠耳饰', url: PREVIEW_BASE_PATH + 'earring-tahiti-drop.jpg' },
+    { key: 'hook', name: '黄金 · 南洋金珠耳钩', url: PREVIEW_BASE_PATH + 'earring-golden-hook.jpg' }
+  ]
+};
+
 /**
  * 项链 DIY 页面 / Necklace DIY page.
  */
@@ -17,6 +32,9 @@ Page({
     saving: false,
     productConfig: {},
     previewMode: '2d',
+    previewGallery: PREVIEW_ASSETS.necklace,
+    activePreviewIndex: 0,
+    activePreviewImage: PREVIEW_ASSETS.necklace[0],
     xrSupported: false,
     xrFailed: false,
     models3d: [],
@@ -198,8 +216,12 @@ Page({
 
   /** 刷新二维预览 / Refreshes the 2D preview. */
   refreshPreview: function () {
-    var that = this;
-    setTimeout(function () { that.drawPreview(); }, 20);
+    var gallery = this.resolvePreviewGallery();
+    this.setData({
+      previewGallery: gallery,
+      activePreviewIndex: 0,
+      activePreviewImage: gallery[0]
+    });
   },
 
   /** 获取按组件类型索引的已选项 / Gets selected options indexed by component type. */
@@ -214,144 +236,42 @@ Page({
     return result;
   },
 
-  /** 绘制定制预览 / Draws the customization preview. */
-  drawPreview: function () {
-    var context = wx.createCanvasContext('designCanvas', this);
+  /** 根据已选项排列演示效果图 / Orders demo renders for selected options. */
+  resolvePreviewGallery: function () {
     var selected = this.getSelectedOptionsByType();
-    context.setFillStyle('#f4f0e8');
-    context.fillRect(0, 0, 300, 300);
+    var assets = PREVIEW_ASSETS[this.data.activeProductType].slice();
+    var codes = Object.keys(selected).map(function (type) {
+      return selected[type].optionCode || '';
+    }).join(' ');
+    var preferredKey = 'white';
     if (this.data.activeProductType === 'earring') {
-      this.drawEarringPreview(context, selected);
-    } else {
-      this.drawNecklacePreview(context, selected);
+      preferredKey = 'stud';
+      if (codes.indexOf('hook') >= 0 || codes.indexOf('southsea-gold') >= 0) preferredKey = 'hook';
+      else if (codes.indexOf('drop') >= 0 || codes.indexOf('tahiti') >= 0) preferredKey = 'drop';
+    } else if (codes.indexOf('double') >= 0 || codes.indexOf('rose') >= 0) {
+      preferredKey = 'rose';
+    } else if (codes.indexOf('yellow') >= 0 || codes.indexOf('southsea-gold') >= 0) {
+      preferredKey = 'gold';
     }
-    context.draw();
-  },
-
-  /** 解析所选金属颜色 / Resolves the selected metal color. */
-  getMetalColor: function (selected) {
-    var code = selected.material ? selected.material.optionCode : '';
-    if (code.indexOf('rose') >= 0) return '#c99386';
-    if (code.indexOf('yellow') >= 0) return '#c6a25a';
-    if (code.indexOf('18k-white') >= 0 || code.indexOf('pt950') >= 0) return '#aeb5b8';
-    return '#b9aa96';
-  },
-
-  /** 解析所选珍珠颜色 / Resolves the selected pearl color. */
-  getPearlColor: function (selected) {
-    var code = selected.pearl ? selected.pearl.optionCode : '';
-    if (code.indexOf('tahiti') >= 0) return '#52605d';
-    if (code.indexOf('southsea-gold') >= 0) return '#d8b978';
-    if (code.indexOf('purple') >= 0) return '#c7afc4';
-    return '#f3eee4';
-  },
-
-  /** 绘制项链预览 / Draws a necklace preview. */
-  drawNecklacePreview: function (context, selected) {
-    var metalColor = this.getMetalColor(selected);
-    var pearlColor = this.getPearlColor(selected);
-    context.setStrokeStyle('#ded5c7');
-    context.setLineWidth(2);
-    context.beginPath();
-    context.moveTo(32, 44);
-    context.bezierCurveTo(58, 112, 72, 132, 94, 148);
-    context.moveTo(268, 44);
-    context.bezierCurveTo(242, 112, 228, 132, 206, 148);
-    context.stroke();
-    context.setStrokeStyle(metalColor);
-    context.setLineWidth(3);
-    context.beginPath();
-    context.moveTo(62, 55);
-    context.bezierCurveTo(68, 218, 232, 218, 238, 55);
-    if (selected.style && selected.style.optionCode.indexOf('double') >= 0) {
-      context.moveTo(72, 65);
-      context.bezierCurveTo(84, 190, 216, 190, 228, 65);
-    }
-    context.stroke();
-    context.setFillStyle(pearlColor);
-    context.setStrokeStyle('#a99d8d');
-    context.setLineWidth(1.5);
-    context.beginPath();
-    context.arc(150, 211, 17, 0, Math.PI * 2);
-    context.fill();
-    context.stroke();
-    context.setFillStyle('rgba(255,255,255,.72)');
-    context.beginPath();
-    context.arc(144, 205, 5, 0, Math.PI * 2);
-    context.fill();
-    if (selected.style && selected.style.optionCode.indexOf('double') >= 0) {
-      context.setFillStyle(pearlColor);
-      context.beginPath();
-      context.arc(180, 193, 11, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
-    }
-    this.drawSelectedGem(context, selected, 150, 242);
-    context.setFillStyle('#71685c');
-    context.setFontSize(11);
-    context.setTextAlign('center');
-    context.fillText('项链正面佩戴示意', 150, 278);
-  },
-
-  /** 绘制耳饰预览 / Draws an earring preview. */
-  drawEarringPreview: function (context, selected) {
-    var metalColor = this.getMetalColor(selected);
-    var pearlColor = this.getPearlColor(selected);
-    var isDrop = selected.style && selected.style.optionCode.indexOf('drop') >= 0;
-    [92, 208].forEach(function (centerX) {
-      context.setStrokeStyle('#d9cec0');
-      context.setLineWidth(2);
-      context.beginPath();
-      context.arc(centerX, 116, 34, Math.PI * 0.2, Math.PI * 1.8);
-      context.stroke();
-      context.setStrokeStyle(metalColor);
-      context.setLineWidth(3);
-      context.beginPath();
-      if (selected.fitting && selected.fitting.optionCode.indexOf('hook') >= 0) {
-        context.arc(centerX, 142, 13, Math.PI, Math.PI * 2.4);
-      } else if (selected.fitting && selected.fitting.optionCode.indexOf('hoop') >= 0) {
-        context.arc(centerX, 152, 18, 0, Math.PI * 2);
-      } else {
-        context.moveTo(centerX, 135);
-        context.lineTo(centerX, isDrop ? 184 : 158);
-      }
-      context.stroke();
-      var pearlY = isDrop ? 205 : 166;
-      context.setFillStyle(pearlColor);
-      context.setStrokeStyle('#a99d8d');
-      context.setLineWidth(1.5);
-      context.beginPath();
-      context.arc(centerX, pearlY, isDrop ? 16 : 14, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
-      context.setFillStyle('rgba(255,255,255,.72)');
-      context.beginPath();
-      context.arc(centerX - 5, pearlY - 5, 4, 0, Math.PI * 2);
-      context.fill();
+    assets.sort(function (left, right) {
+      return (right.key === preferredKey ? 1 : 0) - (left.key === preferredKey ? 1 : 0);
     });
-    this.drawSelectedGem(context, selected, 92, isDrop ? 175 : 142);
-    this.drawSelectedGem(context, selected, 208, isDrop ? 175 : 142);
-    context.setFillStyle('#71685c');
-    context.setFontSize(11);
-    context.setTextAlign('center');
-    context.fillText('耳饰成对佩戴示意', 150, 278);
+    return assets;
   },
 
-  /** 绘制可选宝石 / Draws an optional gemstone. */
-  drawSelectedGem: function (context, selected, centerX, centerY) {
-    if (!selected.gem || selected.gem.optionCode === 'gem-none') return;
-    var color = selected.gem.optionCode.indexOf('diamond') >= 0 ? '#b8dce8' : '#d4e5e4';
-    context.setFillStyle(color);
-    context.setStrokeStyle('#7796a0');
-    context.setLineWidth(1);
-    context.beginPath();
-    context.moveTo(centerX, centerY - 7);
-    context.lineTo(centerX + 7, centerY);
-    context.lineTo(centerX, centerY + 7);
-    context.lineTo(centerX - 7, centerY);
-    context.closePath();
-    context.fill();
-    context.stroke();
+  /** 切换当前演示效果图 / Switches the active demo render. */
+  selectPreviewImage: function (event) {
+    var index = Number(event.currentTarget.dataset.index || 0);
+    var image = this.data.previewGallery[index];
+    if (!image) return;
+    this.setData({ activePreviewIndex: index, activePreviewImage: image });
+  },
+
+  /** 放大查看当前演示效果图 / Opens the current render in the image viewer. */
+  previewCurrentImage: function () {
+    var urls = this.data.previewGallery.map(function (item) { return item.url; });
+    if (!urls.length) return;
+    wx.previewImage({ current: this.data.activePreviewImage.url, urls: urls });
   },
 
   /** 刷新当前选择对应的三维模型 / Refreshes 3D models for the current selection. */
@@ -480,16 +400,13 @@ Page({
     this.persistDesign(true).catch(function () {});
   },
 
-  /** 默认定制商品 / Default custom goods id. */
-  DEFAULT_GOODS_ID: 1999105,
-
   /** 初始化页面 / Initializes page state. */
   onLoad: function (options) {
     var goodsId = Number(options && options.goodsId || 0);
     // tabBar 入口不带参数, 优先取商品页传入的 ID, 再回退默认演示商品 /
     // Tab entry carries no query; prefer the id stashed by the goods page, then the default.
     if (!goodsId) goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
-    if (!goodsId) goodsId = this.DEFAULT_GOODS_ID;
+    if (!goodsId) goodsId = DEFAULT_GOODS_ID;
     wx.removeStorageSync('designerGoodsId');
     this.setData({ goodsId: goodsId, activeProductType: goodsId === 1999106 ? 'earring' : 'necklace' });
     this.loadConfig();

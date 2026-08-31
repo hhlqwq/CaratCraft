@@ -17,10 +17,21 @@
     </view>
     <view class="preview-stage">
       <block wx:if="{{previewMode === '2d'}}">
-        <canvas class="design-canvas" canvas-id="designCanvas"></canvas>
+        <image class="preview-photo" src="{{activePreviewImage.url}}" mode="aspectFit" bindtap="previewCurrentImage"></image>
+        <view class="demo-badge">AI 演示效果图</view>
+        <view class="zoom-hint" bindtap="previewCurrentImage">点击查看大图</view>
       </block>
       <xr-necklace-viewer wx:else models="{{models3d}}" bind:error="handleXrError" />
     </view>
+    <scroll-view wx:if="{{previewMode === '2d'}}" class="preview-gallery" scroll-x="true">
+      <view class="preview-thumbnail {{activePreviewIndex === index ? 'active' : ''}}"
+            wx:for="{{previewGallery}}" wx:key="key"
+            data-index="{{index}}" bindtap="selectPreviewImage">
+        <image src="{{item.url}}" mode="aspectFill"></image>
+        <view class="preview-thumbnail-name">{{item.name}}</view>
+      </view>
+    </scroll-view>
+    <view wx:if="{{previewMode === '2d'}}" class="preview-disclaimer">图片用于展示材质与款式方向，实际成品以商家确认和最终工艺为准。</view>
     <view wx:if="{{xrFailed}}" class="preview-warning">3D 模型加载失败，当前使用 2D 预览。</view>
     <view class="price-label">预估价格</view>
     <view class="price">¥ {{quote.totalPrice || '--'}}</view>
