@@ -18,6 +18,7 @@
         T.ADD_TIME,
         T.SORT_ORDER,
         T.IS_DELETE,
+        T.DELETE_TIME,
         T.ATTRIBUTE_CATEGORY,
         T.COUNTER_PRICE,
         T.EXTRA_PRICE,
@@ -41,7 +42,7 @@
         T.UPDATE_TIME,
         T.CREATE_USER_DEPT_ID
         FROM mall_goods T
-        WHERE 1=1
+        WHERE T.IS_DELETE = 0
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}
         </if>
@@ -60,6 +61,113 @@
     <select id="queryAll" resultType="com.platform.modules.mall.entity.MallGoodsEntity">
         <include refid="selectSql"/>
     </select>
+
+    <select id="selectRecyclePage" resultType="com.platform.modules.mall.entity.MallGoodsEntity">
+        SELECT
+        T.ID,
+        T.GOODS_SN,
+        T.NAME,
+        T.GOODS_NUMBER,
+        T.IS_ON_SALE,
+        T.IS_DELETE,
+        T.DELETE_TIME,
+        T.LIST_PIC_URL,
+        T.RETAIL_PRICE,
+        T.MARKET_PRICE,
+        T.UPDATE_TIME
+        FROM mall_goods T
+        WHERE T.IS_DELETE = 1
+        <if test="params.name != null and params.name.trim() != ''">
+            AND T.NAME LIKE CONCAT('%', #{params.name}, '%')
+        </if>
+        ORDER BY T.DELETE_TIME DESC, T.ID DESC
+    </select>
+
+    <update id="moveToRecycleBin">
+        UPDATE mall_goods
+        SET is_delete = 1,
+            is_on_sale = 0,
+            delete_time = #{deleteTime},
+            update_time = #{deleteTime}
+        WHERE is_delete = 0
+          AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="restoreFromRecycleBin">
+        UPDATE mall_goods
+        SET is_delete = 0,
+            is_on_sale = 0,
+            delete_time = NULL,
+            update_time = NOW()
+        WHERE is_delete = 1
+          AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectExpiredRecycleIds" resultType="java.lang.Integer">
+        SELECT id
+        FROM mall_goods
+        WHERE is_delete = 1
+          AND delete_time IS NOT NULL
+          AND delete_time &lt;= #{expireTime}
+        ORDER BY id
+    </select>
+
+    <delete id="deleteRecycleRelations">
+        DELETE FROM CC_COMPONENT_STOCK WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM CC_COMPONENT_OPTION WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM CC_CUSTOM_PRODUCT WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_cart WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_collect WHERE type_id = 0 AND value_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_coupon_goods WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_footprint WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_goods_attribute WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_goods_gallery WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_goods_specification WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_product WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+        DELETE FROM mall_related_goods WHERE goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>)
+        OR related_goods_id IN
+        (SELECT id FROM mall_goods WHERE is_delete = 1 AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">#{id}</foreach>);
+    </delete>
+
+    <delete id="permanentlyDeleteGoods">
+        DELETE FROM mall_goods
+        WHERE is_delete = 1
+          AND id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
 
     <select id="queryCatalogProductList" resultType="com.platform.modules.mall.entity.MallGoodsEntity">
         select a.id, a.name, a.list_pic_url, a.market_price, a.retail_price, a.goods_brief, b.id AS
@@ -131,7 +239,7 @@
     </select>
 
     <sql id="wherePage">
-        where 1 = 1
+        where is_delete = 0
         <if test="isNew != null and isNew != ''">
             and is_new = #{isNew}
         </if>
@@ -149,9 +257,6 @@
         </if>
         <if test="keyword != null">
             and (keywords like concat('%',#{keyword},'%') or name like concat('%',#{keyword},'%'))
-        </if>
-        <if test="isDelete != null">
-            and is_delete = #{isDelete}
         </if>
         <if test="isOnSale != null and isOnSale != ''">
             and is_on_sale = #{isOnSale}

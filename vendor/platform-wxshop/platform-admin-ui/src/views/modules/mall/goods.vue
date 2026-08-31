@@ -138,7 +138,7 @@ export default {
     },
     deleteHandle (id) {
       let ids = id ? [id] : this.dataListSelections.map(item => item.id)
-      this.$confirm('确定对所选项进行[删除]操作?', '提示', {
+      this.$confirm('商品将从商城下架并移入回收站，三十天内可恢复。是否继续？', '移入回收站', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
@@ -150,7 +150,7 @@ export default {
         }).then(({data}) => {
           if (data && data.code === 0) {
             this.$message({
-              message: '操作成功',
+              message: data.msg || '商品已移入回收站',
               type: 'success',
               duration: 1500
             })
@@ -168,6 +168,8 @@ export default {
           const aggregate = JSON.parse(event.target.result)
           if (!aggregate.goods || !aggregate.goods.name || !aggregate.goods.categoryId) {
             throw new Error('JSON 必须包含 goods.name 和 goods.categoryId')
+          } else {
+            this.$message.error((data && data.msg) || '删除失败，请稍后重试')
           }
           aggregate.goods.id = null
           this.$confirm(`确认导入商品“${aggregate.goods.name}”及其相册、参数、规格和 SKU？`, '导入确认', {

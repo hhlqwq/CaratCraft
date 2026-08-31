@@ -35,7 +35,7 @@
         select c.*,g.name, g.list_pic_url, g.goods_brief as goods_brief, g.retail_price as retail_price
         from mall_collect c
         left join mall_goods g on c.value_id = g.id
-        where 1 = 1
+        where (c.type_id != 0 or g.is_delete = 0)
         <if test="userId != null and userId != ''">
             and c.user_id = #{userId}
         </if>

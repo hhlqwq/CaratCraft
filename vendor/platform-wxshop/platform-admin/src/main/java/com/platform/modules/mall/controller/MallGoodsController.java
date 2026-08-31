@@ -83,6 +83,19 @@ public class MallGoodsController extends AbstractController {
     }
 
     /**
+     * 分页查询商品回收站。
+     *
+     * @param params 查询参数。
+     * @return 回收站分页数据。
+     */
+    @Operation(summary = "商品回收站", description = "查询三十天内可恢复的商品")
+    @GetMapping("/recycle/list")
+    @RequiresPermissions("mall:goods:recycle:list")
+    public RestResponse<Page<MallGoodsEntity>> recycleList(@RequestParam Map<String, Object> params) {
+        return RestResponse.ok(mallGoodsService.queryRecyclePage(params));
+    }
+
+    /**
      * 根据主键查询详情
      *
      * @param id 主键
@@ -178,6 +191,36 @@ public class MallGoodsController extends AbstractController {
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
         mallGoodsService.deleteBatch(ids);
 
-        return RestResponse.ok();
+        return RestResponse.ok("商品已移入回收站，三十天内可恢复");
+    }
+
+    /**
+     * 从回收站恢复商品，恢复后保持下架状态。
+     *
+     * @param ids 商品 ID。
+     * @return 操作结果。
+     */
+    @Operation(summary = "恢复商品", description = "从回收站恢复商品并保持下架")
+    @SysLog("恢复回收站商品")
+    @PostMapping("/recycle/restore")
+    @RequiresPermissions("mall:goods:recycle:restore")
+    public RestResponse<String> restore(@RequestBody Integer[] ids) {
+        mallGoodsService.restoreBatch(ids);
+        return RestResponse.ok("商品已恢复，请检查后手动上架");
+    }
+
+    /**
+     * 永久删除回收站商品。
+     *
+     * @param ids 商品 ID。
+     * @return 操作结果。
+     */
+    @Operation(summary = "永久删除商品", description = "永久删除商品，操作不可撤销")
+    @SysLog("永久删除回收站商品")
+    @PostMapping("/recycle/delete")
+    @RequiresPermissions("mall:goods:recycle:delete")
+    public RestResponse<Integer> permanentlyDelete(@RequestBody Integer[] ids) {
+        int deletedCount = mallGoodsService.permanentlyDeleteBatch(ids);
+        return RestResponse.ok("已永久删除 " + deletedCount + " 个商品", deletedCount);
     }
 }

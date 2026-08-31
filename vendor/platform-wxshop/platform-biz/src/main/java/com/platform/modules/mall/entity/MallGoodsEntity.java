@@ -93,6 +93,10 @@ public class MallGoodsEntity implements Serializable {
      */
     private Integer isDelete;
     /**
+     * 移入回收站时间。
+     */
+    private Date deleteTime;
+    /**
      *
      */
     private Integer attributeCategory;
