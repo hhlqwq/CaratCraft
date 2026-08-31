@@ -1,15 +1,23 @@
 <view class="page">
+  <view class="product-switcher">
+    <view class="product-choice {{activeProductType === item.type ? 'active' : ''}}"
+          wx:for="{{designerProducts}}" wx:key="goodsId"
+          data-goods-id="{{item.goodsId}}" data-type="{{item.type}}" bindtap="switchProduct">
+      <view class="product-choice-name">{{item.name}}</view>
+      <view class="product-choice-description">{{item.description}}</view>
+    </view>
+  </view>
+
   <view class="preview-card">
     <view class="preview-tabs">
       <view class="preview-tab {{previewMode === '2d' ? 'active' : ''}}"
             data-mode="2d" bindtap="switchPreview">2D 预览</view>
-      <view class="preview-tab {{previewMode === '3d' ? 'active' : ''}}"
+      <view wx:if="{{xrSupported && models3d.length}}" class="preview-tab {{previewMode === '3d' ? 'active' : ''}}"
             data-mode="3d" bindtap="switchPreview">3D 预览</view>
     </view>
     <view class="preview-stage">
       <block wx:if="{{previewMode === '2d'}}">
-        <image class="preview-layer" wx:for="{{selectedLayers}}" wx:key="id" src="{{item.assetUrl}}" mode="aspectFit" style="z-index: {{item.zIndex}}"></image>
-        <view wx:if="{{!selectedLayers.length}}" class="preview-placeholder">请选择组件开始设计</view>
+        <canvas class="design-canvas" canvas-id="designCanvas"></canvas>
       </block>
       <xr-necklace-viewer wx:else models="{{models3d}}" bind:error="handleXrError" />
     </view>
@@ -21,7 +29,7 @@
 
   <view class="config-state" wx:if="{{loadingConfig}}">
     <view class="config-state-title">正在读取商家配置</view>
-    <view class="config-state-description">正在加载珍珠、材质、宝石、配件、款式和长度。</view>
+    <view class="config-state-description">正在加载当前品类适用的款式、珍珠和升级选项。</view>
   </view>
   <view class="config-state error" wx:elif="{{configError}}">
     <view class="config-state-title">定制选项加载失败</view>
@@ -33,11 +41,20 @@
     <view class="section-heading">
       <text class="section-step">{{group.step}}</text>
       <view>
-        <view class="section-title">{{group.name}}</view>
+        <view class="section-title">
+          {{group.name}}
+          <text class="requirement {{group.required ? 'required' : 'optional'}}">{{group.required ? '必选' : '可选'}}</text>
+        </view>
         <view class="section-description">{{group.description}}</view>
       </view>
     </view>
     <scroll-view class="option-scroll" scroll-x="true">
+      <view wx:if="{{!group.required}}" class="option option-none {{!group.hasSelection ? 'selected' : ''}}"
+            data-type="{{group.type}}" bindtap="clearOptional">
+        <view class="option-none-mark">—</view>
+        <view class="option-name">保持基础款</view>
+        <view class="option-price">不增加费用</view>
+      </view>
       <view class="option {{option.selected ? 'selected' : ''}}" wx:for="{{group.options}}" wx:for-item="option" wx:key="id" data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
         <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit"></image>
         <view class="option-name">{{option.name}}</view>
