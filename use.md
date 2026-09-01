@@ -269,6 +269,7 @@ Set-Location D:\code\gitee\carat-craft\vendor\platform-wxshop
 | `proxyconnect ... host.docker.internal:<端口> ... connection failed` | Docker 配置的代理端口没有服务监听，或代理软件未启动；使用 `Test-NetConnection` 检查实际 HTTP/混合端口后更新 Docker Desktop Proxies |
 | `No such image: carat-craft-backend:local` | 尚未完成首次构建，却运行了只复用镜像的 `start-local-test.cmd`；改为执行 `.\dev.ps1` |
 | `No such image: carat-craft-admin-ui:local` | 尚未完成首次构建，却运行了只复用镜像的 `start-local-test.cmd`；改为执行 `.\dev.ps1` |
+| MySQL 日志出现 `ERROR 1064 ... base.sql` | 初始化 SQL 执行失败。即使容器随后显示 `healthy`，业务表也可能不完整；修复 SQL 后需确认测试数据可删除，再执行 `.\dev.ps1 -ResetData` 重新初始化 |
 
 ## 八、演示数据说明
 

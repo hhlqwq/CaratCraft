@@ -146,6 +146,8 @@ chmod +x dev.sh
 
 > Docker 的初始化 SQL 仅会在 MySQL 数据卷第一次创建时运行。若复用了旧数据卷而后端报 `Table 'platform.sys_region' doesn't exist`，请不要直接使用 `ResetData`：先备份数据，再按 [use.md](use.md) 第三节补导 `vendor/platform-wxshop/_sql/sys_region.sql`。只有明确不需要保留本地测试数据时，才使用 `ResetData` 重建全部初始化表与演示数据。
 
+首次初始化期间若 MySQL 日志出现 `ERROR 1064 ... base.sql`，即使容器随后显示 `healthy`，数据库也可能只创建了部分表。修复初始化 SQL 后，只有在确认测试数据无需保留时才执行 `.\dev.ps1 -ResetData` 重新初始化；完整排查步骤见 [本地环境搭建与测试指南](use.md)。
+
 默认构建使用 BuildKit 缓存。当 Docker Hub 可通过普通 `docker pull` 访问、但 BuildKit 拉取镜像失败时，可使用 `LegacyBuild` / `--legacy-build` 临时关闭 BuildKit 和 Compose Bake；该模式不影响镜像功能，但首次构建会较慢。
 
 后端容器健康检查不依赖 Bash，并兼容 JVM 的 IPv4/IPv6 监听；服务成功监听 8080/8081 后，Docker Compose 才会继续启动 Nginx。若 `docker compose up --wait` 超时，请先运行 `./dev.ps1 -Action logs`（Windows）或 `./dev.sh logs`（Linux/macOS）获取实际容器日志。
