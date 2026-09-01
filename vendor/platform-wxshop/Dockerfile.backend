@@ -20,7 +20,8 @@ WORKDIR /app
 
 RUN groupadd --system caratcraft \
     && useradd --system --gid caratcraft --home-dir /app caratcraft \
-    && chown caratcraft:caratcraft /app
+    && mkdir -p /data/uploads \
+    && chown -R caratcraft:caratcraft /app /data/uploads
 
 COPY --from=builder --chown=caratcraft:caratcraft \
     /workspace/platform-admin/target/platform-admin.jar /app/platform-admin.jar

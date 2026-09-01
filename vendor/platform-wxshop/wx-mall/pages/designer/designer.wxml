@@ -14,13 +14,13 @@
       <view class="demo-badge">演示效果</view>
     </view>
     <view class="preview-stage">
-      <image class="preview-layer chain-layer" src="{{previewLayers.chainUrl}}" mode="aspectFit"></image>
+      <image class="preview-layer chain-layer" src="{{previewLayers.chainUrl}}" mode="aspectFit" webp="{{true}}"></image>
       <view class="pendant-group {{previewLayers.doublePearl ? 'double' : ''}} {{previewLayers.pearlSize}}">
-        <image class="pearl-layer pearl-primary" src="{{previewLayers.pearlUrl}}" mode="aspectFit"></image>
+        <image class="pearl-layer pearl-primary" src="{{previewLayers.pearlUrl}}" mode="aspectFit" webp="{{true}}"></image>
         <image wx:if="{{previewLayers.doublePearl}}" class="pearl-layer pearl-secondary"
-               src="{{previewLayers.pearlUrl}}" mode="aspectFit"></image>
+               src="{{previewLayers.pearlUrl}}" mode="aspectFit" webp="{{true}}"></image>
         <image wx:if="{{previewLayers.gemUrl}}" class="gem-layer"
-               src="{{previewLayers.gemUrl}}" mode="aspectFit"></image>
+               src="{{previewLayers.gemUrl}}" mode="aspectFit" webp="{{true}}"></image>
       </view>
     </view>
     <view class="selected-line" wx:if="{{previewLayers.description}}">已选：{{previewLayers.description}}</view>
@@ -58,7 +58,7 @@
               wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
               data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
           <view class="option-check">{{option.selected ? '✓' : ''}}</view>
-          <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit"></image>
+          <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
           <view class="option-name">{{option.displayName}}</view>
           <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
         </view>
@@ -95,7 +95,7 @@
                 wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
                 data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
             <view class="option-check">{{option.selected ? '✓' : ''}}</view>
-            <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit"></image>
+            <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
             <view class="option-name">{{option.displayName}}</view>
             <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
           </view>

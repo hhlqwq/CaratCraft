@@ -71,6 +71,8 @@ services:
       WX_MINIAPP_APPID: ${WX_MINIAPP_APPID:-}
       WX_MINIAPP_SECRET: ${WX_MINIAPP_SECRET:-}
       JWT_SECRET: ${JWT_SECRET:-}
+    volumes:
+      - upload-data:/data/uploads
     command:
       - sh
       - -c
@@ -136,6 +138,8 @@ services:
         condition: service_healthy
     ports:
       - "${NGINX_PORT:-8888}:80"
+    volumes:
+      - upload-data:/usr/share/nginx/html/upload:ro
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/"]
       interval: 10s
@@ -145,3 +149,4 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  upload-data:

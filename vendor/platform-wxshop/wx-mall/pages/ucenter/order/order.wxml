@@ -7,7 +7,7 @@
             </view>
             <view class="goods" wx:for="{{item.goodsList}}" wx:key="id" wx:for-item="gitem">
                 <view class="img">
-                    <image src="{{gitem.listPicUrl}}"></image>
+                    <image src="{{gitem.listPicUrl}}" webp="{{true}}"></image>
                 </view>
                 <view class="info">
                     <text class="name">{{gitem.goodsName}}</text>

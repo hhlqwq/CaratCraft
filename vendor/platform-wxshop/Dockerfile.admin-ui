@@ -14,5 +14,6 @@ FROM nginx:1.27-alpine
 
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /workspace/dist/ /usr/share/nginx/html/
+COPY wx-mall/static/images/ /usr/share/nginx/html/static/images/
 
 EXPOSE 80

@@ -2,7 +2,7 @@
   <view wx:if="{{!openAttr}}">
     <swiper class="goodsimgs" indicator-dots="true" autoplay="true" interval="3000" duration="1000">
       <swiper-item wx:for="{{gallery}}" wx:key="id">
-        <image src="{{item.imgUrl}}" background-size="cover" binderror="handleImageError"
+        <image src="{{item.imgUrl}}" background-size="cover" webp="{{true}}" binderror="handleImageError"
           data-image-type="gallery" data-index="{{index}}"></image>
       </swiper-item>
     </swiper>
@@ -98,7 +98,7 @@
       <view class="b">
         <view class="item" wx:for="{{relatedGoods}}" wx:key="id">
           <navigator url="/pages/goods/goods?id={{item.id}}">
-            <image class="img" src="{{item.listPicUrl}}" background-size="cover"
+            <image class="img" src="{{item.listPicUrl}}" background-size="cover" webp="{{true}}"
               binderror="handleImageError" data-image-type="related" data-index="{{index}}"></image>
             <text class="name">{{item.name}}</text>
             <text class="price">￥{{item.retailPrice}}</text>
@@ -111,7 +111,7 @@
 
   <view wx:if="{{openAttr}}" class="attr-pop">
     <view class="img-info">
-      <image class="img" src="{{goods.listPicUrl}}" binderror="handleImageError"
+      <image class="img" src="{{goods.listPicUrl}}" webp="{{true}}" binderror="handleImageError"
         data-image-type="goods"></image>
       <view class="info">
         <view class="c">

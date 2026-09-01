@@ -9,6 +9,7 @@
     <el-upload
       drag
       :action="url"
+      accept=".jpg,.jpeg,.png,.gif,.webp"
       :before-upload="beforeUploadHandle"
       :on-success="successHandle"
       multiple
@@ -16,7 +17,7 @@
       style="text-align: center;">
       <i class="el-icon-upload"></i>
       <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-      <div class="el-upload__tip" slot="tip">只支持jpg、png、gif格式的图片！</div>
+      <div class="el-upload__tip" slot="tip">支持 JPG、PNG、GIF、WebP，单张不超过 5 MB。</div>
     </el-upload>
   </el-dialog>
 </template>
@@ -37,10 +38,15 @@ export default {
       this.url = this.$http.BASE_URL + `/sys/oss/upload?token=${this.$cookie.get('token')}`
       this.visible = true
     },
-    // 上传之前
+    // 校验上传图片类型和大小 / Validates image type and size.
     beforeUploadHandle (file) {
-      if (file.type !== 'image/jpg' && file.type !== 'image/jpeg' && file.type !== 'image/png' && file.type !== 'image/gif') {
-        this.$message.error('只支持jpg、png、gif格式的图片！')
+      const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        this.$message.error('只支持 JPG、PNG、GIF、WebP 格式的图片！')
+        return false
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.$message.error('单张图片不能超过 5 MB！')
         return false
       }
       this.num++

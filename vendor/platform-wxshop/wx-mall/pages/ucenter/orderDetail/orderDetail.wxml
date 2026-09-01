@@ -28,7 +28,7 @@
         <view class="goods">
             <view class="item" wx:for="{{orderGoods}}" wx:key="id">
                 <view class="img">
-                    <image src="{{item.listPicUrl}}"></image>
+                    <image src="{{item.listPicUrl}}" webp="{{true}}"></image>
                 </view>
                 <view class="info">
                     <view class="t">
@@ -44,7 +44,7 @@
 
     <view wx:if="{{customization}}" class="customization-card">
         <view class="customization-title">定制配置</view>
-        <image class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill"></image>
+        <image class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill" webp="{{true}}"></image>
         <view class="customization-text">设计状态：{{customization.status}}</view>
         <view class="customization-text">刻字内容：{{customization.engraving}}</view>
     </view>
