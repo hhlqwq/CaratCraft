@@ -4,12 +4,65 @@
 
 ## 零、推荐：Docker 一键启动
 
-只需提前安装并启动 Docker Desktop。项目会在容器内构建 Java 和 Vue，并自动启动 MySQL、Redis、后端与管理台。
+Docker 方式不需要在宿主机单独安装 JDK、Maven、Node.js、MySQL 或 Redis。首次使用时，先完成以下环境准备：
+
+1. 安装并启动 Docker Desktop，等待界面显示 Docker Engine 正常运行。
+2. 在 PowerShell 中执行 `docker version`，确认 Client 和 Server 均能正常显示；如果只有 Client 信息，说明 Docker Engine 尚未启动或当前用户无权访问。
+3. 确认 Docker 能访问 Docker Hub。项目首次构建需要下载 `nginx`、`node`、`eclipse-temurin` 和 `maven` 等基础镜像。
+
+可以先执行以下命令验证 Docker Hub 连通性：
+
+```powershell
+docker pull nginx:1.27-alpine
+docker pull node:20-alpine
+docker pull eclipse-temurin:21-jre
+docker pull maven:3.9.11-eclipse-temurin-21
+```
+
+四个镜像均成功下载后，在仓库根目录执行首次构建和启动：
 
 ```powershell
 # 在仓库根目录执行 / Run from the repository root.
 .\dev.ps1
 ```
+
+首次构建会编译 Java 后端和 Vue 管理端，耗时取决于网络与机器性能。成功后会生成以下本地镜像：
+
+```text
+carat-craft-backend:local
+carat-craft-admin-ui:local
+```
+
+之后可以继续使用 `.\dev.ps1`，也可以双击 `start-local-test.cmd` 快速启动。`start-local-test.cmd` 使用 `--no-build` 复用已有镜像，不能代替首次构建；如果本地镜像尚不存在，会出现 `No such image: carat-craft-backend:local` 或 `No such image: carat-craft-admin-ui:local`。
+
+### 0.1 Docker Desktop 代理配置（按需）
+
+如果当前网络不能直接访问 Docker Hub，先启动本机代理软件，并找到它实际监听的 **HTTP 代理端口**或**混合代理端口**。不要直接照抄示例端口，应以代理软件当前显示的端口为准。
+
+先检查该端口是否正在监听：
+
+```powershell
+Test-NetConnection 127.0.0.1 -Port <实际端口>
+```
+
+只有输出包含 `TcpTestSucceeded : True` 时，Docker 才可能通过该端口访问网络。然后打开 Docker Desktop 的 `Settings → Resources → Proxies`，启用手动代理，并为 HTTP 和 HTTPS 填写：
+
+```text
+http://host.docker.internal:<实际端口>
+```
+
+保存设置并由 Docker Desktop 应用配置后，再执行前面的 `docker pull` 命令验证。若代理软件仅提供 SOCKS 端口，应优先在代理软件中启用 HTTP 或混合端口，避免把 SOCKS 端口误填为 HTTP 代理。
+
+### 0.2 Docker 启动入口说明
+
+| 场景 | 命令 | 说明 |
+| --- | --- | --- |
+| 首次启动或代码修改后重新构建 | `.\dev.ps1` | 构建本地镜像并启动全部服务 |
+| 已有本地镜像，只需快速启动 | `start-local-test.cmd` | 使用 `--no-build`，不重新构建代码 |
+| BuildKit 本身出现兼容问题 | `.\dev.ps1 -LegacyBuild` | 改用传统构建流程，首次构建可能更慢 |
+| 仅查看状态 | `.\dev.ps1 -Action status` | 不重新构建 |
+
+`LegacyBuild` 不能绕过基础镜像下载。如果报错发生在 `load metadata for docker.io/library/...`，应先解决 Docker Hub 或代理连通性。
 
 常用操作：
 
@@ -212,6 +265,10 @@ Set-Location D:\code\gitee\carat-craft\vendor\platform-wxshop
 | `npm ERR! ENOENT ... package.json` | 执行目录不对，确认路径包含 `platform-wxshop\platform-admin-ui` |
 | 控制台中文乱码 | Windows 终端 GBK 与 UTF-8 显示差异，不影响功能 |
 | 端口被占用（8080/8081 起不来） | 上一次的 java 进程残留：`taskkill /PID <pid> /F`，或任务管理器结束 java.exe |
+| `failed to do request ... EOF` 或 `load metadata for docker.io/library/...` | Docker 无法下载基础镜像。先确认 Docker Desktop 已运行，再按照第 0.1 节检查代理端口，并用 `docker pull` 单独验证基础镜像下载 |
+| `proxyconnect ... host.docker.internal:<端口> ... connection failed` | Docker 配置的代理端口没有服务监听，或代理软件未启动；使用 `Test-NetConnection` 检查实际 HTTP/混合端口后更新 Docker Desktop Proxies |
+| `No such image: carat-craft-backend:local` | 尚未完成首次构建，却运行了只复用镜像的 `start-local-test.cmd`；改为执行 `.\dev.ps1` |
+| `No such image: carat-craft-admin-ui:local` | 尚未完成首次构建，却运行了只复用镜像的 `start-local-test.cmd`；改为执行 `.\dev.ps1` |
 
 ## 八、演示数据说明
 

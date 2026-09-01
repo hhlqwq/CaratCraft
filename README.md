@@ -98,6 +98,8 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 
 推荐使用 Docker 一键启动，宿主机不需要安装 JDK、Maven、Node、MySQL 或 Redis。
 
+首次使用前应确认 Docker Desktop 已启动，并通过 `docker pull nginx:1.27-alpine` 验证 Docker Hub 连通性；网络需要代理时，在 Docker Desktop 的 `Settings → Resources → Proxies` 中配置本机代理软件实际监听的 HTTP 或混合端口。完整的安装、代理检查、基础镜像验证和错误排查步骤见 [本地环境搭建与测试指南](use.md)。
+
 Windows PowerShell：
 
 ```powershell
@@ -110,7 +112,7 @@ Windows 双击启动：
 start-local-test.cmd
 ```
 
-该启动入口会复用现有镜像且不重新构建代码。它提交 Docker 后台启动后会立即返回；可在 Docker Desktop 中确认容器健康，或直接访问本地地址。
+该启动入口会复用现有镜像且不重新构建代码，因此不能用于尚未生成 `carat-craft-backend:local` 和 `carat-craft-admin-ui:local` 的首次启动。首次启动应先运行 `.\dev.ps1` 完成构建；之后双击该脚本会提交 Docker 后台启动并立即返回，可在 Docker Desktop 中确认容器健康，或直接访问本地地址。
 
 Windows 双击停止：
 
