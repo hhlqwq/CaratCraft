@@ -6,9 +6,17 @@
       <view class="title">设计 #{{item.id}}</view>
       <view class="meta">{{item.statusText}} · {{item.createTime}}</view>
       <view class="price">{{item.priceText}}</view>
-      <button wx:if="{{item.canContinue}}" class="continue" size="mini"
-        data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
-        bindtap="continueDesign">继续定制</button>
+      <view class="actions">
+        <button wx:if="{{item.canContinue}}" class="continue" size="mini"
+          data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
+          bindtap="continueDesign">继续定制</button>
+        <button wx:if="{{item.canPay}}" class="pay" size="mini"
+          loading="{{payingSnapshotId === item.id}}" disabled="{{payingSnapshotId > 0}}"
+          data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
+          bindtap="payDesign">去付款</button>
+        <button wx:if="{{item.canViewOrder}}" class="pay" size="mini"
+          data-order-id="{{item.orderId}}" bindtap="viewOrder">查看订单</button>
+      </view>
     </view>
   </view>
 </view>

@@ -9,4 +9,7 @@ page { background: #f2f5f9; }
 .title { color: #1a2d45; font-size: 30rpx; font-weight: 600; }
 .meta { overflow: hidden; margin-top: 12rpx; color: #718096; font-size: 23rpx; text-overflow: ellipsis; white-space: nowrap; }
 .price { margin-top: 10rpx; color: #b47a3f; font-size: 28rpx; }
-.continue { float: right; margin-top: 10rpx; border: 1rpx solid #b47a3f; color: #9b642e; background: #fff; }
+.actions { display: flex; justify-content: flex-end; margin-top: 10rpx; }
+.actions button + button { margin-left: 12rpx; }
+.continue { margin: 0; border: 1rpx solid #b47a3f; color: #9b642e; background: #fff; }
+.pay { margin: 0; border: 1rpx solid #1f5145; color: #fff; background: #1f5145; }

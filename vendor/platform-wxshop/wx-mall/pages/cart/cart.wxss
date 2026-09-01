@@ -9,25 +9,6 @@ page,
   padding-bottom: 128rpx;
 }
 
-.service-policy {
-  background: #24352f;
-  display: flex;
-  justify-content: space-around;
-  padding: 22rpx 20rpx;
-}
-
-.service-policy .item {
-  color: #c9d2cc;
-  font-size: 20rpx;
-  letter-spacing: 1rpx;
-}
-
-.service-policy .item::before {
-  color: #caa96b;
-  content: '✓';
-  margin-right: 8rpx;
-}
-
 .no-cart .c {
   min-height: 620rpx;
 }

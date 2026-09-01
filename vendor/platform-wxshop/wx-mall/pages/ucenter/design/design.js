@@ -5,7 +5,8 @@ var api = require('../../../config/api.js');
 Page({
   data: {
     designList: [],
-    loading: false
+    loading: false,
+    payingSnapshotId: 0
   },
 
   /** 页面显示时读取当前用户的设计快照 / Loads the current user's design snapshots. */
@@ -28,6 +29,9 @@ Page({
           goodsId: item.goodsId,
           previewUrl: item.previewUrl || '/static/images/logo.png',
           canContinue: item.status === 'DRAFT',
+          canPay: item.status === 'DRAFT',
+          canViewOrder: item.status === 'ORDERED' && Boolean(item.orderId),
+          orderId: Number(item.orderId || 0),
           statusText: that.getStatusText(item.status),
           createTime: item.createTime || '',
           priceText: that.getPriceText(item.priceBreakdownJson)
@@ -67,5 +71,46 @@ Page({
     wx.setStorageSync('designerGoodsId', goodsId);
     wx.setStorageSync('designerSnapshotId', snapshotId);
     wx.switchTab({ url: '/pages/designer/designer' });
+  },
+
+  /** 使用已保存设计创建购买上下文并进入结算 / Creates a buy context from a saved design and opens checkout. */
+  payDesign: function (event) {
+    var that = this;
+    var goodsId = Number(event.currentTarget.dataset.goodsId || 0);
+    var snapshotId = Number(event.currentTarget.dataset.snapshotId || 0);
+    if (!goodsId || !snapshotId || that.data.payingSnapshotId) {
+      return;
+    }
+    that.setData({ payingSnapshotId: snapshotId });
+    util.request(api.CustomizationConfig, { goodsId: goodsId }, 'GET').then(function (configRes) {
+      if (configRes.code !== 0 || !configRes.data || !configRes.data.primaryProductId) {
+        throw new Error(configRes.msg || '商品规格未配置');
+      }
+      return util.request(api.BuyAdd, {
+        goodsId: goodsId,
+        productId: configRes.data.primaryProductId,
+        number: 1,
+        designSnapshotId: snapshotId
+      }, 'POST', 'application/json');
+    }).then(function (buyRes) {
+      if (buyRes.code !== 0) throw new Error(buyRes.msg || '创建结算信息失败');
+      wx.navigateTo({
+        url: '/pages/shopping/checkout/checkout?isBuy=true&designSnapshotId=' + snapshotId
+      });
+    }).catch(function (error) {
+      wx.showToast({ title: error.message || '无法进入结算', icon: 'none' });
+    }).finally(function () {
+      that.setData({ payingSnapshotId: 0 });
+    });
+  },
+
+  /** 打开设计已经关联的订单 / Opens the order related to a submitted design. */
+  viewOrder: function (event) {
+    var orderId = Number(event.currentTarget.dataset.orderId || 0);
+    if (!orderId) {
+      wx.showToast({ title: '订单信息不存在', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/ucenter/orderDetail/orderDetail?id=' + orderId });
   }
 });

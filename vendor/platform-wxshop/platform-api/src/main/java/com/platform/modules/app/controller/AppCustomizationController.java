@@ -84,7 +84,7 @@ public class AppCustomizationController {
     @Operation(summary = "查询我的定制设计")
     @PostMapping("list")
     public RestResponse<Object> list(@LoginUser WxUserEntity loginUser) {
-        return RestResponse.ok(customDesignService.listOwned(loginUser.getId()));
+        return RestResponse.ok(customDesignService.listOwnedWithOrders(loginUser.getId()));
     }
 
     /** 获取当前用户拥有的设计详情 / Gets an owned design snapshot. */

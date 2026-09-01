@@ -20,6 +20,9 @@ public interface CustomDesignService {
     /** 查询当前用户的设计列表 / Lists owned designs. */
     List<CustomDesignSnapshotEntity> listOwned(Long userId);
 
+    /** 查询带订单关联的设计列表 / Lists owned designs with related orders. */
+    List<Map<String, Object>> listOwnedWithOrders(Long userId);
+
     /** 获取设计的最新服务端报价 / Gets the latest server quote for a design. */
     Map<String, Object> quoteOwned(Long snapshotId, Long userId);
 

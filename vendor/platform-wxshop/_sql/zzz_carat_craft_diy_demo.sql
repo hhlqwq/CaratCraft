@@ -63,6 +63,10 @@ UPDATE `mall_goods`
 SET `primary_product_id` = 1999205
 WHERE `id` = 1999105;
 
+DELETE FROM `mall_goods_gallery` WHERE `goods_id` = 1999105;
+INSERT INTO `mall_goods_gallery` (`goods_id`, `img_url`, `img_desc`, `sort_order`) VALUES
+(1999105, '/static/images/demo/demo-platinum-pearl-necklace.png', '珍珠项链 DIY', 1);
+
 -- 先复制后清理旧绑定, 保留已经迁移过的新配置以确保脚本可重复执行。
 INSERT INTO `CC_CUSTOM_PRODUCT`
 (`goods_id`, `template_code`, `preview_width`, `preview_height`, `model_url`,

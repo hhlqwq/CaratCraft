@@ -13,27 +13,6 @@
   height: 750rpx;
 }
 
-.service-policy{
-    width: 750rpx;
-    height: 73rpx;
-    background: #f4f4f4;
-    padding: 0 31.25rpx;
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.service-policy .item{
-    background: url(/static/images/icons/icon-service-policy.png) 0 center no-repeat;
-    background-size: 10rpx;
-    padding-left: 15rpx;
-    display: flex;
-    align-items: center;
-    font-size: 25rpx;
-    color: #666;
-}
-
 .goods-info{
     width: 750rpx;
     height: 306rpx;

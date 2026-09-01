@@ -5,6 +5,7 @@
 -- 明确声明客户端字符集，避免 Windows 管道导入时发生 UTF-8 二次编码 / Declares the client charset explicitly.
 SET NAMES utf8mb4;
 
+DELETE FROM `mall_goods_gallery` WHERE `goods_id` IN (1999101, 1999102, 1999103, 1999104);
 DELETE FROM `mall_product` WHERE `goods_id` IN (1999101, 1999102, 1999103, 1999104);
 DELETE FROM `mall_goods` WHERE `id` IN (1999101, 1999102, 1999103, 1999104);
 DELETE FROM `mall_category` WHERE `id` IN (1999001, 1999000);
@@ -29,6 +30,12 @@ UPDATE `mall_goods` SET `primary_product_id` = 1999201 WHERE `id` = 1999101;
 UPDATE `mall_goods` SET `primary_product_id` = 1999202 WHERE `id` = 1999102;
 UPDATE `mall_goods` SET `primary_product_id` = 1999203 WHERE `id` = 1999103;
 UPDATE `mall_goods` SET `primary_product_id` = 1999204 WHERE `id` = 1999104;
+
+INSERT INTO `mall_goods_gallery` (`goods_id`, `img_url`, `img_desc`, `sort_order`) VALUES
+(1999101, '/static/images/demo/demo-gold-solitaire-necklace.png', '18K 金单钻项链', 1),
+(1999102, '/static/images/demo/demo-rose-heart-necklace.png', '玫瑰金心形宝石项链', 1),
+(1999103, '/static/images/demo/demo-platinum-pearl-necklace.png', '铂金珍珠项链', 1),
+(1999104, '/static/images/demo/demo-sapphire-constellation-necklace.png', '蓝宝星轨项链', 1);
 
 -- 为现有定制器演示组件补齐本地 SVG 图层 / Adds local SVG layers to customization demo options.
 UPDATE `CC_COMPONENT_OPTION` SET `asset_url` = '/static/images/designer/chain-gold.svg' WHERE `goods_id` = 1006002 AND `option_code` = 'chain-18k';

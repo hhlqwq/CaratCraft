@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -212,7 +213,7 @@ public class AppGoodsController extends AppBaseController {
         }
         //
         resultObj.put("info", info);
-        resultObj.put("gallery", gallery);
+        resultObj.put("gallery", buildGalleryData(gallery, info));
         resultObj.put("attribute", attribute);
         resultObj.put("userHasCollect", userHasCollect);
         resultObj.put("issue", issue);
@@ -271,6 +272,40 @@ public class AppGoodsController extends AppBaseController {
         }
 
         return RestResponse.ok(resultObj);
+    }
+
+    /** 将图库二进制字段转换为小程序可用 URL, 并为空图库补充商品主图 / Converts gallery bytes to URLs with a product-image fallback. */
+    private List<Map<String, Object>> buildGalleryData(List<MallGoodsGalleryEntity> gallery,
+                                                       MallGoodsEntity goods) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (MallGoodsGalleryEntity item : gallery) {
+            String imageUrl = item.getImgUrl() == null
+                    ? "" : new String(item.getImgUrl(), StandardCharsets.UTF_8).trim();
+            if (imageUrl.isEmpty()) {
+                continue;
+            }
+            Map<String, Object> image = new LinkedHashMap<>();
+            image.put("id", item.getId());
+            image.put("goodsId", item.getGoodsId());
+            image.put("imgUrl", imageUrl);
+            image.put("imgDesc", item.getImgDesc());
+            image.put("sortOrder", item.getSortOrder());
+            result.add(image);
+        }
+        if (result.isEmpty() && goods != null) {
+            String fallbackUrl = StringUtils.isNullOrEmpty(goods.getPrimaryPicUrl())
+                    ? goods.getListPicUrl() : goods.getPrimaryPicUrl();
+            if (!StringUtils.isNullOrEmpty(fallbackUrl)) {
+                Map<String, Object> fallback = new LinkedHashMap<>();
+                fallback.put("id", 0);
+                fallback.put("goodsId", goods.getId());
+                fallback.put("imgUrl", fallbackUrl);
+                fallback.put("imgDesc", goods.getName());
+                fallback.put("sortOrder", 0);
+                result.add(fallback);
+            }
+        }
+        return result;
     }
 
     /**

@@ -59,6 +59,19 @@ Page({
     });
 
   },
+  /** 图片加载失败时替换为本地占位图 / Replaces failed product images with a local placeholder. */
+  handleImageError: function (event) {
+    var imageType = event.currentTarget.dataset.imageType;
+    var index = Number(event.currentTarget.dataset.index || 0);
+    var dataPath = '';
+    if (imageType === 'gallery') dataPath = 'gallery[' + index + '].imgUrl';
+    if (imageType === 'related') dataPath = 'relatedGoods[' + index + '].listPicUrl';
+    if (imageType === 'goods') dataPath = 'goods.listPicUrl';
+    if (!dataPath) return;
+    var update = {};
+    update[dataPath] = '/static/images/logo.png';
+    this.setData(update);
+  },
   getGoodsRelated: function () {
     let that = this;
     util.request(api.GoodsRelated, { id: that.data.id }).then(function (res) {

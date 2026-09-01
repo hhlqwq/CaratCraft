@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,37 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         return snapshotDao.selectList(new LambdaQueryWrapper<CustomDesignSnapshotEntity>()
                 .eq(CustomDesignSnapshotEntity::getUserId, userId)
                 .orderByDesc(CustomDesignSnapshotEntity::getCreateTime));
+    }
+
+    /** 批量装配设计与订单关联, 避免列表逐条查询 / Batch assembles design-order relations. */
+    @Override
+    public List<Map<String, Object>> listOwnedWithOrders(Long userId) {
+        List<CustomDesignSnapshotEntity> snapshots = listOwned(userId);
+        Map<Long, Integer> orderIdsBySnapshot = new HashMap<>();
+        if (!snapshots.isEmpty()) {
+            List<Long> snapshotIds = snapshots.stream()
+                    .map(CustomDesignSnapshotEntity::getId)
+                    .toList();
+            List<CustomOrderCustomizationEntity> bindings = orderCustomizationDao.selectList(
+                    new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
+                            .in(CustomOrderCustomizationEntity::getSnapshotId, snapshotIds));
+            for (CustomOrderCustomizationEntity binding : bindings) {
+                orderIdsBySnapshot.put(binding.getSnapshotId(), binding.getOrderId());
+            }
+        }
+        return snapshots.stream().map(snapshot -> {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", snapshot.getId());
+            item.put("goodsId", snapshot.getGoodsId());
+            item.put("configurationJson", snapshot.getConfigurationJson());
+            item.put("priceBreakdownJson", snapshot.getPriceBreakdownJson());
+            item.put("previewUrl", snapshot.getPreviewUrl());
+            item.put("status", snapshot.getStatus());
+            item.put("createTime", snapshot.getCreateTime());
+            item.put("updateTime", snapshot.getUpdateTime());
+            item.put("orderId", orderIdsBySnapshot.get(snapshot.getId()));
+            return item;
+        }).toList();
     }
 
     /** 解析快照并返回最新报价 / Parses a snapshot and returns its latest quote. */

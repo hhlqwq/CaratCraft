@@ -40,25 +40,29 @@ DELETE goods FROM `mall_goods` goods INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON 
 
 DELETE FROM `mall_category` WHERE `id` < 1999000 OR `id` >= 2000000;
 
--- 清除仍会从首页接口返回的严选广告、频道、品牌和专题 / Removes legacy home-page content.
-DELETE FROM `mall_ad`
-WHERE `image_url` LIKE '%yanxuan.nosdn.127.net%'
-   OR `image_url` LIKE '%platform-wxmall.oss-cn-beijing.aliyuncs.com%';
-DELETE FROM `mall_channel`
-WHERE `icon_url` LIKE '%yanxuan.nosdn.127.net%'
-   OR `icon_url` LIKE '%platform-wxmall.oss-cn-beijing.aliyuncs.com%';
-DELETE FROM `mall_brand`
-WHERE `list_pic_url` LIKE '%yanxuan.nosdn.127.net%'
-   OR `list_pic_url` LIKE '%platform-wxmall.oss-cn-beijing.aliyuncs.com%'
-   OR `pic_url` LIKE '%yanxuan.nosdn.127.net%'
-   OR `pic_url` LIKE '%platform-wxmall.oss-cn-beijing.aliyuncs.com%'
-   OR `simple_desc` LIKE '%严选%';
-DELETE FROM `mall_topic`
-WHERE `content` LIKE '%yanxuan.nosdn.127.net%'
-   OR `item_pic_url` LIKE '%yanxuan.nosdn.127.net%'
-   OR `scene_pic_url` LIKE '%yanxuan.nosdn.127.net%';
-DELETE FROM `mall_topic_category`
-WHERE `pic_url` LIKE 'http://%' OR `pic_url` LIKE 'https://%';
+-- 商城首页只保留克拉匠造自有入口, 清除原严选广告、频道、品牌、专题和常见问题。
+-- Keeps only CaratCraft-owned storefront content and removes legacy Yanxuan content.
+DELETE FROM `mall_ad` WHERE `id` <> 9000;
+DELETE FROM `mall_channel` WHERE `id` NOT IN (1999000, 1999001);
+DELETE FROM `mall_brand`;
+DELETE FROM `mall_topic`;
+DELETE FROM `mall_topic_category`;
+DELETE FROM `mall_goods_issue`;
+DELETE FROM `mall_help_issue`;
+DELETE FROM `mall_help_type`;
+
+-- 删除未绑定历史订单的底座演示优惠券, 保留已经使用或仍有关联的真实记录。
+-- Removes unbound legacy demo coupons while preserving records referenced by historical orders.
+DELETE FROM `mall_user_coupon`
+WHERE (`order_id` IS NULL OR `order_id` = 0)
+  AND `coupon_id` IN (1, 2, 4, 7, 8, 9);
+DELETE coupon
+FROM `mall_coupon` coupon
+LEFT JOIN `mall_order` order_row ON order_row.`coupon_id` = coupon.`id`
+LEFT JOIN `mall_user_coupon` user_coupon ON user_coupon.`coupon_id` = coupon.`id`
+WHERE coupon.`id` IN (1, 2, 4, 7, 8, 9)
+  AND order_row.`id` IS NULL
+  AND user_coupon.`id` IS NULL;
 
 INSERT INTO `mall_ad`
 (`id`, `ad_position_id`, `media_type`, `name`, `link`, `image_url`, `content`, `end_time`, `enabled`)
@@ -97,6 +101,16 @@ UPDATE `WX_USER`
 SET `HEAD_IMG_URL` = '/static/images/defaultAvatar.png'
 WHERE `HEAD_IMG_URL` LIKE '%yanxuan.nosdn.127.net%'
    OR `HEAD_IMG_URL` LIKE '%platform-wxmall.oss-cn-beijing.aliyuncs.com%';
+
+-- 为当前珠宝商品重建本地图库, 修复旧外链和空图库导致的小程序白屏。
+-- Rebuilds local galleries for current jewelry goods to avoid blank remote images.
+DELETE FROM `mall_goods_gallery` WHERE `goods_id` BETWEEN 1999101 AND 1999105;
+INSERT INTO `mall_goods_gallery` (`goods_id`, `img_url`, `img_desc`, `sort_order`)
+SELECT `id`, `list_pic_url`, `name`, 1
+FROM `mall_goods`
+WHERE `id` BETWEEN 1999101 AND 1999105
+  AND `list_pic_url` IS NOT NULL
+  AND `list_pic_url` <> '';
 
 DROP TEMPORARY TABLE `CC_LEGACY_GOODS_IDS`;
 COMMIT;
