@@ -1,7 +1,7 @@
 <template>
   <div class="mod-custom-configuration">
     <el-alert type="info" :closable="false" show-icon
-              title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 配件、图层和模型。"></el-alert>
+              title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 配件和二维图层。"></el-alert>
     <div class="toolbar">
       <el-upload v-if="isAuth('custom:config:update')" action="" accept=".json" :auto-upload="false"
                  :show-file-list="false" :on-change="importConfiguration">
@@ -28,9 +28,8 @@
         <el-row :gutter="18">
           <el-col :span="6"><el-form-item label="预览宽度"><el-input-number v-model="product.previewWidth" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
           <el-col :span="6"><el-form-item label="预览高度"><el-input-number v-model="product.previewHeight" :min="1" class="full-width"></el-input-number></el-form-item></el-col>
-          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="pearl,material,gem,fitting,style,length"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="必选组件"><el-input v-model="product.requiredComponentTypes" placeholder="pearl,material,style"></el-input></el-form-item></el-col>
         </el-row>
-        <el-form-item label="商品模型 URL"><el-input v-model="product.modelUrl" placeholder="可填写 GLB/GLTF 模型地址"></el-input></el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct">保存商品配置</el-button>
         <el-button @click="resetProduct">新建配置</el-button>
       </el-form>
@@ -66,8 +65,6 @@
           <el-col :span="6"><el-form-item label="图层顺序"><el-input-number v-model="option.zIndex" :min="0" class="full-width"></el-input-number></el-form-item></el-col>
           <el-col :span="12"><el-form-item label="2D 图层 URL"><el-input v-model="option.assetUrl" placeholder="PNG/SVG 图片地址"></el-input></el-form-item></el-col>
         </el-row>
-        <el-form-item label="3D 模型 URL"><el-input v-model="option.modelUrl" placeholder="GLB/GLTF 模型地址"></el-input></el-form-item>
-        <el-form-item label="材质参数 JSON"><el-input v-model="option.materialParams" type="textarea" :rows="3" placeholder='例如：{"metalness":0.8,"color":"#D4AF37"}'></el-input></el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" :disabled="!selectedGoodsId" @click="saveOption">保存配件</el-button>
         <el-button @click="resetOption">新建配件</el-button>
       </el-form>
@@ -77,7 +74,6 @@
         <el-table-column prop="name" label="名称" min-width="130"></el-table-column>
         <el-table-column prop="priceDelta" label="加价" width="90"></el-table-column>
         <el-table-column prop="assetUrl" label="2D 图层" min-width="210" show-overflow-tooltip></el-table-column>
-        <el-table-column prop="modelUrl" label="3D 模型" min-width="180" show-overflow-tooltip></el-table-column>
         <el-table-column prop="zIndex" label="图层" width="70"></el-table-column>
         <el-table-column label="操作" width="130">
           <template slot-scope="scope">
@@ -96,8 +92,7 @@ const createProduct = () => ({
   templateCode: 'necklace-v1',
   previewWidth: 750,
   previewHeight: 750,
-  modelUrl: '',
-  requiredComponentTypes: 'pearl,material,gem,fitting,style,length',
+  requiredComponentTypes: 'pearl,material,style',
   enabled: 1
 })
 const createOption = () => ({
@@ -107,8 +102,6 @@ const createOption = () => ({
   name: '',
   priceDelta: 0,
   assetUrl: '',
-  modelUrl: '',
-  materialParams: '{}',
   zIndex: 0,
   enabled: 1
 })
@@ -126,7 +119,7 @@ export default {
         {value: 'pearl', label: '珍珠种类与规格（pearl）'},
         {value: 'material', label: '贵金属材质（material）'},
         {value: 'gem', label: '钻石与宝石（gem）'},
-        {value: 'fitting', label: '耳饰与连接配件（fitting）'},
+        {value: 'fitting', label: '搭配配件（fitting）'},
         {value: 'length', label: '长度（length）'},
         {value: 'style', label: '款式（style）'},
         {value: 'chain', label: '链条材质（chain）'},
@@ -279,7 +272,7 @@ export default {
       const payload = {
         product: Object.assign(createProduct(), {
           goodsId: 1006002,
-          requiredComponentTypes: 'pearl,material,gem,fitting,style,length'
+          requiredComponentTypes: 'pearl,material,style'
         }),
         replaceOptions: true,
         options: [
@@ -295,8 +288,7 @@ export default {
             optionCode: 'material-18k-white',
             name: '演示 · 18K 白金',
             priceDelta: 900,
-            assetUrl: '/static/images/designer/chain-platinum.svg',
-            materialParams: '{"metalness":0.8,"color":"#E8E5DF"}'
+            assetUrl: '/static/images/designer/chain-platinum.svg'
           }),
           Object.assign(createOption(), {
             componentType: 'gem',

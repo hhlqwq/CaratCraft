@@ -1,20 +1,15 @@
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
-var model3d = require('../../utils/model3d.js');
 
 var DEFAULT_GOODS_ID = 1999105;
-var PREVIEW_BASE_PATH = '/static/images/designer/rendered/';
-var PREVIEW_ASSETS = {
-  necklace: [
-    { key: 'white', name: '白金 · Akoya 单珠', url: PREVIEW_BASE_PATH + 'necklace-white-gold-akoya.jpg' },
-    { key: 'gold', name: '黄金 · 南洋金珠', url: PREVIEW_BASE_PATH + 'necklace-yellow-gold-southsea.jpg' },
-    { key: 'rose', name: '玫瑰金 · 双珠', url: PREVIEW_BASE_PATH + 'necklace-rose-double-pearl.jpg' }
-  ],
-  earring: [
-    { key: 'stud', name: '白金 · Akoya 耳钉', url: PREVIEW_BASE_PATH + 'earring-white-pearl-stud.jpg' },
-    { key: 'drop', name: '白金 · 大溪地垂坠耳饰', url: PREVIEW_BASE_PATH + 'earring-tahiti-drop.jpg' },
-    { key: 'hook', name: '黄金 · 南洋金珠耳钩', url: PREVIEW_BASE_PATH + 'earring-golden-hook.jpg' }
-  ]
+var LAYER_BASE_PATH = '/static/images/designer/layers/';
+var DEFAULT_PREVIEW = {
+  chainUrl: LAYER_BASE_PATH + 'chain-white-gold.png',
+  pearlUrl: LAYER_BASE_PATH + 'pearl-akoya-white.png',
+  pearlSize: 'medium',
+  gemUrl: '',
+  doublePearl: false,
+  description: 'Akoya 白珍珠 · 18K 白金 · 经典单珠'
 };
 
 /**
@@ -31,20 +26,10 @@ Page({
     primaryProductId: 0,
     saving: false,
     productConfig: {},
-    previewMode: '2d',
-    previewGallery: PREVIEW_ASSETS.necklace,
-    activePreviewIndex: 0,
-    activePreviewImage: PREVIEW_ASSETS.necklace[0],
-    xrSupported: false,
-    xrFailed: false,
-    models3d: [],
+    previewLayers: DEFAULT_PREVIEW,
     loadingConfig: false,
     configError: '',
-    activeProductType: 'necklace',
-    designerProducts: [
-      { goodsId: 1999105, type: 'necklace', name: '定制项链', description: '珍珠、链型与可选升级' },
-      { goodsId: 1999106, type: 'earring', name: '定制耳饰', description: '耳钉、耳钩与垂坠结构' }
-    ]
+    showOptional: false
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
@@ -61,7 +46,7 @@ Page({
         pearl: '珍珠种类与规格',
         material: '贵金属材质',
         gem: '钻石与宝石',
-        fitting: '耳饰与连接配件',
+        fitting: '搭配配件',
         style: '成品款式',
         chain: '链条材质',
         length: '项链长度',
@@ -72,29 +57,28 @@ Page({
         pearl: '淡水与海水珍珠按品种、品质、尺寸分别报价。',
         material: '选择 18K 金、铂金等主体或连接件材质。',
         gem: '选择钻石、莫桑石、锆石等镶嵌方案。',
-        fitting: '选择耳钉、耳钩、耳夹或项链扣等配件。',
+        fitting: '可按需增加耳钉、耳钩、耳坠或项链扣，不选也可以。',
         style: '确定珠宝的整体结构和佩戴方式。',
         chain: '选择链条的金属和工艺。',
         length: '选择适合佩戴场景的成品长度。',
         pendant: '选择吊坠造型。',
         engraving: '选择刻字位置或工艺。'
       };
-      var requiredTypes = (res.data.product.requiredComponentTypes || '')
-        .split(',')
-        .map(function (type) { return type.trim(); })
-        .filter(function (type) { return Boolean(type); });
+      var primaryTypes = ['pearl', 'material', 'style'];
       var options = res.data && res.data.options ? res.data.options : [];
       if (!options.length) {
         that.setData({ loadingConfig: false, configError: '商家尚未配置可选组件' });
         return;
       }
       options.forEach(function (option) {
+        option.displayName = (option.name || '').replace(/^演示\s*[·・]\s*/, '');
         if (!groups[option.componentType]) {
           groups[option.componentType] = {
             type: option.componentType,
             name: groupNames[option.componentType] || option.componentType,
             description: groupDescriptions[option.componentType] || '请选择一个适合当前设计的选项。',
-            required: requiredTypes.indexOf(option.componentType) >= 0,
+            required: primaryTypes.indexOf(option.componentType) >= 0,
+            primary: primaryTypes.indexOf(option.componentType) >= 0,
             options: []
           };
         }
@@ -103,13 +87,14 @@ Page({
       var componentGroups = Object.keys(groups).map(function (key, index) {
         return groups[key];
       });
-      var groupOrder = that.data.activeProductType === 'earring'
-        ? ['style', 'pearl', 'fitting', 'material', 'gem']
-        : ['style', 'pearl', 'material', 'gem', 'length', 'fitting'];
+      var groupOrder = ['pearl', 'material', 'style', 'gem', 'length', 'fitting'];
       componentGroups.sort(function (left, right) {
         return groupOrder.indexOf(left.type) - groupOrder.indexOf(right.type);
       });
-      componentGroups.forEach(function (group, index) { group.step = index + 1; });
+      var step = 0;
+      componentGroups.forEach(function (group) {
+        if (group.primary) group.step = ++step;
+      });
       var restoredOptionIds = restoredConfiguration && restoredConfiguration.optionIds
         ? restoredConfiguration.optionIds.map(function (id) { return Number(id); })
         : [];
@@ -134,12 +119,10 @@ Page({
           ? restoredConfiguration.engraving : '',
         primaryProductId: res.data.primaryProductId,
         productConfig: res.data.product,
-        xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame')),
         loadingConfig: false,
         configError: ''
       });
       that.refreshPreview();
-      that.refresh3dPreview();
       that.refreshQuote();
     }).catch(function (error) {
       that.setData({
@@ -166,10 +149,8 @@ Page({
         var configuration = JSON.parse(res.data.configurationJson || '{}');
         var goodsId = Number(res.data.goodsId || configuration.goodsId || 0);
         if (!goodsId) throw new Error('设计缺少商品信息');
-        that.setData({
-          goodsId: goodsId,
-          activeProductType: goodsId === 1999106 ? 'earring' : 'necklace'
-        });
+        if (goodsId === 1999106) throw new Error('旧版耳饰设计仅供查看，当前定制页只支持项链');
+        that.setData({ goodsId: goodsId });
         that.loadConfig(configuration);
       } catch (error) {
         that.setData({
@@ -221,7 +202,6 @@ Page({
       selectedOptionNames: this.getSelectedOptionNames(groups, selected)
     });
     this.refreshPreview();
-    this.refresh3dPreview();
     this.refreshQuote();
   },
 
@@ -260,14 +240,9 @@ Page({
     return names;
   },
 
-  /** 刷新二维预览 / Refreshes the 2D preview. */
+  /** 刷新分层效果预览 / Refreshes the layered preview. */
   refreshPreview: function () {
-    var gallery = this.resolvePreviewGallery();
-    this.setData({
-      previewGallery: gallery,
-      activePreviewIndex: 0,
-      activePreviewImage: gallery[0]
-    });
+    this.setData({ previewLayers: this.resolvePreviewLayers() });
   },
 
   /** 获取按组件类型索引的已选项 / Gets selected options indexed by component type. */
@@ -282,93 +257,53 @@ Page({
     return result;
   },
 
-  /** 根据已选项排列演示效果图 / Orders demo renders for selected options. */
-  resolvePreviewGallery: function () {
+  /** 根据选择解析透明预览图层 / Resolves transparent layers from selected options. */
+  resolvePreviewLayers: function () {
     var selected = this.getSelectedOptionsByType();
-    var assets = PREVIEW_ASSETS[this.data.activeProductType].slice();
     var codes = Object.keys(selected).map(function (type) {
       return selected[type].optionCode || '';
     }).join(' ');
-    var preferredKey = 'white';
-    if (this.data.activeProductType === 'earring') {
-      preferredKey = 'stud';
-      if (codes.indexOf('hook') >= 0 || codes.indexOf('southsea-gold') >= 0) preferredKey = 'hook';
-      else if (codes.indexOf('drop') >= 0 || codes.indexOf('tahiti') >= 0) preferredKey = 'drop';
-    } else if (codes.indexOf('double') >= 0 || codes.indexOf('rose') >= 0) {
-      preferredKey = 'rose';
-    } else if (codes.indexOf('yellow') >= 0 || codes.indexOf('southsea-gold') >= 0) {
-      preferredKey = 'gold';
+    var materialCode = selected.material ? selected.material.optionCode : '';
+    var chainUrl = LAYER_BASE_PATH + 'chain-white-gold.png';
+    if (materialCode.indexOf('pt950') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-platinum.png';
+    else if (materialCode.indexOf('rose') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-rose-gold.png';
+    else if (materialCode.indexOf('yellow') >= 0 || materialCode === 'material-18k') {
+      chainUrl = LAYER_BASE_PATH + 'chain-yellow-gold.png';
     }
-    assets.sort(function (left, right) {
-      return (right.key === preferredKey ? 1 : 0) - (left.key === preferredKey ? 1 : 0);
-    });
-    return assets;
-  },
-
-  /** 切换当前演示效果图 / Switches the active demo render. */
-  selectPreviewImage: function (event) {
-    var index = Number(event.currentTarget.dataset.index || 0);
-    var image = this.data.previewGallery[index];
-    if (!image) return;
-    this.setData({ activePreviewIndex: index, activePreviewImage: image });
-  },
-
-  /** 放大查看当前演示效果图 / Opens the current render in the image viewer. */
-  previewCurrentImage: function () {
-    var urls = this.data.previewGallery.map(function (item) { return item.url; });
-    if (!urls.length) return;
-    wx.previewImage({ current: this.data.activePreviewImage.url, urls: urls });
-  },
-
-  /** 刷新当前选择对应的三维模型 / Refreshes 3D models for the current selection. */
-  refresh3dPreview: function () {
-    var models = [];
-    var product = this.data.productConfig;
-    if (product && product.modelUrl) {
-      models.push(model3d.createXrModel('base', product.modelUrl, null));
+    var pearlUrl = LAYER_BASE_PATH + 'pearl-akoya-white.png';
+    if (codes.indexOf('tahiti') >= 0) pearlUrl = LAYER_BASE_PATH + 'pearl-tahiti-black.png';
+    else if (codes.indexOf('southsea-gold') >= 0) {
+      pearlUrl = LAYER_BASE_PATH + 'pearl-southsea-gold.png';
+    } else if (codes.indexOf('fresh-purple') >= 0 || codes.indexOf('edison') >= 0) {
+      pearlUrl = LAYER_BASE_PATH + 'pearl-fresh-purple.png';
+    } else if (codes.indexOf('baroque') >= 0) {
+      pearlUrl = LAYER_BASE_PATH + 'pearl-baroque-white.png';
     }
-    var selected = this.data.selectedOptionIds;
-    this.data.componentGroups.forEach(function (group) {
-      group.options.forEach(function (option) {
-        if (selected.indexOf(option.id) >= 0 && option.modelUrl) {
-          models.push(model3d.createXrModel(option.id, option.modelUrl, option.materialParams));
-        }
-      });
-    });
-    this.setData({ models3d: models });
-  },
-
-  /** 切换二维或三维预览 / Switches between 2D and 3D previews. */
-  switchPreview: function (event) {
-    var mode = event.currentTarget.dataset.mode;
-    if (mode === '3d' && (!this.data.xrSupported || !this.data.models3d.length)) {
-      wx.showToast({ title: '当前设备或商品暂不支持 3D', icon: 'none' });
-      return;
+    var pearlCode = selected.pearl ? selected.pearl.optionCode || '' : '';
+    var pearlSize = /-(6|7)(?:$|-)/.test(pearlCode) ? 'small' : 'medium';
+    if (/-(10|11)(?:$|-)/.test(pearlCode)) pearlSize = 'large';
+    var gemUrl = '';
+    if (selected.gem && selected.gem.optionCode !== 'gem-none') {
+      var gemText = (selected.gem.optionCode + ' ' + selected.gem.name).toLowerCase();
+      gemUrl = gemText.indexOf('sapphire') >= 0 || gemText.indexOf('蓝宝石') >= 0
+        ? LAYER_BASE_PATH + 'gem-sapphire.png'
+        : LAYER_BASE_PATH + 'gem-diamond.png';
     }
-    this.setData({ previewMode: mode, xrFailed: false });
+    return {
+      chainUrl: chainUrl,
+      pearlUrl: pearlUrl,
+      pearlSize: pearlSize,
+      gemUrl: gemUrl,
+      doublePearl: codes.indexOf('double') >= 0,
+      description: this.getSelectedOptionNames(this.data.componentGroups, this.data.selectedOptionIds)
+        .map(function (name) { return name.replace(/^演示\s*[·・]\s*/, ''); })
+        .join('、')
+    };
   },
 
-  /** 切换项链或耳饰定制商品 / Switches between necklace and earring products. */
-  switchProduct: function (event) {
-    var goodsId = Number(event.currentTarget.dataset.goodsId);
-    var productType = event.currentTarget.dataset.type;
-    if (!goodsId || goodsId === this.data.goodsId) return;
-    this.setData({
-      goodsId: goodsId,
-      activeProductType: productType,
-      selectedOptionIds: [],
-      selectedOptionNames: [],
-      componentGroups: [],
-      engraving: '',
-      quote: {}
-    });
-    this.loadConfig();
-  },
-
-  /** 三维加载失败时回退二维预览 / Falls back to 2D when 3D loading fails. */
-  handleXrError: function () {
-    this.setData({ previewMode: '2d', xrFailed: true });
-    wx.showToast({ title: '3D 加载失败，已切换 2D', icon: 'none' });
+  /** 展开或收起可选搭配 / Toggles optional customization groups. */
+  toggleOptional: function () {
+    this.setData({ showOptional: !this.data.showOptional });
   },
 
   /** 更新刻字并刷新报价（防抖）/ Updates engraving and refreshes quote with debounce. */
@@ -455,9 +390,10 @@ Page({
     if (!goodsId) goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
     if (!snapshotId) snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
     if (!goodsId) goodsId = DEFAULT_GOODS_ID;
+    if (goodsId === 1999106) goodsId = DEFAULT_GOODS_ID;
     wx.removeStorageSync('designerGoodsId');
     wx.removeStorageSync('designerSnapshotId');
-    this.setData({ goodsId: goodsId, activeProductType: goodsId === 1999106 ? 'earring' : 'necklace' });
+    this.setData({ goodsId: goodsId });
     if (snapshotId) {
       this.loadDesignSnapshot(snapshotId);
     } else {
@@ -477,19 +413,14 @@ Page({
     }
     if (goodsId && goodsId !== this.data.goodsId) {
       wx.removeStorageSync('designerGoodsId');
+      if (goodsId === 1999106) goodsId = DEFAULT_GOODS_ID;
       this.setData({
         goodsId: goodsId,
-        activeProductType: goodsId === 1999106 ? 'earring' : 'necklace',
         selectedOptionIds: [],
         engraving: '',
         quote: {}
       });
       this.loadConfig();
     }
-  },
-
-  /** 页面卸载时释放三维数据引用 / Releases 3D data references on unload. */
-  onUnload: function () {
-    this.setData({ models3d: [], previewMode: '2d' });
   }
 });

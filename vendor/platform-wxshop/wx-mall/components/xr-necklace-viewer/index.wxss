@@ -1,3 +1,0 @@
-.xr-viewer { height: 100%; position: relative; width: 100%; }
-xr-scene { display: block; height: 100%; width: 100%; }
-.xr-loading { align-items: center; background: #f1ede7; bottom: 0; color: #8c837c; display: flex; justify-content: center; left: 0; position: absolute; right: 0; top: 0; }
