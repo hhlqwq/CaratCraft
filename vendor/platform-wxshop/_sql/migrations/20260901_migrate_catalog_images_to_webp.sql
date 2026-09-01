@@ -44,8 +44,8 @@ UPDATE `CC_COMPONENT_OPTION`
 SET `asset_url` = REPLACE(`asset_url`, '.png', '.webp')
 WHERE `asset_url` REGEXP '^/static/images/(demo|designer/layers)/.+\\.png$';
 
--- 仅修复未配置或已经使用磁盘存储的实例，不覆盖现有云存储配置。
--- Only repairs unconfigured or disk-backed instances and preserves cloud storage settings.
+-- 修复未配置、本地磁盘或仍指向失效演示 OSS 且没有密钥的实例。
+-- Repairs unconfigured, disk-backed, or credential-free legacy demo OSS instances.
 UPDATE `SYS_CONFIG`
 SET `PARAM_VALUE` = JSON_SET(
         CAST(`PARAM_VALUE` AS JSON),
@@ -55,6 +55,15 @@ SET `PARAM_VALUE` = JSON_SET(
     )
 WHERE `PARAM_KEY` = 'CLOUD_STORAGE_CONFIG_KEY'
   AND JSON_VALID(`PARAM_VALUE`)
-  AND COALESCE(JSON_EXTRACT(`PARAM_VALUE`, '$.type'), 0) IN (0, 4);
+  AND (
+    COALESCE(JSON_EXTRACT(`PARAM_VALUE`, '$.type'), 0) IN (0, 4)
+    OR (
+      JSON_EXTRACT(`PARAM_VALUE`, '$.type') = 2
+      AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`PARAM_VALUE`, '$.aliyunDomain')), '') =
+          'https://platform-wxmall.oss-cn-beijing.aliyuncs.com'
+      AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`PARAM_VALUE`, '$.aliyunAccessKeyId')), '') = ''
+      AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`PARAM_VALUE`, '$.aliyunAccessKeySecret')), '') = ''
+    )
+  );
 
 COMMIT;

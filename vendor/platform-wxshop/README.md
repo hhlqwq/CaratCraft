@@ -158,7 +158,7 @@ scripts/docker-down.sh
 3. 在“定制管理 → 定制配置”选择已经创建的商品，设置必选组件，并逐项维护珍珠、贵金属、宝石、搭配配件、款式、长度和二维图层；也可以导入完整配件 JSON。
 4. 在“定制管理 → 组件库存”维护每个配件选项的可售库存。当前定制器仅支持项链主体，耳钉、耳钩和耳夹作为可选搭配配件维护。
 
-管理后台的商品主图、列表图和相册支持 JPG、PNG、GIF、WebP，单张限制为 5 MB。本地 Docker 将上传文件持久化在 `upload-data` 命名卷中，并由 Nginx 的 `/upload/` 路径提供；已有数据库需备份后执行 `_sql/migrations/20260901_migrate_catalog_images_to_webp.sql`，修复旧 PNG 演示路径和未配置的本地磁盘存储。真机和生产环境必须把 `proxyServer` 配置为 HTTPS 图片域名，并加入微信小程序 downloadFile 合法域名；大量正式商品建议使用对象存储。
+管理后台的商品主图、列表图和相册支持 JPG、PNG、GIF、WebP，单张限制为 5 MB。本地 Docker 将上传文件持久化在 `upload-data` 命名卷中，并由 Nginx 的 `/upload/` 路径提供；已有数据库需备份后执行 `_sql/migrations/20260901_migrate_catalog_images_to_webp.sql`，修复旧 PNG 演示路径、未配置的本地磁盘存储，以及仍指向原演示 OSS 域名但没有密钥的失效配置。真机和生产环境必须把 `proxyServer` 配置为 HTTPS 图片域名，并加入微信小程序 downloadFile 合法域名；大量正式商品建议使用对象存储。
 
 商品删除采用三十天回收站机制：
 

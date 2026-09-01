@@ -170,7 +170,7 @@ chmod +x dev.sh
 
 清理迁移针对 MySQL 8 的临时表限制，将商品关联关系按两个方向分别删除，避免出现 `ERROR 1137: Can't reopen table: 'CC_LEGACY_GOODS_IDS'`。遇到旧版脚本的该错误时，更新代码后直接重新执行完整迁移，不要从报错行继续执行。
 
-已有数据库从 PNG 演示资源升级到 WebP，并启用 Docker 持久化上传目录时，备份后执行 `vendor/platform-wxshop/_sql/migrations/20260901_migrate_catalog_images_to_webp.sql`。该脚本会更新商品、图库、分类、广告、频道、规格和定制组件中的内置图片路径；仅当存储类型未配置或已经使用本地磁盘时，才会把磁盘目录调整为 `/data/uploads`，不会覆盖七牛云、阿里云 OSS、腾讯云、MinIO 或华为云配置。
+已有数据库从 PNG 演示资源升级到 WebP，并启用 Docker 持久化上传目录时，备份后执行 `vendor/platform-wxshop/_sql/migrations/20260901_migrate_catalog_images_to_webp.sql`。该脚本会更新商品、图库、分类、广告、频道、规格和定制组件中的内置图片路径；存储类型未配置、已经使用本地磁盘，或仍指向原演示 OSS 域名且没有密钥时，会切换到 `/data/uploads`。已经配置真实密钥的七牛云、阿里云 OSS、腾讯云、MinIO 或华为云不会被覆盖。
 
 商品详情允许游客匿名浏览；收藏、足迹和推荐券逻辑仅在 `userId` 非空时执行，匿名请求不会写入空用户足迹。“我的设计”通过本人快照详情接口恢复组件选项和刻字，已锁定或已下单的设计不会显示继续编辑入口。定制配置、报价、保存及结算报价的参数校验使用 HTTP 400，响应体 `code` 同步为 `400`。
 
