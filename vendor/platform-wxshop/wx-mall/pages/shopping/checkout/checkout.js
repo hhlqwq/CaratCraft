@@ -23,38 +23,47 @@ Page({
     buyType: '',
     designSnapshotId: null
   },
+  /** 初始化结算类型和定制快照 / Initializes checkout type and customization snapshot. */
   onLoad: function (options) {
-
-    // 页面初始化 options为页面跳转所带来的参数
-    if (options.isBuy!=null) {
-      this.data.isBuy = options.isBuy
-    }
-    this.data.buyType = this.data.isBuy?'buy':'cart'
-    if (this.data.isBuy) {
-      this.setData({ designSnapshotId: wx.getStorageSync('designSnapshotId') || null });
-    }
+    var isBuy = options.isBuy === true || options.isBuy === 'true';
+    var querySnapshotId = Number(options.designSnapshotId || 0);
+    this.setData({
+      isBuy: isBuy,
+      buyType: isBuy ? 'buy' : 'cart',
+      designSnapshotId: isBuy ? (querySnapshotId || null) : null
+    });
     //每次重新加载界面，清空数据
     app.globalData.userCoupon = 'NO_USE_COUPON'
     app.globalData.courseCouponCode = {}
   },
   
+  /** 加载服务端购买上下文, 再按其中的快照获取最新报价 / Loads server buy context before requoting its snapshot. */
   getCheckoutInfo: function () {
     let that = this;
     var url = api.CartCheckout
     let buyType = this.data.isBuy ? 'buy' : 'cart'
-    var checkoutRequest = util.request(url, {
+    util.request(url, {
       addressId: that.data.addressId,
       couponId: that.data.couponId,
       type: buyType
-    });
-    var quoteRequest = that.data.designSnapshotId
-      ? util.request(api.CustomizationCheckoutQuote, {
-        snapshotId: that.data.designSnapshotId
-      })
-      : Promise.resolve({code: 0, data: null});
-    Promise.all([checkoutRequest, quoteRequest]).then(function (results) {
-      var res = results[0];
-      var quoteRes = results[1];
+    }).then(function (res) {
+      if (res.code !== 0) return Promise.reject(new Error(res.msg || '结算信息加载失败'));
+      var contextSnapshotId = Number(res.data.designSnapshotId || 0);
+      var currentSnapshotId = Number(that.data.designSnapshotId || 0);
+      if (contextSnapshotId && currentSnapshotId && contextSnapshotId !== currentSnapshotId) {
+        return Promise.reject(new Error('定制设计与当前结算信息不一致，请重新结算'));
+      }
+      var designSnapshotId = contextSnapshotId || currentSnapshotId || null;
+      that.setData({ designSnapshotId: designSnapshotId });
+      var quoteRequest = designSnapshotId
+        ? util.request(api.CustomizationCheckoutQuote, { snapshotId: designSnapshotId })
+        : Promise.resolve({ code: 0, data: null });
+      return quoteRequest.then(function (quoteRes) {
+        return { checkout: res, quote: quoteRes };
+      });
+    }).then(function (result) {
+      var res = result.checkout;
+      var quoteRes = result.quote;
       if (quoteRes.code !== 0) {
         util.showErrorToast(quoteRes.msg || '定制报价已失效');
         wx.hideLoading();
@@ -95,9 +104,9 @@ Page({
         }
       }
       wx.hideLoading();
-    }).catch(function () {
+    }).catch(function (error) {
       wx.hideLoading();
-      util.showErrorToast('结算信息加载失败');
+      util.showErrorToast(error && error.message ? error.message : '结算信息加载失败');
     });
   },
   selectAddress() {
@@ -184,15 +193,16 @@ Page({
     }, 'POST', 'application/json').then(res => {
       if (res.code === 0) {
         const orderId = res.data.orderInfo.id;
+        // 订单已绑定设计快照, 无论支付结果如何都不得再次提交同一设计 / The order now owns the snapshot and must not be resubmitted.
+        wx.removeStorageSync('designSnapshotId');
+        wx.removeStorageSync('designQuote');
+        this.setData({ designSnapshotId: null });
         pay.payOrder(parseInt(orderId)).then(res => {
-          // 支付成功后才清除设计快照 / Clear design snapshot only after successful payment
-          wx.removeStorageSync('designSnapshotId');
-          wx.removeStorageSync('designQuote');
           wx.redirectTo({
             url: '/pages/payResult/payResult?status=1&orderId=' + orderId
           });
         }).catch(res => {
-          // 支付失败时保留设计快照，允许用户重新支付 / Keep design snapshot on payment failure
+          // 支付失败后通过已有订单重新支付, 不重新提交定制设计 / Retry payment from the existing order.
           wx.redirectTo({
             url: '/pages/payResult/payResult?status=0&orderId=' + orderId
           });

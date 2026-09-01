@@ -21,4 +21,6 @@ public class BuyGoodsRequest implements Serializable {
     private Integer number;
     @Schema(description = "selectedText", example = "1")
     private String selectedText;
+    @Schema(description = "定制设计快照ID", example = "1")
+    private Long designSnapshotId;
 }

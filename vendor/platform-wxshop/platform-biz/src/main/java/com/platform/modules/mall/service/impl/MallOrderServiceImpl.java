@@ -140,7 +140,8 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         Integer couponId = jsonParam.getInteger("couponId");
         String type = jsonParam.getString("type");
         String postscript = jsonParam.getString("postscript");
-        Long designSnapshotId = jsonParam.getLong("designSnapshotId");
+        Long requestedDesignSnapshotId = jsonParam.getLong("designSnapshotId");
+        Long designSnapshotId = requestedDesignSnapshotId;
         MallAddressEntity addressVo = addressDao.selectById(jsonParam.getInteger("addressId"));
         if (addressVo == null || !loginUser.getId().equals(addressVo.getUserId())) {
             throw new IllegalArgumentException("收货地址不存在或无权使用");
@@ -148,7 +149,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         if (!"cart".equals(type) && !"buy".equals(type)) {
             throw new IllegalArgumentException("不支持的购买类型");
         }
-        if (designSnapshotId != null && "cart".equals(type)) {
+        if (requestedDesignSnapshotId != null && "cart".equals(type)) {
             throw new IllegalArgumentException("定制商品仅支持立即购买");
         }
 
@@ -182,6 +183,13 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             if (goodsVo == null) {
                 throw new IllegalArgumentException("购买信息已失效，请重新选择商品");
             }
+            Long contextDesignSnapshotId = goodsVo.getDesignSnapshotId();
+            if (requestedDesignSnapshotId != null && contextDesignSnapshotId != null
+                    && !requestedDesignSnapshotId.equals(contextDesignSnapshotId)) {
+                throw new IllegalArgumentException("定制设计与当前结算信息不一致，请重新结算");
+            }
+            designSnapshotId = contextDesignSnapshotId != null
+                    ? contextDesignSnapshotId : requestedDesignSnapshotId;
             MallProductEntity productInfo = validateProduct(
                     goodsVo.getProductId(), goodsVo.getGoodsId(), goodsVo.getNumber());
             //计算订单的费用

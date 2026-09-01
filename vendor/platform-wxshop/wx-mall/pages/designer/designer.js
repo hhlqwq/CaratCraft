@@ -354,15 +354,16 @@ Page({
         wx.showToast({ title: '设计已保存', icon: 'success' });
         return res.data.snapshotId;
       }
-      wx.setStorageSync('designSnapshotId', res.data.snapshotId);
-      wx.setStorageSync('designQuote', res.data.quote);
       return util.request(api.BuyAdd, {
         goodsId: that.data.goodsId,
         number: 1,
-        productId: that.data.primaryProductId
+        productId: that.data.primaryProductId,
+        designSnapshotId: res.data.snapshotId
       }, 'POST', 'application/json').then(function (buyRes) {
         if (buyRes.code !== 0) throw new Error(buyRes.msg || '创建购买信息失败');
-        wx.navigateTo({ url: '/pages/shopping/checkout/checkout?isBuy=true' });
+        wx.navigateTo({
+          url: '/pages/shopping/checkout/checkout?isBuy=true&designSnapshotId=' + res.data.snapshotId
+        });
         return res.data.snapshotId;
       });
     }).catch(function (error) {

@@ -426,9 +426,16 @@ public class AppCartController extends AppBaseController {
             goodsTotalPrice = (BigDecimal) ((HashMap) cartData.get("cartTotal")).get("checkedGoodsAmount");
         } else { // 是直接购买的
             BuyGoodsRequest goodsVO = (BuyGoodsRequest) redisTemplateUtil.get(Constant.MTM_CACHE + "goods" + loginUser.getId());
+            if (goodsVO == null) {
+                return RestResponse.fail("购买信息已失效，请重新选择商品");
+            }
             Map<String, Object> map = new HashMap<>();
             map.put("id", goodsVO.getProductId());
-            MallProductEntity productInfo = productService.queryList(map).get(0);
+            List<MallProductEntity> products = productService.queryList(map);
+            if (products == null || products.isEmpty()) {
+                return RestResponse.fail("商品规格不存在，请重新选择商品");
+            }
+            MallProductEntity productInfo = products.get(0);
             //计算订单的费用
             //商品总价
             goodsTotalPrice = productInfo.getRetailPrice().multiply(new BigDecimal(goodsVO.getNumber()));
@@ -443,6 +450,7 @@ public class AppCartController extends AppBaseController {
             cartVo.setRetailPrice(productInfo.getRetailPrice());
             cartVo.setListPicUrl(productInfo.getListPicUrl());
             checkedGoodsList.add(cartVo);
+            resultObj.put("designSnapshotId", goodsVO.getDesignSnapshotId());
         }
 
 
