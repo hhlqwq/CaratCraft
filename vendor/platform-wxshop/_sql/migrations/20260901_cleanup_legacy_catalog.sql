@@ -30,9 +30,14 @@ DELETE attribute FROM `mall_goods_attribute` attribute INNER JOIN `CC_LEGACY_GOO
 DELETE gallery FROM `mall_goods_gallery` gallery INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = gallery.`goods_id`;
 DELETE specification FROM `mall_goods_specification` specification INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = specification.`goods_id`;
 DELETE product FROM `mall_product` product INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = product.`goods_id`;
-DELETE related FROM `mall_related_goods` related
-WHERE related.`goods_id` IN (SELECT `id` FROM `CC_LEGACY_GOODS_IDS`)
-   OR related.`related_goods_id` IN (SELECT `id` FROM `CC_LEGACY_GOODS_IDS`);
+-- MySQL 不允许在同一语句中重复读取同一个临时表, 因此按关联方向分别删除。
+-- MySQL cannot reopen one temporary table twice in the same statement, so each relation direction is deleted separately.
+DELETE related
+FROM `mall_related_goods` related
+INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = related.`goods_id`;
+DELETE related
+FROM `mall_related_goods` related
+INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = related.`related_goods_id`;
 DELETE stock FROM `CC_COMPONENT_STOCK` stock INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = stock.`goods_id`;
 DELETE option_row FROM `CC_COMPONENT_OPTION` option_row INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = option_row.`goods_id`;
 DELETE custom_product FROM `CC_CUSTOM_PRODUCT` custom_product INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON legacy.`id` = custom_product.`goods_id`;
