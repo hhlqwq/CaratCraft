@@ -11,6 +11,8 @@ import com.platform.modules.wx.entity.WxUserEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,11 +42,11 @@ public class AppCustomizationController {
     @IgnoreAuth
     @Operation(summary = "获取定制器配置")
     @RequestMapping(value = "config", method = {RequestMethod.GET, RequestMethod.POST})
-    public RestResponse<Object> config(Integer goodsId) {
+    public ResponseEntity<RestResponse<Object>> config(Integer goodsId) {
         try {
-            return RestResponse.ok(customProductService.getConfig(goodsId));
+            return ResponseEntity.ok(RestResponse.ok(customProductService.getConfig(goodsId)));
         } catch (IllegalArgumentException e) {
-            return RestResponse.fail(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
@@ -57,23 +59,24 @@ public class AppCustomizationController {
     @IgnoreAuth
     @Operation(summary = "定制报价")
     @PostMapping("quote")
-    public RestResponse<Object> quote(@RequestBody CustomQuoteRequest request) {
+    public ResponseEntity<RestResponse<Object>> quote(@RequestBody CustomQuoteRequest request) {
         try {
-            return RestResponse.ok(customQuoteService.quote(request));
+            return ResponseEntity.ok(RestResponse.ok(customQuoteService.quote(request)));
         } catch (IllegalArgumentException e) {
-            return RestResponse.fail(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
     /** 保存当前用户的设计草稿 / Saves the current user's design draft. */
     @Operation(summary = "保存定制设计")
     @PostMapping("save")
-    public RestResponse<Object> save(@LoginUser WxUserEntity loginUser,
-                                     @RequestBody CustomQuoteRequest request) {
+    public ResponseEntity<RestResponse<Object>> save(@LoginUser WxUserEntity loginUser,
+                                                     @RequestBody CustomQuoteRequest request) {
         try {
-            return RestResponse.ok(customDesignService.saveDraft(loginUser.getId(), request));
+            return ResponseEntity.ok(RestResponse.ok(
+                    customDesignService.saveDraft(loginUser.getId(), request)));
         } catch (IllegalArgumentException | IllegalStateException e) {
-            return RestResponse.fail(e.getMessage());
+            return badRequest(e.getMessage());
         }
     }
 
@@ -84,14 +87,35 @@ public class AppCustomizationController {
         return RestResponse.ok(customDesignService.listOwned(loginUser.getId()));
     }
 
+    /** 获取当前用户拥有的设计详情 / Gets an owned design snapshot. */
+    @Operation(summary = "获取我的定制设计详情")
+    @PostMapping("detail")
+    public ResponseEntity<RestResponse<Object>> detail(@LoginUser WxUserEntity loginUser,
+                                                       Long snapshotId) {
+        try {
+            return ResponseEntity.ok(RestResponse.ok(
+                    customDesignService.getOwned(snapshotId, loginUser.getId())));
+        } catch (IllegalArgumentException e) {
+            return badRequest(e.getMessage());
+        }
+    }
+
     /** 获取结算前最新定制报价 / Gets the latest customization quote before checkout. */
     @Operation(summary = "获取定制结算报价")
     @PostMapping("checkout-quote")
-    public RestResponse<Object> checkoutQuote(@LoginUser WxUserEntity loginUser, Long snapshotId) {
+    public ResponseEntity<RestResponse<Object>> checkoutQuote(
+            @LoginUser WxUserEntity loginUser, Long snapshotId) {
         try {
-            return RestResponse.ok(customDesignService.quoteOwned(snapshotId, loginUser.getId()));
+            return ResponseEntity.ok(RestResponse.ok(
+                    customDesignService.quoteOwned(snapshotId, loginUser.getId())));
         } catch (IllegalArgumentException e) {
-            return RestResponse.fail(e.getMessage());
+            return badRequest(e.getMessage());
         }
+    }
+
+    /** 构建 HTTP 400 业务参数响应 / Builds an HTTP 400 validation response. */
+    private ResponseEntity<RestResponse<Object>> badRequest(String message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(RestResponse.fail(HttpStatus.BAD_REQUEST.value(), message));
     }
 }

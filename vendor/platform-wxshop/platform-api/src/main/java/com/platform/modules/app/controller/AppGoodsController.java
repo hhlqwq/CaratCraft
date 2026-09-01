@@ -12,6 +12,7 @@ import com.platform.modules.wx.service.WxUserService;
 import com.qiniu.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ import java.util.*;
  * 描述: AppController <br>
  */
 @Tag(name = "商品信息-AppGoodsController")
+@Slf4j
 @RestController
 @RequestMapping("/app/goods")
 public class AppGoodsController extends AppBaseController {
@@ -107,11 +109,12 @@ public class AppGoodsController extends AppBaseController {
      * 商品详情页数据
      */
     @Operation(summary = " 商品详情页数据")
+    @IgnoreAuth
     @PostMapping("detail")
     public RestResponse<Object> detail(@LoginUser WxUserEntity loginUser, Integer id, Long referrer) {
         Map<String, Object> resultObj = new HashMap<>();
         //
-        Long userId = loginUser.getId();
+        Long userId = loginUser == null ? null : loginUser.getId();
         MallGoodsEntity info = goodsService.getById(id);
         Map<String, Object> param = new HashMap<>();
         param.put("goodsId", id);
@@ -192,21 +195,21 @@ public class AppGoodsController extends AppBaseController {
         comment.put("count", commentCount);
         comment.put("data", commentInfo);
         //当前用户是否收藏
-        long userHasCollect = collectService.count(new QueryWrapper<MallCollectEntity>().eq("USER_ID", userId).eq("VALUE_ID", id).eq("TYPE_ID", 0));
-        if (userHasCollect > 0) {
-            userHasCollect = 1L;
+        long userHasCollect = 0L;
+        if (userId != null) {
+            userHasCollect = collectService.count(new QueryWrapper<MallCollectEntity>()
+                    .eq("USER_ID", userId).eq("VALUE_ID", id).eq("TYPE_ID", 0));
+            if (userHasCollect > 0) {
+                userHasCollect = 1L;
+            }
+            // 仅为已登录用户记录足迹 / Only authenticated users have footprints.
+            MallFootprintEntity footprintEntity = new MallFootprintEntity();
+            footprintEntity.setAddTime(System.currentTimeMillis() / 1000);
+            footprintEntity.setGoodsId(info.getId());
+            footprintEntity.setUserId(userId);
+            footprintEntity.setReferrer(referrer == null ? 0L : referrer);
+            footprintService.save(footprintEntity);
         }
-        //记录用户的足迹
-        MallFootprintEntity footprintEntity = new MallFootprintEntity();
-        footprintEntity.setAddTime(System.currentTimeMillis() / 1000);
-        footprintEntity.setGoodsId(info.getId());
-        footprintEntity.setUserId(userId);
-        if (null != referrer) {
-            footprintEntity.setReferrer(referrer);
-        } else {
-            footprintEntity.setReferrer(0L);
-        }
-        footprintService.save(footprintEntity);
         //
         resultObj.put("info", info);
         resultObj.put("gallery", gallery);
@@ -218,49 +221,53 @@ public class AppGoodsController extends AppBaseController {
         resultObj.put("specificationList", specificationList);
         resultObj.put("productList", productEntityList);
         // 记录推荐人是否可以领取红包，用户登录时校验
-        try {
-            // 是否已经有可用的转发红包
-            QueryWrapper<MallUserCouponEntity> userCouponQuery = new QueryWrapper<>();
-            userCouponQuery.eq("USER_ID", userId).eq("COUPON_STATUS", 1);
-            List<MallUserCouponEntity> userCouponList = apiUserCouponService.list(userCouponQuery);
-            Set<Integer> couponIdSet = new HashSet<>();
-            for (MallUserCouponEntity userCoupon : userCouponList) {
-                if (userCoupon.getCouponId() != null) {
-                    couponIdSet.add(userCoupon.getCouponId());
-                }
-            }
-            boolean hasSendTypeCoupon = false;
-            if (!couponIdSet.isEmpty()) {
-                for (MallCouponEntity coupon : apiCouponService.listByIds(couponIdSet)) {
-                    if (coupon != null && Integer.valueOf(2).equals(coupon.getSendType())) {
-                        hasSendTypeCoupon = true;
-                        break;
+        if (userId != null) {
+            try {
+                // 是否已经有可用的转发红包
+                QueryWrapper<MallUserCouponEntity> userCouponQuery = new QueryWrapper<>();
+                userCouponQuery.eq("USER_ID", userId).eq("COUPON_STATUS", 1);
+                List<MallUserCouponEntity> userCouponList = apiUserCouponService.list(userCouponQuery);
+                Set<Integer> couponIdSet = new HashSet<>();
+                for (MallUserCouponEntity userCoupon : userCouponList) {
+                    if (userCoupon.getCouponId() != null) {
+                        couponIdSet.add(userCoupon.getCouponId());
                     }
                 }
-            }
-            if (!hasSendTypeCoupon && null != referrer && null != userId) {
-                // 获取优惠信息提示
-                Map<String, Object> couponParam = new HashMap<>();
-                couponParam.put("enabled", true);
-                Integer[] sendTypes = new Integer[]{2};
-                couponParam.put("sendTypes", sendTypes);
-                List<MallCouponEntity> couponVos = apiCouponService.queryList(couponParam);
-                if (null != couponVos && !couponVos.isEmpty()) {
-                    MallCouponEntity couponVo = couponVos.get(0);
-                    long footprintNum = footprintService.count(new QueryWrapper<MallFootprintEntity>().eq("goodsId", id).eq("referrer", referrer));
-                    if (footprintNum > 0 && null != couponVo.getMinTransmitNum()
-                            && footprintNum > couponVo.getMinTransmitNum()) {
-                        MallUserCouponEntity userCouponVo = new MallUserCouponEntity();
-                        userCouponVo.setAddTime(new Date());
-                        userCouponVo.setCouponId(couponVo.getId());
-                        userCouponVo.setCouponNumber(CharUtil.getRandomString(12));
-                        userCouponVo.setUserId(userId);
-                        apiUserCouponService.save(userCouponVo);
+                boolean hasSendTypeCoupon = false;
+                if (!couponIdSet.isEmpty()) {
+                    for (MallCouponEntity coupon : apiCouponService.listByIds(couponIdSet)) {
+                        if (coupon != null && Integer.valueOf(2).equals(coupon.getSendType())) {
+                            hasSendTypeCoupon = true;
+                            break;
+                        }
                     }
                 }
+                if (!hasSendTypeCoupon && referrer != null) {
+                    // 获取优惠信息提示
+                    Map<String, Object> couponParam = new HashMap<>();
+                    couponParam.put("enabled", true);
+                    Integer[] sendTypes = new Integer[]{2};
+                    couponParam.put("sendTypes", sendTypes);
+                    List<MallCouponEntity> couponVos = apiCouponService.queryList(couponParam);
+                    if (null != couponVos && !couponVos.isEmpty()) {
+                        MallCouponEntity couponVo = couponVos.get(0);
+                        long footprintNum = footprintService.count(
+                                new QueryWrapper<MallFootprintEntity>()
+                                        .eq("goodsId", id).eq("referrer", referrer));
+                        if (footprintNum > 0 && null != couponVo.getMinTransmitNum()
+                                && footprintNum > couponVo.getMinTransmitNum()) {
+                            MallUserCouponEntity userCouponVo = new MallUserCouponEntity();
+                            userCouponVo.setAddTime(new Date());
+                            userCouponVo.setCouponId(couponVo.getId());
+                            userCouponVo.setCouponNumber(CharUtil.getRandomString(12));
+                            userCouponVo.setUserId(userId);
+                            apiUserCouponService.save(userCouponVo);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("处理商品详情推荐券失败, goodsId={}, userId={}", id, userId, e);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return RestResponse.ok(resultObj);
@@ -469,8 +476,8 @@ public class AppGoodsController extends AppBaseController {
         Map<String, Object> resultObj = new HashMap<>();
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
-        bannerInfo.put("name", "坚持初心，为你寻觅世间好物");
-        bannerInfo.put("imgUrl", "https://platform-wxmall.oss-cn-beijing.aliyuncs.com/upload/20180727/1504208321fef4.png");
+        bannerInfo.put("name", "匠心设计，为你呈现璀璨珠宝");
+        bannerInfo.put("imgUrl", "/static/images/demo/demo-platinum-pearl-necklace.png");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }
@@ -485,8 +492,8 @@ public class AppGoodsController extends AppBaseController {
         Map<String, Object> resultObj = new HashMap<>();
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
-        bannerInfo.put("name", "大家都在买的严选好物");
-        bannerInfo.put("imgUrl", "https://platform-wxmall.oss-cn-beijing.aliyuncs.com/upload/20180727/1504208321fef4.png");
+        bannerInfo.put("name", "人气珠宝与灵感设计");
+        bannerInfo.put("imgUrl", "/static/images/demo/demo-gold-solitaire-necklace.png");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }

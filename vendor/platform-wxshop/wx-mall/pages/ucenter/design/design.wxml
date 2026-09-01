@@ -6,7 +6,9 @@
       <view class="title">设计 #{{item.id}}</view>
       <view class="meta">{{item.statusText}} · {{item.createTime}}</view>
       <view class="price">{{item.priceText}}</view>
-      <button class="continue" size="mini" data-goods-id="{{item.goodsId}}" bindtap="continueDesign">继续定制</button>
+      <button wx:if="{{item.canContinue}}" class="continue" size="mini"
+        data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
+        bindtap="continueDesign">继续定制</button>
     </view>
   </view>
 </view>

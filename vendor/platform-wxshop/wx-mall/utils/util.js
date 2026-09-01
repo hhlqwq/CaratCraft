@@ -35,15 +35,15 @@ function request (url, data = {}, method = 'POST', header = 'application/x-www-f
       },
       success: function (res) {
         wx.hideLoading()
-        if (res.statusCode == 200) {
-
+        // 业务 4xx 同样保留结构化响应, 便于页面展示服务端校验信息 /
+        // Preserve structured 4xx responses so pages can show validation messages.
+        if (res.data && typeof res.data.code !== 'undefined') {
           if (res.data.code == 401) {
-            wx.navigateTo({
-              url: '/pages/auth/btnAuth/btnAuth',
-            })
-          } else {
-            resolve(res.data)
+            wx.navigateTo({ url: '/pages/auth/btnAuth/btnAuth' })
           }
+          resolve(res.data)
+        } else if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(res.data)
         } else {
           reject(res.errMsg)
         }

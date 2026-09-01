@@ -1,6 +1,6 @@
 # ueditor
 
-<img src="https://platform-wxmall.oss-cn-beijing.aliyuncs.com/upload/demo.gif" width="400" />
+编辑器演示资源由项目本地静态目录提供，不依赖第三方对象存储。
 
 ## Advanced
 

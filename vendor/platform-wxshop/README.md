@@ -165,6 +165,14 @@ DIY 不再混用同一个“项链与耳饰”模板，而是拆分为 `1999105`
 3. `goodsRecycleTask.purgeExpiredGoods` 每天凌晨 3:20 清理删除超过三十天的商品。清理范围包括商品目录、SKU、相册、参数、购物车、收藏、足迹和可重建 DIY 配置；历史订单、订单商品、设计快照、定制订单、生产工单和工单日志会保留。
 4. 已有数据库执行 `_sql/migrations/20260831_goods_recycle_bin.sql` 升级；全新 Docker 数据卷会自动执行 `_sql/zz_carat_craft_goods_recycle.sql`。两个脚本均可重复执行，迁移前已经逻辑删除的商品从脚本执行时间开始计算三十天。
 
+商城目录去底座迁移：
+
+1. 线上目录仅保留 `1999000–1999999` 珠宝业务 ID 段，原严选商品、分类、购物车、收藏、足迹、商品评论和可重建规格数据会被清理。
+2. 原严选首页广告、频道、品牌、专题及两个遗留图片域名会被清理，首页改用小程序包内 `/static/images/` 珠宝资源；历史订单、设计快照、定制订单和生产工单不删除。
+3. 已有数据库备份后执行 `_sql/migrations/20260901_cleanup_legacy_catalog.sql`；全新 Docker 数据卷自动执行 `_sql/zzzzz_carat_craft_catalog_cleanup.sql`。脚本可重复执行。
+
+小程序商品详情支持游客匿名浏览，游客不会写入收藏、足迹或推荐券数据。“我的设计”仅允许恢复本人 `DRAFT` 快照，设计器会还原组件选项与刻字；`LOCKED` 和 `ORDERED` 快照只读展示。定制接口参数错误使用 HTTP 400 和响应体 `code=400`，小程序请求封装会保留结构化 4xx 消息。
+
 Linux Docker 中的 MySQL 使用 `lower_case_table_names=0`，表名严格区分大小写。商城表的规范名称统一为小写 `mall_*`；实体 `@TableName`、Mapper XML 和手写 SQL 都必须使用小写。`SYS_*`、`WX_*` 和 `CC_*` 表在当前数据库中实际为大写，不得随商城表一起转换。
 
 管理后台的菜单名称存储在 `SYS_MENU`。`_sql/carat_craft_menu.sql` 会先执行 `SET NAMES utf8mb4`，再幂等写入定制管理菜单，避免 SQL 客户端使用错误字符集导致中文被保存为 `å®šåˆ¶` 一类乱码。修复已有数据库菜单后需要重新登录，后台会清理旧的菜单、权限和动态路由会话缓存并重新获取最新菜单。

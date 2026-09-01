@@ -48,7 +48,7 @@ Page({
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
-  loadConfig: function () {
+  loadConfig: function (restoredConfiguration) {
     var that = this;
     that.setData({ loadingConfig: true, configError: '', componentGroups: [] });
     util.request(api.CustomizationConfig, { goodsId: that.data.goodsId }, 'GET').then(function (res) {
@@ -110,18 +110,28 @@ Page({
         return groupOrder.indexOf(left.type) - groupOrder.indexOf(right.type);
       });
       componentGroups.forEach(function (group, index) { group.step = index + 1; });
+      var restoredOptionIds = restoredConfiguration && restoredConfiguration.optionIds
+        ? restoredConfiguration.optionIds.map(function (id) { return Number(id); })
+        : [];
       var selectedOptionIds = [];
       componentGroups.forEach(function (group) {
-        if (group.required && group.options.length > 0) {
+        group.options.forEach(function (option) {
+          option.selected = restoredOptionIds.indexOf(Number(option.id)) >= 0;
+          if (option.selected) selectedOptionIds.push(Number(option.id));
+        });
+        if (group.required && !group.options.some(function (option) { return option.selected; })
+            && group.options.length > 0) {
           group.options[0].selected = true;
-          selectedOptionIds.push(group.options[0].id);
+          selectedOptionIds.push(Number(group.options[0].id));
         }
-        group.hasSelection = group.required && group.options.length > 0;
+        group.hasSelection = group.options.some(function (option) { return option.selected; });
       });
       that.setData({
         componentGroups: componentGroups,
         selectedOptionIds: selectedOptionIds,
         selectedOptionNames: that.getSelectedOptionNames(componentGroups, selectedOptionIds),
+        engraving: restoredConfiguration && restoredConfiguration.engraving
+          ? restoredConfiguration.engraving : '',
         primaryProductId: res.data.primaryProductId,
         productConfig: res.data.product,
         xrSupported: Boolean(wx.canIUse && wx.canIUse('xr-frame')),
@@ -135,6 +145,42 @@ Page({
       that.setData({
         loadingConfig: false,
         configError: error && error.message ? error.message : '定制配置加载失败，请稍后重试'
+      });
+    });
+  },
+
+  /** 加载本人设计快照并恢复选项 / Loads an owned snapshot and restores its choices. */
+  loadDesignSnapshot: function (snapshotId) {
+    var that = this;
+    that.setData({ loadingConfig: true, configError: '' });
+    util.request(api.CustomizationDetail, { snapshotId: snapshotId }).then(function (res) {
+      if (res.code !== 0) {
+        that.setData({ loadingConfig: false, configError: res.msg || '设计加载失败' });
+        return;
+      }
+      if (!res.data || res.data.status !== 'DRAFT') {
+        that.setData({ loadingConfig: false, configError: '该设计已锁定或下单，无法继续编辑' });
+        return;
+      }
+      try {
+        var configuration = JSON.parse(res.data.configurationJson || '{}');
+        var goodsId = Number(res.data.goodsId || configuration.goodsId || 0);
+        if (!goodsId) throw new Error('设计缺少商品信息');
+        that.setData({
+          goodsId: goodsId,
+          activeProductType: goodsId === 1999106 ? 'earring' : 'necklace'
+        });
+        that.loadConfig(configuration);
+      } catch (error) {
+        that.setData({
+          loadingConfig: false,
+          configError: error && error.message ? error.message : '设计配置解析失败'
+        });
+      }
+    }).catch(function (error) {
+      that.setData({
+        loadingConfig: false,
+        configError: error && error.message ? error.message : '设计加载失败，请稍后重试'
       });
     });
   },
@@ -403,18 +449,32 @@ Page({
   /** 初始化页面 / Initializes page state. */
   onLoad: function (options) {
     var goodsId = Number(options && options.goodsId || 0);
+    var snapshotId = Number(options && options.snapshotId || 0);
     // tabBar 入口不带参数, 优先取商品页传入的 ID, 再回退默认演示商品 /
     // Tab entry carries no query; prefer the id stashed by the goods page, then the default.
     if (!goodsId) goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
+    if (!snapshotId) snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
     if (!goodsId) goodsId = DEFAULT_GOODS_ID;
     wx.removeStorageSync('designerGoodsId');
+    wx.removeStorageSync('designerSnapshotId');
     this.setData({ goodsId: goodsId, activeProductType: goodsId === 1999106 ? 'earring' : 'necklace' });
-    this.loadConfig();
+    if (snapshotId) {
+      this.loadDesignSnapshot(snapshotId);
+    } else {
+      this.loadConfig();
+    }
   },
 
   /** 每次 tab 展示时重载配置, 保证从商品页带入新 ID / Reloads config on each tab show. */
   onShow: function () {
     var goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
+    var snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
+    if (snapshotId) {
+      wx.removeStorageSync('designerGoodsId');
+      wx.removeStorageSync('designerSnapshotId');
+      this.loadDesignSnapshot(snapshotId);
+      return;
+    }
     if (goodsId && goodsId !== this.data.goodsId) {
       wx.removeStorageSync('designerGoodsId');
       this.setData({

@@ -27,6 +27,7 @@ Page({
           id: item.id,
           goodsId: item.goodsId,
           previewUrl: item.previewUrl || '/static/images/logo.png',
+          canContinue: item.status === 'DRAFT',
           statusText: that.getStatusText(item.status),
           createTime: item.createTime || '',
           priceText: that.getPriceText(item.priceBreakdownJson)
@@ -58,11 +59,13 @@ Page({
   /** 跳转到设计器继续编辑 / Opens the designer for editing. */
   continueDesign: function (event) {
     var goodsId = Number(event.currentTarget.dataset.goodsId || 0);
-    if (!goodsId) {
+    var snapshotId = Number(event.currentTarget.dataset.snapshotId || 0);
+    if (!goodsId || !snapshotId) {
       wx.showToast({ title: '缺少商品信息', icon: 'none' });
       return;
     }
     wx.setStorageSync('designerGoodsId', goodsId);
+    wx.setStorageSync('designerSnapshotId', snapshotId);
     wx.switchTab({ url: '/pages/designer/designer' });
   }
 });

@@ -1,20 +1,29 @@
 package com.platform.modules.custom.service;
 
 import com.platform.modules.custom.dao.ComponentStockDao;
+import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
+import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
+import com.platform.modules.custom.entity.ComponentStockEntity;
+import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
+import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.entity.ProductionWorkOrderEntity;
 import com.platform.modules.custom.service.impl.CustomDesignServiceImpl;
+import com.platform.modules.custom.service.impl.CustomQuoteServiceImpl;
+import com.platform.modules.mall.entity.MallGoodsEntity;
+import com.platform.modules.mall.service.MallGoodsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -97,6 +106,79 @@ class CustomDesignServiceImplTest {
         service.markOrderPaid(100);
 
         verify(workOrderDao, times(1)).insert(any(ProductionWorkOrderEntity.class));
+    }
+
+    /** 验证报价、保存、锁价、下单绑定和支付工单完整链路 / Verifies the full custom order workflow. */
+    @Test
+    void quoteSaveLockBindAndPaymentCreatesWorkOrder() {
+        MallGoodsService goodsService = mock(MallGoodsService.class);
+        CustomComponentOptionDao optionDao = mock(CustomComponentOptionDao.class);
+        CustomProductDao productDao = mock(CustomProductDao.class);
+        MallGoodsEntity goods = new MallGoodsEntity();
+        goods.setId(1999105);
+        goods.setIsOnSale(1);
+        goods.setRetailPrice(new BigDecimal("399.00"));
+        when(goodsService.getById(1999105)).thenReturn(goods);
+        CustomProductEntity product = new CustomProductEntity();
+        product.setGoodsId(1999105);
+        product.setEnabled(1);
+        product.setRequiredComponentTypes("style,pearl");
+        when(productDao.selectOne(any())).thenReturn(product);
+        CustomComponentOptionEntity style = workflowOption(1L, "style", "style-solitaire", "0.00");
+        CustomComponentOptionEntity pearl = workflowOption(2L, "pearl", "pearl-akoya", "660.00");
+        when(optionDao.selectList(any())).thenReturn(Arrays.asList(style, pearl));
+        ComponentStockEntity stock = new ComponentStockEntity();
+        stock.setStock(100);
+        when(stockDao.selectOne(any())).thenReturn(stock);
+        CustomQuoteServiceImpl realQuoteService =
+                new CustomQuoteServiceImpl(goodsService, optionDao, productDao, stockDao);
+        CustomDesignServiceImpl workflowService = new CustomDesignServiceImpl(
+                snapshotDao, bindingDao, workOrderDao, realQuoteService, stockDao);
+
+        CustomQuoteRequest request = new CustomQuoteRequest();
+        request.setGoodsId(1999105);
+        request.setOptionIds(Arrays.asList(1L, 2L));
+        org.mockito.Mockito.doAnswer(invocation -> {
+            CustomDesignSnapshotEntity savedSnapshot = invocation.getArgument(0);
+            savedSnapshot.setId(88L);
+            return 1;
+        }).when(snapshotDao).insert(any(CustomDesignSnapshotEntity.class));
+
+        Map<String, Object> saved = workflowService.saveDraft(7L, request);
+        ArgumentCaptor<CustomDesignSnapshotEntity> snapshotCaptor =
+                ArgumentCaptor.forClass(CustomDesignSnapshotEntity.class);
+        verify(snapshotDao).insert(snapshotCaptor.capture());
+        CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
+        when(snapshotDao.selectById(88L)).thenReturn(snapshot);
+        when(snapshotDao.update(any(), any(Wrapper.class))).thenReturn(1);
+
+        assertEquals(88L, saved.get("snapshotId"));
+        assertEquals(new BigDecimal("1059.00"), workflowService.lockAndGetPrice(88L, 7L));
+        snapshot.setStatus("LOCKED");
+        workflowService.bindOrder(88L, 7L, 100, 101);
+
+        CustomOrderCustomizationEntity binding = unpaidBinding();
+        when(bindingDao.selectOne(any())).thenReturn(binding);
+        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(workOrderDao.selectCount(any())).thenReturn(0L);
+        workflowService.markOrderPaid(100);
+
+        verify(bindingDao).insert(any(CustomOrderCustomizationEntity.class));
+        verify(workOrderDao).insert(any(ProductionWorkOrderEntity.class));
+        assertEquals("ORDERED", snapshot.getStatus());
+    }
+
+    /** 创建完整链路使用的组件选项 / Creates an option for the workflow test. */
+    private CustomComponentOptionEntity workflowOption(
+            Long id, String type, String code, String priceDelta) {
+        CustomComponentOptionEntity option = new CustomComponentOptionEntity();
+        option.setId(id);
+        option.setComponentType(type);
+        option.setOptionCode(code);
+        option.setName(code);
+        option.setPriceDelta(new BigDecimal(priceDelta));
+        option.setEnabled(1);
+        return option;
     }
 
     /** 验证已取消绑定不会被迟到支付回调复活 / Verifies cancelled bindings stay cancelled. */
