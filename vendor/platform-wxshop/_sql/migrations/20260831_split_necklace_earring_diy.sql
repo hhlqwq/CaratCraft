@@ -13,8 +13,8 @@ VALUES
  '独立选择珍珠、耳饰款式和佩戴结构，可升级贵金属与宝石。',
  '<p>珍珠耳饰 DIY 演示商品。耳饰与项链使用独立模板，真实内容由商家在管理网页维护。</p>',
  1, NOW(), 1, 0, 3999.00, 1, '对',
- '/static/images/demo/demo-platinum-pearl-necklace.png',
- '/static/images/demo/demo-platinum-pearl-necklace.png',
+ '/static/images/demo/demo-platinum-pearl-necklace.webp',
+ '/static/images/demo/demo-platinum-pearl-necklace.webp',
  299.00, 1, 3999.00, 'DEMO_DIY')
 ON DUPLICATE KEY UPDATE
 `category_id` = VALUES(`category_id`),

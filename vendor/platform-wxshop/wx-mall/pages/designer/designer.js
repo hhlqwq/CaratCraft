@@ -4,8 +4,8 @@ var api = require('../../config/api.js');
 var DEFAULT_GOODS_ID = 1999105;
 var LAYER_BASE_PATH = '/static/images/designer/layers/';
 var DEFAULT_PREVIEW = {
-  chainUrl: LAYER_BASE_PATH + 'chain-white-gold.png',
-  pearlUrl: LAYER_BASE_PATH + 'pearl-akoya-white.png',
+  chainUrl: LAYER_BASE_PATH + 'chain-white-gold.webp',
+  pearlUrl: LAYER_BASE_PATH + 'pearl-akoya-white.webp',
   pearlSize: 'medium',
   gemUrl: '',
   doublePearl: false,
@@ -264,20 +264,20 @@ Page({
       return selected[type].optionCode || '';
     }).join(' ');
     var materialCode = selected.material ? selected.material.optionCode : '';
-    var chainUrl = LAYER_BASE_PATH + 'chain-white-gold.png';
-    if (materialCode.indexOf('pt950') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-platinum.png';
-    else if (materialCode.indexOf('rose') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-rose-gold.png';
+    var chainUrl = LAYER_BASE_PATH + 'chain-white-gold.webp';
+    if (materialCode.indexOf('pt950') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-platinum.webp';
+    else if (materialCode.indexOf('rose') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-rose-gold.webp';
     else if (materialCode.indexOf('yellow') >= 0 || materialCode === 'material-18k') {
-      chainUrl = LAYER_BASE_PATH + 'chain-yellow-gold.png';
+      chainUrl = LAYER_BASE_PATH + 'chain-yellow-gold.webp';
     }
-    var pearlUrl = LAYER_BASE_PATH + 'pearl-akoya-white.png';
-    if (codes.indexOf('tahiti') >= 0) pearlUrl = LAYER_BASE_PATH + 'pearl-tahiti-black.png';
+    var pearlUrl = LAYER_BASE_PATH + 'pearl-akoya-white.webp';
+    if (codes.indexOf('tahiti') >= 0) pearlUrl = LAYER_BASE_PATH + 'pearl-tahiti-black.webp';
     else if (codes.indexOf('southsea-gold') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-southsea-gold.png';
+      pearlUrl = LAYER_BASE_PATH + 'pearl-southsea-gold.webp';
     } else if (codes.indexOf('fresh-purple') >= 0 || codes.indexOf('edison') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-fresh-purple.png';
+      pearlUrl = LAYER_BASE_PATH + 'pearl-fresh-purple.webp';
     } else if (codes.indexOf('baroque') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-baroque-white.png';
+      pearlUrl = LAYER_BASE_PATH + 'pearl-baroque-white.webp';
     }
     var pearlCode = selected.pearl ? selected.pearl.optionCode || '' : '';
     var pearlSize = /-(6|7)(?:$|-)/.test(pearlCode) ? 'small' : 'medium';
@@ -286,8 +286,8 @@ Page({
     if (selected.gem && selected.gem.optionCode !== 'gem-none') {
       var gemText = (selected.gem.optionCode + ' ' + selected.gem.name).toLowerCase();
       gemUrl = gemText.indexOf('sapphire') >= 0 || gemText.indexOf('蓝宝石') >= 0
-        ? LAYER_BASE_PATH + 'gem-sapphire.png'
-        : LAYER_BASE_PATH + 'gem-diamond.png';
+        ? LAYER_BASE_PATH + 'gem-sapphire.webp'
+        : LAYER_BASE_PATH + 'gem-diamond.webp';
     }
     return {
       chainUrl: chainUrl,

@@ -7,9 +7,9 @@ INSERT INTO `mall_category`
  `icon_url`, `img_url`, `type`, `front_name`)
 VALUES
 (1999000, '珠宝成品演示', '演示,珠宝,定制', '商家维护的珠宝成品与 DIY 演示数据。', 0, 1, 1, 1,
- '', '/static/images/demo/demo-gold-solitaire-necklace.png', 0, '珠宝成品与定制'),
+ '', '/static/images/demo/demo-gold-solitaire-necklace.webp', 0, '珠宝成品与定制'),
 (1999001, '项链与耳饰', '演示,项链,耳饰,DIY', '项链、耳钉和耳环成品及定制商品。', 1999000, 1, 1, 1,
- '', '/static/images/demo/demo-platinum-pearl-necklace.png', 0, '项链与耳饰')
+ '', '/static/images/demo/demo-platinum-pearl-necklace.webp', 0, '项链与耳饰')
 ON DUPLICATE KEY UPDATE
 `name` = VALUES(`name`),
 `keywords` = VALUES(`keywords`),
@@ -28,8 +28,8 @@ VALUES
  '选择珍珠、贵金属、宝石、配件、款式和长度，价格与库存仅供功能演示。',
  '<p>珠宝 DIY 演示商品。所有选项均明确标注“演示”，真实内容由商家在管理网页维护。</p>',
  1, NOW(), 0, 0, 5999.00, 1, '件',
- '/static/images/demo/demo-platinum-pearl-necklace.png',
- '/static/images/demo/demo-platinum-pearl-necklace.png',
+ '/static/images/demo/demo-platinum-pearl-necklace.webp',
+ '/static/images/demo/demo-platinum-pearl-necklace.webp',
  399.00, 1, 5999.00, 'DEMO_DIY')
 ON DUPLICATE KEY UPDATE
 `category_id` = VALUES(`category_id`),
@@ -65,7 +65,7 @@ WHERE `id` = 1999105;
 
 DELETE FROM `mall_goods_gallery` WHERE `goods_id` = 1999105;
 INSERT INTO `mall_goods_gallery` (`goods_id`, `img_url`, `img_desc`, `sort_order`) VALUES
-(1999105, '/static/images/demo/demo-platinum-pearl-necklace.png', '珍珠项链 DIY', 1);
+(1999105, '/static/images/demo/demo-platinum-pearl-necklace.webp', '珍珠项链 DIY', 1);
 
 -- 先复制后清理旧绑定, 保留已经迁移过的新配置以确保脚本可重复执行。
 INSERT INTO `CC_CUSTOM_PRODUCT`

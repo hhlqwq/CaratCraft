@@ -45,6 +45,15 @@ DELETE goods FROM `mall_goods` goods INNER JOIN `CC_LEGACY_GOODS_IDS` legacy ON 
 
 DELETE FROM `mall_category` WHERE `id` < 1999000 OR `id` >= 2000000;
 
+-- 旧耳饰模板只保留历史追溯, 统一关闭定制并下架商城商品。
+-- Keeps the legacy earring template for history while disabling customization and sales.
+UPDATE `CC_CUSTOM_PRODUCT`
+SET `enabled` = 0, `model_url` = NULL
+WHERE `goods_id` = 1999106;
+UPDATE `mall_goods`
+SET `is_on_sale` = 0
+WHERE `id` = 1999106;
+
 -- 商城首页只保留克拉匠造自有入口, 清除原严选广告、频道、品牌、专题和常见问题。
 -- Keeps only CaratCraft-owned storefront content and removes legacy Yanxuan content.
 DELETE FROM `mall_ad` WHERE `id` <> 9000;
@@ -73,7 +82,7 @@ INSERT INTO `mall_ad`
 (`id`, `ad_position_id`, `media_type`, `name`, `link`, `image_url`, `content`, `end_time`, `enabled`)
 VALUES
 (9000, 1, 1, '克拉匠造珠宝设计', '/pages/designer/designer',
- '/static/images/demo/demo-platinum-pearl-necklace.png', '定制你的专属珠宝', NULL, 1)
+ '/static/images/demo/demo-platinum-pearl-necklace.webp', '定制你的专属珠宝', NULL, 1)
 ON DUPLICATE KEY UPDATE
 `name` = VALUES(`name`), `link` = VALUES(`link`), `image_url` = VALUES(`image_url`),
 `content` = VALUES(`content`), `end_time` = VALUES(`end_time`), `enabled` = VALUES(`enabled`);
@@ -81,9 +90,9 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO `mall_channel` (`id`, `name`, `url`, `icon_url`, `sort_order`)
 VALUES
 (1999000, '珠宝作品', '/pages/category/category?id=1999000',
- '/static/images/demo/demo-gold-solitaire-necklace.png', 1),
+ '/static/images/demo/demo-gold-solitaire-necklace.webp', 1),
 (1999001, '专属定制', '/pages/designer/designer',
- '/static/images/demo/demo-platinum-pearl-necklace.png', 2)
+ '/static/images/demo/demo-platinum-pearl-necklace.webp', 2)
 ON DUPLICATE KEY UPDATE
 `name` = VALUES(`name`), `url` = VALUES(`url`), `icon_url` = VALUES(`icon_url`),
 `sort_order` = VALUES(`sort_order`);

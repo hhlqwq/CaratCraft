@@ -512,7 +512,7 @@ public class AppGoodsController extends AppBaseController {
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
         bannerInfo.put("name", "匠心设计，为你呈现璀璨珠宝");
-        bannerInfo.put("imgUrl", "/static/images/demo/demo-platinum-pearl-necklace.png");
+        bannerInfo.put("imgUrl", "/static/images/demo/demo-platinum-pearl-necklace.webp");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }
@@ -528,7 +528,7 @@ public class AppGoodsController extends AppBaseController {
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
         bannerInfo.put("name", "人气珠宝与灵感设计");
-        bannerInfo.put("imgUrl", "/static/images/demo/demo-gold-solitaire-necklace.png");
+        bannerInfo.put("imgUrl", "/static/images/demo/demo-gold-solitaire-necklace.webp");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }
