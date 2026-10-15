@@ -1,11 +1,11 @@
 var app = getApp();
-var WxParse = require('../../lib/wxParse/wxParse.js');
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 
 Page({
   data: {
     id: 0,
+    topicDetailHtml: '',
     topic: {},
     topicList: [],
     commentCount: 0,
@@ -43,7 +43,8 @@ Page({
           topic: res.data,
         });
 
-        WxParse.wxParse('topicDetail', 'html', res.data.content, that);
+        /* 使用微信原生富文本组件显示HTML, 不再分发旧解析库. */
+        that.setData({topicDetailHtml: res.data.content || ''});
       }
     });
 

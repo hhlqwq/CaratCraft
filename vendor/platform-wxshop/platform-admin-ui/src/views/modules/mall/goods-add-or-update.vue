@@ -90,7 +90,7 @@
             <el-input v-model="form.goods.goodsBrief" :disabled="disabled" placeholder="商品简介"></el-input>
           </el-form-item>
           <el-form-item label="商品详情" prop="goodsDesc">
-            <ueditor v-model="form.goods.goodsDesc" :disabled="disabled" placeholder="商品详情"></ueditor>
+            <rich-text-editor v-model="form.goods.goodsDesc" :disabled="disabled" placeholder="商品详情"></rich-text-editor>
             <el-button type="success" @click="openDetail">预览详情</el-button>
           </el-form-item>
         </el-form>

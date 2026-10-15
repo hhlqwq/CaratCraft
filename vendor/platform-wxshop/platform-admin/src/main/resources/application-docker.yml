@@ -10,15 +10,15 @@ spring:
         maxWait: 5000
       datasource:
         master:
-          url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+          url: jdbc:mariadb://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
           username: ${MYSQL_USERNAME:root}
           password: ${MYSQL_PASSWORD:REDACTED_CREDENTIAL}
-          driverClassName: com.mysql.cj.jdbc.Driver
+          driverClassName: org.mariadb.jdbc.Driver
         second:
-          url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+          url: jdbc:mariadb://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
           username: ${MYSQL_USERNAME:root}
           password: ${MYSQL_PASSWORD:REDACTED_CREDENTIAL}
-          driverClassName: com.mysql.cj.jdbc.Driver
+          driverClassName: org.mariadb.jdbc.Driver
   redis:
     host: ${REDIS_HOST:redis}
     port: ${REDIS_PORT:6379}

@@ -71,6 +71,12 @@ const webpackConfig = merge(baseWebpackConfig, {
         from: path.resolve(__dirname, '../static'),
         to: config.build.assetsSubDirectory,
         ignore: ['.*']
+      },
+      {
+        // 商业前端包随附原始许可、署名与对应源码材料.
+        from: path.resolve(__dirname, '../../legal'),
+        to: 'legal',
+        ignore: ['.*']
       }
     ])
   ],

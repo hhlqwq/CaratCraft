@@ -38,7 +38,7 @@
         <el-img v-model="dataForm.scenePicUrl" :disabled="disabled"/>
       </el-form-item>
       <el-form-item label="专题内容" prop="content">
-        <ueditor v-model="dataForm.content" :disabled="disabled" placeholder="专题内容"></ueditor>
+        <rich-text-editor v-model="dataForm.content" :disabled="disabled" placeholder="专题内容"></rich-text-editor>
         <el-button type="success" @click="openDetail">预览详情</el-button>
       </el-form-item>
     </el-form>

@@ -150,7 +150,7 @@ ali:
     gatewayHost: openapi.alipay.com
     #通信协议，通常填写https
     protocol: https
-    baseNotifyUrl: https://openwtai.com/platform-framework-api #支付回调通知地址
+    baseNotifyUrl: ${ALI_PAY_NOTIFY_URL:} # 回调地址由部署者配置, 不使用第三方域名.
     encryptKey:
 
 wx:

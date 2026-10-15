@@ -1,11 +1,11 @@
 var app = getApp();
-var WxParse = require('../../lib/wxParse/wxParse.js');
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 
 Page({
   data: {
     id: 0,
+    goodsDetailHtml: '',
     goods: {},
     gallery: [],
     attribute: [],
@@ -52,7 +52,8 @@ Page({
           });
         }
 
-        WxParse.wxParse('goodsDetail', 'html', res.data.info.goodsDesc, that);
+        /* 使用微信原生富文本组件显示HTML, 不再分发旧解析库. */
+        that.setData({goodsDetailHtml: res.data.info.goodsDesc || ''});
 
         that.getGoodsRelated();
       }

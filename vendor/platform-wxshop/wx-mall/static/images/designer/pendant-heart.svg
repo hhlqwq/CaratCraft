@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
-  <circle cx="300" cy="356" r="17" fill="#ba7a78"/>
-  <path d="M300 450 C250 415 255 375 280 375 C292 375 300 384 300 392 C300 384 308 375 320 375 C345 375 350 415 300 450 Z" fill="#e8a4a5" stroke="#a95d66" stroke-width="6"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>项目几何示意图</title><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-5h10l4 5-9 13zM3 8h18M7 3l5 18 5-18"/></g></svg>

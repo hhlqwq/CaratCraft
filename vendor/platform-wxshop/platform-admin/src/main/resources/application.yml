@@ -162,7 +162,7 @@ ali:
     #通信协议，通常填写https
     protocol: https
     #支付回调通知地址
-    baseNotifyUrl: ${ALI_PAY_NOTIFY_URL:https://openwtai.com/platform-framework-api}
+    baseNotifyUrl: ${ALI_PAY_NOTIFY_URL:}
     encryptKey:
 
 wx:

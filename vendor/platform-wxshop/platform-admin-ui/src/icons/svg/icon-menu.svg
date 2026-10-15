@@ -1,7 +1,1 @@
-<svg class="icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" width="200" height="200">
-  <defs>
-    <style/>
-  </defs>
-  <path
-    d="M63.976 127.976v127.909H959.43v-127.91H63.976zM319.82 575.703h639.61V447.788H319.82v127.915zm0 319.78h639.61V767.541H319.82v127.942zM63.976 575.703H191.9V447.788H63.976v127.915zm0 319.78H191.9V767.541H63.976v127.942z"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>项目几何示意图</title><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8 4-5h10l4 5-9 13zM3 8h18M7 3l5 18 5-18"/></g></svg>

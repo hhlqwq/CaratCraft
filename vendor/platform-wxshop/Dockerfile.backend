@@ -27,6 +27,7 @@ COPY --from=builder --chown=caratcraft:caratcraft \
     /workspace/platform-admin/target/platform-admin.jar /app/platform-admin.jar
 COPY --from=builder --chown=caratcraft:caratcraft \
     /workspace/platform-api/target/platform-api.jar /app/platform-api.jar
+COPY --chown=caratcraft:caratcraft legal/ /app/legal/
 
 USER caratcraft
 

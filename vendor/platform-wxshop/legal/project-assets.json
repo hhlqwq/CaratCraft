@@ -1,0 +1,968 @@
+[
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/address-bg-bd.png",
+    "sha256": "9fd2cae4a2e053d93e35a7544af6dd20577ec31c738b6ff5b79f2efe3a8943c2",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/address_right.png",
+    "sha256": "edf6495165d138deb7a39a24ebbff3ef58f783529471799662e1d0f2302c1242",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/checkbox.png",
+    "sha256": "5447383beb3bdb3147e7a200468ab67a4cb6d7a108ee06fc8452095fe1a872c1",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/clear_input.png",
+    "sha256": "dab462c8050a6748898ec93cd0867e2df3f8e2f3a58926df52b518ee6e8e65ef",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/coupon_bky.png",
+    "sha256": "dceae96aea094451ce86a739da0bac693902486225d5b201e5a3fcb920ddcfa9",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/coupon_gq.png",
+    "sha256": "dceae96aea094451ce86a739da0bac693902486225d5b201e5a3fcb920ddcfa9",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/coupon_ksy.png",
+    "sha256": "dceae96aea094451ce86a739da0bac693902486225d5b201e5a3fcb920ddcfa9",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/coupon_ysy.png",
+    "sha256": "dceae96aea094451ce86a739da0bac693902486225d5b201e5a3fcb920ddcfa9",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/defaultAvatar.png",
+    "sha256": "1c067fc41829aed1e2876645ebcbb3c31ccca5438018e3254a53aadba934b3ef",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/del-address.png",
+    "sha256": "dab462c8050a6748898ec93cd0867e2df3f8e2f3a58926df52b518ee6e8e65ef",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/detail_back.png",
+    "sha256": "3f0a147d4ce18a19fa6b7c3c8c77a14ed25c09df45ac426a01d9b5d5520d20e8",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/detail_kefu.png",
+    "sha256": "73263999e5000158eec1eeaa58bc428dac191d18a9d1f91f4d9413a58639b4a4",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/go.png",
+    "sha256": "c5fd8ef0cee5a7830f164d06e656f96620ffbe205aa755e7c62c314a7678fe2c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icon_collect.png",
+    "sha256": "0b3cd4564fa94e7ba26af1002fc349b637f38050b7603d7d4296650165fd5782",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icon_collect_checked.png",
+    "sha256": "6de56e8fbb4b1a30f8c553d0243d9baaae8a99515834f612c3cd7a2445f6b6a0",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icon_error.png",
+    "sha256": "69c4a14825a68f1b2187d5cdfd074987b26548626236c8b4f0b726201b83a535",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icon_go_more.png",
+    "sha256": "fdadfc158082d40fc700e5f5ad9eaf5815dea6a1e80e38c9cbf261ca7e86eba5",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_choice_nor.png",
+    "sha256": "67b57c66791aea46490bd042d0949c11a7bf9dabc26589681cc2d3ce2b150161",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_choice_pressed.png",
+    "sha256": "b5db43444569863fe035aba33f7806b02c0b373f306ef90d340125ce8c72c27b",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_me_nor.png",
+    "sha256": "12b5244b4d131da2a8c753f1b2fb00012f3381bf47c697d78d8dc6c3022545fb",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_me_pressed.png",
+    "sha256": "2ae73ad63aa0b2283b23147cc408b8362d761c5597b044271f708c3c47ccb26c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_shoping_nor.png",
+    "sha256": "c0cd04a2bb3f30d85e416b81a7a95ac883f292b1f6fd9c19539bc4599d412d9a",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_shoping_pressed.png",
+    "sha256": "82f1e235c1c1ece0dbc3ffdca7423d53fe377b129d7a9e7869b3e4a3b9753eca",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_sort_nor.png",
+    "sha256": "f5abe5c0f31f1593701ecf88cc3c09303b50d67f7fb1b861978ca10e145472be",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_sort_pressed.png",
+    "sha256": "dd8ac3b2728ac44a0ba0820c37800a3d55a49ea6c78c6a7a9d7cb96e5eaad9a3",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_topic_nor.png",
+    "sha256": "db9489e2da203dbe0571f521405b1be6a9dcab88a7c81bca12f2414fcd9abc08",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/ic_menu_topic_pressed.png",
+    "sha256": "6540c43c5554c89f3b96015cd25ca14cff4fe5c2406655c61a9e6de80ef1fb0c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/logo.png",
+    "sha256": "12a2f7f094c11c3f287bce34e9df0145aadb78e1977bc6d97dda78f1cb2d81e3",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/my_course_empty.png",
+    "sha256": "07bde8e116eb3d6bba7926e707ee86fc3e1b697d0b67c9292370f56c346509de",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/selnum.png",
+    "sha256": "8f9cd980711fccbb104e985ac0b2c7d794a54f509d32db006eb3b26af06bf245",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/wxpay.png",
+    "sha256": "ee8e45011f162aac883574db099d6c7209c48707a77531a6090ebcd41597a2ea",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/demo/demo-gold-solitaire-necklace.webp",
+    "sha256": "b033f72393cf42d52fc3b7e8c7298482e2698aa9adc7f2984a234c82f66879d0",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/demo/demo-platinum-pearl-necklace.webp",
+    "sha256": "e9d474e9916946cdc81c2f40decce6a0bc5a76b4924604df9a9ecbfe2050e2dc",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/demo/demo-rose-heart-necklace.webp",
+    "sha256": "585361e53122900314c6b2207378b1839fc6e14051e0e600c9539ac05935c47c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/demo/demo-sapphire-constellation-necklace.webp",
+    "sha256": "f4f9677e131c8aec440bbbf8c599799588f63c873f5f2fc55cc56d972deb0a32",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/chain-gold.svg",
+    "sha256": "883fafe9abbc590f30b744fb7cff99eb4988e4396fc362b3cb3b9097503c5906",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/chain-platinum.svg",
+    "sha256": "3863e441e1dfd1a4fa9a0d5dcc52c0c330f6c770af777d9f99f502b4133bb4ad",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/chain-rose.svg",
+    "sha256": "b15aca0d83e72ab3bcb2d885f7dce4213790c6051c2e7c3ad8981c3abb2d27aa",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/gem-diamond.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/gem-ruby.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/pearl-akoya.svg",
+    "sha256": "13ceb57271736cdeb31714f59431fe2b4a01693f829b456f289d2b98e3597208",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/pearl-tahiti.svg",
+    "sha256": "beab2630fa5ae33befaae3af587ffa843937c85a3dbcc1461518f240c5324e9a",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/pearl-white.svg",
+    "sha256": "13ceb57271736cdeb31714f59431fe2b4a01693f829b456f289d2b98e3597208",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/pendant-heart.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/pendant-solitaire.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/empty-address.png",
+    "sha256": "a289d3792728c5391c2ad7137c77f221ab6e0e5529df9b1eb37e13e2007d0c92",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/empty-comment.png",
+    "sha256": "475b5e86eeb6a3c71b9cf5d495ff6bf95285a7f43ea97338f5b33fddd0acad6e",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/empty-search.png",
+    "sha256": "e49b213acf033767ffcede169475119ec273406cc3bb8db26c42fb1742eda55f",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-address-edit.png",
+    "sha256": "628e0558d9a5aab711d1ca5e3d2c70e8e746c85b37bab92d4c0d39a477a964ac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-checkbox-checked.png",
+    "sha256": "10e04ed3105ba342f35f61895c693aabb385a312156db4354e17198fcb3415bd",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-checkbox.png",
+    "sha256": "9e4fa861ce6da79a1e2bf2f6bf30d46be073df01a9f8da071a0cfdc19a460d22",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-comment-add.png",
+    "sha256": "1aad398c5ae6c15fdb0d76792f135dee5c6cd58928f606d43b86f11130cb3265",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-down.png",
+    "sha256": "804b67963da92d3c9c22a781fae15171f11f1f4ca3a9db7e308c1f7c2d1af470",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-radio-checked.png",
+    "sha256": "10e04ed3105ba342f35f61895c693aabb385a312156db4354e17198fcb3415bd",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-radio.png",
+    "sha256": "9e4fa861ce6da79a1e2bf2f6bf30d46be073df01a9f8da071a0cfdc19a460d22",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-search.png",
+    "sha256": "c2b45e682433c493fa9e91e92615ad82f3eef987749f4be019df7a71ff9239ac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-service-policy.png",
+    "sha256": "58e6bc03fe5bbe289f3d85417a2a700fd966768ebc4aa84dcceda27a2d86e452",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/icons/icon-up.png",
+    "sha256": "b383950df62e4eadaabfb2bd38d9475dafd1872d875d1803fbd11219677c35b6",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/chain-platinum.webp",
+    "sha256": "3395114800c5f9c742011cbc328c181dfb6f20eb04d5a02c75d5a0b6c74377d3",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/chain-rose-gold.webp",
+    "sha256": "b03fe5f99fb48a96c515f1cc5253939b6f9ee4d50b0b5d75cbdb3ff544111f10",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/chain-white-gold.webp",
+    "sha256": "3395114800c5f9c742011cbc328c181dfb6f20eb04d5a02c75d5a0b6c74377d3",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/chain-yellow-gold.webp",
+    "sha256": "0f210a2e3d967edc9c0c1b0def7970aa45a9c19ffbb3861160994138041a8117",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/gem-diamond.webp",
+    "sha256": "4d4ba55e96737795f905ffde2cc25f5fce746ef7fdb162ef3177283379e7954e",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/gem-sapphire.webp",
+    "sha256": "95f2895088c5f325a40fa1cdba5e90f9560ee0d3d26edb9df8128ef324e2d41c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/pearl-akoya-white.webp",
+    "sha256": "ffb9aa0eb483fd3e1bf859ff87fcb30283dbef94d538c868bb5426c453172da7",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/pearl-baroque-white.webp",
+    "sha256": "0861c0799776ef9914b8f2c6ffacd4fdc2583f1f3fa53d1f97fa2e8179b37b1e",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/pearl-fresh-purple.webp",
+    "sha256": "89d40c306e67d1b87b58517ce8ee72ab642f74496b03ad5471fd8ae45b92039a",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/pearl-southsea-gold.webp",
+    "sha256": "db09ca1cac6a4b838536edfca31065de4f5be3fdab6fd92bc4b993b8fbd0664e",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/wx-mall/static/images/designer/layers/pearl-tahiti-black.webp",
+    "sha256": "f5b56aca539d73897413ccd6b48fb45cad2076fc0065b886e2b31307153ef47e",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-activiti.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-admin.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-brand.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-caozuo.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-cart.svg",
+    "sha256": "23d5045873b5e7ef6dcd5aef75983f5506b23312f518bc22f7fd575569565671",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-charts.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-code.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-collect.svg",
+    "sha256": "36dcf69780dbd01af79f45af6587272d5324d24eabb29b0e68131864c724ad3b",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-coupon.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-coupons.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-dangdifill.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-daohang.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-databases.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-dev.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-diamond.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-diaodu.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-dict.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-duanxin.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-editor.svg",
+    "sha256": "25f903dbdc23d66cdcb614c649b6794d1cdd71295c6b6a4a4fef1e2c43cca54a",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-email.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-feedback.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-feiliao.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-fensi.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-files.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-footprint.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-geren.svg",
+    "sha256": "f52e83227600bbaaba0af5a9b66e07e4850b233b17747f17d9d8677c8a480457",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-gift.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-goods.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-guize.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-history.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-interface.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-issue.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-jiesuo.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-job.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-leibie.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-level.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-live.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-log.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-mall.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-media.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-menu.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-mp.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-myorder.svg",
+    "sha256": "84b4a922e4cf64e8085919c5ceb58eaea148c09ca4dfa6af4cf36d22f56011c2",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-orders.svg",
+    "sha256": "84b4a922e4cf64e8085919c5ceb58eaea148c09ca4dfa6af4cf36d22f56011c2",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-org.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-oss.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-pinglun.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-print.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-qrcode.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-quanxian.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-redis.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-refund.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-role.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-room.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-saled.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-shanchu.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-shipping.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-shops.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-shouye.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-sign.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-sousuo.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-sql.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-suoding.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-system.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-tempmsg.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-tixing.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-tubiao.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-vip.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-wechat.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-weibo.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-wuliaoguanli.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-wuliaoguanliye.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-xiangqu.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-xiangqufill.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-xiaochengxu.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-xitongpeizhi.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-zaixian.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-zhedie.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-zhifubao.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/icons/svg/icon-zonghe.svg",
+    "sha256": "b04e68de1cbc4d3a0274a0418596c2bf51ecb6c39c0e29c442583a1861040bac",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "data/profile_photo.png",
+    "sha256": "b9d853bb33203465a5d39299dd2f3e4eef63217f6a8dd4a9f054716cfd47e073",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/static/img/favicon.ico",
+    "sha256": "3ada9dfb3bda2c3f2ad1f9c45497a51b7b574aee3662259de0a054b8b1eb08eb",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-api/src/main/resources/favicon.ico",
+    "sha256": "5900a1b77a266fa8649ad4783585cb69ba39467309470d0a68d5f32cfb62bf3b",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin/src/main/resources/favicon.ico",
+    "sha256": "5900a1b77a266fa8649ad4783585cb69ba39467309470d0a68d5f32cfb62bf3b",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/base.png",
+    "sha256": "e6256473c0b38b0d96859a1526e55322c8a7beef5bf75035128c0c7158318c45",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/bg_mobile_foot_default.png",
+    "sha256": "f8e8d3bede25798bcde9c86deb72368526b129bbeb704b48a9ad5b33ce0995ca",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/bg_mobile_head_default.png",
+    "sha256": "fc5de3b82028835fb902e4389eb536d8f7609b064d2f19466175dd34700902b1",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/icon_menu_nav_next.png",
+    "sha256": "5ece44712c9c56d0581d4862194747424873e7e834f60f1faf1348e0c86b549b",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/icon_menu_nav_prev.png",
+    "sha256": "845f7e5a185698bb482447d104ce52dacd3e62494c4f857335b0e6149fcb42d0",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/index.png",
+    "sha256": "a256a0b5891a3f12e0882a610ffc5aaafea70af0540213dde230a7932fb9846c",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/login_bg.jpg",
+    "sha256": "631e96245cca44d01faf60b62dfdf120598715caab43bcecb974d796668d64c2",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "vendor/platform-wxshop/platform-admin-ui/src/assets/img/msg_tab.png",
+    "sha256": "88460c0fccc4da4b5957b47495bfda6f3233b6fc6d377c29f22dc92f93ce123d",
+    "source": "tools/generate-project-assets.py中的几何绘图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  }
+]

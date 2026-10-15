@@ -29,3 +29,7 @@ yarn.lock
 /deploy/.env
 /deploy/packages/platform-admin-ui-dist/*
 !/deploy/packages/platform-admin-ui-dist/.gitkeep
+
+# 发布许可原文和对应源码必须随仓库保留, 不按普通构建JAR忽略.
+!/legal/
+!/legal/**

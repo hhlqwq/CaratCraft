@@ -28,7 +28,7 @@
                 <el-input v-model="item.author" placeholder="请输入作者"></el-input>
               </el-form-item>
               <el-form-item label="内容" prop="content">
-                <ueditor v-model="item.content" placeholder="详情"></ueditor>
+                <rich-text-editor v-model="item.content" placeholder="详情"></rich-text-editor>
               </el-form-item>
               <el-form-item label="封面" prop="thumbUrl">
                 <el-img v-model="item.thumbUrl" disabled></el-img>

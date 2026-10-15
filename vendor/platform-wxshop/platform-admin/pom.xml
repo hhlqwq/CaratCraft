@@ -31,6 +31,13 @@
             <groupId>pro.fessional</groupId>
             <artifactId>kaptcha</artifactId>
             <version>${kaptcha.version}</version>
+            <exclusions>
+                <!-- 只使用验证码Producer, 不使用库内旧javax Servlet入口. -->
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -40,9 +47,9 @@
         </dependency>
         <!-- 系统监控 -->
         <dependency>
-            <groupId>com.aizuda</groupId>
-            <artifactId>aizuda-monitor</artifactId>
-            <version>1.1.0</version>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>6.8.2</version>
         </dependency>
     </dependencies>
 

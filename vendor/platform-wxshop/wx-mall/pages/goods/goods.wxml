@@ -67,8 +67,7 @@
     </view>
 
     <view class="detail">
-      <import src="../../lib/wxParse/wxParse.wxml" />
-      <template is="wxParse" data="{{wxParseData:goodsDetail.nodes}}" />
+      <rich-text nodes="{{goodsDetailHtml}}"></rich-text>
     </view>
 
 

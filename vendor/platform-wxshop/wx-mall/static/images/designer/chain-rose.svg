@@ -1,4 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">
-  <path d="M105 120 C115 470 485 470 495 120" fill="none" stroke="#ba7a78" stroke-width="18" stroke-linecap="round"/>
-  <path d="M124 136 C135 438 465 438 476 136" fill="none" stroke="#f0bbb2" stroke-width="5" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><title>项目几何示意图</title><g fill="none" stroke="#c78e86" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v7c0 12 16 12 16 0V3"/></g></svg>

@@ -14,26 +14,24 @@ import '@/element-ui-theme'
 import '@/assets/scss/index.scss'
 // api: https://github.com/axios/axios
 import httpRequest from '@/utils/httpRequest'
-import baiduAnalytics from 'vue-baidu-analytics'
 import VueClipboard from 'vue-clipboard2'
 
 import {isAuth, treeDataTranslate, transOrg, transUser, transDict, openImg, transDate, subtractDate} from '@/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import ElDict from './components/el-dict'
 import ElImg from './components/el-img'
-import Ueditor from './components/ueditor'
+import RichTextEditor from './components/rich-text-editor'
 // 引入echarts
 const echarts = require('echarts')
 
 Vue.use(VueCookie)
 Vue.use(ElDict)
 Vue.use(ElImg)
-Vue.use(Ueditor)
 Vue.use(VueClipboard)
 
 Vue.component('el-dict', ElDict)
 Vue.component('el-img', ElImg)
-Vue.component('ueditor', Ueditor)
+Vue.component('rich-text-editor', RichTextEditor)
 
 Vue.config.productionTip = false
 
@@ -60,14 +58,6 @@ Vue.prototype.subtractDate = subtractDate
 
 // 保存整站vuex本地储存初始状态
 window.SITE_CONFIG.storeState = cloneDeep(store.state)
-
-Vue.use(baiduAnalytics, {
-  router: router,
-  siteIdList: [
-    '556c145b863b7d96bfcb4d8aad246054'
-  ],
-  isDebug: false
-})
 
 /* eslint-disable no-new */
 new Vue({

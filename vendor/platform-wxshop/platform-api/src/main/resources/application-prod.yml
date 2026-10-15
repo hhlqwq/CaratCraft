@@ -10,15 +10,15 @@ spring:
       primary: master # 设置默认的数据源或者数据源组，默认值即为 master
       datasource:
         master:
-          url: jdbc:mysql://localhost:3306/platform?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+          url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
           username: root
           password: REDACTED_CREDENTIAL
-          driverClassName: com.mysql.cj.jdbc.Driver
+          driverClassName: org.mariadb.jdbc.Driver
         second:
-          url: jdbc:mysql://localhost:3306/platform?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+          url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
           username: root
           password: REDACTED_CREDENTIAL
-          driverClassName: com.mysql.cj.jdbc.Driver
+          driverClassName: org.mariadb.jdbc.Driver
       #dynamic - 公共配置
       druid:
         initialSize: 10 # 初始化连接:连接池启动时创建的初始化连接数量
