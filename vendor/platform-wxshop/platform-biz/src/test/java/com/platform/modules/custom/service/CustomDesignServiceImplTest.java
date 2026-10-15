@@ -57,6 +57,8 @@ class CustomDesignServiceImplTest {
         stockDao = mock(ComponentStockDao.class);
         service = new CustomDesignServiceImpl(snapshotDao, bindingDao, workOrderDao, quoteService, stockDao);
         when(stockDao.deductByOptionId(any(), any(), anyInt())).thenReturn(1);
+        when(stockDao.restoreByOptionId(any(), any(), anyInt())).thenReturn(1);
+        when(snapshotDao.insert(any(CustomDesignSnapshotEntity.class))).thenReturn(1);
     }
 
     /** 验证设计保存、锁价和订单绑定 / Verifies save, price lock, and order binding. */
@@ -205,8 +207,12 @@ class CustomDesignServiceImplTest {
 
         service.cancelOrder(100);
 
-        assertEquals("DRAFT", snapshot.getStatus());
+        assertEquals("CANCELLED", snapshot.getStatus());
         verify(snapshotDao).updateById(snapshot);
+        ArgumentCaptor<CustomDesignSnapshotEntity> draft = ArgumentCaptor.forClass(CustomDesignSnapshotEntity.class);
+        verify(snapshotDao).insert(draft.capture());
+        assertEquals("DRAFT", draft.getValue().getStatus());
+        org.junit.jupiter.api.Assertions.assertNull(draft.getValue().getId());
         // 取消时应恢复组件库存 / Component stock must be restored on cancellation.
         verify(stockDao).restoreByOptionId(10, 1L, 1);
     }
@@ -245,6 +251,18 @@ class CustomDesignServiceImplTest {
         service.cancelOrder(100);
 
         verify(stockDao, times(1)).restoreByOptionId(10, 1L, 1);
+    }
+
+    /** 已取消绑定即使数据库更新返回成功也不得再次恢复库存. */
+    @Test
+    void alreadyCancelledBindingNeverRestoresStock() {
+        CustomOrderCustomizationEntity binding = unpaidBinding();
+        binding.setStatus("CANCELLED");
+        when(bindingDao.selectOne(any())).thenReturn(binding);
+        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        service.cancelOrder(100);
+        verify(bindingDao, times(0)).update(any(), any(Wrapper.class));
+        verify(stockDao, times(0)).restoreByOptionId(any(), any(), anyInt());
     }
 
     /** 验证组件库存不足时绑定失败并抛异常 / Verifies binding fails when component stock is insufficient. */

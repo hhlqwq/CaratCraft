@@ -62,7 +62,7 @@ public interface MallOrderDao extends BaseMapper<MallOrderEntity> {
 
     /** 原子取消待支付订单 / Atomically cancels an unpaid order. */
     @Update("UPDATE mall_order SET order_status = 101 "
-            + "WHERE id = #{orderId} AND user_id = #{userId} AND pay_status = 0 AND order_status = 0")
+            + "WHERE id = #{orderId} AND user_id = #{userId} AND pay_status IN (0,1) AND order_status = 0")
     int cancelUnpaid(@Param("orderId") Integer orderId, @Param("userId") Long userId);
 
     /** 原子标记退款完成 / Atomically marks an order as refunded. */

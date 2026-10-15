@@ -28,13 +28,13 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void markPaid(Integer orderId, Integer paidAmountInCents) {
-        MallOrderEntity order = orderService.getById(orderId);
+        MallOrderEntity order = orderService.lockById(orderId);
         if (order == null) {
             throw new IllegalArgumentException("支付订单不存在");
         }
         int expectedAmount = order.getActualPrice().movePointRight(2)
                 .setScale(0, RoundingMode.HALF_UP).intValueExact();
-        if (paidAmountInCents != null && expectedAmount != paidAmountInCents) {
+        if (paidAmountInCents == null || expectedAmount != paidAmountInCents) {
             throw new IllegalArgumentException("支付金额与订单金额不一致");
         }
         if (!Integer.valueOf(2).equals(order.getPayStatus())) {
@@ -45,7 +45,11 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
             order.setOrderStatus(201);
             order.setShippingStatus(0);
             order.setPayTime(new Date());
-            orderService.update(order);
+            if (!orderService.update(order, new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<MallOrderEntity>()
+                    .eq("id", orderId).eq("order_status", 0).in("pay_status", 0, 1)
+                    .eq("actual_price", order.getActualPrice()))) {
+                throw new IllegalStateException("支付订单状态已变化, 本次处理回滚");
+            }
         }
         customDesignService.markOrderPaid(orderId);
     }

@@ -223,3 +223,9 @@ chmod +x dev.sh
 上传仅接收登录用户提交的JPEG/PNG/GIF, 服务端限制5MB和2000万像素, 重新编码为PNG; 不再通过公开图片入口托管HTML、SVG或支付证书. 支付证书应由部署者通过私有文件挂载配置. 后台上传需要已有文件库权限. 旧上传目录也限制为静态图片, 需部署更新后的Nginx规则后生效.
 
 API启动必须设置`JWT_SECRET`, 内容为至少32字节随机数的Base64编码. PowerShell生成示例: `[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))`. 缺失或不合法时启动失败, 不使用共享默认密钥. 浏览器跨域默认关闭, 如需跨域须设置`APP_CORS_ALLOWED_ORIGINS`为逗号分隔的明确来源.
+
+订单状态整改: 支付、关单、改价、发货和收货统一使用订单行锁与条件更新. 小程序预支付使用`maOpenid`, 要求支付appid与小程序appid一致. 取消预支付订单前先查询支付侧状态并关单, 已付款只补记支付结果, 支付中或核对失败不会恢复库存. 定制工单完成质检后才能发货; 确认收货只接受本人已付款且已发货订单. 工单状态与操作备注日志在同一事务中保存, 不允许绕过订单售后流程直接取消工单.
+
+商家改价须大于等于0.01元、最多两位小数并填写理由, 仅尚未预支付的待付款订单可操作. 原商品价和券金额保留, 实付变化在`CC_ORDER_PRICE_LOG`记录差额和操作者. 部署这批代码前须执行`_sql/migrations/V20261015_01_order_integrity.sql`, 新建库已由初始化入口加载. 订单不再支持通用新增和物理删除. 未支付定制取消后保留原订单快照, 新建草稿副本供再次购买, 避免快照唯一约束阻止重下单.
+
+安全回归入口: `node --test tools/test-client-regressions.cjs`. 真实Redis和数据库测试均默认关闭, 仅在显式设置`CARATCRAFT_REDIS_TEST=true`或`CARATCRAFT_DATABASE_TEST=true`时执行. 数据库测试还强制校验URL为本机`caratcraft_refactor_test_日期`独立库; `tools/prepare-integration-database.py`只创建测试结构, 不导入商家数据、不运行旧清理迁移. 支付网关单元测试使用替身, 不发送真实支付、退款或短信请求.

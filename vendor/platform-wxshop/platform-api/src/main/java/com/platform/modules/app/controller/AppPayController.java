@@ -59,6 +59,8 @@ public class AppPayController extends AppBaseController {
     @Autowired
     private OrderPaymentService orderPaymentService;
     @Autowired
+    private com.platform.modules.mall.service.OrderPrepaymentService prepaymentService;
+    @Autowired
     private CustomDesignService customDesignService;
     @Value("${wx.pay.baseNotifyUrl}")
     private String baseNotifyUrl;
@@ -77,66 +79,10 @@ public class AppPayController extends AppBaseController {
     @Operation(summary = "获取支付的请求参数")
     @PostMapping("prepay")
     public RestResponse<Object> payPrepay(@LoginUser WxUserEntity loginUser, Integer orderId) {
-        MallOrderEntity orderInfo = orderService.getById(orderId);
-        if (orderInfo == null) {
-            return RestResponse.fail("订单不存在");
-        }
-        if (!loginUser.getId().equals(orderInfo.getUserId())) {
-            return RestResponse.fail("越权操作！");
-        }
-
-        if (orderInfo.getPayStatus() == 2) {
-            return RestResponse.fail("订单已支付，请不要重复操作");
-        }
-
-        if (orderInfo.getOrderStatus() != null && orderInfo.getOrderStatus() != 0) {
-            return RestResponse.fail("订单状态不允许支付");
-        }
-        // 支付服务未配置时直接提示 / Fail fast when pay service is not configured.
-        if (weixinPayService == null) {
-            return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
-        }
-
         try {
-            //调用统一下单接口，并组装生成支付所需参数对象
-            WxPayUnifiedOrderRequest request = new WxPayUnifiedOrderRequest();
-
-            // 商品描述
-            request.setBody("克拉匠造-支付");
-            //订单的商品
-            Map<String, Object> orderGoodsParam = new HashMap<>(4);
-            orderGoodsParam.put("orderId", orderId);
-            List<MallOrderGoodsEntity> orderGoods = orderGoodsService.queryList(orderGoodsParam);
-            if (null != orderGoods) {
-                String body = "克拉匠造-";
-                for (MallOrderGoodsEntity goodsVo : orderGoods) {
-                    body = body + goodsVo.getGoodsName() + "、";
-                }
-                body = body.substring(0, body.length() - 1);
-                // 商品描述
-                request.setBody(body);
-            }
-            // 商户订单编号
-            request.setOutTradeNo(orderInfo.getOrderSn());
-            //支付金额
-            request.setTotalFee(BaseWxPayRequest.yuanToFen(orderInfo.getActualPrice().toString()));
-            request.setSpbillCreateIp(getClientIp());
-            // 回调地址
-            request.setNotifyUrl(baseNotifyUrl);
-            // 交易类型APP
-            request.setTradeType("JSAPI");
-            request.setOpenid(loginUser.getOpenid());
-            WxPayMpOrderResult data = weixinPayService.createOrder(request);
-            // 业务处理
-            orderInfo.setPayId(data.getPackageValue());
-            // 付款中
-            orderInfo.setPayStatus(1);
-            orderService.update(orderInfo);
-
-            return RestResponse.ok(data);
-        } catch (WxPayException e) {
-            e.printStackTrace();
-            return RestResponse.fail("下单失败,error=" + e.getMessage());
+            return RestResponse.ok(prepaymentService.prepare(orderId, loginUser, getClientIp()));
+        } catch (IllegalArgumentException | IllegalStateException error) {
+            return RestResponse.fail(error.getMessage());
         }
     }
 

@@ -42,7 +42,7 @@
         T.FULL_CUT_PRICE,
         T.ORDER_TYPE
         FROM mall_order T
-        LEFT JOIN mall_user U ON U.ID = T.USER_ID
+        LEFT JOIN WX_USER U ON U.ID = T.USER_ID
         WHERE 1=1
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}

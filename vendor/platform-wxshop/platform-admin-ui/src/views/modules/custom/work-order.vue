@@ -21,14 +21,18 @@
           <el-tag>{{ statusText(scope.row.status) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="craftJson" label="生产参数" min-width="280" show-overflow-tooltip></el-table-column>
+      <el-table-column label="制作内容" min-width="280">
+        <template slot-scope="scope">
+          <div v-for="(line, index) in craftSummary(scope.row)" :key="index" class="craft-line">{{ line }}</div>
+        </template>
+      </el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160"></el-table-column>
       <el-table-column fixed="right" label="操作" width="200">
         <template slot-scope="scope">
-          <el-dropdown v-if="isAuth('custom:work-order:update')" @command="updateStatus(scope.row.id, $event)">
+          <el-dropdown v-if="isAuth('custom:work-order:update') && allowedActions(scope.row).length" @command="updateStatus(scope.row.id, $event)">
             <el-button type="text">流转状态<i class="el-icon-arrow-down el-icon--right"></i></el-button>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item v-for="item in statusOptions" :key="item.value"
+              <el-dropdown-item v-for="item in allowedActions(scope.row)" :key="item.value"
                                 :command="item.value">{{ item.label }}</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
@@ -38,7 +42,7 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog title="工单操作日志" :visible.sync="logVisible" width="720px">
+    <el-dialog title="工单操作日志" :visible.sync="logVisible" width="min(94vw, 900px)">
       <el-table :data="logs" border size="small">
         <el-table-column prop="createTime" label="时间" min-width="150"></el-table-column>
         <el-table-column prop="operatorName" label="操作人" width="110"></el-table-column>
@@ -85,20 +89,42 @@ export default {
         this.workOrders = data && data.code === 0 ? data.data : []
       })
     },
-    // 更新工单状态 / Updates a work order status.
+    // 只展示下一步合法动作, 取消必须由订单售后流程处理.
+    allowedActions (row) {
+      const transitions = {PENDING_REVIEW: ['REVIEWED'], REVIEWED: ['PRODUCING'], PRODUCING: ['QUALITY_CHECK'], QUALITY_CHECK: ['COMPLETED']}
+      return this.statusOptions.filter(item => (transitions[row.status] || []).includes(item.value))
+    },
+    // 以可读制作参数展示快照, 历史快照缺字段时明确提示人工核验.
+    craftSummary (row) {
+      try {
+        const craft = JSON.parse(row.craftJson || '{}')
+        const lines = Array.isArray(craft.components)
+          ? craft.components.map(item => `${item.name || item.optionCode} × ${item.quantity}`)
+          : ['历史选项: ' + (craft.optionIds || []).join('、'), '历史参数需结合设计详情核验']
+        if (craft.engraving) {
+          lines.push('刻字: ' + craft.engraving)
+        }
+        return lines
+      } catch (error) {
+        return ['生产参数无法读取, 请核对设计快照后再操作']
+      }
+    },
+    // 每次审核、开工和质检必须录入操作备注并确认.
     updateStatus (id, status) {
-      this.$http({
+      this.$prompt(`确认执行“${this.statusText(status)}”, 请填写审核、制作或质检记录`, '工单流转', {
+        inputType: 'textarea',
+        inputValidator: value => value && value.trim().length > 0 && value.length <= 500
+          ? true : '请填写1到500字的备注'
+      }).then(({value}) => this.$http({
         url: '/custom/work-order/status',
         method: 'post',
-        params: {id: id, status: status}
-      }).then(({data}) => {
+        params: {id: id, status: status, remark: value}
+      })).then(({data}) => {
         if (data && data.code === 0) {
           this.$message.success('工单状态已更新')
           this.loadWorkOrders()
-        } else {
-          this.$message.error(data.msg || '更新失败')
         }
-      })
+      }).catch(() => {})
     },
     // 获取状态中文名称 / Gets a localized status label.
     statusText (status) {
@@ -122,3 +148,7 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.craft-line { line-height: 1.8; overflow-wrap: anywhere; }
+</style>

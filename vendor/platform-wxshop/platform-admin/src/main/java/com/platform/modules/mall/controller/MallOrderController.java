@@ -55,6 +55,7 @@ import java.util.Map;
 public class MallOrderController extends AbstractController {
 
     private final MallOrderService mallOrderService;
+    private final com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
     private final MallOrderGoodsService mallOrderGoodsService;
 
     /**
@@ -129,8 +130,7 @@ public class MallOrderController extends AbstractController {
     @PostMapping("/save")
     @RequiresPermissions("mall:order:save")
     public RestResponse<String> save(@RequestBody MallOrderEntity mallOrder) {
-        mallOrderService.add(mallOrder);
-        return RestResponse.ok();
+        return RestResponse.fail("订单只能通过商城结算创建, 不支持通用新增");
     }
 
     /**
@@ -177,23 +177,7 @@ public class MallOrderController extends AbstractController {
             return RestResponse.fail("订单ID格式错误");
         }
 
-        MallOrderEntity order = mallOrderService.getById(id);
-        if (order == null) {
-            return RestResponse.fail("订单不存在");
-        }
-        if (order.getPayStatus() == null || order.getPayStatus() != 2) {
-            return RestResponse.fail("未支付订单不能发货");
-        }
-        if (order.getShippingStatus() != null && order.getShippingStatus() == 1) {
-            return RestResponse.fail("订单已发货");
-        }
-
-        order.setShippingStatus(1);
-        order.setOrderStatus(300);
-        order.setShippingNo(String.valueOf(shippingNoObj).trim());
-        order.setShippingName(String.valueOf(shippingNameObj).trim());
-
-        mallOrderService.updateById(order);
+        lifecycleService.ship(id, String.valueOf(shippingNameObj), String.valueOf(shippingNoObj));
         return RestResponse.ok("发货成功");
     }
 
@@ -226,21 +210,8 @@ public class MallOrderController extends AbstractController {
             return RestResponse.fail("参数格式错误");
         }
 
-        if (actualPrice.compareTo(BigDecimal.ZERO) < 0) {
-            return RestResponse.fail("改价金额不能小于0");
-        }
-
-        MallOrderEntity order = mallOrderService.getById(id);
-        if (order == null) {
-            return RestResponse.fail("订单不存在");
-        }
-        if (order.getPayStatus() != null && order.getPayStatus() != 0) {
-            return RestResponse.fail("仅未支付订单可改价");
-        }
-
-        order.setActualPrice(actualPrice);
-        order.setOrderPrice(actualPrice);
-        mallOrderService.updateById(order);
+        lifecycleService.adjustPrice(id, actualPrice, String.valueOf(getUserId()),
+                String.valueOf(params.getOrDefault("reason", "")));
         return RestResponse.ok("改价成功");
     }
 
@@ -255,7 +226,6 @@ public class MallOrderController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("mall:order:delete")
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallOrderService.deleteBatch(ids);
-        return RestResponse.ok();
+        return RestResponse.fail("订单属于交易凭证, 不支持物理删除");
     }
 }

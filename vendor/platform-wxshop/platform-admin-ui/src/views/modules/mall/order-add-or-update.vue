@@ -295,11 +295,11 @@ export default {
       return map[status] || 'info'
     },
     payStatusText (status) {
-      const map = {0: '未支付', 1: '已支付', 2: '已支付', 3: '退款中', 4: '已退款'}
+      const map = {0: '未支付', 1: '预支付已创建', 2: '已支付', 3: '退款中', 4: '已退款'}
       return map[status] || `状态${status}`
     },
     payStatusType (status) {
-      const map = {0: 'warning', 1: 'success', 2: 'success', 3: 'danger', 4: 'danger'}
+      const map = {0: 'warning', 1: 'warning', 2: 'success', 3: 'danger', 4: 'danger'}
       return map[status] || 'info'
     },
     shippingStatusText (status) {

@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,7 +36,7 @@ class OrderPaymentServiceImplTest {
     @Test
     void markPaidRejectsMismatchedAmount() {
         MallOrderEntity order = unpaidOrder();
-        when(orderService.getById(10)).thenReturn(order);
+        when(orderService.lockById(10)).thenReturn(order);
 
         assertThrows(IllegalArgumentException.class, () -> service.markPaid(10, 19899));
         verify(orderService, never()).update(order);
@@ -46,14 +47,31 @@ class OrderPaymentServiceImplTest {
     @Test
     void markPaidPersistsOrderAndCustomization() {
         MallOrderEntity order = unpaidOrder();
-        when(orderService.getById(10)).thenReturn(order);
+        when(orderService.lockById(10)).thenReturn(order);
 
+        when(orderService.update(any(MallOrderEntity.class), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class))).thenReturn(true);
         service.markPaid(10, 19900);
 
         assertEquals(2, order.getPayStatus());
         assertEquals(201, order.getOrderStatus());
-        verify(orderService).update(order);
+        verify(orderService).update(any(MallOrderEntity.class), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
         verify(customDesignService).markOrderPaid(10);
+    }
+
+    /** 条件更新失败必须抛出异常, 不得生成工单. */
+    @Test
+    void failedPaymentUpdateDoesNotCreateWorkOrder() {
+        when(orderService.lockById(10)).thenReturn(unpaidOrder());
+        assertThrows(IllegalStateException.class, () -> service.markPaid(10, 19900));
+        verify(customDesignService, never()).markOrderPaid(10);
+    }
+
+    /** 缺少支付平台确认的金额时不能将订单标记已支付. */
+    @Test
+    void missingPaidAmountIsRejected() {
+        when(orderService.lockById(10)).thenReturn(unpaidOrder());
+        assertThrows(IllegalArgumentException.class, () -> service.markPaid(10, null));
+        verify(customDesignService, never()).markOrderPaid(10);
     }
 
     /** 创建待支付订单 / Creates an unpaid order. */

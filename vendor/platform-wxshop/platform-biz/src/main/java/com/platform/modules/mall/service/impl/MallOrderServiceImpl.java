@@ -71,6 +71,10 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     private RedisTemplateUtil redisTemplateUtil;
     @Autowired
     private CustomDesignService customDesignService;
+    @Autowired
+    private org.springframework.beans.factory.ObjectProvider<com.github.binarywang.wxpay.service.WxPayService> paymentGateway;
+    @Autowired
+    private org.springframework.beans.factory.ObjectProvider<com.platform.modules.mall.service.OrderPaymentService> paymentResults;
 
     /**
      * 查询订单列表。
@@ -113,6 +117,15 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     @Override
     public boolean update(MallOrderEntity mallOrder) {
         return this.updateById(mallOrder);
+    }
+
+    /** 订单行锁必须由外层业务事务持有至提交, 禁止先读后无条件覆盖. */
+    @Override
+    public MallOrderEntity lockById(Integer orderId) {
+        if (orderId == null) {
+            throw new IllegalArgumentException("订单ID不能为空");
+        }
+        return getOne(new QueryWrapper<MallOrderEntity>().eq("id", orderId).last("FOR UPDATE"));
     }
 
     /**
@@ -367,27 +380,58 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     /** 取消未支付订单并恢复库存和优惠券 / Cancels an unpaid order and restores resources. */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void cancelUnpaid(Integer orderId, Long userId) {
-        MallOrderEntity order = baseMapper.selectById(orderId);
+    public boolean cancelUnpaid(Integer orderId, Long userId) {
+        MallOrderEntity order = lockById(orderId);
         if (order == null || !userId.equals(order.getUserId())) {
             throw new IllegalArgumentException("订单不存在或无权访问");
         }
-        if (!Integer.valueOf(0).equals(order.getPayStatus())
+        if (Integer.valueOf(101).equals(order.getOrderStatus())) {
+            return true;
+        }
+        if (!Set.of(0, 1).contains(order.getPayStatus())
                 || !Integer.valueOf(0).equals(order.getOrderStatus())) {
             throw new IllegalArgumentException("订单状态不允许取消");
+        }
+        com.github.binarywang.wxpay.service.WxPayService gateway = paymentGateway.getIfAvailable();
+        if (gateway == null && (Integer.valueOf(1).equals(order.getPayStatus())
+                || (order.getPayId() != null && !order.getPayId().isBlank() && !"0".equals(order.getPayId())))) {
+            throw new IllegalStateException("支付服务未配置, 无法核对预支付订单");
+        }
+        if (gateway != null) {
+            try {
+                com.github.binarywang.wxpay.bean.result.WxPayOrderQueryResult result =
+                        gateway.queryOrder("", order.getOrderSn());
+                if ("SUCCESS".equals(result.getTradeState())) {
+                    paymentResults.getObject().markPaid(orderId, result.getTotalFee());
+                    return false;
+                }
+                if ("USERPAYING".equals(result.getTradeState())) {
+                    return false;
+                }
+                if ("NOTPAY".equals(result.getTradeState())) {
+                    gateway.closeOrder(order.getOrderSn());
+                } else if (!Set.of("CLOSED", "REVOKED", "PAYERROR").contains(result.getTradeState())) {
+                    throw new IllegalStateException("支付状态待核对, 暂不能关闭订单");
+                }
+            } catch (com.github.binarywang.wxpay.exception.WxPayException error) {
+                if (!"ORDERNOTEXIST".equals(error.getErrCode())) {
+                    throw new IllegalStateException("支付平台核对或关单失败, 请稍后重试");
+                }
+            }
         }
         if (baseMapper.cancelUnpaid(orderId, userId) != 1) {
             throw new IllegalArgumentException("订单状态已变化，请刷新后重试");
         }
         restoreOrderResources(orderId);
         customDesignService.cancelOrder(orderId);
+        return true;
     }
 
     /** 完成退款并确保资源只恢复一次 / Completes a refund and restores resources once. */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void completeRefund(Integer orderId, Integer refundedOrderStatus) {
-        MallOrderEntity order = baseMapper.selectById(orderId);
+        MallOrderEntity order = lockById(orderId);
         if (order == null) {
             throw new IllegalArgumentException("订单不存在");
         }

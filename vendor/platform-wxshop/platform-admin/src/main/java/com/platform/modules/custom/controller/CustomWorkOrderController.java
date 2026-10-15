@@ -32,24 +32,9 @@ import java.util.Map;
 @RequestMapping("custom/work-order")
 @Tag(name = "CustomWorkOrderController|定制生产工单")
 public class CustomWorkOrderController extends AbstractController {
-    /** 工单合法状态列表 / All supported work order statuses. */
-    private static final List<String> ALLOWED_STATUSES = Arrays.asList(
-            "PENDING_REVIEW", "REVIEWED", "PRODUCING", "QUALITY_CHECK", "COMPLETED", "CANCELLED");
-
-    /**
-     * 服务端状态机, 限定每个状态的合法流转目标 /
-     * Server-side state machine restricting transitions per status.
-     */
-    private static final Map<String, List<String>> ALLOWED_TRANSITIONS = Map.of(
-            "PENDING_REVIEW", Arrays.asList("REVIEWED", "CANCELLED"),
-            "REVIEWED", Arrays.asList("PRODUCING", "CANCELLED"),
-            "PRODUCING", List.of("QUALITY_CHECK"),
-            "QUALITY_CHECK", List.of("COMPLETED"),
-            "COMPLETED", List.of(),
-            "CANCELLED", List.of());
-
     private final ProductionWorkOrderDao workOrderDao;
     private final WorkOrderLogDao workOrderLogDao;
+    private final com.platform.modules.custom.service.ProductionWorkflowService workflowService;
 
     /** 查询工单列表 / Lists production work orders. */
     @Operation(summary = "查询定制生产工单")
@@ -80,32 +65,7 @@ public class CustomWorkOrderController extends AbstractController {
     @PostMapping("status")
     @RequiresPermissions("custom:work-order:update")
     public RestResponse<String> updateStatus(Long id, String status, String remark) {
-        if (!ALLOWED_STATUSES.contains(status)) {
-            return RestResponse.fail("不支持的工单状态");
-        }
-        ProductionWorkOrderEntity workOrder = workOrderDao.selectById(id);
-        if (workOrder == null) {
-            return RestResponse.fail("工单不存在");
-        }
-        String fromStatus = workOrder.getStatus();
-        // 按状态机校验流转合法性 / Validates the transition against the state machine.
-        List<String> allowedTargets = ALLOWED_TRANSITIONS.getOrDefault(fromStatus, List.of());
-        if (!allowedTargets.contains(status)) {
-            return RestResponse.fail("不允许从 " + fromStatus + " 流转到 " + status);
-        }
-        workOrder.setStatus(status);
-        workOrder.setUpdateTime(new Date());
-        workOrderDao.updateById(workOrder);
-        // 记录操作日志, 包含操作人便于工艺追溯 / Record operation log with operator for traceability.
-        WorkOrderLogEntity log = new WorkOrderLogEntity();
-        log.setWorkOrderId(id);
-        log.setOperatorId(NumberUtils.toLong(getUserId()));
-        log.setOperatorName(getUser().getRealName());
-        log.setFromStatus(fromStatus);
-        log.setToStatus(status);
-        log.setRemark(remark);
-        log.setCreateTime(new Date());
-        workOrderLogDao.insert(log);
+        workflowService.transition(id, status, remark, NumberUtils.toLong(getUserId()), getUser().getRealName());
         return RestResponse.ok("更新成功");
     }
 }

@@ -34,6 +34,8 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     private final ProductionWorkOrderDao workOrderDao;
     private final CustomQuoteService quoteService;
     private final ComponentStockDao componentStockDao;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.platform.modules.custom.dao.WorkOrderLogDao workOrderLogDao;
 
     public CustomDesignServiceImpl(CustomDesignSnapshotDao snapshotDao,
                                    CustomOrderCustomizationDao orderCustomizationDao,
@@ -201,7 +203,9 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             return;
         }
         for (Long optionId : request.getOptionIds()) {
-            componentStockDao.restoreByOptionId(snapshot.getGoodsId(), optionId, 1);
+            if (componentStockDao.restoreByOptionId(snapshot.getGoodsId(), optionId, 1) != 1) {
+                throw new IllegalStateException("组件库存恢复失败, 订单状态变更回滚");
+            }
         }
     }
 
@@ -257,12 +261,19 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (binding == null) {
             return;
         }
+        if ("CANCELLED".equals(binding.getStatus())) {
+            return;
+        }
+        if (!Set.of("LOCKED", "PAID").contains(binding.getStatus())) {
+            throw new IllegalStateException("定制绑定状态不允许取消");
+        }
+        assertOrderCancellable(orderId);
         boolean wasUnpaid = "LOCKED".equals(binding.getStatus());
         // 条件更新保证取消只执行一次, 防止与支付回调并发或重复调用导致重复恢复库存 /
         // Conditional update ensures cancellation runs once, avoiding double stock restoration.
         int updated = orderCustomizationDao.update(null, new UpdateWrapper<CustomOrderCustomizationEntity>()
                 .eq("id", binding.getId())
-                .eq("status", binding.getStatus())
+                .in("status", "LOCKED", "PAID")
                 .set("status", "CANCELLED")
                 .set("update_time", new Date()));
         if (updated != 1) {
@@ -273,10 +284,18 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             if (snapshot != null) {
                 // 恢复组件库存 / Restore component stock.
                 restoreComponentStock(snapshot);
-                // 未支付取消时将设计快照恢复为草稿, 允许用户重新下单 /
-                // Restore an unpaid design back to DRAFT so the user can reorder it.
+                // 保留已取消订单的原快照, 复制一个新草稿用于再次购买.
                 if (wasUnpaid && "ORDERED".equals(snapshot.getStatus())) {
-                    snapshot.setStatus("DRAFT");
+                    CustomDesignSnapshotEntity draft = new CustomDesignSnapshotEntity();
+                    org.springframework.beans.BeanUtils.copyProperties(snapshot, draft);
+                    draft.setId(null);
+                    draft.setStatus("DRAFT");
+                    draft.setCreateTime(new Date());
+                    draft.setUpdateTime(new Date());
+                    if (snapshotDao.insert(draft) != 1) {
+                        throw new IllegalStateException("取消后的设计草稿复制失败");
+                    }
+                    snapshot.setStatus("CANCELLED");
                     snapshot.setUpdateTime(new Date());
                     snapshotDao.updateById(snapshot);
                 }
@@ -287,9 +306,23 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                         .eq(ProductionWorkOrderEntity::getOrderId, orderId));
         if (workOrder != null && !"COMPLETED".equals(workOrder.getStatus())
                 && !"CANCELLED".equals(workOrder.getStatus())) {
-            workOrder.setStatus("CANCELLED");
-            workOrder.setUpdateTime(new Date());
-            workOrderDao.updateById(workOrder);
+            String previousStatus = workOrder.getStatus();
+            if (workOrderDao.update(null, new UpdateWrapper<ProductionWorkOrderEntity>()
+                    .eq("id", workOrder.getId()).in("status", "PENDING_REVIEW", "REVIEWED")
+                    .set("status", "CANCELLED").set("update_time", new Date())) != 1) {
+                throw new IllegalStateException("工单已进入生产或发生并发变更, 取消回滚");
+            }
+            com.platform.modules.custom.entity.WorkOrderLogEntity log =
+                    new com.platform.modules.custom.entity.WorkOrderLogEntity();
+            log.setWorkOrderId(workOrder.getId());
+            log.setOperatorName("订单取消服务");
+            log.setFromStatus(previousStatus);
+            log.setToStatus("CANCELLED");
+            log.setRemark("订单取消或退款完成触发, 关联订单: " + orderId);
+            log.setCreateTime(new Date());
+            if (workOrderLogDao.insert(log) != 1) {
+                throw new IllegalStateException("工单取消日志保存失败, 本次取消回滚");
+            }
         }
     }
 

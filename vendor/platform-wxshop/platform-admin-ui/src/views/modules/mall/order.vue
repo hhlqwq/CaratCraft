@@ -10,18 +10,15 @@
       <el-form-item>
         <el-select v-model="searchForm.orderStatus" placeholder="订单状态" clearable>
           <el-option label="待付款" :value="0"></el-option>
-          <el-option label="待发货" :value="1"></el-option>
-          <el-option label="待收货" :value="2"></el-option>
-          <el-option label="已完成" :value="3"></el-option>
-          <el-option label="已取消" :value="4"></el-option>
+          <el-option label="待发货" :value="201"></el-option>
+          <el-option label="待收货" :value="300"></el-option>
+          <el-option label="已完成" :value="301"></el-option>
+          <el-option label="已取消" :value="101"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList(1)">查询</el-button>
-        <el-button v-if="isAuth('mall:order:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('mall:order:delete')" type="danger" :disabled="dataListSelections.length <= 0"
-                   @click="deleteHandle()">批量删除
-        </el-button>
+        <el-tag type="info">交易记录保留用于对账, 不支持手工新增或删除</el-tag>
       </el-form-item>
     </el-form>
 
@@ -78,9 +75,7 @@
             size="small"
             @click="shipOrder(scope.row)">发货
           </el-button>
-          <el-button v-if="isAuth('mall:order:delete')" type="text" size="small" @click="deleteHandle(scope.row.id)">
-            删除
-          </el-button>
+
         </template>
       </el-table-column>
     </el-table>
@@ -260,11 +255,11 @@ export default {
       return map[status] || 'info'
     },
     payStatusText (status) {
-      const map = {0: '未支付', 1: '已支付', 2: '已支付', 3: '退款中', 4: '已退款'}
+      const map = {0: '未支付', 1: '预支付已创建', 2: '已支付', 3: '退款中', 4: '已退款'}
       return map[status] || `状态${status}`
     },
     payStatusType (status) {
-      const map = {0: 'warning', 1: 'success', 2: 'success', 3: 'danger', 4: 'danger'}
+      const map = {0: 'warning', 1: 'warning', 2: 'success', 3: 'danger', 4: 'danger'}
       return map[status] || 'info'
     },
     shippingStatusText (status) {
@@ -276,44 +271,32 @@ export default {
       return map[status] || 'info'
     },
     canAdjustPrice (row) {
-      return Number(row.payStatus) === 0
+      return Number(row.payStatus) === 0 && Number(row.orderStatus) === 0 && (!row.payId || row.payId === '0')
     },
     canShip (row) {
-      return Number(row.payStatus) === 1 && Number(row.shippingStatus) === 0
+      return Number(row.payStatus) === 2 && Number(row.orderStatus) === 201 && Number(row.shippingStatus) === 0
     },
+    // 改价必须同时填写金额和理由, 提交由服务端校验状态和记录流水.
     adjustPrice (row) {
-      this.$prompt('请输入新的实付金额', '支付前改价', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$prompt('请输入新的实付金额, 最多两位小数', '支付前改价', {
         inputValue: row.actualPrice,
-        inputValidator: (value) => {
-          if (value === '' || value === null || value === undefined) {
-            return '金额不能为空'
-          }
-          const n = Number(value)
-          if (Number.isNaN(n) || n < 0) {
-            return '金额必须是大于等于0的数字'
-          }
-          return true
-        }
+        inputValidator: value => /^(0|[1-9]\d{0,6})(\.\d{1,2})?$/.test(value) && Number(value) >= 0.01
+          ? true : '金额须大于零且最多两位小数'
       }).then(({value}) => {
-        this.$http({
-          url: '/mall/order/adjustPrice',
-          method: 'post',
-          data: {
-            id: row.id,
-            actualPrice: value
-          }
-        }).then(({data}) => {
-          if (data && data.code === 0) {
-            this.$message({message: data.msg || '改价成功', type: 'success', duration: 1500})
-            this.getDataList()
-          } else if (data) {
-            this.$message.error(data.msg || '改价失败')
-          }
-        })
-      }).catch(() => {
-      })
+        return this.$prompt('请填写改价理由, 最多200字', '记录改价理由', {
+          inputValidator: reason => reason && reason.trim().length > 0 && reason.length <= 200
+            ? true : '请填写1到200字的理由'
+        }).then(result => ({price: value, reason: result.value}))
+      }).then(change => this.$http({
+        url: '/mall/order/adjustPrice',
+        method: 'post',
+        data: {id: row.id, actualPrice: change.price, reason: change.reason}
+      })).then(({data}) => {
+        if (data && data.code === 0) {
+          this.$message.success('改价成功, 已记录变更流水')
+          this.getDataList()
+        }
+      }).catch(() => {})
     },
     shipOrder (row) {
       this.shipForm.id = row.id

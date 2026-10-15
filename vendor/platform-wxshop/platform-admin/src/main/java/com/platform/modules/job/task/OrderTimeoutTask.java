@@ -40,14 +40,15 @@ public class OrderTimeoutTask {
         List<MallOrderEntity> expiredOrders = orderService.list(
                 new LambdaQueryWrapper<MallOrderEntity>()
                         .eq(MallOrderEntity::getOrderStatus, 0)
-                        .eq(MallOrderEntity::getPayStatus, 0)
+                        .in(MallOrderEntity::getPayStatus, 0, 1)
                         .lt(MallOrderEntity::getAddTime, expireTime));
 
         int closedCount = 0;
         for (MallOrderEntity order : expiredOrders) {
             try {
-                orderService.cancelUnpaid(order.getId(), order.getUserId());
-                closedCount++;
+                if (orderService.cancelUnpaid(order.getId(), order.getUserId())) {
+                    closedCount++;
+                }
             } catch (Exception e) {
                 log.warn("关闭超时订单失败，订单ID：{}，原因：{}", order.getId(), e.getMessage());
             }

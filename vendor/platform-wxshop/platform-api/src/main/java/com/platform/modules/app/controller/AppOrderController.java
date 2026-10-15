@@ -44,6 +44,8 @@ public class AppOrderController extends AppBaseController {
     @Autowired
     private MallOrderService orderService;
     @Autowired
+    private com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
+    @Autowired
     private MallOrderGoodsService orderGoodsService;
     @Autowired(required = false)
     private WxPayService wxPayService;
@@ -277,8 +279,8 @@ public class AppOrderController extends AppBaseController {
             }
             return RestResponse.fail("取消失败");
         } else {
-            orderService.cancelUnpaid(orderId, loginUser.getId());
-            return RestResponse.ok("取消成功");
+            boolean closed = orderService.cancelUnpaid(orderId, loginUser.getId());
+            return closed ? RestResponse.ok("取消成功") : RestResponse.fail("订单已支付或支付处理中, 请刷新订单");
         }
     }
 
@@ -289,17 +291,7 @@ public class AppOrderController extends AppBaseController {
     @PostMapping("confirmOrder")
     public RestResponse<String> confirmOrder(Integer orderId, @LoginUser WxUserEntity loginUser) {
         try {
-            MallOrderEntity orderVo = orderService.getById(orderId);
-            if (null == orderVo) {
-                return RestResponse.fail("订单不存在！");
-            }
-            if (!loginUser.getId().equals(orderVo.getUserId())) {
-                return RestResponse.fail("越权操作！");
-            }
-            orderVo.setOrderStatus(301);
-            orderVo.setShippingStatus(2);
-            orderVo.setConfirmTime(new Date());
-            orderService.update(orderVo);
+            lifecycleService.confirmReceipt(orderId, loginUser.getId());
             return RestResponse.ok("确认收货成功");
         } catch (IllegalArgumentException | IllegalStateException e) {
             return RestResponse.fail(e.getMessage());
