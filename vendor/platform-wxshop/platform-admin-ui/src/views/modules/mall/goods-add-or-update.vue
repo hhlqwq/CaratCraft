@@ -230,6 +230,8 @@
 </template>
 
 <script>
+import DOMPurify from '@/third-party/dompurify/purify.es.mjs'
+
 export default {
   data () {
     return {
@@ -300,13 +302,13 @@ export default {
         }
       })
     },
+    // 商品详情以清洗后的HTML展示, 弹层宽度适应窄窗口.
     openDetail () {
-      this.$alert(`<div style="width: 720px;height: 720px;overflow-y: auto;overflow-x: hidden"">${this.form.goods.goodsDesc}</div>`, this.form.goods.name, {
-        dangerouslyUseHTMLString: true,
-        closeOnClickModal: true,
-        callback: action => {
-        }
+      const content = this.$createElement('div', {
+        style: {maxHeight: '65vh', overflow: 'auto', overflowWrap: 'anywhere'},
+        domProps: {innerHTML: DOMPurify.sanitize(this.form.goods.goodsDesc || '')}
       })
+      this.$alert(content, this.form.goods.name, {closeOnClickModal: true})
     },
     loadOptions () {
       this.$http({url: '/mall/category/queryAll', method: 'get'}).then(({data}) => {

@@ -23,6 +23,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.Constant;
+import com.platform.common.utils.SafeImageUpload;
 import com.platform.common.utils.RestResponse;
 import com.platform.common.validator.ValidatorUtils;
 import com.platform.common.validator.group.*;
@@ -134,14 +135,15 @@ public class SysOssController extends AbstractController {
      */
     @Operation(summary = "上传文件", description = "上传文件")
     @PostMapping("/upload")
+    @RequiresPermissions("sys:oss:list")
     public RestResponse<Map<String, Object>> upload(@RequestParam(value = "file", required = false) MultipartFile file) throws Exception {
         if (null == file || file.isEmpty()) {
             throw new BusinessException("上传文件不能为空");
         }
 
         //上传文件
-        String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(Constant.DOT));
-        String url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(file.getBytes(), suffix);
+        String suffix = ".png";
+        String url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(SafeImageUpload.readPng(file), suffix);
 
         String suffixLowerCase = suffix.toLowerCase();
         String p12 = ".p12";

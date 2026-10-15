@@ -17,43 +17,71 @@ function formatNumber (n) {
   return n[1] ? n : '0' + n
 }
 
-/**
- * 封封微信的的request
- */
-function request (url, data = {}, method = 'POST', header = 'application/x-www-form-urlencoded') {
-  wx.showLoading({
-    title: '加载中...',
-  })
-  return new Promise(function (resolve, reject) {
-    wx.request({
-      url: url,
-      data: data,
-      method: method,
-      header: {
-        'Content-Type': header,
-        'token': wx.getStorageSync('token')
-      },
-      success: function (res) {
-        wx.hideLoading()
-        // 业务 4xx 同样保留结构化响应, 便于页面展示服务端校验信息 /
-        // Preserve structured 4xx responses so pages can show validation messages.
-        if (res.data && typeof res.data.code !== 'undefined') {
-          if (res.data.code == 401) {
-            wx.navigateTo({ url: '/pages/auth/btnAuth/btnAuth' })
-          }
-          resolve(res.data)
-        } else if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(res.data)
-        } else {
-          reject(res.errMsg)
-        }
+let pendingRequests = 0;
+let authRedirecting = false;
 
-      },
-      fail: function (err) {
-        reject(err)
-      }
-    })
-  })
+/** 失效会话统一清理, 忽略旧令牌的迟到响应并避免重复登录导航. */
+function expireSession(token) {
+  if ((wx.getStorageSync('token') || '') !== token) return;
+  ['token', 'userInfo', 'addressId', 'designSnapshotId', 'designQuote'].forEach(function(key) {
+    wx.removeStorageSync(key);
+  });
+  const app = typeof getApp === 'function' ? getApp() : null;
+  if (app && app.globalData) {
+    app.globalData.token = '';
+    app.globalData.userInfo = {};
+    app.globalData.userCoupon = 'NO_USE_COUPON';
+    app.globalData.courseCouponCode = {};
+  }
+  if (!authRedirecting) {
+    authRedirecting = true;
+    const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+    if (!pages.length || pages[pages.length - 1].route !== 'pages/auth/btnAuth/btnAuth') {
+      wx.navigateTo({url: '/pages/auth/btnAuth/btnAuth', fail: function() { authRedirecting = false; }});
+    }
+  }
+}
+
+/** 统一请求、并发加载计数及失败收尾, 所有分支均返回可完成的Promise. */
+function request(url, data = {}, method = 'POST', header = 'application/x-www-form-urlencoded') {
+  const token = wx.getStorageSync('token') || '';
+  if (token) authRedirecting = false;
+  if (pendingRequests++ === 0) wx.showLoading({title: '加载中...'});
+  let completed = false;
+  /** 每个请求仅释放一次加载计数. */
+  function finish() {
+    if (completed) return;
+    completed = true;
+    pendingRequests = Math.max(0, pendingRequests - 1);
+    if (pendingRequests === 0) wx.hideLoading();
+  }
+  return new Promise(function(resolve, reject) {
+    try {
+      wx.request({
+        url: url,
+        data: data,
+        method: method,
+        header: {'Content-Type': header, token: token},
+        success: function(res) {
+          if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
+            expireSession(token);
+            reject(new Error('登录已失效, 请重新登录'));
+          } else if (res.data && typeof res.data.code !== 'undefined') {
+            resolve(res.data);
+          } else if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve(res.data);
+          } else {
+            reject(new Error('请求失败, HTTP ' + res.statusCode));
+          }
+        },
+        fail: function(error) { reject(new Error(error.errMsg || '网络连接失败')); },
+        complete: finish,
+      });
+    } catch (error) {
+      finish();
+      reject(error);
+    }
+  });
 }
 
 /**

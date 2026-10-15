@@ -1,0 +1,218 @@
+/* 小程序和管理端关键异步路径回归, 不访问网络或真实账号. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const {test} = require('node:test');
+const root = path.resolve(__dirname, '../vendor/platform-wxshop');
+
+/** 在独立上下文加载CommonJS模块, 依赖由测试注入. */
+function load(relative, dependencies = {}, extras = {}) {
+  const sandbox = {module: {exports: {}}, console, ...extras};
+  sandbox.require = name => {
+    if (!(name in dependencies)) throw new Error('测试未声明依赖: ' + name);
+    return dependencies[name];
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(root, relative), 'utf8'), sandbox);
+  return sandbox.module.exports;
+}
+
+/** 提供可控的请求队列和会话存储, 观察加载及导航次数. */
+function requestFixture() {
+  const storage = {token: 'old-token'};
+  const calls = {requests: [], shown: 0, hidden: 0, navigation: 0};
+  const app = {globalData: {}};
+  const wx = {
+    getStorageSync: key => storage[key],
+    removeStorageSync: key => { delete storage[key]; },
+    showLoading: () => { calls.shown++; },
+    hideLoading: () => { calls.hidden++; },
+    request: request => calls.requests.push(request),
+    navigateTo: () => { calls.navigation++; },
+  };
+  const util = load('wx-mall/utils/util.js', {'../config/api.js': {}},
+      {wx, getApp: () => app, getCurrentPages: () => []});
+  return {util, wx, calls, storage};
+}
+
+/** 网络失败及并发完成都必须正确释放全局加载状态. */
+test('网络失败和并发请求的加载提示正确收尾', async () => {
+  const {util, calls} = requestFixture();
+  const first = util.request('/first');
+  const second = util.request('/second');
+  const result = Promise.allSettled([first, second]);
+  calls.requests[0].fail({errMsg: 'offline'});
+  calls.requests[0].complete();
+  assert.equal(calls.shown, 1);
+  assert.equal(calls.hidden, 0);
+  calls.requests[1].success({statusCode: 200, data: {code: 0}});
+  calls.requests[1].complete();
+  assert.equal(calls.hidden, 1);
+  assert.equal((await result)[0].status, 'rejected');
+});
+
+/** 同一失效会话只跳转一次, 旧请求不能清除新令牌. */
+test('401导航去重并隔离旧令牌的迟到响应', async () => {
+  const {util, calls, storage} = requestFixture();
+  const results = Promise.allSettled([util.request('/a'), util.request('/b')]);
+  for (const request of calls.requests) {
+    request.success({statusCode: 401, data: {code: 401}});
+    request.complete();
+  }
+  await results;
+  assert.equal(calls.navigation, 1);
+  assert.equal(storage.token, undefined);
+  const next = util.request('/stale');
+  const nextResult = Promise.allSettled([next]);
+  storage.token = 'new-token';
+  calls.requests[2].success({statusCode: 401, data: {code: 401}});
+  calls.requests[2].complete();
+  await nextResult;
+  assert.equal(storage.token, 'new-token');
+  assert.equal(calls.navigation, 1);
+});
+
+/** 预下单网络拒绝必须到达调用方, 不触发支付弹窗. */
+test('支付预下单网络失败不会留下待定Promise', async () => {
+  let paymentCalls = 0;
+  const pay = load('wx-mall/services/pay.js', {
+    '../utils/util.js': {request: () => Promise.reject(new Error('offline'))},
+    '../config/api.js': {PayPrepayId: '/prepay'},
+  }, {wx: {requestPayment: () => { paymentCalls++; }}});
+  await assert.rejects(pay.payOrder(1), /offline/);
+  assert.equal(paymentCalls, 0);
+});
+
+/** 支付客户端成功也必须查询服务端的可信状态. */
+test('支付成功后查询服务端状态', async () => {
+  const urls = [];
+  const pay = load('wx-mall/services/pay.js', {
+    '../utils/util.js': {request: url => {
+      urls.push(url);
+      return Promise.resolve({code: 0, data: {}});
+    }},
+    '../config/api.js': {PayPrepayId: '/prepay', OrderQuery: '/query'},
+  }, {wx: {requestPayment: options => options.success({})}});
+  await pay.payOrder(1);
+  assert.deepEqual(urls, ['/prepay', '/query']);
+});
+
+/** 微信Page定义使用内存setData, 避免依赖开发者工具. */
+function loadCheckout(request, storage, extraWx = {}) {
+  let page;
+  const app = {globalData: {userCoupon: 'NO_USE_COUPON'}};
+  load('wx-mall/pages/shopping/checkout/checkout.js', {
+    '../../../utils/util.js': {request, showErrorToast: () => {}},
+    '../../../config/api.js': {CartCheckout: '/checkout', OrderSubmit: '/submit'},
+    '../../../services/pay.js': {},
+  }, {
+    Page: definition => { page = definition; },
+    getApp: () => app,
+    wx: {getStorageSync: key => storage[key], ...extraWx},
+  });
+  page.setData = values => Object.assign(page.data, values);
+  return page;
+}
+
+/** 所选地址必须在请求前同步, 连点提交只产生一个请求. */
+test('结算先读取所选地址, 提交按钮阻止重复请求', async () => {
+  const calls = [];
+  let complete;
+  const page = loadCheckout((url, data) => {
+    calls.push({url, data});
+    return new Promise(resolve => { complete = resolve; });
+  }, {addressId: 12});
+  page.onShow();
+  assert.equal(calls[0].data.addressId, 12);
+  calls.length = 0;
+  const submitted = page.submitOrder();
+  page.submitOrder();
+  assert.equal(calls.length, 1);
+  complete({code: 400, msg: '测试失败'});
+  await submitted;
+  assert.equal(page.data.submitting, false);
+});
+
+/** Vue组件脚本由现有Babel转成测试模块, 其他组件使用占位依赖. */
+function loadVue(relative) {
+  const babel = require(path.join(root, 'platform-admin-ui/node_modules/babel-core'));
+  const source = fs.readFileSync(path.join(root, relative), 'utf8').split('<script>')[1]
+      .split('</script>')[0];
+  const transformed = babel.transform(source, {babelrc: false, plugins: [
+    require(path.join(root, 'platform-admin-ui/node_modules/babel-plugin-transform-es2015-modules-commonjs')),
+  ]}).code;
+  const module = {exports: {}};
+  vm.runInNewContext(transformed, {module, exports: module.exports,
+    require: () => ({}), FileReader: class {
+      /** 模拟浏览器读取本地JSON, 不写入实际文件. */
+      readAsText() { this.onload({target: {result: JSON.stringify({goods: {name: '测试商品', categoryId: 1}})}}); }
+    }});
+  return module.exports.default;
+}
+
+/** 合法商品JSON必须进入确认和保存, 不再报未定义变量. */
+test('合法商品JSON可以进入确认与保存', async () => {
+  const component = loadVue('platform-admin-ui/src/views/modules/mall/goods.vue');
+  let saves = 0;
+  const context = {
+    $confirm: () => Promise.resolve(),
+    $http: () => { saves++; return Promise.resolve({data: {code: 0, data: 1}}); },
+    $message: {success: () => {}, error: message => { throw new Error(message); }},
+    getDataList: () => {},
+  };
+  component.methods.importGoodsJson.call(context, {raw: {}});
+  await new Promise(setImmediate);
+  assert.equal(saves, 1);
+});
+
+/** 创建可控制返回顺序的定制页, 不接入真实微信接口. */
+function designerFixture() {
+  let page;
+  const requests = [];
+  load('wx-mall/pages/designer/designer.js', {
+    '../../utils/util.js': {request: (url, data) => new Promise((resolve, reject) => {
+      requests.push({url, data, resolve, reject});
+    })},
+    '../../config/api.js': {CustomizationConfig: '/config', CustomizationQuote: '/quote'},
+  }, {Page: definition => { page = definition; }, wx: {}, setTimeout, clearTimeout});
+  page.setData = values => Object.assign(page.data, values);
+  return {page, requests};
+}
+
+/** 报价失败时旧价格立即失效, 后续不能保存或结算. */
+test('定制报价失败清除旧价格并禁止保存', async () => {
+  const {page, requests} = designerFixture();
+  page.data.quote = {totalPrice: 199};
+  const refresh = page.refreshQuote();
+  assert.equal(page.data.quote.totalPrice, undefined);
+  assert.equal(page.data.quoting, true);
+  requests[0].reject(new Error('库存不足'));
+  await refresh;
+  assert.equal(page.data.quoteError, '库存不足');
+  assert.equal(page.data.quoting, false);
+  await assert.rejects(page.persistDesign(true), /有效报价/);
+});
+
+/** 配置乱序返回时仅采纳当前商品, 必选类型读取商家配置. */
+test('定制配置拒绝过期响应并采用商家必选项', async () => {
+  const {page, requests} = designerFixture();
+  page.data.goodsId = 1;
+  const first = page.loadConfig();
+  page.data.goodsId = 2;
+  const second = page.loadConfig();
+  requests[1].resolve({code: 0, data: {
+    product: {goodsId: 2, requiredComponentTypes: 'length', previewWidth: 500, previewHeight: 750},
+    primaryProductId: 22,
+    options: [{id: 2, componentType: 'length', name: '链长', assetUrl: '/merchant-layer.png', zIndex: 4}],
+  }});
+  await second;
+  requests[0].resolve({code: 0, data: {
+    product: {goodsId: 1}, primaryProductId: 11, options: [],
+  }});
+  await first;
+  assert.equal(page.data.productConfig.goodsId, 2);
+  assert.equal(page.data.primaryProductId, 22);
+  assert.equal(page.data.componentGroups[0].required, true);
+  assert.equal(page.data.previewLayers.layers[0].url, '/merchant-layer.png');
+  assert.equal(page.data.previewLayers.ratio, 150);
+});

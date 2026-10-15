@@ -16,6 +16,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.platform.modules.wx.service.WxUserService;
+import com.platform.common.exception.BusinessException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,6 +41,8 @@ import java.util.Map;
 public class AppCartController extends AppBaseController {
     @Autowired
     private MallCartService cartService;
+    @Autowired
+    private WxUserService userService;
     @Autowired
     private MallGoodsService goodsService;
     @Autowired
@@ -137,6 +143,15 @@ public class AppCartController extends AppBaseController {
         return RestResponse.ok(getCart(loginUser));
     }
 
+    /** 同一用户购物车写入串行化, 防止合并时丢失数量或重复删除. */
+    private void lockCart(Long userId) {
+        if (userService.getOne(new QueryWrapper<WxUserEntity>().eq("ID", userId)
+                .last("FOR UPDATE")) == null) {
+            throw new BusinessException("用户不存在");
+        }
+    }
+
+    /** 将已有规格ID拆分为查询参数. */
     private String[] getSpecificationIdsArray(String ids) {
         String[] idsArray = null;
         if (org.apache.commons.lang.StringUtils.isNotEmpty(ids)) {
@@ -153,10 +168,15 @@ public class AppCartController extends AppBaseController {
      */
     @Operation(summary = "添加商品到购物车")
     @PostMapping("add")
+    @Transactional(rollbackFor = Exception.class)
     public RestResponse<Map<String, Object>> add(@LoginUser WxUserEntity loginUser, @RequestBody ApiCartAddRequest request) {
+        lockCart(loginUser.getId());
         Integer goodsId = request.getGoodsId();
         Integer productId = request.getProductId();
         Integer number = request.getNumber();
+        if (goodsId == null || productId == null || number == null || number < 1 || number > 9999) {
+            return RestResponse.fail(400, "商品、规格和数量无效, 数量须为1到9999");
+        }
         //判断商品是否可以购买
         MallGoodsEntity goodsInfo = goodsService.getById(goodsId);
         if (null == goodsInfo || goodsInfo.getIsDelete() == 1 || goodsInfo.getIsOnSale() != 1) {
@@ -164,7 +184,8 @@ public class AppCartController extends AppBaseController {
         }
         //取得规格的信息,判断规格库存
         MallProductEntity productInfo = productService.getById(productId);
-        if (null == productInfo || productInfo.getGoodsNumber() < number) {
+        if (null == productInfo || !goodsId.equals(productInfo.getGoodsId())
+                || productInfo.getGoodsNumber() < number) {
             return RestResponse.fail(400, "库存不足");
         }
 
@@ -224,10 +245,15 @@ public class AppCartController extends AppBaseController {
      */
     @Operation(summary = "减少商品到购物车")
     @PostMapping("minus")
+    @Transactional(rollbackFor = Exception.class)
     public RestResponse<Integer> minus(@LoginUser WxUserEntity loginUser, @RequestBody ApiCartMinusRequest request) {
+        lockCart(loginUser.getId());
         Integer goodsId = request.getGoodsId();
         Integer productId = request.getProductId();
         Integer number = request.getNumber();
+        if (goodsId == null || productId == null || number == null || number < 1 || number > 9999) {
+            return RestResponse.fail(400, "商品、规格和数量无效, 数量须为1到9999");
+        }
         //判断购物车中是否存在此规格商品
         Map<String, Object> cartParam = new HashMap<>();
         cartParam.put("goodsId", goodsId);
@@ -241,7 +267,7 @@ public class AppCartController extends AppBaseController {
                 cartInfo.setNumber(cartInfo.getNumber() - number);
                 cartService.update(cartInfo);
                 cartNum = cartInfo.getNumber();
-            } else if (cartInfo.getNumber() == 1) {
+            } else {
                 cartService.delete(cartInfo.getId());
             }
         }
@@ -253,18 +279,28 @@ public class AppCartController extends AppBaseController {
      */
     @Operation(summary = "更新指定的购物车信息")
     @PostMapping("update")
+    @Transactional(rollbackFor = Exception.class)
     public RestResponse<Map<String, Object>> update(@LoginUser WxUserEntity loginUser, @RequestBody ApiCartUpdateRequest request) {
+        lockCart(loginUser.getId());
         Integer goodsId = request.getGoodsId();
         Integer productId = request.getProductId();
         Integer number = request.getNumber();
+        if (goodsId == null || productId == null || number == null || number < 1 || number > 9999) {
+            return RestResponse.fail(400, "商品、规格和数量无效, 数量须为1到9999");
+        }
         Integer id = request.getId();
         //取得规格的信息,判断规格库存
         MallProductEntity productInfo = productService.getById(productId);
-        if (null == productInfo || productInfo.getGoodsNumber() < number) {
+        if (null == productInfo || !goodsId.equals(productInfo.getGoodsId())
+                || productInfo.getGoodsNumber() < number) {
             return RestResponse.fail(400, "库存不足");
         }
         //判断是否已经存在product_id购物车商品
         MallCartEntity cartInfo = cartService.getById(id);
+        if (cartInfo == null || !loginUser.getId().equals(cartInfo.getUserId())
+                || !goodsId.equals(cartInfo.getGoodsId())) {
+            return RestResponse.fail(403, "购物车记录不存在或无权修改");
+        }
         //只是更新number
         if (cartInfo.getProductId().equals(productId)) {
             cartInfo.setNumber(number);
@@ -275,6 +311,7 @@ public class AppCartController extends AppBaseController {
         Map<String, Object> cartParam = new HashMap<>();
         cartParam.put("goodsId", goodsId);
         cartParam.put("productId", productId);
+        cartParam.put("userId", loginUser.getId());
         List<MallCartEntity> cartInfoList = cartService.queryList(cartParam);
         MallCartEntity newcartInfo = null != cartInfoList && cartInfoList.size() > 0 ? cartInfoList.get(0) : null;
         if (null == newcartInfo) {
@@ -322,7 +359,7 @@ public class AppCartController extends AppBaseController {
             }
             cartInfo.setProductId(productId);
             cartInfo.setGoodsSn(productInfo.getGoodsSn());
-            cartInfo.setNumber(number);
+            cartInfo.setNumber(newNumber);
             cartInfo.setRetailPrice(productInfo.getRetailPrice());
             cartInfo.setMarketPrice(productInfo.getRetailPrice());
             if (null != goodsSepcifitionValue) {

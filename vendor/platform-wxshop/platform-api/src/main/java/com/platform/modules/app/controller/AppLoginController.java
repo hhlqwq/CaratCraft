@@ -25,6 +25,7 @@ import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
 import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.annotation.IgnoreAuth;
+import com.platform.annotation.LoginUser;
 import com.platform.common.utils.RestResponse;
 import com.platform.common.utils.StringUtils;
 import com.platform.common.validator.AbstractAssert;
@@ -88,7 +89,7 @@ public class AppLoginController extends AppBaseController {
         try {
             WxMaJscode2SessionResult session = wxMaService.getUserService().getSessionInfo(code);
             // 用户信息校验
-            log.info("》》》微信返回sessionData：" + session.toString());
+            log.debug("微信会话交换成功");
 
             if (!wxMaService.getUserService().checkUserInfo(session.getSessionKey(), fullUserInfo.getRawData(), fullUserInfo.getSignature())) {
                 log.error("登录失败：数据签名验证失败");
@@ -145,14 +146,12 @@ public class AppLoginController extends AppBaseController {
      * @param request JSON格式参数
      * @return RestResponse
      */
-    @IgnoreAuth
     @PostMapping("LoginByMaPhone")
     @Operation(summary = "微信小程序手机号授权", description = "wx.login()每次返回的code只能使用一次")
-    public RestResponse<String> loginByMaPhone(@RequestBody LoginWxPhoneRequest request) {
+    public RestResponse<String> loginByMaPhone(@LoginUser WxUserEntity loginUser, @RequestBody LoginWxPhoneRequest request) {
         String code = request.getCode();
         AbstractAssert.isBlank(code, "手机号授权失败：code为空");
-        String userId = request.getUserId();
-        AbstractAssert.isBlank(userId, "userId为空");
+        Long userId = loginUser.getId();
 
         try {
             // 解密用户信息

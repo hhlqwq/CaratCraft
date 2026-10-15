@@ -12,19 +12,19 @@
           <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
                    status-icon>
             <el-form-item prop="userName">
-              <el-input v-model="dataForm.userName" placeholder="帐号" autofocus></el-input>
+              <el-input v-model="dataForm.userName" placeholder="帐号" aria-label="管理员账号" autocomplete="username" autofocus></el-input>
             </el-form-item>
             <el-form-item prop="password">
-              <el-input v-model="dataForm.password" type="password" placeholder="密码"></el-input>
+              <el-input v-model="dataForm.password" type="password" placeholder="密码" aria-label="管理员密码" autocomplete="current-password"></el-input>
             </el-form-item>
             <el-form-item prop="captcha">
               <el-row :gutter="20">
                 <el-col :span="14">
-                  <el-input v-model="dataForm.captcha" placeholder="验证码">
+                  <el-input v-model="dataForm.captcha" placeholder="验证码" aria-label="图形验证码">
                   </el-input>
                 </el-col>
                 <el-col :span="10" class="login-captcha">
-                  <img :src="captchaPath" @click="getCaptcha()" alt=""
+                  <img :src="captchaPath" @click="getCaptcha()" @keydown.enter="getCaptcha()" @keydown.space.prevent="getCaptcha()" role="button" tabindex="0" alt="点击刷新图形验证码"
                        style="height: 32px; width: 96px; border-radius: 4px;">
                 </el-col>
               </el-row>
@@ -38,7 +38,7 @@
 
         <div class="brand-info brand-info--footer">
           <p class="brand-info__intro">
-            <el-link type="success" target="_blank" href="http://www.beian.miit.gov.cn">何海龙(845367567@qq.com) © 2019</el-link>
+            <span>CaratCraft · 商家管理平台</span>
           </p>
         </div>
       </div>
@@ -49,6 +49,7 @@
 <script>
 import {getUUID} from '@/utils'
 import {Encrypt} from '@/utils/AESUtils'
+import {isNavigationFailure} from 'vue-router'
 
 export default {
   data () {
@@ -125,7 +126,11 @@ export default {
                 this.getCaptcha()
                 return
               }
-              this.$router.replace({path: '/home'})
+              return this.$router.replace({path: '/home'}).catch(error => {
+                if (!isNavigationFailure(error)) {
+                  throw error
+                }
+              })
             } else {
               this.showLoginError((data && data.msg) || '账号、密码或验证码不正确')
               this.dataForm.captcha = ''

@@ -67,6 +67,15 @@ public class AppAddressController extends AppBaseController {
     @Operation(summary = "添加或更新收货地址")
     @PostMapping("save")
     public RestResponse<MallAddressEntity> save(@LoginUser WxUserEntity loginUser, @RequestBody ApiAddressSaveRequest request) {
+        if (request == null || request.getUserName() == null || request.getUserName().isBlank()
+                || request.getUserName().length() > 60 || request.getDetailInfo() == null
+                || request.getDetailInfo().isBlank() || request.getDetailInfo().length() > 300
+                || request.getProvinceName() == null || request.getProvinceName().isBlank()
+                || request.getCityName() == null || request.getCityName().isBlank()
+                || request.getCountyName() == null || request.getCountyName().isBlank()
+                || request.getTelNumber() == null || !request.getTelNumber().matches("1[3-9][0-9]{9}")) {
+            return RestResponse.fail("请填写完整地址、收货人和有效手机号");
+        }
         MallAddressEntity entity = new MallAddressEntity();
         if (null != request) {
             entity.setId(request.getId());
@@ -79,14 +88,12 @@ public class AppAddressController extends AppBaseController {
             entity.setDetailInfo(request.getDetailInfo());
             entity.setNationalCode(request.getNationalCode());
             entity.setTelNumber(request.getTelNumber());
-            entity.setIsDefault(request.getIsDefault() ? 1 : 0);
+            entity.setIsDefault(Boolean.TRUE.equals(request.getIsDefault()) ? 1 : 0);
         }
         if (null == entity.getId() || entity.getId() == 0) {
             entity.setId(null);
-            addressService.save(entity);
-        } else {
-            addressService.update(entity);
         }
+        addressService.saveOwned(entity);
         return RestResponse.ok(entity);
     }
 
@@ -96,14 +103,14 @@ public class AppAddressController extends AppBaseController {
     @Operation(summary = "删除指定的收货地址")
     @PostMapping("delete")
     public RestResponse<String> delete(@LoginUser WxUserEntity loginUser, @RequestBody ApiAddressDeleteRequest request) {
-        Integer id = request.getId();
-
-        MallAddressEntity entity = addressService.getById(id);
-        //判断越权行为
-        if (!entity.getUserId().equals(loginUser.getId())) {
-            return RestResponse.fail(403, "您无权删除");
+        if (request == null || request.getId() == null) {
+            return RestResponse.fail("地址参数不完整");
         }
-        addressService.delete(id);
+        boolean deleted = addressService.remove(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<MallAddressEntity>()
+                .eq("id", request.getId()).eq("user_id", loginUser.getId()));
+        if (!deleted) {
+            return RestResponse.fail(404, "地址不存在或无权删除");
+        }
         return RestResponse.ok("");
     }
 }

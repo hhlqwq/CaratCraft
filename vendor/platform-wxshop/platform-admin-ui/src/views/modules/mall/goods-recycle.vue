@@ -72,7 +72,9 @@ export default {
   methods: {
     // 查询回收站分页数据。
     getDataList (page) {
-      if (page) this.pageIndex = page
+      if (page) {
+        this.pageIndex = page
+      }
       this.$http({
         url: '/mall/goods/recycle/list',
         method: 'get',
@@ -119,12 +121,16 @@ export default {
     },
     // 格式化删除时间。
     formatDate (value) {
-      if (!value) return '迁移前删除'
+      if (!value) {
+        return '迁移前删除'
+      }
       return new Date(value).toLocaleString('zh-CN', {hour12: false})
     },
     // 计算自动清理前剩余天数。
     remainingDays (value) {
-      if (!value) return 30
+      if (!value) {
+        return 30
+      }
       const elapsed = Date.now() - new Date(value).getTime()
       return Math.max(0, 30 - Math.floor(elapsed / 86400000))
     },

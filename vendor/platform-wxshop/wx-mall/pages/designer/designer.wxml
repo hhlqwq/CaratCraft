@@ -1,8 +1,8 @@
 <view class="page">
   <view class="intro-card">
-    <view class="intro-eyebrow">三步完成定制</view>
+    <view class="intro-eyebrow">按需定制</view>
     <view class="intro-title">珍珠项链定制</view>
-    <view class="intro-description">依次选择珍珠、贵金属和款式，其他搭配都可以不选。</view>
+    <view class="intro-description">必选项目以商家当前配置为准, 其他搭配可按需选择。</view>
   </view>
 
   <view class="preview-card">
@@ -11,26 +11,22 @@
         <view class="preview-title">效果预览</view>
         <view class="preview-subtitle">选择后会立即更新</view>
       </view>
-      <view class="demo-badge">演示效果</view>
+      <view class="demo-badge">搭配预览</view>
     </view>
-    <view class="preview-stage">
-      <image class="preview-layer chain-layer" src="{{previewLayers.chainUrl}}" mode="aspectFit" webp="{{true}}"></image>
-      <view class="pendant-group {{previewLayers.doublePearl ? 'double' : ''}} {{previewLayers.pearlSize}}">
-        <image class="pearl-layer pearl-primary" src="{{previewLayers.pearlUrl}}" mode="aspectFit" webp="{{true}}"></image>
-        <image wx:if="{{previewLayers.doublePearl}}" class="pearl-layer pearl-secondary"
-               src="{{previewLayers.pearlUrl}}" mode="aspectFit" webp="{{true}}"></image>
-        <image wx:if="{{previewLayers.gemUrl}}" class="gem-layer"
-               src="{{previewLayers.gemUrl}}" mode="aspectFit" webp="{{true}}"></image>
-      </view>
+    <view class="preview-stage" style="height: 0; padding-bottom: {{previewLayers.ratio || 100}}%;">
+      <image wx:for="{{previewLayers.layers}}" wx:key="id" class="preview-layer"
+             style="z-index: {{item.zIndex}};" src="{{item.url}}" mode="aspectFit" webp="{{true}}"></image>
     </view>
+    <view wx:if="{{previewLayers.missing.length}}" class="preview-disclaimer">部分已选组件未配置图层: {{previewLayers.missing}}</view>
     <view class="selected-line" wx:if="{{previewLayers.description}}">已选：{{previewLayers.description}}</view>
     <view class="preview-disclaimer">效果图用于搭配参考，实际成品以商家确认和最终工艺为准。</view>
+    <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
     <view class="price-row">
       <view>
         <view class="price-label">当前预估价格</view>
         <view class="price-note">下单时由服务端再次确认</view>
       </view>
-      <view class="price">¥ {{quote.totalPrice || '--'}}</view>
+      <view class="price">¥ {{quoting ? '报价中' : (quote.totalPrice || '--')}}</view>
     </view>
   </view>
 
@@ -117,8 +113,8 @@
 
   <view class="bottom-bar">
     <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
-            disabled="{{loadingConfig || configError || !componentGroups.length}}">保存</button>
+            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">保存</button>
     <button class="primary" bindtap="submitDesign" loading="{{saving}}"
-            disabled="{{loadingConfig || configError || !quote.totalPrice || saving}}">下一步</button>
+            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">下一步</button>
   </view>
 </view>

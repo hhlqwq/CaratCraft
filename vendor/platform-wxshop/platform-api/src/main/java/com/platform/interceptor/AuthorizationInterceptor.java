@@ -50,12 +50,10 @@ public class AuthorizationInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
-        //支持跨域请求
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with,content-type");
-        response.setHeader("Access-Control-Allow-Origin", request.getHeader("Origin"));
+        // 跨域由MVC白名单统一处理, 预检不校验用户凭证.
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            return true;
+        }
 
         String maAppId = request.getHeader("maAppId");
         request.setAttribute(Constant.MA_APPID, maAppId);

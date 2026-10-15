@@ -91,4 +91,7 @@ public interface MallAddressService extends IService<MallAddressEntity> {
     boolean deleteBatch(Integer[] ids);
 
     List<MallAddressEntity> queryList(Map<String, Object> param);
+
+    /** 按当前用户保存地址, 串行维护默认地址并拒绝跨用户更新. */
+    boolean saveOwned(MallAddressEntity address);
 }

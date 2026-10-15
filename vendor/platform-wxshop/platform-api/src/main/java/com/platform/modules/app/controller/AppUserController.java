@@ -2,6 +2,7 @@ package com.platform.modules.app.controller;
 
 import com.github.qcloudsms.SmsSingleSenderResult;
 import com.platform.annotation.LoginUser;
+import com.platform.modules.app.service.MobileVerificationService;
 import com.platform.common.utils.*;
 import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.app.request.ApiUserBindMobileRequest;
@@ -32,12 +33,12 @@ public class AppUserController extends AppBaseController {
     private static final int MAX_NICKNAME_LENGTH = 32;
     private final WxUserService userService;
     private final SysConfigService sysConfigService;
-    private final RedisTemplateUtil redisTemplateUtil;
+    private final MobileVerificationService verification;
 
-    public AppUserController(WxUserService userService, SysConfigService sysConfigService, RedisTemplateUtil redisTemplateUtil) {
+    public AppUserController(WxUserService userService, SysConfigService sysConfigService, MobileVerificationService verification) {
         this.userService = userService;
         this.sysConfigService = sysConfigService;
-        this.redisTemplateUtil = redisTemplateUtil;
+        this.verification = verification;
     }
 
     /**
@@ -53,11 +54,7 @@ public class AppUserController extends AppBaseController {
         if (!isValidMobile(phone)) {
             return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
         }
-        String cacheKey = Constant.PRE_SMS + loginUser.getId();
-        if (redisTemplateUtil.get(cacheKey) != null) {
-            return RestResponse.fail("短信已发送");
-        }
-        String smsCode = CharUtil.getRandomNum(4);
+        String smsCode = verification.begin(loginUser.getId(), phone);
         SmsConfig config = sysConfigService.getConfigObject(Constant.SMS_CONFIG_KEY, SmsConfig.class);
         if (StringUtils.isNullOrEmpty(config)) {
             return RestResponse.fail("请先配置短信平台信息");
@@ -79,7 +76,7 @@ public class AppUserController extends AppBaseController {
         } catch (Exception e) {
             return RestResponse.fail("短信发送失败");
         }
-        redisTemplateUtil.set(cacheKey, smsCode, 60);
+        verification.issued(loginUser.getId(), phone, smsCode);
         return RestResponse.ok("短信发送成功");
     }
 
@@ -106,18 +103,14 @@ public class AppUserController extends AppBaseController {
         if (!isValidMobile(mobile)) {
             return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
         }
-        String cacheKey = Constant.PRE_SMS + loginUser.getId();
-        Object smsCode = redisTemplateUtil.get(cacheKey);
-        if (smsCode == null || !mobileCode.equals(smsCode.toString())) {
-            return RestResponse.fail("验证码错误");
-        }
+        verification.consume(loginUser.getId(), mobile, mobileCode);
         WxUserEntity userEntity = userService.getById(loginUser.getId());
         if (userEntity == null) {
             return RestResponse.fail("用户不存在");
         }
         userEntity.setPhone(mobile);
         userService.updateById(userEntity);
-        redisTemplateUtil.del(cacheKey);
+
         return RestResponse.ok("手机绑定成功");
     }
 

@@ -168,8 +168,6 @@ export default {
           const aggregate = JSON.parse(event.target.result)
           if (!aggregate.goods || !aggregate.goods.name || !aggregate.goods.categoryId) {
             throw new Error('JSON 必须包含 goods.name 和 goods.categoryId')
-          } else {
-            this.$message.error((data && data.msg) || '删除失败，请稍后重试')
           }
           aggregate.goods.id = null
           this.$confirm(`确认导入商品“${aggregate.goods.name}”及其相册、参数、规格和 SKU？`, '导入确认', {

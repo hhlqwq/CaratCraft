@@ -2,6 +2,8 @@ package com.platform.modules.app.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.annotation.LoginUser;
+import com.platform.modules.app.service.MobileVerificationService;
+import org.springframework.transaction.annotation.Transactional;
 import com.platform.common.utils.CharUtil;
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
@@ -52,6 +54,8 @@ public class AppCouponController extends AppBaseController {
     private MallCartService apiCartService;
     @Autowired
     private RedisTemplateUtil redisTemplateUtil;
+    @Autowired
+    private MobileVerificationService verification;
 
     /**
      * 获取优惠券列表
@@ -148,7 +152,10 @@ public class AppCouponController extends AppBaseController {
      */
     @Operation(summary = "领券优惠券")
     @PostMapping("newuser")
+    @Transactional(rollbackFor = Exception.class)
     public RestResponse<MallUserCouponEntity> newuser(@LoginUser WxUserEntity loginUser, @RequestBody ApiCouponNewUserRequest request) {
+        loginUser = apiUserService.getOne(new QueryWrapper<WxUserEntity>()
+                .eq("ID", loginUser.getId()).last("FOR UPDATE"));
         String phone = request.getPhone();
         Integer smscode = request.getSmscode();
         if (StringUtils.isNullOrEmpty(phone)) {
@@ -161,9 +168,7 @@ public class AppCouponController extends AppBaseController {
         if (!StringUtils.isNullOrEmpty(loginUser.getPhone())) {
             return RestResponse.fail("当前优惠券只能新用户领取");
         }
-        // 更新手机号码
-        loginUser.setPhone(phone);
-        apiUserService.updateById(loginUser);
+        verification.consume(loginUser.getId(), phone, String.valueOf(smscode));
         // 是否领取过了
         List<Map<String, Object>> couponVos = queryUserCoupons(loginUser.getId(), null, 4, null);
         if (couponVos != null && !couponVos.isEmpty()) {
@@ -174,13 +179,19 @@ public class AppCouponController extends AppBaseController {
         couponParam.put("sendType", 4);
         MallCouponEntity newCouponConfig = apiCouponService.queryMaxUserEnableCoupon(couponParam);
         if (null != newCouponConfig) {
+            loginUser.setPhone(phone);
+            if (!apiUserService.updateById(loginUser)) {
+                throw new IllegalStateException("用户资料更新失败");
+            }
             MallUserCouponEntity userCouponVo = new MallUserCouponEntity();
             userCouponVo.setAddTime(new Date());
             userCouponVo.setCouponId(newCouponConfig.getId());
             userCouponVo.setCouponNumber(CharUtil.getRandomString(12));
             userCouponVo.setUserId(loginUser.getId());
             userCouponVo.setCouponStatus(1);
-            apiUserCouponService.save(userCouponVo);
+            if (!apiUserCouponService.save(userCouponVo)) {
+                throw new IllegalStateException("领券失败");
+            }
             return RestResponse.ok(userCouponVo);
         } else {
             return RestResponse.fail("领取失败");

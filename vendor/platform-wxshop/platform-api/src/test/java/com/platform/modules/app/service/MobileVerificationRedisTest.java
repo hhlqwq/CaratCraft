@@ -1,0 +1,52 @@
+package com.platform.modules.app.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.platform.common.exception.BusinessException;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
+/** 显式启用的真实Redis回归, 使用负数随机用户ID隔离, 不调用短信供应商. */
+@EnabledIfEnvironmentVariable(named = "CARATCRAFT_REDIS_TEST", matches = "true")
+class MobileVerificationRedisTest {
+  /** 验证手机号上下文、重放保护及五次失败后销毁, 全程不发送真实短信. */
+  @Test
+  void contextReplayAndAttemptLimitAreAtomic() {
+    RedisStandaloneConfiguration config = new RedisStandaloneConfiguration("127.0.0.1",
+        Integer.parseInt(System.getenv().getOrDefault("CARATCRAFT_REDIS_TEST_PORT", "6379")));
+    String password = System.getenv("CARATCRAFT_REDIS_TEST_PASSWORD");
+    if (password != null && !password.isBlank()) {
+      config.setPassword(password);
+    }
+    JedisConnectionFactory connection = new JedisConnectionFactory(config);
+    connection.afterPropertiesSet();
+    StringRedisTemplate redis = new StringRedisTemplate(connection);
+    long userId = -Math.abs(new java.security.SecureRandom().nextLong(1, Long.MAX_VALUE));
+    String key = "verify:mobile:challenge:" + userId;
+    MobileVerificationService service = new MobileVerificationService(redis);
+    try {
+      service.issued(userId, "13800000000", "123456");
+      assertTrue(redis.getExpire(key) > 0 && redis.getExpire(key) <= 300);
+      assertFalse(redis.opsForValue().get(key).contains("123456"));
+      assertThrows(BusinessException.class,
+          () -> service.consume(userId, "13900000000", "123456"));
+      service.consume(userId, "13800000000", "123456");
+      assertThrows(BusinessException.class,
+          () -> service.consume(userId, "13800000000", "123456"));
+      service.issued(userId, "13800000000", "234567");
+      for (int attempt = 0; attempt < 5; attempt++) {
+        assertThrows(BusinessException.class,
+            () -> service.consume(userId, "13800000000", "999999"));
+      }
+      assertThrows(BusinessException.class,
+          () -> service.consume(userId, "13800000000", "234567"));
+    } finally {
+      redis.delete(List.of(key, key + ":attempts"));
+      connection.destroy();
+    }
+  }
+}

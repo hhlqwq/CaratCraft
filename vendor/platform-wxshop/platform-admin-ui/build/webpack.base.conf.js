@@ -16,7 +16,8 @@ const createLintingRule = () => ({
   include: [resolve('src'), resolve('test')],
   options: {
     formatter: require('eslint-friendly-formatter'),
-    emitWarning: !config.dev.showEslintErrorsInOverlay
+    emitWarning: process.env.NODE_ENV !== 'production' && !config.dev.showEslintErrorsInOverlay,
+    failOnError: process.env.NODE_ENV === 'production'
   }
 })
 

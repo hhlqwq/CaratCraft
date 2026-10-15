@@ -80,6 +80,6 @@
 
     <view class="order-total">
         <view class="l">实付：￥{{actualPrice}}</view>
-        <view class="r" bindtap="submitOrder">去付款</view>
+        <button class="r" bindtap="submitOrder" disabled="{{submitting}}" loading="{{submitting}}">{{submitting ? '提交中' : '去付款'}}</button>
     </view>
 </view>

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 
 /**
@@ -43,6 +44,15 @@ public class JwtUtils {
     private String secret;
     private long expire;
     private String header;
+
+    /** 启动时拒绝空值、非法Base64和不足256位的JWT密钥, 不输出密钥本身. */
+    @PostConstruct
+    public void validateConfiguration() {
+        generateKey(secret);
+        if (expire <= 0 || header == null || header.isBlank()) {
+            throw new IllegalStateException("JWT有效期和请求头必须配置");
+        }
+    }
 
     /**
      * 生成jwt token
@@ -69,16 +79,25 @@ public class JwtUtils {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            log.error("token：" + token + "；validate is token error ", e.getMessage());
+            log.debug("JWT已过期");
             return e.getClaims();
         } catch (Exception e) {
-            log.error("token：" + token + "；validate is token error ", e.getMessage());
+            log.debug("JWT验证失败: {}", e.getClass().getSimpleName());
             return null;
         }
     }
 
+    /** 严格解码部署者提供的Base64随机密钥. */
     private static SecretKey generateKey(String secret) {
-        byte[] encodedKey = Base64.decodeBase64(secret);
+        byte[] encodedKey;
+        try {
+            encodedKey = java.util.Base64.getDecoder().decode(secret == null ? "" : secret);
+        } catch (IllegalArgumentException error) {
+            throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
+        }
+        if (encodedKey.length < 32) {
+            throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
+        }
         return new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA256");
     }
 

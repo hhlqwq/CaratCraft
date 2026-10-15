@@ -2,15 +2,7 @@ var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 
 var DEFAULT_GOODS_ID = 1999105;
-var LAYER_BASE_PATH = '/static/images/designer/layers/';
-var DEFAULT_PREVIEW = {
-  chainUrl: LAYER_BASE_PATH + 'chain-white-gold.webp',
-  pearlUrl: LAYER_BASE_PATH + 'pearl-akoya-white.webp',
-  pearlSize: 'medium',
-  gemUrl: '',
-  doublePearl: false,
-  description: 'Akoya 白珍珠 · 18K 白金 · 经典单珠'
-};
+var DEFAULT_PREVIEW = {layers: [], missing: [], description: '', ratio: 100};
 
 /**
  * 项链 DIY 页面 / Necklace DIY page.
@@ -23,6 +15,8 @@ Page({
     selectedOptionNames: [],
     engraving: '',
     quote: {},
+    quoting: false,
+    quoteError: '',
     primaryProductId: 0,
     saving: false,
     productConfig: {},
@@ -35,8 +29,12 @@ Page({
   /** 加载定制商品配置 / Loads custom product configuration. */
   loadConfig: function (restoredConfiguration) {
     var that = this;
-    that.setData({ loadingConfig: true, configError: '', componentGroups: [] });
-    util.request(api.CustomizationConfig, { goodsId: that.data.goodsId }, 'GET').then(function (res) {
+    var configSeq = (this._configSeq = (this._configSeq || 0) + 1);
+    var requestedGoodsId = that.data.goodsId;
+    this._quoteSeq = (this._quoteSeq || 0) + 1;
+    that.setData({ loadingConfig: true, configError: '', componentGroups: [], quote: {}, primaryProductId: 0 });
+    return util.request(api.CustomizationConfig, { goodsId: requestedGoodsId }, 'GET').then(function (res) {
+      if (configSeq !== that._configSeq || requestedGoodsId !== that.data.goodsId) return;
       if (res.code !== 0) {
         that.setData({ loadingConfig: false, configError: res.msg || '该商品暂不可定制' });
         return;
@@ -64,7 +62,8 @@ Page({
         pendant: '选择吊坠造型。',
         engraving: '选择刻字位置或工艺。'
       };
-      var primaryTypes = ['pearl', 'material', 'style'];
+      var primaryTypes = String((res.data.product || {}).requiredComponentTypes || '').split(',')
+        .map(function(type) { return type.trim(); }).filter(Boolean);
       var options = res.data && res.data.options ? res.data.options : [];
       if (!options.length) {
         that.setData({ loadingConfig: false, configError: '商家尚未配置可选组件' });
@@ -125,6 +124,7 @@ Page({
       that.refreshPreview();
       that.refreshQuote();
     }).catch(function (error) {
+      if (configSeq !== that._configSeq || requestedGoodsId !== that.data.goodsId) return;
       that.setData({
         loadingConfig: false,
         configError: error && error.message ? error.message : '定制配置加载失败，请稍后重试'
@@ -257,47 +257,29 @@ Page({
     return result;
   },
 
-  /** 根据选择解析透明预览图层 / Resolves transparent layers from selected options. */
+  /** 使用商家配置的透明图层和顺序, 缺失时明确提示而不猜测材质图片. */
   resolvePreviewLayers: function () {
     var selected = this.getSelectedOptionsByType();
-    var codes = Object.keys(selected).map(function (type) {
-      return selected[type].optionCode || '';
-    }).join(' ');
-    var materialCode = selected.material ? selected.material.optionCode : '';
-    var chainUrl = LAYER_BASE_PATH + 'chain-white-gold.webp';
-    if (materialCode.indexOf('pt950') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-platinum.webp';
-    else if (materialCode.indexOf('rose') >= 0) chainUrl = LAYER_BASE_PATH + 'chain-rose-gold.webp';
-    else if (materialCode.indexOf('yellow') >= 0 || materialCode === 'material-18k') {
-      chainUrl = LAYER_BASE_PATH + 'chain-yellow-gold.webp';
-    }
-    var pearlUrl = LAYER_BASE_PATH + 'pearl-akoya-white.webp';
-    if (codes.indexOf('tahiti') >= 0) pearlUrl = LAYER_BASE_PATH + 'pearl-tahiti-black.webp';
-    else if (codes.indexOf('southsea-gold') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-southsea-gold.webp';
-    } else if (codes.indexOf('fresh-purple') >= 0 || codes.indexOf('edison') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-fresh-purple.webp';
-    } else if (codes.indexOf('baroque') >= 0) {
-      pearlUrl = LAYER_BASE_PATH + 'pearl-baroque-white.webp';
-    }
-    var pearlCode = selected.pearl ? selected.pearl.optionCode || '' : '';
-    var pearlSize = /-(6|7)(?:$|-)/.test(pearlCode) ? 'small' : 'medium';
-    if (/-(10|11)(?:$|-)/.test(pearlCode)) pearlSize = 'large';
-    var gemUrl = '';
-    if (selected.gem && selected.gem.optionCode !== 'gem-none') {
-      var gemText = (selected.gem.optionCode + ' ' + selected.gem.name).toLowerCase();
-      gemUrl = gemText.indexOf('sapphire') >= 0 || gemText.indexOf('蓝宝石') >= 0
-        ? LAYER_BASE_PATH + 'gem-sapphire.webp'
-        : LAYER_BASE_PATH + 'gem-diamond.webp';
-    }
+    var missing = [];
+    var layers = [];
+    Object.keys(selected).forEach(function(type) {
+      var option = selected[type];
+      var url = option.assetUrl || '';
+      if (url && (/^https:\/\//i.test(url) || /^\/(?!\/)/.test(url))) {
+        layers.push({id: option.id, url: url, zIndex: Number(option.zIndex || 0)});
+      } else {
+        missing.push(option.name || type);
+      }
+    });
+    layers.sort(function(left, right) { return left.zIndex - right.zIndex; });
+    var product = this.data.productConfig || {};
+    var width = Number(product.previewWidth || 750);
+    var height = Number(product.previewHeight || 750);
     return {
-      chainUrl: chainUrl,
-      pearlUrl: pearlUrl,
-      pearlSize: pearlSize,
-      gemUrl: gemUrl,
-      doublePearl: codes.indexOf('double') >= 0,
-      description: this.getSelectedOptionNames(this.data.componentGroups, this.data.selectedOptionIds)
-        .map(function (name) { return name.replace(/^演示\s*[·・]\s*/, ''); })
-        .join('、')
+      layers: layers,
+      missing: missing,
+      ratio: Math.max(25, Math.min(400, height / width * 100)),
+      description: this.getSelectedOptionNames(this.data.componentGroups, this.data.selectedOptionIds).join('、')
     };
   },
 
@@ -309,7 +291,8 @@ Page({
   /** 更新刻字并刷新报价（防抖）/ Updates engraving and refreshes quote with debounce. */
   changeEngraving: function (event) {
     var that = this;
-    that.setData({ engraving: event.detail.value });
+    that.setData({ engraving: event.detail.value, quote: {}, quoting: true, quoteError: '' });
+    this._quoteSeq = (this._quoteSeq || 0) + 1;
     if (that._engravingTimer) clearTimeout(that._engravingTimer);
     that._engravingTimer = setTimeout(function () {
       that.refreshQuote();
@@ -322,13 +305,18 @@ Page({
     // 递增序号丢弃过期响应, 避免快速切换选项时旧报价覆盖新报价 /
     // Bump a sequence to drop stale responses racing with newer selections.
     var seq = (this._quoteSeq = (this._quoteSeq || 0) + 1);
-    util.request(api.CustomizationQuote, {
+    that.setData({quote: {}, quoting: true, quoteError: ''});
+    return util.request(api.CustomizationQuote, {
       goodsId: that.data.goodsId,
       optionIds: that.data.selectedOptionIds,
       engraving: that.data.engraving
     }, 'POST', 'application/json').then(function (res) {
       if (seq !== that._quoteSeq) return;
-      if (res.code === 0) that.setData({ quote: res.data });
+      if (res.code !== 0) throw new Error(res.msg || '报价失败');
+      that.setData({ quote: res.data, quoting: false, quoteError: '' });
+    }).catch(function(error) {
+      if (seq !== that._quoteSeq) return;
+      that.setData({quote: {}, quoting: false, quoteError: error.message || '报价失败, 请重新选择'});
     });
   },
 
@@ -341,6 +329,9 @@ Page({
   persistDesign: function (startCheckout) {
     var that = this;
     if (that.data.saving) return Promise.reject(new Error('正在保存'));
+    if (that.data.quoting || that.data.quoteError || !that.data.quote.totalPrice) {
+      return Promise.reject(new Error('请等待有效报价后再保存或结算'));
+    }
     that.setData({ saving: true });
     return util.request(api.CustomizationSave, {
       goodsId: that.data.goodsId,
@@ -423,5 +414,12 @@ Page({
       });
       this.loadConfig();
     }
+  },
+
+  /** 页面卸载时使未完成请求失效并清理防抖计时器. */
+  onUnload: function() {
+    this._configSeq = (this._configSeq || 0) + 1;
+    this._quoteSeq = (this._quoteSeq || 0) + 1;
+    if (this._engravingTimer) clearTimeout(this._engravingTimer);
   }
 });

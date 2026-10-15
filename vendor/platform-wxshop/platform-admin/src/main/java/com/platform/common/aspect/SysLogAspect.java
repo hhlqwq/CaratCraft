@@ -85,10 +85,9 @@ public class SysLogAspect {
         sysLog.setMethod(className + Constant.DOT + methodName + "()");
 
         //请求的参数
-        Object[] args = joinPoint.getArgs();
         try {
-            String params = JSONObject.toJSONString(args);
-            sysLog.setParams(params);
+            // 操作记录只保留方法、操作者和耗时, 不序列化密码、令牌或商户配置.
+            sysLog.setParams("[请求参数不记录]");
 
             //获取request
             HttpServletRequest request = HttpContextUtils.getHttpServletRequest();

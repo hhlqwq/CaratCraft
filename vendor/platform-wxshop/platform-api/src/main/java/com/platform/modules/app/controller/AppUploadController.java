@@ -21,6 +21,7 @@ package com.platform.modules.app.controller;
 import com.platform.annotation.IgnoreAuth;
 import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.Constant;
+import com.platform.common.utils.SafeImageUpload;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.oss.cloud.UploadFactory;
 import com.platform.modules.oss.entity.SysOssEntity;
@@ -62,7 +63,6 @@ public class AppUploadController {
      * @param file MultipartFile
      * @return RestResponse
      */
-    @IgnoreAuth
     @PostMapping("/upload")
     @Operation(summary = "上传文件", description = "上传文件，form表单提交",
             parameters = {@Parameter(name = "file", description = "文件流对象", required = true, schema = @Schema(type = "object", format = "binary"))}
@@ -72,11 +72,11 @@ public class AppUploadController {
             throw new BusinessException("上传文件不能为空");
         }
 
-        String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(Constant.DOT));
+        String suffix = ".png";
 
         String url;
         try {
-            url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(file.getBytes(), suffix);
+            url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(SafeImageUpload.readPng(file), suffix);
         } catch (IOException e) {
             return RestResponse.fail("上传文件失败");
         }
@@ -96,23 +96,22 @@ public class AppUploadController {
      * @param files MultipartFile[]
      * @return RestResponse
      */
-    @IgnoreAuth
     @PostMapping("/uploadFiles")
     @Operation(summary = "上传多个文件", description = "上传多个文件，form表单提交",
             parameters = {@Parameter(name = "files", description = "文件流对象,接收数组格式", required = true)}
     )
     @ArraySchema(arraySchema = @Schema(type = "object", format = "binary"))
     public RestResponse<List<String>> uploadFiles(@RequestParam("files") MultipartFile[] files) {
-        if (null == files || files.length == 0) {
+        if (null == files || files.length == 0 || files.length > 10) {
             throw new BusinessException("上传文件不能为空");
         }
         List<String> urls = new ArrayList<>();
 
         try {
             for (MultipartFile file : files) {
-                String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf(Constant.DOT));
+                String suffix = ".png";
                 //上传文件
-                String url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(file.getBytes(), suffix);
+                String url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(SafeImageUpload.readPng(file), suffix);
                 urls.add(url);
                 //保存文件信息
                 SysOssEntity ossEntity = new SysOssEntity();

@@ -21,6 +21,7 @@ Page({
     couponDesc: '',
     couponCode: '',
     buyType: '',
+    submitting: false,
     designSnapshotId: null
   },
   /** 初始化结算类型和定制快照 / Initializes checkout type and customization snapshot. */
@@ -66,7 +67,6 @@ Page({
       var quoteRes = result.quote;
       if (quoteRes.code !== 0) {
         util.showErrorToast(quoteRes.msg || '定制报价已失效');
-        wx.hideLoading();
         return;
       }
       if (res.code === 0) {
@@ -103,9 +103,7 @@ Page({
             })
         }
       }
-      wx.hideLoading();
     }).catch(function (error) {
-      wx.hideLoading();
       util.showErrorToast(error && error.message ? error.message : '结算信息加载失败');
     });
   },
@@ -126,11 +124,6 @@ Page({
   onShow: function () {
     this.getCouponData()
     // 页面显示
-    wx.showLoading({
-      title: '加载中...',
-    })
-    this.getCheckoutInfo();
-    
     try {
       var addressId = wx.getStorageSync('addressId');
       if (addressId) {
@@ -139,8 +132,9 @@ Page({
         });
       }
     } catch (e) {
-      // Do something when catch error
+      util.showErrorToast('地址读取失败, 请重新选择');
     }
+    this.getCheckoutInfo();
   },
 
   /**
@@ -180,12 +174,15 @@ Page({
       })
   },
 
+  /** 提交期间锁定按钮, 已创建订单仅继续支付而不重复下单. */
   submitOrder: function () {
+    if (this.data.submitting) return;
     if (this.data.addressId <= 0) {
       util.showErrorToast('请选择收货地址');
       return false;
     }
-    util.request(api.OrderSubmit, {
+    this.setData({submitting: true});
+    return util.request(api.OrderSubmit, {
       addressId: this.data.addressId,
       couponId: this.data.couponId,
       type: this.data.buyType,
@@ -197,7 +194,7 @@ Page({
         wx.removeStorageSync('designSnapshotId');
         wx.removeStorageSync('designQuote');
         this.setData({ designSnapshotId: null });
-        pay.payOrder(parseInt(orderId)).then(res => {
+        return pay.payOrder(parseInt(orderId)).then(res => {
           wx.redirectTo({
             url: '/pages/payResult/payResult?status=1&orderId=' + orderId
           });
@@ -210,6 +207,10 @@ Page({
       } else {
         util.showErrorToast(res.msg || '下单失败');
       }
+    }).catch(error => {
+      util.showErrorToast(error.message || '提交失败, 请稍后重试');
+    }).then(() => {
+      this.setData({submitting: false});
     });
   }
 })
