@@ -1,7 +1,30 @@
-const API_BASE_URL = wx.getStorageSync('apiBaseUrl') ||
-  'http://localhost:8888/platform-framework-api/app/';
+const environment = require('./environment.js');
+
+/** 根据微信发布环境选择服务地址, 只有开发版允许本机存储覆盖. */
+function resolveBaseUrl() {
+  let version = 'release';
+  if (typeof wx.getAccountInfoSync === 'function') {
+    version = wx.getAccountInfoSync().miniProgram.envVersion || 'release';
+  }
+  let value = environment[version + 'BaseUrl'] || '';
+  if (version === 'develop') {
+    value = wx.getStorageSync('apiBaseUrl') || value;
+  }
+  value = String(value).trim().replace(/\/*$/, '/');
+  if (!/^https?:\/\/[^\s?#]+\/$/.test(value)) {
+    throw new Error('请在config/environment.js配置当前环境的API地址');
+  }
+  if (version !== 'develop' && (!/^https:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z0-9.-]+(?::\d+)?\//.test(value)
+      || /^https:\/\/(localhost|127\.|0\.0\.0\.0)/.test(value))) {
+    throw new Error('体验版和正式版必须使用已配置合法域名的HTTPS地址');
+  }
+  return value;
+}
+
+const API_BASE_URL = resolveBaseUrl();
 
 module.exports = {
+  ApiOrigin: API_BASE_URL.match(/^https?:\/\/[^/]+/)[0],
   IndexUrlNewGoods: API_BASE_URL + 'index/newGoods', //新品首发
   IndexUrlHotGoods: API_BASE_URL + 'index/hotGoods', //热卖商品
   IndexUrlTopic: API_BASE_URL + 'index/topic', //专题精选

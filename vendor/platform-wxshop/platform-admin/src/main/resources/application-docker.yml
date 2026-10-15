@@ -1,5 +1,8 @@
 spring:
   datasource:
+    druid:
+      stat-view-servlet:
+        enabled: false
     type: com.alibaba.druid.pool.DruidDataSource
     dynamic:
       primary: master
@@ -11,15 +14,25 @@ spring:
       datasource:
         master:
           url: jdbc:mariadb://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: ${MYSQL_USERNAME:root}
-          password: ${MYSQL_PASSWORD:REDACTED_CREDENTIAL}
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
         second:
           url: jdbc:mariadb://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:platform}?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: ${MYSQL_USERNAME:root}
-          password: ${MYSQL_PASSWORD:REDACTED_CREDENTIAL}
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
-  redis:
-    host: ${REDIS_HOST:redis}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
+  data:
+    redis:
+      client-type: jedis
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+knife4j:
+  enable: false

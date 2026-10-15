@@ -216,3 +216,31 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
   assert.equal(page.data.previewLayers.layers[0].url, '/merchant-layer.png');
   assert.equal(page.data.previewLayers.ratio, 150);
 });
+
+/** 只有开发环境可以覆盖API, 正式版本忽略本机残留覆盖值. */
+test('小程序正式环境强制使用配置的HTTPS域名', () => {
+  const environment = {
+    releaseBaseUrl: 'https://merchant.example/platform-framework-api/app/',
+  };
+  const wx = {
+    getStorageSync: () => 'http://localhost:9999/app/',
+    getAccountInfoSync: () => ({miniProgram: {envVersion: 'release'}}),
+  };
+  const api = load('wx-mall/config/api.js', {'./environment.js': environment}, {wx});
+  assert.equal(api.ApiOrigin, 'https://merchant.example');
+  environment.releaseBaseUrl = 'http://localhost:8888/app/';
+  assert.throws(() => load('wx-mall/config/api.js', {'./environment.js': environment}, {wx}), /HTTPS/);
+});
+
+/** 上传图片补齐API来源, 包内静态资源和普通文案保持原内容. */
+test('上传图片同源地址可以在小程序显示', () => {
+  const util = load('wx-mall/utils/util.js', {
+    '../config/api.js': {ApiOrigin: 'https://merchant.example'},
+  }, {wx: {}});
+  const data = {data: {headImgUrl: '/upload/avatar.png', listPicUrl: '/static/images/logo.png',
+    name: '/upload/这是商品名称'}};
+  util.normalizeAssetUrls(data);
+  assert.equal(data.data.headImgUrl, 'https://merchant.example/upload/avatar.png');
+  assert.equal(data.data.listPicUrl, '/static/images/logo.png');
+  assert.equal(data.data.name, '/upload/这是商品名称');
+});

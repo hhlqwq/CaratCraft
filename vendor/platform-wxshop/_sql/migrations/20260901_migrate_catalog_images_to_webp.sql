@@ -51,7 +51,7 @@ SET `PARAM_VALUE` = JSON_SET(
         CAST(`PARAM_VALUE` AS JSON),
         '$.type', 4,
         '$.diskPath', '/data/uploads',
-        '$.proxyServer', 'http://localhost:8888/upload'
+        '$.proxyServer', '/upload'
     )
 WHERE `PARAM_KEY` = 'CLOUD_STORAGE_CONFIG_KEY'
   AND JSON_VALID(`PARAM_VALUE`)

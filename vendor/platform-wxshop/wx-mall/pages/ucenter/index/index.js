@@ -229,7 +229,7 @@ Page({
   },
   // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
   uploadAvatarIfNeeded: function (avatarUrl) {
-    if (!avatarUrl || /^https?:\/\//.test(avatarUrl) || avatarUrl.indexOf('/static/') === 0) {
+    if (!avatarUrl || /^https?:\/\//.test(avatarUrl) || avatarUrl.indexOf('/static/') === 0 || avatarUrl.indexOf('/upload/') === 0) {
       return Promise.resolve(avatarUrl);
     }
     return new Promise((resolve, reject) => {
@@ -242,7 +242,7 @@ Page({
           try {
             const result = JSON.parse(response.data);
             if (response.statusCode === 200 && result.code === 0 && result.data) {
-              resolve(result.data);
+              resolve(util.normalizeAssetUrls(result).data);
               return;
             }
             reject(new Error(result.msg || '头像上传失败'));

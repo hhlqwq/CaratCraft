@@ -11,3 +11,9 @@ deploy/.env
 tools/__pycache__/
 *.pyc
 
+
+.stop-local-test-*.ps1
+vendor/platform-wxshop/wx-mall/project.private.config.json
+vendor/platform-wxshop/deploy/secrets/*
+!vendor/platform-wxshop/deploy/secrets/README.md
+stop-local-test.cmd

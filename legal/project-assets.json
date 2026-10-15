@@ -894,7 +894,7 @@
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {
-    "file": "data/profile_photo.png",
+    "file": "data/caratcraft-emblem.png",
     "sha256": "b9d853bb33203465a5d39299dd2f3e4eef63217f6a8dd4a9f054716cfd47e073",
     "source": "tools/generate-project-assets.py中的几何绘图",
     "purpose": "界面图标或明确标注的演示示意图"

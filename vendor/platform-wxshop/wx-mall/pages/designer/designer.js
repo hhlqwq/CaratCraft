@@ -149,7 +149,6 @@ Page({
         var configuration = JSON.parse(res.data.configurationJson || '{}');
         var goodsId = Number(res.data.goodsId || configuration.goodsId || 0);
         if (!goodsId) throw new Error('设计缺少商品信息');
-        if (goodsId === 1999106) throw new Error('旧版耳饰设计仅供查看，当前定制页只支持项链');
         that.setData({ goodsId: goodsId });
         that.loadConfig(configuration);
       } catch (error) {
@@ -382,7 +381,6 @@ Page({
     if (!goodsId) goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
     if (!snapshotId) snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
     if (!goodsId) goodsId = DEFAULT_GOODS_ID;
-    if (goodsId === 1999106) goodsId = DEFAULT_GOODS_ID;
     wx.removeStorageSync('designerGoodsId');
     wx.removeStorageSync('designerSnapshotId');
     this.setData({ goodsId: goodsId });
@@ -405,7 +403,6 @@ Page({
     }
     if (goodsId && goodsId !== this.data.goodsId) {
       wx.removeStorageSync('designerGoodsId');
-      if (goodsId === 1999106) goodsId = DEFAULT_GOODS_ID;
       this.setData({
         goodsId: goodsId,
         selectedOptionIds: [],

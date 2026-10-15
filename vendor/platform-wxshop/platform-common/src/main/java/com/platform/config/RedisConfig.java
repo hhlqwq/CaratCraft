@@ -18,16 +18,12 @@
  */
 package com.platform.config;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-import com.platform.common.utils.Constant;
-import com.platform.common.utils.StringUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import java.time.Duration;
+import java.util.Arrays;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
@@ -36,146 +32,74 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import org.springframework.util.CollectionUtils;
-import redis.clients.jedis.JedisPoolConfig;
 
-import java.time.Duration;
-
-/**
- * Redis配置
- *
- * @author 何海龙
- */
-@Slf4j
+/** 缓存连接交给Boot的spring.data.redis类型化配置, 仅定制应用缓存边界. */
 @Configuration
 @EnableCaching
-public class RedisConfig extends CachingConfigurerSupport {
+public class RedisConfig implements org.springframework.cache.annotation.CachingConfigurer {
+  private final RedisConnectionFactory connectionFactory;
 
-    @Value("${spring.redis.host}")
-    private String host;
+  /** 使用Boot自动配置的连接工厂, 避免重复维护字符串超时和连接池参数. */
+  public RedisConfig(RedisConnectionFactory connectionFactory) {
+    this.connectionFactory = connectionFactory;
+  }
 
-    @Value("${spring.redis.port}")
-    private Integer port;
+  /** 应用缓存六小时过期, 新版本键空间不读取旧版宽泛类型缓存. */
+  @Bean
+  @Primary
+  public CacheManager cacheManager() {
+    RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+        .entryTtl(Duration.ofHours(6))
+        .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(keyRedisSerializer()))
+        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(valueRedisSerializer()));
+    return RedisCacheManager.builder(connectionFactory).cacheDefaults(config).build();
+  }
 
-    @Value("${spring.redis.timeout}")
-    private String strTimeout;
+  /** 方法参数仅以摘要参与缓存键, 不打印或暴露原参数内容. */
+  @Bean
+  @Primary
+  public KeyGenerator keyGenerator() {
+    return (target, method, params) -> target.getClass().getName() + ":" + method.getName()
+        + ":" + DigestUtils.sha256Hex(Arrays.deepToString(params));
+  }
 
-    @Value("${spring.redis.password}")
-    private String password;
+  /** 只允许应用实体、购买DTO和集合值类型, 拒绝任意外部类反序列化. */
+  @Bean
+  public Jackson2JsonRedisSerializer<Object> valueRedisSerializer() {
+    ObjectMapper mapper = new ObjectMapper();
+    BasicPolymorphicTypeValidator types = BasicPolymorphicTypeValidator.builder()
+        .allowIfSubType("com.platform.modules.mall.entity.")
+        .allowIfSubType("com.platform.modules.wx.entity.")
+        .allowIfSubType("com.platform.modules.sys.entity.")
+        .allowIfSubType("com.platform.modules.custom.entity.")
+        .allowIfSubType("com.platform.modules.mall.dto.BuyGoodsRequest")
+        .allowIfSubType("java.util.")
+        .allowIfSubType("java.math.")
+        .build();
+    mapper.activateDefaultTyping(types, ObjectMapper.DefaultTyping.NON_FINAL);
+    return new Jackson2JsonRedisSerializer<>(mapper, Object.class);
+  }
 
-    @Value("${spring.redis.database}")
-    private Integer database;
+  /** 版本化键序列化器, 与旧缓存并存但不读取旧缓存. */
+  @Bean
+  public StringRedisSerializer keyRedisSerializer() {
+    return new VersionedRedisKeySerializer();
+  }
 
-    @Value("${spring.redis.jedis.pool.max-active}")
-    private int maxActive;
-
-    @Value("${spring.redis.jedis.pool.max-wait}")
-    private String strMaxWaitMillis;
-
-    @Value("${spring.redis.jedis.pool.max-idle}")
-    private Integer maxIdle;
-
-    @Value("${spring.redis.jedis.pool.min-idle}")
-    private int minIdle;
-
-    /**
-     * 采用RedisCacheManager做为缓存管理器
-     */
-    @Bean
-    @Primary
-    @Override
-    public CacheManager cacheManager() {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofHours(6))
-                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(keyRedisSerializer()))
-                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(valueRedisSerializer()));
-        return RedisCacheManager.builder(redisConnectionFactory()).cacheDefaults(config).build();
-    }
-
-    @Bean
-    @Primary
-    @Override
-    public KeyGenerator keyGenerator() {
-        return (target, method, params) -> {
-            String re = String.format("%s::%s%s", target.getClass().getName(), method.getName(),
-                    CollectionUtils.arrayToList(params));
-            log.debug("缓存生成的key:{}", re);
-            return re;
-        };
-    }
-
-    @Bean
-    public Jackson2JsonRedisSerializer<Object> valueRedisSerializer() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        // 指定序列化输入的类型，类必须是非final修饰的，final修饰的类，比如String,Integer等会跑出异常,序列化时将对象全类名一起保存下来
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-        // 指定要序列化的域，field,get和set,以及修饰符范围，ANY是都有包括private和public
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-        return jackson2JsonRedisSerializer;
-    }
-
-    @Bean
-    public StringRedisSerializer keyRedisSerializer() {
-        return new StringRedisSerializer();
-    }
-
-    /**
-     * RedisTemplate
-     *
-     * @return redisTemplate
-     */
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate() {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory());
-        // key采用String的序列化方式
-        template.setKeySerializer(keyRedisSerializer());
-        // hash的key也采用String的序列化方式
-        template.setHashKeySerializer(keyRedisSerializer());
-        // value序列化方式采用jackson
-        template.setValueSerializer(valueRedisSerializer());
-        // hash的value序列化方式采用jackson
-        template.setHashValueSerializer(valueRedisSerializer());
-        template.afterPropertiesSet();
-        return template;
-    }
-
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        long maxWaitMillis = Long.parseLong(strMaxWaitMillis.replace("ms", Constant.BLANK));
-        int timeout = Integer.parseInt(strTimeout.replace("ms", Constant.BLANK));
-        JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxTotal(maxActive);
-        jedisPoolConfig.setMaxWait(Duration.ofMillis(maxWaitMillis));
-        jedisPoolConfig.setMaxIdle(maxIdle);
-        jedisPoolConfig.setMinIdle(minIdle);
-        jedisPoolConfig.setTestOnBorrow(true);
-        if (StringUtils.isBlank(password)) {
-            password = null;
-        }
-
-        JedisClientConfiguration clientConfig = JedisClientConfiguration.builder().usePooling().poolConfig(jedisPoolConfig).and().readTimeout(Duration.ofMillis(timeout)).build();
-        // 单点redis
-        RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
-        // 哨兵redis
-        // RedisSentinelConfiguration redisConfig = new RedisSentinelConfiguration();
-        // 集群redis
-        // RedisClusterConfiguration redisConfig = new RedisClusterConfiguration();
-        redisConfig.setHostName(host);
-        redisConfig.setPort(port);
-        redisConfig.setPassword(password);
-        redisConfig.setDatabase(database);
-
-        return new JedisConnectionFactory(redisConfig, clientConfig);
-    }
+  /** 对象缓存统一使用受限类型序列化和版本化键. */
+  @Bean
+  public RedisTemplate<String, Object> redisTemplate() {
+    RedisTemplate<String, Object> template = new RedisTemplate<>();
+    template.setConnectionFactory(connectionFactory);
+    template.setKeySerializer(keyRedisSerializer());
+    template.setHashKeySerializer(keyRedisSerializer());
+    template.setValueSerializer(valueRedisSerializer());
+    template.setHashValueSerializer(valueRedisSerializer());
+    template.afterPropertiesSet();
+    return template;
+  }
 }

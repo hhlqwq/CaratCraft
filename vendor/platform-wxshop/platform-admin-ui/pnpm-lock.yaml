@@ -9,224 +9,212 @@ importers:
   .:
     dependencies:
       axios:
-        specifier: ^0.21.1
+        specifier: 0.21.4
         version: 0.21.4(debug@4.4.3(supports-color@6.1.0))
       babel-plugin-component:
-        specifier: ^1.1.1
+        specifier: 1.1.1
         version: 1.1.1
       babel-polyfill:
-        specifier: ^6.26.0
+        specifier: 6.26.0
         version: 6.26.0
       babel-runtime:
         specifier: 6.26.0
         version: 6.26.0
-      chromedriver:
-        specifier: ^110.0.0
-        version: 110.0.0(debug@4.4.3(supports-color@6.1.0))(supports-color@6.1.0)
       crypto-js:
-        specifier: ^4.0.0
+        specifier: 4.2.0
         version: 4.2.0
       del:
-        specifier: ^6.1.1
+        specifier: 6.1.1
         version: 6.1.1
       echarts:
-        specifier: ^5.1.2
+        specifier: 5.6.0
         version: 5.6.0
       element-ui:
         specifier: 2.15.10
         version: 2.15.10(vue@2.7.16)
       gulp-concat:
-        specifier: ^2.6.1
+        specifier: 2.6.1
         version: 2.6.1
       gulp-load-plugins:
-        specifier: ^2.0.7
+        specifier: 2.0.8
         version: 2.0.8
       gulp-replace:
-        specifier: ^0.6.1
+        specifier: 0.6.1
         version: 0.6.1
       gulp-shell:
-        specifier: ^0.6.5
+        specifier: 0.6.5
         version: 0.6.5
       lodash:
-        specifier: ^4.17.21
+        specifier: 4.18.1
         version: 4.18.1
       sass:
-        specifier: ^1.51.0
+        specifier: 1.103.1
         version: 1.103.1
       sass-loader:
         specifier: 10.2.0
         version: 10.2.0(sass@1.103.1)(webpack@4.47.0)
-      stompjs:
-        specifier: ^2.3.3
-        version: 2.3.3(supports-color@6.1.0)
       vue:
-        specifier: ^2.6.14
+        specifier: 2.7.16
         version: 2.7.16
       vue-clipboard2:
-        specifier: ^0.3.1
+        specifier: 0.3.3
         version: 0.3.3
       vue-cookie:
-        specifier: ^1.1.4
+        specifier: 1.1.4
         version: 1.1.4
       vue-router:
-        specifier: ^3.5.2
+        specifier: 3.6.5
         version: 3.6.5(vue@2.7.16)
       vuex:
-        specifier: ^3.6.2
+        specifier: 3.6.2
         version: 3.6.2(vue@2.7.16)
     devDependencies:
       autoprefixer:
-        specifier: ^7.2.6
+        specifier: 7.2.6
         version: 7.2.6
       babel-core:
-        specifier: ^6.22.1
+        specifier: 6.26.3
         version: 6.26.3(supports-color@6.1.0)
       babel-eslint:
-        specifier: ^7.1.1
+        specifier: 7.2.3
         version: 7.2.3(supports-color@6.1.0)
       babel-loader:
-        specifier: ^7.1.1
+        specifier: 7.1.5
         version: 7.1.5(babel-core@6.26.3(supports-color@6.1.0))(webpack@4.47.0)
       babel-plugin-dynamic-import-node:
-        specifier: ^1.2.0
+        specifier: 1.2.0
         version: 1.2.0
       babel-plugin-transform-es2015-modules-commonjs:
-        specifier: ^6.26.0
+        specifier: 6.26.2
         version: 6.26.2(supports-color@6.1.0)
       babel-plugin-transform-runtime:
-        specifier: ^6.22.0
+        specifier: 6.23.0
         version: 6.23.0
       babel-preset-env:
-        specifier: ^1.3.2
+        specifier: 1.7.0
         version: 1.7.0(supports-color@6.1.0)
       babel-preset-stage-2:
-        specifier: ^6.22.0
+        specifier: 6.24.1
         version: 6.24.1(supports-color@6.1.0)
       babel-register:
-        specifier: ^6.22.0
+        specifier: 6.26.0
         version: 6.26.0(supports-color@6.1.0)
       chalk:
-        specifier: ^2.3.0
+        specifier: 2.4.2
         version: 2.4.2
       copy-webpack-plugin:
-        specifier: ^4.0.1
+        specifier: 4.6.0
         version: 4.6.0
       cross-spawn:
-        specifier: ^5.0.1
+        specifier: 5.1.0
         version: 5.1.0
       css-loader:
-        specifier: ^0.28.0
+        specifier: 0.28.11
         version: 0.28.11
       eslint:
-        specifier: ^3.19.0
+        specifier: 3.19.0
         version: 3.19.0(supports-color@6.1.0)
       eslint-config-standard:
-        specifier: ^10.2.1
+        specifier: 10.2.1
         version: 10.2.1(eslint-plugin-import@2.32.0(eslint@3.19.0(supports-color@6.1.0))(supports-color@6.1.0))(eslint-plugin-node@5.2.1(eslint@3.19.0(supports-color@6.1.0)))(eslint-plugin-promise@3.8.0)(eslint-plugin-standard@3.1.0(eslint@3.19.0(supports-color@6.1.0)))(eslint@3.19.0(supports-color@6.1.0))
       eslint-friendly-formatter:
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0
       eslint-loader:
-        specifier: ^2.0.0
+        specifier: 2.2.1
         version: 2.2.1(eslint@3.19.0(supports-color@6.1.0))(webpack@4.47.0)
       eslint-plugin-html:
-        specifier: ^3.0.0
+        specifier: 3.2.2
         version: 3.2.2
       eslint-plugin-import:
-        specifier: ^2.23.4
+        specifier: 2.32.0
         version: 2.32.0(eslint@3.19.0(supports-color@6.1.0))(supports-color@6.1.0)
       eslint-plugin-node:
-        specifier: ^5.2.0
+        specifier: 5.2.1
         version: 5.2.1(eslint@3.19.0(supports-color@6.1.0))
       eslint-plugin-promise:
-        specifier: ^3.5.0
+        specifier: 3.8.0
         version: 3.8.0
       eslint-plugin-standard:
-        specifier: ^3.0.1
+        specifier: 3.1.0
         version: 3.1.0(eslint@3.19.0(supports-color@6.1.0))
       eventsource-polyfill:
-        specifier: ^0.9.6
+        specifier: 0.9.6
         version: 0.9.6
       file-loader:
-        specifier: ^1.1.4
+        specifier: 1.1.11
         version: 1.1.11(webpack@4.47.0)
       friendly-errors-webpack-plugin:
-        specifier: ^1.6.1
+        specifier: 1.7.0
         version: 1.7.0(webpack@4.47.0)
       gulp:
-        specifier: ^4.0.2
+        specifier: 4.0.2
         version: 4.0.2(supports-color@6.1.0)
       html-webpack-plugin:
-        specifier: ^4.5.2
+        specifier: 4.5.2
         version: 4.5.2(webpack@4.47.0)
       mini-css-extract-plugin:
-        specifier: ^1.6.2
+        specifier: 1.6.2
         version: 1.6.2(webpack@4.47.0)
-      nightwatch:
-        specifier: ^0.9.12
-        version: 0.9.21(supports-color@6.1.0)
       node-notifier:
-        specifier: ^5.4.5
+        specifier: 5.4.5
         version: 5.4.5
       optimize-css-assets-webpack-plugin:
-        specifier: ^3.2.0
+        specifier: 3.2.1
         version: 3.2.1
       ora:
-        specifier: ^1.2.0
+        specifier: 1.4.0
         version: 1.4.0
       portfinder:
-        specifier: ^1.0.28
+        specifier: 1.0.38
         version: 1.0.38(supports-color@6.1.0)
       postcss-import:
-        specifier: ^11.0.0
+        specifier: 11.1.0
         version: 11.1.0
       postcss-loader:
-        specifier: ^2.0.8
+        specifier: 2.1.6
         version: 2.1.6
       rimraf:
-        specifier: ^2.6.0
+        specifier: 2.7.1
         version: 2.7.1
-      selenium-server:
-        specifier: ^3.0.1
-        version: 3.141.59
       semver:
-        specifier: ^5.3.0
+        specifier: 5.7.2
         version: 5.7.2
       shelljs:
-        specifier: ^0.8.4
+        specifier: 0.8.5
         version: 0.8.5
       svg-sprite-loader:
-        specifier: ^6.0.11
+        specifier: 6.0.11
         version: 6.0.11(supports-color@6.1.0)
       terser-webpack-plugin:
-        specifier: ^4.2.3
+        specifier: 4.2.3
         version: 4.2.3(bluebird@3.7.2)(webpack@4.47.0)
       url-loader:
-        specifier: ^0.5.8
+        specifier: 0.5.9
         version: 0.5.9(file-loader@1.1.11(webpack@4.47.0))
       vue-loader:
-        specifier: ^15.0.10
+        specifier: 15.11.1
         version: 15.11.1(babel-core@6.26.3(supports-color@6.1.0))(css-loader@0.28.11)(lodash@4.18.1)(prettier@2.8.8)(vue-template-compiler@2.7.16)(webpack@4.47.0)
       vue-style-loader:
-        specifier: ^3.0.1
+        specifier: 3.1.2
         version: 3.1.2
       vue-template-compiler:
-        specifier: ^2.6.14
+        specifier: 2.7.16
         version: 2.7.16
       webpack:
-        specifier: ^4.26.1
+        specifier: 4.47.0
         version: 4.47.0(supports-color@6.1.0)(webpack-cli@3.3.12)
       webpack-bundle-analyzer:
-        specifier: ^2.13.1
+        specifier: 2.13.1
         version: 2.13.1(bufferutil@4.1.0)(supports-color@6.1.0)(utf-8-validate@5.0.10)
       webpack-cli:
-        specifier: ^3.3.0
+        specifier: 3.3.12
         version: 3.3.12(webpack@4.47.0)
       webpack-dev-server:
-        specifier: ^3.11.0
+        specifier: 3.11.3
         version: 3.11.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)(webpack-cli@3.3.12)(webpack@4.47.0)
       webpack-merge:
-        specifier: ^4.1.0
+        specifier: 4.2.2
         version: 4.2.2
 
 packages:

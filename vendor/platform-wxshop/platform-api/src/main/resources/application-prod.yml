@@ -11,13 +11,13 @@ spring:
       datasource:
         master:
           url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: root
-          password: REDACTED_CREDENTIAL
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
         second:
           url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: root
-          password: REDACTED_CREDENTIAL
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
       #dynamic - 公共配置
       druid:
@@ -42,10 +42,18 @@ spring:
     druid:
       # 监控页面
       statViewServlet:
-        enabled: true
+        enabled: false
         # 设置白名单，不填则允许所有访问
         allow:
         url-pattern: /druid/*
         # 控制台管理用户名和密码
         login-username: druid
-        login-password: 123456
+        login-password: ${DRUID_ADMIN_PASSWORD:}
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+knife4j:
+  enable: false

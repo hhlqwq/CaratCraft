@@ -80,7 +80,8 @@ public class ShiroConfig {
         shiroFilter.setFilters(filters);
 
         Map<String, String> filterMap = new LinkedHashMap<>();
-        filterMap.put("/druid/**", "anon");
+        filterMap.put("/internal/health/**", "anon");
+        filterMap.put("/druid/**", "noSessionCreation,oauth2");
         filterMap.put("/sys/login", "anon");
         filterMap.put("/captcha.jpg", "anon");
         filterMap.put("/swagger-ui/**", "anon");

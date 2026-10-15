@@ -11,13 +11,13 @@ spring:
       datasource:
         master:
           url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: root
-          password: REDACTED_CREDENTIAL
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
         second:
           url: jdbc:mariadb://localhost:3306/platform?allowMultiQueries=true&sslMode=disable&connectionTimeZone=Asia/Shanghai
-          username: root
-          password: REDACTED_CREDENTIAL
+          username: ${MYSQL_USERNAME:caratcraft}
+          password: ${MYSQL_PASSWORD:}
           driverClassName: org.mariadb.jdbc.Driver
       #dynamic - 公共配置
       druid:

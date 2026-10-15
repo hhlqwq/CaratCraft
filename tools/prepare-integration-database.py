@@ -12,7 +12,7 @@ def execute_sql(sql):
     """通过容器已有mysql客户端执行SQL, 密码仅在容器环境内读取."""
     result = subprocess.run(
         ["docker", "exec", "-i", "platform-mysql", "sh", "-c",
-         'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" --default-character-set=utf8mb4'],
+         'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --default-character-set=utf8mb4'],
         input=sql.encode("utf-8"), capture_output=True, check=False)
     if result.returncode:
         raise RuntimeError(result.stderr.decode("utf-8", errors="replace"))
@@ -30,10 +30,12 @@ def main():
     source = (ROOT / "_sql/mall.sql").read_text("utf-8")
     schema = re.search(r"CREATE TABLE `mall_order`\s*\(.*?;", source, re.S).group(0)
     schema = schema.replace("CREATE TABLE `mall_order`", "CREATE TABLE IF NOT EXISTS `mall_order`", 1)
+    goods = re.search(r"CREATE TABLE `mall_goods`\s*\(.*?;", source, re.S).group(0)
+    goods = goods.replace("CREATE TABLE `mall_goods`", "CREATE TABLE IF NOT EXISTS `mall_goods`", 1)
     custom = (ROOT / "_sql/carat_craft_customization.sql").read_text("utf-8")
     tables = re.findall(r"CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?;", custom, re.S)
     print(f"[2/3] 同步订单及{len(tables)}张定制表的当前结构", flush=True)
-    execute_sql(f"USE `{args.database}`;\n" + schema + "\n" + "\n".join(tables))
+    execute_sql(f"USE `{args.database}`;\n" + schema + "\n" + goods + "\n" + "\n".join(tables))
     print("[3/3] 加载新增改价流水结构", flush=True)
     execute_sql(f"USE `{args.database}`;\n" +
                 (ROOT / "_sql/migrations/V20261015_01_order_integrity.sql").read_text("utf-8"))

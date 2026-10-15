@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to the AI agent when working with code in this repository.
+此文件记录仓库内开发约束, 当前技术事实和部署说明以根README、use.md及整改台账为准.
 
 ## 语言
 
@@ -14,15 +14,14 @@ This file provides guidance to the AI agent when working with code in this repos
 - `platform-api`：商城/小程序 API（端口 8081，context-path `/platform-framework-api`，启动类 `PlatformApiApplication`）
 - `platform-biz`：核心业务逻辑、Service、DAO、MyBatis XML mapper（不是纯公共模块，承载大量真实业务和 SQL）
 - `platform-common`：公共配置、工具、缓存
-- `platform-admin-ui`：后台管理前端（Vue 2.6 + Element UI 2.15 + webpack 4，非 Vite/Vue 3）
+- `platform-admin-ui`：后台管理前端（Vue 2.7.16 + Element UI 2.15.10 + webpack 4，非 Vite/Vue 3）
 - `wx-mall`：原生微信小程序
-- `uni-mall`：uni-app 商城前端（与 wx-mall 是独立实现，不要混改）
 - `_sql`：数据库初始化脚本
 
 ## 技术栈
 
-- Spring Boot 2.7.15 / JDK 21 / Undertow
-- MyBatis-Plus 3.5.3 + XML mapper
+- Spring Boot 3.2.5 / JDK 21 / Undertow
+- MyBatis-Plus 3.5.10 + XML mapper
 - Shiro 权限 / Redis 缓存 / Knife4j 接口文档
 
 ## 构建与运行
@@ -35,10 +34,10 @@ This file provides guidance to the AI agent when working with code in this repos
 前端（platform-admin-ui）：
 - 开发：`npm run dev`（webpack-dev-server，地址 `http://localhost:8000`）
 - 构建：`npm run build`（使用 gulp，非标准 webpack build）
-- `baseUrl` 来自 `static/config/index.js` 的 `window.SITE_CONFIG.baseUrl`，默认指向 `http://localhost:8888/platform-framework`
+- `baseUrl` 来自 `static/config/index.js` 的 `window.SITE_CONFIG.baseUrl`，同源路径为 `/platform-framework`
 
 小程序（wx-mall）：
-- API 基址在 `wx-mall/config/api.js`，本地默认 `http://localhost:8081/platform-framework-api/app/`
+- API 基址在 `wx-mall/config/api.js`，环境统一由 `wx-mall/config/environment.js` 选择, 本地默认 `http://localhost:8888/platform-framework-api/app/`
 
 Docker 一键启动：
 - `scripts/build-jars.sh && scripts/build-admin-ui.sh` 构建产物
@@ -69,3 +68,10 @@ Docker 一键启动：
 - 只改与任务直接相关的文件，不顺手重构或升级依赖
 - 匹配现有代码风格，即使较旧
 - 未验证的内容必须明确标注"未验证"，不要把推断说成事实
+
+## 当前维护入口
+
+- 版本迁移仅执行`_sql/migrations/V*.sql`, 用`tools/SchemaMigrationTool.java`维护台账, 不在商家数据库重跑初始化种子或历史清理.
+- Redis配置使用`spring.data.redis.*`, 应用对象缓存使用版本化键空间.
+- 新函数使用中文说明和Google风格, 不为统一格式改写第三方许可或源码.
+- 测试/提交/推送遵循当前用户授权; 重启或结束其他程序仍须事先确认.

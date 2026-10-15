@@ -153,7 +153,7 @@ public class CloudStorageConfig implements Serializable {
      */
     @NotBlank(message = "本地存储路径不能为空", groups = DiskGroup.class)
     private String diskPath;
-    @URL(message = "代理服务器需要是一个合法的URL")
+    @jakarta.validation.constraints.Pattern(regexp = "^(https?://[^\\s]+|/upload)$", message = "代理地址须为HTTP(S)地址或/upload")
     @NotBlank(message = "本地存储代理服务器不能为空", groups = DiskGroup.class)
     private String proxyServer;
 

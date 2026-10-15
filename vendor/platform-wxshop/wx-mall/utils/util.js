@@ -20,6 +20,25 @@ function formatNumber (n) {
 let pendingRequests = 0;
 let authRedirecting = false;
 
+/** 将同源上传图片地址转换为当前API来源, 小程序包内静态图片路径保持原样. */
+function normalizeAssetUrls(value, key = '') {
+  if (typeof value === 'string' && /^\/upload\//.test(value)
+      && (key === 'data' || /(?:url|pic|image|src)$/i.test(key)) && api.ApiOrigin) {
+    return api.ApiOrigin + value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(function(item) { return normalizeAssetUrls(item, key); });
+  }
+  if (value && typeof value === 'object') {
+    Object.keys(value).forEach(function(name) {
+      if (name !== '__proto__' && name !== 'constructor' && name !== 'prototype') {
+        value[name] = normalizeAssetUrls(value[name], name);
+      }
+    });
+  }
+  return value;
+}
+
 /** 失效会话统一清理, 忽略旧令牌的迟到响应并避免重复登录导航. */
 function expireSession(token) {
   if ((wx.getStorageSync('token') || '') !== token) return;
@@ -67,9 +86,9 @@ function request(url, data = {}, method = 'POST', header = 'application/x-www-fo
             expireSession(token);
             reject(new Error('登录已失效, 请重新登录'));
           } else if (res.data && typeof res.data.code !== 'undefined') {
-            resolve(res.data);
+            resolve(normalizeAssetUrls(res.data));
           } else if (res.statusCode >= 200 && res.statusCode < 300) {
-            resolve(res.data);
+            resolve(normalizeAssetUrls(res.data));
           } else {
             reject(new Error('请求失败, HTTP ' + res.statusCode));
           }
@@ -149,6 +168,7 @@ function showSuccessToast (msg) {
 }
 
 module.exports = {
+  normalizeAssetUrls,
   formatTime,
   request,
   redirect,
