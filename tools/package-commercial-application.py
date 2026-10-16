@@ -62,6 +62,10 @@ def main():
     records = [{"file": path.name, "bytes": path.stat().st_size,
                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
                for path in [source, application]]
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
+    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT).strip())
+    for record in records:
+        record.update(revision=revision, sourceTreeDirty=dirty)
     manifest = DESTINATION / "manifest.json"
     manifest.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(records, ensure_ascii=False))
