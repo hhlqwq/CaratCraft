@@ -1,5 +1,6 @@
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
+var aiRecommendation = require('../../services/ai-recommendation.js');
 
 var DEFAULT_GOODS_ID = 1999105;
 var DEFAULT_PREVIEW = {layers: [], missing: [], description: '', ratio: 100};
@@ -23,11 +24,133 @@ Page({
     previewLayers: DEFAULT_PREVIEW,
     loadingConfig: false,
     configError: '',
-    showOptional: false
+    showOptional: false,
+    aiStatus: {},
+    aiStatusError: '',
+    aiHeight: '',
+    aiWeight: '',
+    aiNeck: '',
+    aiPreferences: ['贴颈', '锁骨位置', '稍长'],
+    aiPreferenceIndex: 1,
+    aiConsent: false,
+    aiLoading: false,
+    aiError: '',
+    aiResult: null
+  },
+
+  /** 获取功能开关与数据用途, 配置缺失不影响手动设计. */
+  loadAiStatus: function () {
+    var that = this;
+    return util.request(api.AiRecommendationStatus, {}, 'GET').then(function (res) {
+      if (that._unloaded) return;
+      if (res.code !== 0) throw new Error('AI功能状态加载失败');
+      var unavailable = aiRecommendation.availability();
+      that.setData({aiStatus: Object.assign({}, res.data, {
+        enabled: !unavailable, unavailableReason: unavailable
+      }), aiStatusError: ''});
+    }).catch(function () {
+      if (!that._unloaded) that.setData({aiStatusError: 'AI功能状态加载失败, 可重试或手动设计'});
+    });
+  },
+
+  /** 更新身体参数时立即废弃旧建议, 不将身体参数写入本地存储. */
+  changeAiInput: function (event) {
+    var field = event.currentTarget.dataset.field;
+    if (['aiHeight', 'aiWeight', 'aiNeck'].indexOf(field) < 0) return;
+    this.invalidateAi();
+    var values = {};
+    values[field] = event.detail.value;
+    this.setData(values);
+  },
+
+  /** 使用固定偏好选项, 不向模型发送任意提示词. */
+  changeAiPreference: function (event) {
+    this.invalidateAi();
+    this.setData({aiPreferenceIndex: Number(event.detail.value)});
+  },
+
+  /** 同意状态变更时废弃在途结果, 不默认勾选数据提交同意. */
+  changeAiConsent: function (event) {
+    this.invalidateAi();
+    this.setData({aiConsent: event.detail.value.indexOf('agree') >= 0});
+  },
+
+  /** 递增请求序号, 阻止参数修改或切换商品后迟到的建议覆盖页面. */
+  invalidateAi: function () {
+    this._aiSeq = (this._aiSeq || 0) + 1;
+    this.setData({aiResult: null, aiError: '', aiLoading: false});
+  },
+
+  /** 用户主动同意后请求AI建议, 失败保留手动设计能力. */
+  requestAiRecommendation: function () {
+    if (this.data.aiLoading) return Promise.resolve();
+    if (!this.data.aiConsent) {
+      this.setData({aiError: '请先阅读并勾选AI推荐的数据使用说明'});
+      return Promise.resolve();
+    }
+    var height = Number(this.data.aiHeight);
+    var weight = Number(this.data.aiWeight);
+    var neck = this.data.aiNeck === '' ? null : Number(this.data.aiNeck);
+    if (!isFinite(height) || height < 80 || height > 250
+        || !isFinite(weight) || weight < 20 || weight > 300
+        || (neck !== null && (!isFinite(neck) || neck < 20 || neck > 80))) {
+      this.setData({aiError: '请填写有效的身高、体重和选填颈围'});
+      return Promise.resolve();
+    }
+    var that = this;
+    var seq = (this._aiSeq = (this._aiSeq || 0) + 1);
+    var goodsId = this.data.goodsId;
+    this.setData({aiLoading: true, aiError: '', aiResult: null});
+    return aiRecommendation.recommend({
+      goodsId: goodsId, heightCm: height, weightKg: weight, neckCm: neck,
+      preference: this.data.aiPreferences[this.data.aiPreferenceIndex], consent: true
+    }, function () {
+      return seq === that._aiSeq && goodsId === that.data.goodsId && !that._unloaded;
+    }).then(function (res) {
+      if (seq !== that._aiSeq || goodsId !== that.data.goodsId || that._unloaded) return;
+      if (res.code !== 0) throw new Error(res.msg || 'AI推荐失败');
+      that.setData({aiResult: res.data, aiLoading: false});
+    }).catch(function (error) {
+      if (seq !== that._aiSeq || that._unloaded) return;
+      that.setData({aiLoading: false, aiError: error.message || 'AI暂不可用, 可继续手动设计'});
+    });
+  },
+
+  /** 采用仍属于当前商品的材料建议, 成品长度由商家选项确认, 重新获取可信报价. */
+  applyAiRecommendation: function () {
+    var result = this.data.aiResult;
+    if (!result || result.goodsId !== this.data.goodsId || this.data.loadingConfig
+        || this.data.saving) return;
+    var selected = result.optionIds.map(Number);
+    var allIds = [];
+    var valid = this.data.componentGroups.every(function (group) {
+      var count = 0;
+      group.options.forEach(function (option) {
+        allIds.push(Number(option.id));
+        if (selected.indexOf(Number(option.id)) >= 0) count++;
+      });
+      return count <= 1 && (!group.required || count === 1);
+    });
+    if (!valid || selected.some(function (id) { return allIds.indexOf(id) < 0; })) {
+      this.setData({aiError: '材料配置已变化, 请重新推荐', aiResult: null});
+      return;
+    }
+    var groups = this.data.componentGroups.map(function (group) {
+      group.options.forEach(function (option) {
+        option.selected = selected.indexOf(Number(option.id)) >= 0;
+      });
+      group.hasSelection = group.options.some(function (option) { return option.selected; });
+      return group;
+    });
+    this.setData({componentGroups: groups, selectedOptionIds: selected, showOptional: true,
+      selectedOptionNames: this.getSelectedOptionNames(groups, selected)});
+    this.refreshPreview();
+    return this.refreshQuote();
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
   loadConfig: function (restoredConfiguration) {
+    this.invalidateAi();
     var that = this;
     var configSeq = (this._configSeq = (this._configSeq || 0) + 1);
     var requestedGoodsId = that.data.goodsId;
@@ -374,6 +497,8 @@ Page({
 
   /** 初始化页面 / Initializes page state. */
   onLoad: function (options) {
+    this._unloaded = false;
+    this.loadAiStatus();
     var goodsId = Number(options && options.goodsId || 0);
     var snapshotId = Number(options && options.snapshotId || 0);
     // tabBar 入口不带参数, 优先取商品页传入的 ID, 再回退默认演示商品 /
@@ -415,6 +540,8 @@ Page({
 
   /** 页面卸载时使未完成请求失效并清理防抖计时器. */
   onUnload: function() {
+    this._unloaded = true;
+    this.invalidateAi();
     this._configSeq = (this._configSeq || 0) + 1;
     this._quoteSeq = (this._quoteSeq || 0) + 1;
     if (this._engravingTimer) clearTimeout(this._engravingTimer);

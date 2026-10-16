@@ -5,6 +5,43 @@
     <view class="intro-description">必选项目以商家当前配置为准, 其他搭配可按需选择。</view>
   </view>
 
+  <view class="ai-card">
+    <view class="ai-title">AI 尺寸与搭配推荐</view>
+    <view class="ai-note">告诉AI你的佩戴偏好, 获得长度与材料建议, 也可以继续手动设计。</view>
+    <view class="ai-note">仅使用赠送AI额度, 额度不足时停止推荐, 不自动切换付费通道。</view>
+    <view wx:if="{{aiStatusError}}" class="config-state error">
+      {{aiStatusError}}<button size="mini" bindtap="loadAiStatus">重试</button>
+    </view>
+    <view wx:elif="{{!aiStatus.enabled}}" class="ai-note">{{aiStatus.unavailableReason || '正在读取微信AI功能状态…'}}</view>
+    <block wx:else>
+      <view class="ai-fields">
+        <label>身高 cm<input type="digit" maxlength="5" value="{{aiHeight}}" data-field="aiHeight" bindinput="changeAiInput" placeholder="请输入" /></label>
+        <label>体重 kg<input type="digit" maxlength="5" value="{{aiWeight}}" data-field="aiWeight" bindinput="changeAiInput" placeholder="请输入" /></label>
+        <label>实测颈围 cm<input type="digit" maxlength="4" value="{{aiNeck}}" data-field="aiNeck" bindinput="changeAiInput" placeholder="选填, 更有依据" /></label>
+      </view>
+      <picker range="{{aiPreferences}}" value="{{aiPreferenceIndex}}" bindchange="changeAiPreference">
+        <view class="ai-preference">佩戴偏好: {{aiPreferences[aiPreferenceIndex]}} <text>更改 ›</text></view>
+      </picker>
+      <view class="ai-note">{{aiStatus.privacyNotice}}</view>
+      <checkbox-group bindchange="changeAiConsent">
+        <label class="ai-consent"><checkbox value="agree" checked="{{aiConsent}}" color="#315c4b" />我已阅读并同意以上数据使用说明</label>
+      </checkbox-group>
+      <button class="ai-action" bindtap="requestAiRecommendation" loading="{{aiLoading}}"
+              disabled="{{aiLoading || loadingConfig || configError || !aiConsent}}">{{aiLoading ? 'AI正在生成建议' : (aiResult ? '重新推荐' : '获取AI推荐')}}</button>
+      <view wx:if="{{aiError}}" class="config-state error">{{aiError}}</view>
+      <view wx:if="{{aiResult}}" class="ai-result">
+        <view class="ai-length">建议成品长度 {{aiResult.lengthCm}} cm</view>
+        <view class="ai-note">参考范围 {{aiResult.rangeMinCm}}–{{aiResult.rangeMaxCm}} cm</view>
+        <view class="ai-reason">{{aiResult.reason}}</view>
+        <view class="ai-note">推荐材料: {{aiResult.optionNames}}</view>
+        <view class="ai-note">{{aiResult.notice}}</view>
+        <view class="ai-note">{{aiResult.modelNotice}}</view>
+        <view class="ai-note">{{aiResult.lengthNotice}}</view>
+        <button class="ai-action" bindtap="applyAiRecommendation" disabled="{{saving || loadingConfig || aiLoading}}">采用推荐搭配</button>
+      </view>
+    </block>
+  </view>
+
   <view class="preview-card">
     <view class="preview-heading">
       <view>

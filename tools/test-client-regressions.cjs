@@ -173,11 +173,66 @@ function designerFixture() {
     '../../utils/util.js': {request: (url, data) => new Promise((resolve, reject) => {
       requests.push({url, data, resolve, reject});
     })},
-    '../../config/api.js': {CustomizationConfig: '/config', CustomizationQuote: '/quote'},
+    '../../config/api.js': {CustomizationConfig: '/config', CustomizationQuote: '/quote',
+      AiRecommendation: '/ai/recommend', AiRecommendationStatus: '/ai/status'},
+    '../../services/ai-recommendation.js': {
+      availability: () => '',
+      recommend: data => new Promise((resolve, reject) => {
+        requests.push({url: '/ai/recommend', data, resolve, reject});
+      }),
+    },
   }, {Page: definition => { page = definition; }, wx: {}, setTimeout, clearTimeout});
   page.setData = values => Object.assign(page.data, values);
   return {page, requests};
 }
+
+/** 未同意不发送身体数据, 请求失败仍可手动选择材料. */
+test('AI推荐必须主动同意, 失败正确收尾且不覆盖设计', async () => {
+  const {page, requests} = designerFixture();
+  page.data.selectedOptionIds = [7];
+  await page.requestAiRecommendation();
+  assert.equal(requests.length, 0);
+  Object.assign(page.data, {aiConsent: true, aiHeight: '165', aiWeight: '55', goodsId: 10});
+  const pending = page.requestAiRecommendation();
+  assert.equal(page.data.aiLoading, true);
+  assert.equal(requests[0].data.neckCm, null);
+  assert.equal(requests[0].data.consent, true);
+  requests[0].reject(new Error('模型超时'));
+  await pending;
+  assert.equal(page.data.aiLoading, false);
+  assert.equal(page.data.aiError, '模型超时');
+  assert.deepEqual(page.data.selectedOptionIds, [7]);
+});
+
+/** 输入或商品变更后迟到的AI结果不得重新出现. */
+test('AI参数变更废弃在途结果', async () => {
+  const {page, requests} = designerFixture();
+  Object.assign(page.data, {aiConsent: true, aiHeight: '165', aiWeight: '55', goodsId: 10});
+  const pending = page.requestAiRecommendation();
+  page.changeAiInput({currentTarget: {dataset: {field: 'aiHeight'}}, detail: {value: '170'}});
+  requests[0].resolve({code: 0, data: {goodsId: 10, lengthCm: 45}});
+  await pending;
+  assert.equal(page.data.aiResult, null);
+  assert.equal(page.data.aiHeight, '170');
+});
+
+/** 采用AI材料必须重新报价, 不信任结果中附带的旧价格或跨商品材料. */
+test('采用AI搭配后重新报价并拒绝跨商品结果', async () => {
+  const {page, requests} = designerFixture();
+  Object.assign(page.data, {goodsId: 10, quote: {totalPrice: 500}, componentGroups: [
+    {type: 'pearl', required: true, options: [{id: 1, name: '澳白', assetUrl: '/static/p.png'}]}
+  ], aiResult: {goodsId: 11, optionIds: [1]}});
+  page.applyAiRecommendation();
+  assert.equal(requests.length, 0);
+  page.data.aiResult = {goodsId: 10, optionIds: [1], quote: {totalPrice: 1}};
+  const pending = page.applyAiRecommendation();
+  assert.equal(requests[0].url, '/quote');
+  assert.equal(page.data.quote.totalPrice, undefined);
+  assert.deepEqual(Array.from(page.data.selectedOptionIds), [1]);
+  requests[0].resolve({code: 0, data: {totalPrice: 99}});
+  await pending;
+  assert.equal(page.data.quote.totalPrice, 99);
+});
 
 /** 报价失败时旧价格立即失效, 后续不能保存或结算. */
 test('定制报价失败清除旧价格并禁止保存', async () => {

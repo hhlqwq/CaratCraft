@@ -46,6 +46,9 @@ module.exports = {
   GoodsRelated: API_BASE_URL + 'goods/related', //商品详情页的关联商品（大家都在看）
   CustomizationConfig: API_BASE_URL + 'customization/config', //获取定制器配置
   CustomizationQuote: API_BASE_URL + 'customization/quote', //服务端定制报价
+  AiRecommendationStatus: API_BASE_URL + 'customization/ai/status', //AI推荐配置状态
+  AiRecommendationPrepare: API_BASE_URL + 'customization/ai/prepare', //获取材料候选与一次性票据
+  AiRecommendationValidate: API_BASE_URL + 'customization/ai/validate', //校验微信云模型建议
   CustomizationSave: API_BASE_URL + 'customization/save', //保存定制设计
   CustomizationList: API_BASE_URL + 'customization/list', //我的定制设计
   CustomizationDetail: API_BASE_URL + 'customization/detail', //获取本人设计详情
