@@ -1,6 +1,6 @@
 <template>
   <div class="mod-generator">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.tableName" placeholder="表名" clearable></el-input>
       </el-form-item>
@@ -8,7 +8,7 @@
         <el-button @click="getDataList(1)">查询</el-button>
       </el-form-item>
     </el-form>
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="generator()">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="generator()">
       <el-form-item>
         <el-input v-model="searchForm.projectName" placeholder="项目名称" clearable></el-input>
       </el-form-item>
@@ -74,6 +74,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

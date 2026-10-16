@@ -11,6 +11,8 @@ var DEFAULT_PREVIEW = {layers: [], missing: [], description: '', ratio: 100};
 Page({
   data: {
     goodsId: 0,
+    draftId: null,
+    draftVersion: null,
     componentGroups: [],
     selectedOptionIds: [],
     selectedOptionNames: [],
@@ -220,6 +222,10 @@ Page({
       var restoredOptionIds = restoredConfiguration && restoredConfiguration.optionIds
         ? restoredConfiguration.optionIds.map(function (id) { return Number(id); })
         : [];
+      if (restoredOptionIds.some(function (id) { return !options.some(function (option) { return Number(option.id) === id; }); })) {
+        that.setData({loadingConfig: false, configError: '原草稿包含已停用材料, 已保留原设计, 请联系商家核对或新建设计'});
+        return;
+      }
       var selectedOptionIds = [];
       componentGroups.forEach(function (group) {
         group.options.forEach(function (option) {
@@ -272,7 +278,7 @@ Page({
         var configuration = JSON.parse(res.data.configurationJson || '{}');
         var goodsId = Number(res.data.goodsId || configuration.goodsId || 0);
         if (!goodsId) throw new Error('设计缺少商品信息');
-        that.setData({ goodsId: goodsId });
+        that.setData({ goodsId: goodsId, draftId: res.data.id, draftVersion: res.data.version });
         that.loadConfig(configuration);
       } catch (error) {
         that.setData({
@@ -457,11 +463,14 @@ Page({
     that.setData({ saving: true });
     return util.request(api.CustomizationSave, {
       goodsId: that.data.goodsId,
+      draftId: that.data.draftId,
+      version: that.data.draftVersion,
       optionIds: that.data.selectedOptionIds,
       engraving: that.data.engraving
     }, 'POST', 'application/json').then(function (res) {
       that.setData({ saving: false });
       if (res.code !== 0) throw new Error(res.msg || '保存失败');
+      that.setData({draftId: res.data.snapshotId, draftVersion: res.data.version});
       if (!startCheckout) {
         wx.setStorageSync('lastSavedDesignSnapshotId', res.data.snapshotId);
         wx.showToast({ title: '设计已保存', icon: 'success' });
@@ -475,7 +484,7 @@ Page({
       }, 'POST', 'application/json').then(function (buyRes) {
         if (buyRes.code !== 0) throw new Error(buyRes.msg || '创建购买信息失败');
         wx.navigateTo({
-          url: '/pages/shopping/checkout/checkout?isBuy=true&designSnapshotId=' + res.data.snapshotId
+          url: '/pages/shopping/checkout/checkout?isBuy=true&checkoutId=' + encodeURIComponent(buyRes.data.checkoutId) + '&designSnapshotId=' + res.data.snapshotId
         });
         return res.data.snapshotId;
       });
@@ -530,6 +539,8 @@ Page({
       wx.removeStorageSync('designerGoodsId');
       this.setData({
         goodsId: goodsId,
+        draftId: null,
+        draftVersion: null,
         selectedOptionIds: [],
         engraving: '',
         quote: {}

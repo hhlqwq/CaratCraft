@@ -1,6 +1,6 @@
 <template>
   <div class="mod-usercoupon">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.nickname" placeholder="会员昵称" clearable></el-input>
       </el-form-item>
@@ -87,7 +87,7 @@
         header-align="center"
         align="center"
         label="领取类型">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.type === 0" size="small" type="success">平台发放</el-tag>
           <el-tag v-else-if="scope.row.type === 1" size="small" type="danger">自动发放</el-tag>
           <el-tag v-else-if="scope.row.type === 2" size="small" type="danger">领券中心领取</el-tag>
@@ -98,7 +98,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="success">未使用</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="danger">已使用</el-tag>
           <el-tag v-else-if="scope.row.status === 2" size="small" type="info">过期</el-tag>
@@ -122,7 +122,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:usercoupon:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -150,6 +150,7 @@
 import AddOrUpdate from './usercoupon-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

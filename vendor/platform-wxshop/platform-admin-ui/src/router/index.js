@@ -4,24 +4,19 @@
  * 建议:
  * 1. 代码中路由统一使用name属性跳转(不使用path属性)
  */
-import Vue from 'vue'
-import Router from 'vue-router'
+import cookie from '@/utils/cookie'
+import {createRouter, createWebHashHistory} from 'vue-router'
 import http from '@/utils/httpRequest'
 import {isURL} from '@/utils/validate'
 import {clearLoginInfo} from '@/utils'
 
-Vue.use(Router)
-
-const originalPush = Router.prototype.push
-Router.prototype.push = function push (location, onResolve, onReject) {
-  if (onResolve || onReject) {
-    return originalPush.call(this, location, onResolve, onReject)
-  }
-  return originalPush.call(this, location).catch(err => err)
+const pages = import.meta.glob('../views/**/*.vue')
+/** 只允许加载构建时存在的页面, 不执行服务端提供的任意路径. */
+function _import (name) {
+  const page = pages['../views/' + name + '.vue']
+  if (!page) throw new Error('页面不存在: ' + name)
+  return page
 }
-
-// 开发环境不使用懒加载, 因为懒加载页面太多的话会造成webpack热更新太慢, 所以只有生产环境使用懒加载
-const _import = require('./import-' + process.env.NODE_ENV)
 
 // 全局路由(无需嵌套上左右整体布局)
 const globalRoutes = [
@@ -71,7 +66,7 @@ const mainRoutes = {
     }
   ],
   beforeEnter (to, from, next) {
-    const token = Vue.cookie.get('token')
+    const token = cookie.get('token')
     if (!token || !/\S/.test(token)) {
       clearLoginInfo()
       return next({name: 'login'})
@@ -80,9 +75,9 @@ const mainRoutes = {
   }
 }
 
-const router = new Router({
-  mode: 'hash',
-  scrollBehavior: () => ({y: 0}),
+const router = createRouter({
+  history: createWebHashHistory(),
+  scrollBehavior: () => ({top: 0}),
   // 是否已经添加动态(菜单)路由
   isAddDynamicMenuRoutes: false,
   routes: globalRoutes.concat(mainRoutes)
@@ -184,18 +179,10 @@ function fnAddDynamicMenuRoutes (menuList = [], routes = []) {
   if (temp.length >= 1) {
     fnAddDynamicMenuRoutes(temp, routes)
   } else {
-    mainRoutes.name = 'main-dynamic'
-    mainRoutes.children = routes
+    routes.forEach(route => router.addRoute('main', route))
+    router.addRoute({path: '/:pathMatch(.*)*', redirect: {name: '404'}})
 
-    let allRoutes = [mainRoutes, {
-      path: '*',
-      redirect: {name: '404'}
-    }]
-    allRoutes.forEach(function (route) {
-      router.addRoute(route)
-    })
-
-    sessionStorage.setItem('dynamicMenuRoutes', JSON.stringify(mainRoutes.children || '[]'))
+    sessionStorage.setItem('dynamicMenuRoutes', JSON.stringify(routes || '[]'))
   }
 }
 

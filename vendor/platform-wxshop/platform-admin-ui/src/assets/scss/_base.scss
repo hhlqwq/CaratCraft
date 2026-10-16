@@ -1,3 +1,5 @@
+@use "sass:color";
+@use "variables" as *;
 *,
 *:before,
 *:after {
@@ -14,12 +16,12 @@ body {
 }
 
 a {
-  color: mix(#fff, $--color-primary, 20%);
+  color: color.mix(#fff, $brand-primary, 20%);
   text-decoration: none;
 
   &:focus,
   &:hover {
-    color: $--color-primary;
+    color: $brand-primary;
     text-decoration: underline;
   }
 }
@@ -151,13 +153,13 @@ img {
         &:focus,
         &:hover {
           color: #fff;
-          background-color: mix(#000, $navbar--background-color, 15%);
+          background-color: color.mix(#000, $navbar--background-color, 15%);
         }
       }
 
       > .el-menu-item.is-active,
       > .el-submenu.is-active > .el-submenu__title {
-        border-bottom-color: mix(#fff, $navbar--background-color, 85%);
+        border-bottom-color: color.mix(#fff, $navbar--background-color, 85%);
       }
 
       .el-menu-item i,
@@ -305,19 +307,19 @@ img {
 
         &:focus,
         &:hover {
-          color: mix(#fff, $sidebar--color-text-dark, 50%);
-          background-color: mix(#fff, $sidebar--background-color-dark, 2.5%);
+          color: color.mix(#fff, $sidebar--color-text-dark, 50%);
+          background-color: color.mix(#fff, $sidebar--background-color-dark, 2.5%);
         }
       }
 
       .el-menu,
       .el-submenu.is-opened {
-        background-color: mix(#000, $sidebar--background-color-dark, 15%);
+        background-color: color.mix(#000, $sidebar--background-color-dark, 15%);
       }
 
       .el-menu-item.is-active,
       .el-submenu.is-active > .el-submenu__title {
-        color: mix(#fff, $sidebar--color-text-dark, 80%);
+        color: color.mix(#fff, $sidebar--color-text-dark, 80%);
       }
     }
   }
@@ -370,8 +372,9 @@ img {
 }
 
 .el-dialog {
-  width: 55%;
-  min-width: 680px;
+  width: var(--el-dialog-width, 55%);
+  min-width: 0;
+  max-width: 94vw;
 }
 
 .image-slot {
@@ -682,4 +685,18 @@ body {
     border-top: 1px solid #e5e0d7;
     padding: 14px 22px;
   }
+}
+
+// 管理端导航在新组件库下使用明确的弹性布局, 避免菜单被折叠为省略号.
+.site-navbar__body { display: flex; justify-content: space-between; }
+.site-navbar__menu--right { margin-left: auto; }
+
+// 折叠侧栏优先于组件局部样式, 窄屏不显示截断的品牌和菜单文字.
+.site-wrapper.site-sidebar--fold .site-navbar__brand-lg { display: none; }
+.site-wrapper.site-sidebar--fold .site-navbar__brand { padding-left: 0; text-align: center; }
+.site-wrapper .el-pagination { max-width: 100%; overflow-x: auto; justify-content: flex-end; }
+@media (max-width: 700px) {
+  .site-content { padding: 10px; }
+  .merchant-home { padding: 12px; }
+  .el-dialog .el-form-item__label { overflow-wrap: anywhere; }
 }

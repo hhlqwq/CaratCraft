@@ -3,8 +3,8 @@
     :title="!dataForm.orgNo ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="机构名称" prop="orgName">
         <el-input v-model="dataForm.orgName" placeholder="机构名称" class="width200"></el-input>
@@ -15,7 +15,7 @@
           append-to-body
           title="选择区域"
           :lock-scroll="false"
-          :visible.sync="visiblePopover">
+          v-model="visiblePopover">
           <el-tree
             :data="parentOptions"
             :props="orgListTreeProps"
@@ -39,15 +39,16 @@
         <el-input-number v-model="dataForm.sort" controls-position="right" :min="0" step-strictly></el-input-number>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       testTime: '',

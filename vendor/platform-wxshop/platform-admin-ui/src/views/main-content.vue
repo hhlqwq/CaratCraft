@@ -5,32 +5,28 @@
              @tab-remove="removeTabHandle">
       <el-dropdown class="site-tabs__tools" :show-timeout="0">
         <i class="el-icon-arrow-down el-icon--right"></i>
-        <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item @click.native="tabsCloseCurrentHandle">关闭当前标签页</el-dropdown-item>
-          <el-dropdown-item @click.native="tabsCloseOtherHandle">关闭其它标签页</el-dropdown-item>
-          <el-dropdown-item @click.native="tabsCloseAllHandle">关闭全部标签页</el-dropdown-item>
-          <el-dropdown-item @click.native="tabsRefreshCurrentHandle">刷新当前标签页</el-dropdown-item>
-        </el-dropdown-menu>
+        <template #dropdown><el-dropdown-menu >
+          <el-dropdown-item @click="tabsCloseCurrentHandle">关闭当前标签页</el-dropdown-item>
+          <el-dropdown-item @click="tabsCloseOtherHandle">关闭其它标签页</el-dropdown-item>
+          <el-dropdown-item @click="tabsCloseAllHandle">关闭全部标签页</el-dropdown-item>
+          <el-dropdown-item @click="tabsRefreshCurrentHandle">刷新当前标签页</el-dropdown-item>
+        </el-dropdown-menu></template>
       </el-dropdown>
       <el-tab-pane v-for="item in mainTabs" :key="item.name" :label="item.title" :name="item.name">
         <el-card :body-style="siteContentViewHeight">
           <iframe v-if="item.type === 'iframe'" :src="item.iframeUrl" width="100%" height="100%" frameborder="0"
                   scrolling="yes">
           </iframe>
-          <keep-alive v-else>
-            <router-view v-if="item.name === mainTabsActiveName"/>
-          </keep-alive>
+          <router-view v-else v-slot="{ Component }"><keep-alive><component :is="Component" v-if="item.name === mainTabsActiveName" :key="item.name" /></keep-alive></router-view>
         </el-card>
       </el-tab-pane>
     </el-tabs>
     <!-- 主入口标签页 e -->
     <el-card v-else :body-style="siteContentViewHeight">
-      <keep-alive>
-        <router-view/>
-      </keep-alive>
+      <router-view v-slot="{ Component }"><keep-alive><component :is="Component" /></keep-alive></router-view>
     </el-card>
     <div style="text-align: center">
-      <el-link icon="el-icon-link" type="info" target="_blank" href="mailto:845367567@qq.com">何海龙(845367567@qq.com) © 2019</el-link>
+      <el-link icon="el-icon-link" type="info" target="_blank" href="mailto:845367567@qq.com">克拉匠造 · 商家工作台</el-link>
     </div>
   </main>
 </template>
@@ -39,6 +35,7 @@
 import {isURL} from '@/utils/validate'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {}
   },
@@ -84,7 +81,7 @@ export default {
   methods: {
     // tabs, 选中tab
     selectedTabHandle (tab) {
-      tab = this.mainTabs.filter(item => item.name === tab.name)
+      tab = this.mainTabs.filter(item => item.name === (tab.paneName || tab.props.name))
       if (tab.length >= 1) {
         this.$router.push({name: tab[0].name, query: tab[0].query, params: tab[0].params})
       }
@@ -110,7 +107,7 @@ export default {
     // tabs, 刷新当前
     tabsRefreshCurrentHandle () {
       var tab = this.$route
-      this.removeTabHandle(tab.name)
+      this.removeTabHandle((tab.paneName || tab.props.name))
       this.$nextTick(() => {
         this.$router.push({name: tab.name, query: tab.query, params: tab.params})
       })

@@ -3,8 +3,8 @@
     title="筛选模板消息目标用户"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :inline="true" :model="dataForm" ref="dataForm" clearable @keyup.enter.native="getWxUsers()">
+    v-model="visible">
+    <el-form :inline="true" :model="dataForm" ref="dataForm" clearable @keyup.enter="getWxUsers()">
       <el-form-item>
         <el-select v-model="dataForm.tagid" filterable placeholder="用户标签" @change="getWxUsers()">
           <el-option v-for="item in wxUserTags" :key="item.id" :label="item.name" :value="item.id+''"></el-option>
@@ -35,17 +35,18 @@
     <div class="margin-top-xs">
       <el-input type="textarea" disabled autosize v-model="msgReview" placeholder="模版"></el-input>
     </div>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="send" type="success"
                        :disabled="totalCount<=0 || sending">{{sending ? '发送中...' : '发送'}}</el-button>
             <el-button @click="visible=false">关闭</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 <script>
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'template-msg-task',
   props: {
     wxUserTagName: {

@@ -83,14 +83,18 @@ def draw_icon(draw, kind, size, color):
 
 def icon_kind(name):
     """按资源用途选择通用图形, 不复用原图的路径或像素."""
-    groups = [("search", ["search"]), ("home", ["choice", "home"]),
-              ("cart", ["shoping", "cart"]), ("user", ["avatar", "me_", "geren"]),
+    groups = [("settings", ["xitongpeizhi", "settings", "config"]),
+              ("menu", ["zhedie", "menu", "daohang"]),
+              ("chart", ["charts", "tongji"]), ("box", ["stock", "goods", "store"]),
+              ("lock", ["lock", "password", "role"]),
+              ("search", ["search"]), ("home", ["choice", "home", "shouye"]),
+              ("cart", ["shoping", "cart"]), ("user", ["avatar", "me_", "geren", "admin", "user"]),
               ("left", ["back", "prev"]), ("right", ["right", "more", "next", "go."]),
               ("up", ["up"]), ("down", ["down"]),
               ("close", ["clear", "error"]), ("delete", ["del-", "shanchu"]),
               ("checked", ["checked", "wxpay"]), ("radio", ["radio", "checkbox"]),
               ("edit", ["edit"]), ("heart", ["collect"]),
-              ("chat", ["comment", "kefu", "feedback"]),
+              ("chat", ["comment", "kefu", "feedback", "wechat", "wx-"]),
               ("document", ["empty", "policy", "coupon", "sort", "order"])]
     for kind, keywords in groups:
         if any(keyword in name.lower() for keyword in keywords):
@@ -189,6 +193,20 @@ def write_svg(path):
     """重绘SVG资源, 使用项目内的几何线条而非复制旧路径."""
     kind = icon_kind(path.name)
     paths = {
+        "home": '<path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10"/>',
+        "settings": '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+        "menu": '<path d="M3 5h18M3 12h18M3 19h18M8 5v14"/>',
+        "chart": '<path d="M3 3v18h18M7 16v-5M12 16V6M17 16V9"/>',
+        "box": '<path d="m3 7 9-4 9 4v13H3zM3 7h18M12 3v17M8 11h2M15 11h2"/>',
+        "lock": '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3M12 14v3"/>',
+        "left": '<path d="m15 4-8 8 8 8"/>',
+        "right": '<path d="m9 4 8 8-8 8"/>',
+        "up": '<path d="m4 15 8-8 8 8"/>',
+        "down": '<path d="m4 9 8 8 8-8"/>',
+        "close": '<path d="m5 5 14 14M19 5 5 19"/>',
+        "delete": '<path d="M3 6h18M8 6V3h8v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>',
+        "checked": '<circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/>',
+        "radio": '<circle cx="12" cy="12" r="9"/>',
         "user": '<circle cx="12" cy="7" r="4"/><path d="M4 21v-3l4-4h8l4 4v3"/>',
         "cart": '<path d="M2 4h3l3 12h10l3-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>',
         "search": '<circle cx="10" cy="10" r="7"/><path d="m15 15 7 7"/>',

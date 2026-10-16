@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="角色名称" prop="roleName">
         <el-input v-model="dataForm.roleName" placeholder="角色名称"></el-input>
@@ -12,7 +12,7 @@
       <el-form-item label="备注" prop="remark">
         <el-input type="textarea" v-model="dataForm.remark" placeholder="备注"></el-input>
       </el-form-item>
-      <el-form-item size="mini" label="功能权限">
+      <el-form-item size="small" label="功能权限">
         <el-tree
           check-strictly
           :data="menuList"
@@ -23,7 +23,7 @@
           show-checkbox>
         </el-tree>
       </el-form-item>
-      <el-form-item size="mini" label="数据权限">
+      <el-form-item size="small" label="数据权限">
         <el-tree
           check-strictly
           :data="orgList"
@@ -35,15 +35,16 @@
         </el-tree>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

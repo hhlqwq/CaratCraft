@@ -1,6 +1,6 @@
 <template>
   <div class="mod-custom-work-order">
-    <el-form :inline="true" @keyup.enter.native="loadWorkOrders">
+    <el-form :inline="true" @keyup.enter="loadWorkOrders">
       <el-form-item>
         <el-select v-model="status" placeholder="工单状态" clearable>
           <el-option v-for="item in statusOptions" :key="item.value"
@@ -17,24 +17,27 @@
       <el-table-column prop="orderId" label="订单 ID" width="100"></el-table-column>
       <el-table-column prop="snapshotId" label="设计快照 ID" width="120"></el-table-column>
       <el-table-column label="状态" width="120">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag>{{ statusText(scope.row.status) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="制作内容" min-width="280">
-        <template slot-scope="scope">
+        <template #default="scope">
           <div v-for="(line, index) in craftSummary(scope.row)" :key="index" class="craft-line">{{ line }}</div>
         </template>
       </el-table-column>
+      <el-table-column label="设计预览" min-width="130"><template #default="scope">
+        <div class="work-preview"><img v-for="layer in previewLayers(scope.row)" :key="layer.optionId" :src="layer.assetUrl" alt="设计图层" /></div>
+      </template></el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160"></el-table-column>
       <el-table-column fixed="right" label="操作" width="200">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-dropdown v-if="isAuth('custom:work-order:update') && allowedActions(scope.row).length" @command="updateStatus(scope.row.id, $event)">
             <el-button type="text">流转状态<i class="el-icon-arrow-down el-icon--right"></i></el-button>
-            <el-dropdown-menu slot="dropdown">
+            <template #dropdown><el-dropdown-menu >
               <el-dropdown-item v-for="item in allowedActions(scope.row)" :key="item.value"
                                 :command="item.value">{{ item.label }}</el-dropdown-item>
-            </el-dropdown-menu>
+            </el-dropdown-menu></template>
           </el-dropdown>
           <el-button v-if="isAuth('custom:work-order:list')" type="text" size="small"
                      @click="showLogs(scope.row)">日志</el-button>
@@ -42,12 +45,14 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog title="工单操作日志" :visible.sync="logVisible" width="min(94vw, 900px)">
+    <el-pagination :current-page="page" :page-size="20" :total="total" layout="total, prev, pager, next" @current-change="changePage" />
+
+    <el-dialog title="工单操作日志" v-model="logVisible" width="min(94vw, 900px)">
       <el-table :data="logs" border size="small">
         <el-table-column prop="createTime" label="时间" min-width="150"></el-table-column>
         <el-table-column prop="operatorName" label="操作人" width="110"></el-table-column>
         <el-table-column label="状态流转" min-width="180">
-          <template slot-scope="scope">
+          <template #default="scope">
             {{ statusText(scope.row.fromStatus) || '—' }} → {{ statusText(scope.row.toStatus) }}
           </template>
         </el-table-column>
@@ -59,10 +64,13 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       status: '',
       workOrders: [],
+      page: 1,
+      total: 0,
       statusOptions: [
         {value: 'PENDING_REVIEW', label: '待审核'},
         {value: 'REVIEWED', label: '已审核'},
@@ -79,27 +87,32 @@ export default {
     this.loadWorkOrders()
   },
   methods: {
+    // 切换有限页数据.
+    changePage (page) {
+      this.page = page
+      this.loadWorkOrders()
+    },
     // 加载生产工单 / Loads production work orders.
     loadWorkOrders () {
       this.$http({
         url: '/custom/work-order/list',
         method: 'get',
-        params: {status: this.status}
+        params: {status: this.status, page: this.page, limit: 20}
       }).then(({data}) => {
-        this.workOrders = data && data.code === 0 ? data.data : []
+        this.workOrders = data && data.code === 0 ? data.data.records : []
+        this.total = data && data.code === 0 ? data.data.total : 0
       })
     },
     // 只展示下一步合法动作, 取消必须由订单售后流程处理.
     allowedActions (row) {
-      const transitions = {PENDING_REVIEW: ['REVIEWED'], REVIEWED: ['PRODUCING'], PRODUCING: ['QUALITY_CHECK'], QUALITY_CHECK: ['COMPLETED']}
-      return this.statusOptions.filter(item => (transitions[row.status] || []).includes(item.value))
+      return this.statusOptions.filter(item => (row.allowedActions || []).includes(item.value))
     },
     // 以可读制作参数展示快照, 历史快照缺字段时明确提示人工核验.
     craftSummary (row) {
       try {
         const craft = JSON.parse(row.craftJson || '{}')
         const lines = Array.isArray(craft.components)
-          ? craft.components.map(item => `${item.name || item.optionCode} × ${item.quantity}`)
+          ? craft.components.map(item => `${item.name || item.optionCode} × ${item.quantity} ${item.unit || '件'}`)
           : ['历史选项: ' + (craft.optionIds || []).join('、'), '历史参数需结合设计详情核验']
         if (craft.engraving) {
           lines.push('刻字: ' + craft.engraving)
@@ -107,6 +120,15 @@ export default {
         return lines
       } catch (error) {
         return ['生产参数无法读取, 请核对设计快照后再操作']
+      }
+    },
+    // 使用订单冻结图层预览, 历史缺图时不伪造商品图.
+    previewLayers (row) {
+      try {
+        return (JSON.parse(row.craftJson || '{}').components || []).filter(line => line.assetUrl && (/^https:\/\//i.test(line.assetUrl) || /^\/(?!\/)/.test(line.assetUrl)))
+          .sort((a, b) => Number(a.zIndex || 0) - Number(b.zIndex || 0))
+      } catch (error) {
+        return []
       }
     },
     // 每次审核、开工和质检必须录入操作备注并确认.
@@ -150,5 +172,7 @@ export default {
 </script>
 
 <style scoped>
+.work-preview { position: relative; width: 100px; height: 100px; background: #f5f6f2; }
+.work-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .craft-line { line-height: 1.8; overflow-wrap: anywhere; }
 </style>

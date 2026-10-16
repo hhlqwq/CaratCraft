@@ -2,7 +2,7 @@
   <div class="mod-dictgroup">
     <el-row :gutter="24">
       <el-col :span="14">
-        <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+        <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
           <el-form-item>
             <el-input v-model="searchForm.code" placeholder="分组编码" clearable></el-input>
           </el-form-item>
@@ -33,7 +33,7 @@
             header-align="center"
             align="center"
             label="分组编码">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-button type="text" size="small" @click="showDict(scope.row.id,scope.row.code)">{{ scope.row.code }}
               </el-button>
             </template>
@@ -57,7 +57,7 @@
             align="center"
             width="150"
             label="操作">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-button v-if="isAuth('sys:dictgroup:update')" type="text" size="small"
                          @click="addOrUpdateHandle(scope.row.id)">修改
               </el-button>
@@ -91,6 +91,7 @@ import AddOrUpdate from './dictgroup-add-or-update'
 import Dict from './dict'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

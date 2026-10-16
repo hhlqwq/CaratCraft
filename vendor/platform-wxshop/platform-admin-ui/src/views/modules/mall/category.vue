@@ -1,6 +1,6 @@
 <template>
   <div class="mod-category">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList()">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList()">
       <el-form-item>
         <el-input v-model="searchForm.pName" placeholder="上级分类" clearable></el-input>
       </el-form-item>
@@ -42,7 +42,7 @@
         header-align="center"
         align="center"
         label="小程序内链接">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button type="text" size="small" v-clipboard:copy="'/pages/category/category?categoryId=' + scope.row.id"
                      v-clipboard:success="copySuccess">
             /pages/category/category?categoryId={{ scope.row.id }}(点击复制)
@@ -66,7 +66,7 @@
         header-align="center"
         align="center"
         label="是否显示">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isShow === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isShow === 1" size="small" type="success">是</el-tag>
         </template>
@@ -76,7 +76,7 @@
         header-align="center"
         align="center"
         label="顶部大图">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" v-if="scope.row.imgUrl" @click="openImg(scope.row.imgUrl)"
                :src="scope.row.imgUrl"/>
         </template>
@@ -86,7 +86,7 @@
         header-align="center"
         align="center"
         label="icon链接">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" v-if="scope.row.iconUrl" @click="openImg(scope.row.iconUrl)"
                :src="scope.row.iconUrl"/>
         </template>
@@ -103,7 +103,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:category:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -125,6 +125,7 @@
 import AddOrUpdate from './category-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

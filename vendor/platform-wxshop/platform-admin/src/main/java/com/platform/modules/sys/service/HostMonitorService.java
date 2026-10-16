@@ -32,17 +32,21 @@ public class HostMonitorService {
     Map<String, Object> server = new HashMap<>();
     double cpuLoad = processor.getSystemCpuLoadBetweenTicks(previousCpuTicks);
     previousCpuTicks = processor.getSystemCpuLoadTicks();
-    server.put("cupInfo", Map.of(
-        "physicalProcessorCount", processor.getPhysicalProcessorCount(),
-        "logicalProcessorCount", processor.getLogicalProcessorCount(),
-        "usePercent", Math.max(0, Math.min(1, cpuLoad))));
+    server.put(
+        "cupInfo",
+        Map.of(
+            "physicalProcessorCount", processor.getPhysicalProcessorCount(),
+            "logicalProcessorCount", processor.getLogicalProcessorCount(),
+            "usePercent", Math.max(0, Math.min(1, cpuLoad))));
     server.put("centralProcessor", processor.getProcessorIdentifier());
     server.put("sysInfo", systemDescription());
-    server.put("memoryInfo", Map.of(
-        "total", formatBytes(memory.getTotal()),
-        "free", formatBytes(memory.getAvailable()),
-        "used", formatBytes(memory.getTotal() - memory.getAvailable()),
-        "usePercent", ratio(memory.getTotal() - memory.getAvailable(), memory.getTotal())));
+    server.put(
+        "memoryInfo",
+        Map.of(
+            "total", formatBytes(memory.getTotal()),
+            "free", formatBytes(memory.getAvailable()),
+            "used", formatBytes(memory.getTotal() - memory.getAvailable()),
+            "usePercent", ratio(memory.getTotal() - memory.getAvailable(), memory.getTotal())));
     server.put("jvmInfo", jvmDescription());
     List<Map<String, Object>> disks = disks(operatingSystem);
     server.put("diskInfos", disks);
@@ -68,25 +72,42 @@ public class HostMonitorService {
     } catch (UnknownHostException ignored) {
       // 主机解析失败不影响CPU、内存和磁盘采集.
     }
-    return Map.of("name", name, "ip", ip,
-        "osName", System.getProperty("os.name", "unknown"),
-        "osArch", System.getProperty("os.arch", "unknown"),
-        "userDir", System.getProperty("user.dir", ""));
+    return Map.of(
+        "name",
+        name,
+        "ip",
+        ip,
+        "osName",
+        System.getProperty("os.name", "unknown"),
+        "osArch",
+        System.getProperty("os.arch", "unknown"),
+        "userDir",
+        System.getProperty("user.dir", ""));
   }
 
   /** 读取当前JVM内存和启动时间, 百分比统一使用0到1的比例. */
   private Map<String, Object> jvmDescription() {
     Runtime runtime = Runtime.getRuntime();
     long used = runtime.totalMemory() - runtime.freeMemory();
-    return Map.of("jdkName", System.getProperty("java.vm.name", "unknown"),
-        "jdkVersion", System.getProperty("java.version", "unknown"),
-        "jdkHome", System.getProperty("java.home", ""),
-        "maxMemory", formatBytes(runtime.maxMemory()),
-        "usedMemory", formatBytes(used),
-        "freeMemory", formatBytes(runtime.maxMemory() - used),
-        "usePercent", ratio(used, runtime.maxMemory()),
-        "startTime", ManagementFactory.getRuntimeMXBean().getStartTime(),
-        "uptime", ManagementFactory.getRuntimeMXBean().getUptime());
+    return Map.of(
+        "jdkName",
+        System.getProperty("java.vm.name", "unknown"),
+        "jdkVersion",
+        System.getProperty("java.version", "unknown"),
+        "jdkHome",
+        System.getProperty("java.home", ""),
+        "maxMemory",
+        formatBytes(runtime.maxMemory()),
+        "usedMemory",
+        formatBytes(used),
+        "freeMemory",
+        formatBytes(runtime.maxMemory() - used),
+        "usePercent",
+        ratio(used, runtime.maxMemory()),
+        "startTime",
+        ManagementFactory.getRuntimeMXBean().getStartTime(),
+        "uptime",
+        ManagementFactory.getRuntimeMXBean().getUptime());
   }
 
   /** 枚举文件系统, 同一底层卷的重复挂载只统计一次. */
@@ -97,8 +118,8 @@ public class HostMonitorService {
       if (store.getTotalSpace() <= 0) {
         continue;
       }
-      String key = store.getUUID().isBlank()
-          ? store.getVolume() + ":" + store.getType() : store.getUUID();
+      String key =
+          store.getUUID().isBlank() ? store.getVolume() + ":" + store.getType() : store.getUUID();
       if (!devices.add(key)) {
         continue;
       }
@@ -115,6 +136,7 @@ public class HostMonitorService {
       disk.put("used", formatBytes(total - available));
       disk.put("avail", formatBytes(available));
       disk.put("totalSpace", total);
+      disk.put("usedSpace", total - available);
       disk.put("usableSpace", available);
       disk.put("usePercent", ratio(total - available, total));
       result.add(disk);
@@ -125,8 +147,8 @@ public class HostMonitorService {
   /** 返回CPU占用排序的前10个进程, 不包含命令行和环境秘密. */
   private List<Map<String, Object>> processes(OperatingSystem operatingSystem) {
     List<Map<String, Object>> result = new ArrayList<>();
-    for (OSProcess process : operatingSystem.getProcesses(
-        null, OperatingSystem.ProcessSorting.CPU_DESC, 10)) {
+    for (OSProcess process :
+        operatingSystem.getProcesses(null, OperatingSystem.ProcessSorting.CPU_DESC, 10)) {
       Map<String, Object> item = new HashMap<>();
       item.put("pid", process.getProcessID());
       item.put("cpu", process.getProcessCpuLoadCumulative());

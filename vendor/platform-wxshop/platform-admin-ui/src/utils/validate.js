@@ -133,7 +133,6 @@ export function isNull (val) {
  * 判断身份证号码
  */
 export function isCardId (code) {
-  let msg = ''
   const city = {
     11: '北京',
     12: '天津',
@@ -174,10 +173,10 @@ export function isCardId (code) {
   if (!isNull(code)) {
     if (code.length === 18) {
       if (!code || !/(^\d{18}$)|(^\d{17}(\d|X|x)$)/.test(code)) {
-        msg = '证件号码格式错误'
+
         return false
       } else if (!city[code.substr(0, 2)]) {
-        msg = '地址编码错误'
+
         return false
       } else {
         // 18位身份证需要验证最后一位校验位
@@ -188,29 +187,22 @@ export function isCardId (code) {
         // 校验位
         const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2, 'x']
         let sum = 0
-        let ai = 0
-        let wi = 0
         for (let i = 0; i < 17; i++) {
-          ai = code[i]
-          wi = factor[i]
-          sum += ai * wi
+          sum += code[i] * factor[i]
         }
         const last = parity[sum % 11]
-        if (last !== code[17]) {
-          msg = '证件号码校验位错误'
+        if (String(last) !== String(code[17]).toUpperCase()) {
+
           return false
         }
       }
     } else {
-      msg = '证件号码长度不为18位'
+
       return false
     }
   } else {
-    msg = '证件号码不能为空'
+
     return false
-  }
-  if (msg) {
-    console.log(msg)
   }
   return true
 }

@@ -34,7 +34,7 @@
         header-align="center"
         align="center"
         label="图标">
-        <template slot-scope="scope">
+        <template #default="scope">
           <icon-svg :name="scope.row.icon || ''"></icon-svg>
         </template>
       </el-table-column>
@@ -43,7 +43,7 @@
         header-align="center"
         align="center"
         label="类型">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.type === 0" size="small">目录</el-tag>
           <el-tag v-else-if="scope.row.type === 1" size="small" type="success">菜单</el-tag>
           <el-tag v-else-if="scope.row.type === 2" size="small" type="info">按钮</el-tag>
@@ -77,7 +77,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:menu:update')" type="text" size="small"
                      @click="addOrUpdateHandle(scope.row.menuId)">修改
           </el-button>
@@ -97,6 +97,7 @@ import TableTreeColumn from '@/components/table-tree-column'
 import AddOrUpdate from './menu-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {},

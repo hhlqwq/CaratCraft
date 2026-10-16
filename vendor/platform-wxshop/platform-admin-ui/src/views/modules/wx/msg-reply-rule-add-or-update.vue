@@ -3,7 +3,7 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :lock-scroll="false"
     :close-on-click-modal="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" label-width="80px">
       <el-form-item label="规则名称" prop="ruleName">
         <el-input v-model="dataForm.ruleName" placeholder="规则名称"></el-input>
@@ -57,10 +57,10 @@
         <el-input v-model="dataForm.desc" placeholder="备注说明"></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="visible = false">取消</el-button>
             <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-        </span>
+        </span></template>
     <assets-selector v-if="assetsSelectorVisible && assetsType" :visible="assetsSelectorVisible"
                      :selectType="assetsType" @selected="onAssetsSelect"
                      @onClose="assetsSelectorVisible=false"></assets-selector>
@@ -71,6 +71,7 @@
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   components: {
     AssetsSelector: () => import('./assets/assets-selector'),
     tagsEditor: () => import('@/components/tags-editor')

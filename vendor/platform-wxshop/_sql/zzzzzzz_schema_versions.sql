@@ -33,3 +33,47 @@ SET is_on_sale=0
 WHERE goods_sn='DEMO-DIY-EAR-001' AND id=1999106;
 INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
 VALUES ('V20261015_02_disable_obsolete_demo.sql', '484a6ecae51d54f02e49e2db9ce066679f9174c7f19681970cb8b5d840fde7a7');
+
+-- 版本: V20261016_01_checkout_refunds.sql
+-- 订单提交键与退款对账流水, 不覆盖现有业务数据.
+ALTER TABLE mall_order ADD COLUMN request_key VARCHAR(80) NULL,
+  ADD COLUMN request_digest VARCHAR(64) NULL,
+  ADD UNIQUE KEY uk_order_request (user_id, request_key);
+
+CREATE TABLE CC_REFUND (
+  order_id INT NOT NULL PRIMARY KEY,
+  refund_no VARCHAR(64) NOT NULL,
+  status VARCHAR(24) NOT NULL,
+  original_status INT NOT NULL,
+  amount_fen INT NOT NULL,
+  reason VARCHAR(200) NOT NULL,
+  operator_name VARCHAR(100) NULL,
+  decision_note VARCHAR(200) NULL,
+  provider_status VARCHAR(32) NULL,
+  attempts INT NOT NULL DEFAULT 0,
+  next_check_time DATETIME NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_refund_no (refund_no),
+  KEY ix_refund_retry (status, next_check_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261016_01_checkout_refunds.sql', '2caae186218d76a9172038230cb7c1af64793fd8a3a08c987effbdb35ca5a190');
+
+-- 版本: V20261016_02_material_history.sql
+-- 草稿版本用于乐观并发, 材料流水保留每次变更后的余额.
+ALTER TABLE CC_DESIGN_SNAPSHOT ADD COLUMN version BIGINT NOT NULL DEFAULT 0;
+CREATE TABLE CC_STOCK_LOG (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  goods_id INT NOT NULL,
+  component_type VARCHAR(32) NOT NULL,
+  option_code VARCHAR(64) NOT NULL,
+  quantity_delta INT NOT NULL,
+  balance INT NOT NULL,
+  operator_name VARCHAR(100) NOT NULL,
+  reason VARCHAR(200) NOT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY ix_stock_history (goods_id, component_type, option_code, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261016_02_material_history.sql', 'd90a64a7e7b03bf20efa31cfd530d0ba6e09696c79a5c2b8d78b2e5fb8804245');

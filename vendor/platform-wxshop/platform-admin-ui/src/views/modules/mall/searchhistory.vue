@@ -1,6 +1,6 @@
 <template>
   <div class="mod-searchhistory">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.keyword" placeholder="关键字" clearable></el-input>
       </el-form-item>
@@ -52,7 +52,7 @@
         header-align="center"
         align="center"
         label="搜索来源">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.from === '1'" size="small" type="warning">小程序</el-tag>
           <el-tag v-else-if="scope.row.from === '2'" size="small" type="danger">PC</el-tag>
           <el-tag v-else-if="scope.row.from === '3'" size="small" type="success">APP</el-tag>
@@ -76,7 +76,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:searchhistory:delete')" type="text" size="small"
                      @click="deleteHandle(scope.row.id)">删除
           </el-button>
@@ -97,6 +97,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

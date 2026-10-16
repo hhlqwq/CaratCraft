@@ -50,6 +50,11 @@
     </view>
 
     <view class="order-bottom">
+        <view class="total" wx:if="{{refund.label}}">售后进度: {{refund.label}}</view>
+        <view class="total" wx:if="{{orderInfo.payStatus === 2 && (orderInfo.orderStatus === 201 || orderInfo.orderStatus === 300 || orderInfo.orderStatus === 301) && (!refund.status || refund.status === 'NONE')}}">
+            <input maxlength="200" placeholder="填写退款或退货理由" value="{{refundReason}}" bindinput="changeRefundReason" />
+            <button loading="{{refundSubmitting}}" disabled="{{refundSubmitting}}" bindtap="requestRefund">申请售后</button>
+        </view>
         <view class="address">
             <view class="t">
                 <text class="name">{{orderInfo.consignee}}</text>

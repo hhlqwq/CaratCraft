@@ -6,10 +6,11 @@ import static org.mockito.Mockito.*;
 
 import com.platform.annotation.IgnoreAuth;
 import com.platform.modules.app.request.ApiAddressSaveRequest;
-import com.platform.modules.app.request.ApiCartUpdateRequest;
 import com.platform.modules.app.request.LoginWxPhoneRequest;
+import com.platform.modules.mall.dto.ApiCartUpdateRequest;
 import com.platform.modules.mall.entity.MallCartEntity;
 import com.platform.modules.mall.entity.MallProductEntity;
+import com.platform.modules.mall.service.CartApplicationService;
 import com.platform.modules.mall.service.MallAddressService;
 import com.platform.modules.mall.service.MallCartService;
 import com.platform.modules.mall.service.MallProductService;
@@ -25,11 +26,16 @@ class AccountSecurityTest {
   /** 手机授权和上传入口不允许跳过认证. */
   @Test
   void protectedEndpointsRequireAuthentication() throws Exception {
-    assertNull(AppLoginController.class.getMethod("loginByMaPhone", WxUserEntity.class,
-        LoginWxPhoneRequest.class).getAnnotation(IgnoreAuth.class));
-    assertNull(AppUploadController.class.getMethod("upload",
-        org.springframework.web.multipart.MultipartFile.class).getAnnotation(IgnoreAuth.class));
-    assertThrows(ClassNotFoundException.class,
+    assertNull(
+        AppLoginController.class
+            .getMethod("loginByMaPhone", WxUserEntity.class, LoginWxPhoneRequest.class)
+            .getAnnotation(IgnoreAuth.class));
+    assertNull(
+        AppUploadController.class
+            .getMethod("upload", org.springframework.web.multipart.MultipartFile.class)
+            .getAnnotation(IgnoreAuth.class));
+    assertThrows(
+        ClassNotFoundException.class,
         () -> Class.forName("com.platform.modules.app.controller.AppTestController"));
   }
 
@@ -49,15 +55,17 @@ class AccountSecurityTest {
     WxUserEntity user = new WxUserEntity();
     user.setId(7L);
     controller.save(user, request);
-    verify(addresses).saveOwned(argThat(address -> address.getUserId().equals(7L)
-        && address.getIsDefault() == 0));
-    verify(addresses, never()).update(any(com.platform.modules.mall.entity.MallAddressEntity.class));
+    verify(addresses)
+        .saveOwned(
+            argThat(address -> address.getUserId().equals(7L) && address.getIsDefault() == 0));
+    verify(addresses, never())
+        .update(any(com.platform.modules.mall.entity.MallAddressEntity.class));
   }
 
   /** 禁止跨用户更新购物车, 不调用任何写入或合并删除. */
   @Test
   void cartCannotUpdateAnotherOwner() {
-    AppCartController controller = new AppCartController();
+    CartApplicationService controller = new CartApplicationService();
     MallCartService carts = mock(MallCartService.class);
     MallProductService products = mock(MallProductService.class);
     WxUserService users = mock(WxUserService.class);

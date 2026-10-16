@@ -1,6 +1,6 @@
 <template>
   <el-table-column :prop="prop" v-bind="$attrs">
-    <template slot-scope="scope">
+    <template #default="scope">
       <span @click.prevent="toggleHandle(scope.$index, scope.row)" :style="childStyles(scope.row)">
         <i :class="iconClasses(scope.row)" :style="iconStyles(scope.row)"></i>
         {{ scope.row[prop] }}
@@ -13,6 +13,7 @@
 import isArray from 'lodash/isArray'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'table-tree-column',
   props: {
     prop: {

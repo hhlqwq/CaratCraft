@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList()">
+    <el-form :inline="true" :model="dataForm" @keyup.enter="getDataList()">
       <el-form-item>
         <el-input v-model="dataForm.touser" placeholder="openid" clearable></el-input>
       </el-form-item>
@@ -33,7 +33,7 @@
       <el-table-column prop="templateId" header-align="center" align="center" label="模板ID" width="150">
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('wx:templatemsglog:delete')" type="text" size="small"
                      @click="deleteHandle(scope.row.logId)">删除
           </el-button>
@@ -49,6 +49,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       dataForm: {

@@ -4,7 +4,7 @@
       {{tag}}
     </el-tag>
     <el-input class="input-new-tag" v-if="inputVisible" v-model="inputValue" ref="saveTagInput" size="small" :disabled="disabled"
-              @keyup.enter.native="handleInputConfirm" @blur="handleInputConfirm">
+              @keyup.enter="handleInputConfirm" @blur="handleInputConfirm">
     </el-input>
     <el-button v-else class="button-new-tag" size="small" @click="showInput" :disabled="disabled">+ 添加</el-button>
   </div>
@@ -14,6 +14,7 @@
  * 标签编辑器
  */
 export default {
+  compatConfig: {MODE: 2},
   name: 'tags-editor',
   props: {
     value: {

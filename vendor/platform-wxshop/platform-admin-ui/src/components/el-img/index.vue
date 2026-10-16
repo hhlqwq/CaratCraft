@@ -4,13 +4,13 @@
     <el-image style="max-width: 100px; max-height: 100px" v-if="imageUrl" :src="imageUrl"
               @click="openImg(imageUrl)"></el-image>
     <el-button icon="el-icon-upload" @click="visible = true" v-if="!disabled" circle></el-button>
-    <el-dialog :visible.sync="visible"
+    <el-dialog v-model="visible"
                style="z-index: 1000"
                width="950px"
                title="选择图片"
                :lock-scroll="false"
                append-to-body>
-      <el-form :inline="true" @keyup.enter.native="getDataList()">
+      <el-form :inline="true" @keyup.enter="getDataList()">
         <el-form-item>
           <el-button type="primary" @click="uploadHandle()">上传文件</el-button>
         </el-form-item>
@@ -52,6 +52,7 @@
 import Upload from '../../views/modules/oss/oss-upload'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'el-img',
   componentName: 'ElImg',
   data () {
@@ -74,7 +75,7 @@ export default {
       default: false
     },
     // 接受外部v-model传入的值，必须使用value
-    value: ''
+    value: {type: String, default: ''}
   },
   watch: {
     imageUrl (val, oldVal) {

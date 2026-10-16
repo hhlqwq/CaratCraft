@@ -42,7 +42,7 @@
       <!-- 菜单编辑器 -->
       <div class="weixin-menu-detail" v-if="selectedMenuLevel>0">
         <wx-menu-button-editor :button="selectedButton" :selectedMenuLevel="selectedMenuLevel"
-                               @delMenu="delMenu"></wx-menu-button-editor>
+                               @delMenu="delMenu" @change="updateSelectedButton"></wx-menu-button-editor>
       </div>
     </div>
     <div class="weixin-btn-group" v-if="isAuth('wx:menu:save')">
@@ -54,6 +54,7 @@
 <script>
 
 export default {
+  compatConfig: {MODE: 2},
   components: {
     wxMenuButtonEditor: () => import('./wx-menu-button-editor')
   },
@@ -77,6 +78,12 @@ export default {
     this.getWxMenu()
   },
   methods: {
+    /** 将编辑结果提交到当前主菜单或子菜单, 保持数据归属清晰. */
+    updateSelectedButton (button) {
+      if (this.selectedMenuLevel === 1) this.menu.buttons[this.selectedMenuIndex] = button
+      else this.menu.buttons[this.selectedMenuIndex].subButtons[this.selectedSubMenuIndex] = button
+      this.selectedButton = button
+    },
     getWxMenu () {
       this.$http({
         url: '/manage/wxMenu/getMenu'
@@ -122,7 +129,7 @@ export default {
     },
     // 删除菜单
     delMenu () {
-      if (this.selectedMenuLevel === 1 && confirm('删除后菜单下设置的内容将被删除')) {
+      if (this.selectedMenuLevel === 1 && window.confirm('删除后菜单下设置的内容将被删除')) {
         this.menu.buttons.splice(this.selectedMenuIndex, 1)
         this.unSelectMenu()
       } else if (this.selectedMenuLevel === 2) {

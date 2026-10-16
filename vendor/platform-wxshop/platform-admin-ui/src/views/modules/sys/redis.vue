@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-select v-model="searchForm.type" placeholder="请选择" @change="getDataList(1)">
           <el-option
@@ -66,7 +66,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:cache:deleteCache')" type="text" size="small"
                      @click="deleteHandle(scope.row.cacheKey)">
             删除
@@ -79,6 +79,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       dataListSelections: [],

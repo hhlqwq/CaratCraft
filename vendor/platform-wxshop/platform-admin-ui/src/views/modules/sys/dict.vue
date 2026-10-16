@@ -1,6 +1,6 @@
 <template>
   <div class="mod-dict">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDictDataList()">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDictDataList()">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="字典名称" clearable></el-input>
       </el-form-item>
@@ -46,7 +46,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="success">正常</el-tag>
         </template>
@@ -57,7 +57,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:dict:update')" type="text" size="small"
                      @click="addOrUpdateDictHandle(scope.row.id)">修改
           </el-button>
@@ -86,6 +86,7 @@
 import DictAddOrUpdate from './dict-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

@@ -1,6 +1,7 @@
 """核对当前应用发布物与许可索引, 不批准完整第三方基础镜像再分发."""
 
 import hashlib
+import importlib.util
 import json
 import zipfile
 from pathlib import Path
@@ -16,6 +17,15 @@ def main():
     data = json.loads((LEGAL / "generated/runtime-components.json").read_text(encoding="utf-8"))
     errors = list(data.get("distributionBlockers", []))
     errors.extend(data.get("licenseEvidenceBlockers", []))
+    spec = importlib.util.spec_from_file_location("license_inventory", ROOT / "tools/build-license-bundle.py")
+    inventory = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inventory)
+    indexed_frontend = {(entry["name"], entry["version"]) for entry in data["frontend"]}
+    for folder in inventory.frontend_package_roots():
+        metadata = json.loads((folder / "package.json").read_text(encoding="utf-8"))
+        key = (metadata["name"], metadata["version"])
+        if key not in indexed_frontend:
+            errors.append({"file": "@".join(key), "reason": "实际入包前端组件未完成许可准入"})
     approved = {entry["file"]: entry for entry in data["backend"]}
     for module in ["platform-admin", "platform-api"]:
         jar = VENDOR / module / "target" / (module + ".jar")

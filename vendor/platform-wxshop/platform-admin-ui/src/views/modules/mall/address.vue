@@ -1,6 +1,6 @@
 <template>
   <div class="mod-address">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.nickname" placeholder="会员昵称" clearable></el-input>
       </el-form-item>
@@ -99,7 +99,7 @@
         header-align="center"
         align="center"
         label="默认地址">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isDefault === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isDefault === 1" size="small" type="success">是</el-tag>
         </template>
@@ -109,7 +109,7 @@
         header-align="center"
         align="center"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:address:info')" type="text" size="small" @click="showDetails(scope.row.id)">查看
           </el-button>
           <el-button v-if="isAuth('mall:address:delete')" type="text" size="small" @click="deleteHandle(scope.row.id)">
@@ -136,6 +136,7 @@
 import AddOrUpdate from './address-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

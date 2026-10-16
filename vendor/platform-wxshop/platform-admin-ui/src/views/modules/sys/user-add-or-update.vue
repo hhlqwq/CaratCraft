@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="用户名" prop="userName">
         <el-input v-model="dataForm.userName" placeholder="登录帐号" class="width200"></el-input>
@@ -33,7 +33,7 @@
           append-to-body
           title="选择区域"
           :lock-scroll="false"
-          :visible.sync="visiblePopover">
+          v-model="visiblePopover">
           <el-tree
             :data="orgNoOptions"
             :props="orgListTreeProps"
@@ -58,15 +58,16 @@
         </el-select>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       orgNoOptions: this.treeDataTranslate(JSON.parse(sessionStorage.getItem('orgList') || '[]'), 'orgNo', 'parentNo'),

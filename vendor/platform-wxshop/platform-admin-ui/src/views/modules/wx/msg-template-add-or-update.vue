@@ -3,8 +3,8 @@
     title="模板配置"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" label-width="100px" size="mini">
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" label-width="100px" size="small">
       <el-form-item label="标题" prop="title">
         <el-input v-model="dataForm.title" placeholder="标题"></el-input>
       </el-form-item>
@@ -52,15 +52,16 @@
         </el-row>
       </div>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="visible = false">取消</el-button>
             <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

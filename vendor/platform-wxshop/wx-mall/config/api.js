@@ -50,6 +50,7 @@ module.exports = {
   AiRecommendationPrepare: API_BASE_URL + 'customization/ai/prepare', //获取材料候选与一次性票据
   AiRecommendationValidate: API_BASE_URL + 'customization/ai/validate', //校验微信云模型建议
   CustomizationSave: API_BASE_URL + 'customization/save', //保存定制设计
+  CustomizationArchive: API_BASE_URL + 'customization/archive', //归档本人草稿
   CustomizationList: API_BASE_URL + 'customization/list', //我的定制设计
   CustomizationDetail: API_BASE_URL + 'customization/detail', //获取本人设计详情
   CustomizationCheckoutQuote: API_BASE_URL + 'customization/checkout-quote', //结算前最新报价
@@ -95,6 +96,8 @@ module.exports = {
   OrderDetail: API_BASE_URL + 'order/detail', //订单详情
   OrderCancel: API_BASE_URL + 'order/cancelOrder', //取消订单
   OrderConfirm: API_BASE_URL + 'order/confirmOrder', //确认收货
+  RefundRequest: API_BASE_URL + 'refund/request', //申请售后审核
+  RefundStatus: API_BASE_URL + 'refund/status', //本人退款进度
 
   FootprintList: API_BASE_URL + 'footprint/list', //足迹列表
   FootprintDelete: API_BASE_URL + 'footprint/delete', //删除足迹
@@ -105,9 +108,7 @@ module.exports = {
   UserProfile: API_BASE_URL + 'user/profile', //获取个人资料
   UpdateUserProfile: API_BASE_URL + 'user/profile/update', //更新个人资料
   UploadFile: API_BASE_URL + 'upload/upload', //上传个人头像
-  Login: API_BASE_URL + 'auth/login', //账号登录
   Code: API_BASE_URL + 'auth/', //静默登录
-  Register: API_BASE_URL + 'auth/register', //注册
   CouponList: API_BASE_URL + 'coupon/list', // 优惠券列表
   GoodsCouponList: API_BASE_URL + 'coupon/listByGoods', // 商品优惠券列表
   OrderQuery: API_BASE_URL + 'pay/query', //微信查询订单状态

@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="dataForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="dataForm.matchValue" placeholder="匹配关键词" clearable></el-input>
       </el-form-item>
@@ -16,7 +16,7 @@
     <el-table :data="dataList" border type="expand" v-loading="dataListLoading"
               @selection-change="selectionChangeHandle" style="width: 100%;">
       <el-table-column type="expand">
-        <template slot-scope="props">
+        <template #default="props">
           <el-form label-position="left" inline class="demo-table-expand">
             <el-form-item label="精确匹配">
               <span>{{ props.row.exactMatch ? '是' : '否' }}</span>
@@ -48,7 +48,7 @@
       <el-table-column prop="replyContent" header-align="center" align="center" show-overflow-tooltip label="回复内容">
       </el-table-column>
       <el-table-column header-align="center" align="center" width="150" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.ruleId)">修改</el-button>
           <el-button type="text" size="small" @click="deleteHandle(scope.row.ruleId)">删除</el-button>
         </template>
@@ -68,6 +68,7 @@ import AddOrUpdate from './msg-reply-rule-add-or-update'
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   components: {
     AddOrUpdate
   },

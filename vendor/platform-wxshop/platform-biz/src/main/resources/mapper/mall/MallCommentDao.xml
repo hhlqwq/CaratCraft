@@ -16,7 +16,7 @@
         T.USER_ID
         FROM mall_comment T
         LEFT JOIN mall_goods G ON G.ID = T.VALUE_ID
-        LEFT JOIN mall_user U ON U.ID = T.USER_ID
+        LEFT JOIN WX_USER U ON U.ID = T.USER_ID
         WHERE 1=1
         <if test="params.id != null and params.id != ''">
             AND T.ID = #{params.id}
@@ -39,8 +39,8 @@
 
     <select id="queryTotal" resultType="int">
         select count(c.id) from mall_comment c
-        where 1= 1
-        <if test="typeId != null and typeId != ''">
+        where c.status=1
+        <if test="typeId != null">
             and c.type_id = #{typeId}
         </if>
         <if test="valueId != null and valueId != ''">
@@ -54,8 +54,8 @@
     <select id="queryhasPicTotal" resultType="int">
         select count(distinct c.id) from mall_comment c
         left join mall_comment_picture cp on cp.comment_id = c.id
-        where 1= 1 and cp.id > 0
-        <if test="typeId != null and typeId != ''">
+        where c.status=1 and cp.id > 0
+        <if test="typeId != null">
             and c.type_id = #{typeId}
         </if>
         <if test="valueId != null and valueId != ''">
@@ -68,8 +68,8 @@
         <if test="hasPic != null and hasPic == 1">
             left join mall_comment_picture cp on cp.comment_id = c.id
         </if>
-        where 1 = 1
-        <if test="typeId != null and typeId != ''">
+        where c.status=1
+        <if test="typeId != null">
             and c.type_id = #{typeId}
         </if>
         <if test="valueId != null and valueId != ''">

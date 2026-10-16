@@ -7,11 +7,11 @@
     </el-form>
     <el-table :data="dataList" border v-loading="dataListLoading" style="width: 100%;">
       <el-table-column type="expand">
-        <template slot-scope="props">
+        <template #default="props">
           <el-descriptions :style="{padding: '20px'}" :title="item.title"
                            v-for="(item, index) in props.row.content.newsItem"
                            :key="index" :column="2" border>
-            <template slot="extra">
+            <template #extra>
               <el-button type="text" size="small" v-if="isAuth('wx:freepublish:deletePush')"
                          @click="deleteHandle(props.row.articleId, index)">删除
               </el-button>
@@ -46,7 +46,7 @@
         prop="content"
         header-align="center"
         label="文章">
-        <template slot-scope="props">
+        <template #default="props">
           <img :style="{width: '150px'}" :src="props.row.content.newsItem[0].thumbUrl"/>
           <span v-if="props.row.content.newsItem.length>1">[{{ props.row.content.newsItem.length }}篇]</span>
           {{ props.row.content.newsItem[0].title }}
@@ -58,7 +58,7 @@
         align="center"
         label="已发布"
         width="210">
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ transDate(scope.row.updateTime, 'yyyy-MM-dd hh:mm:ss') }}
         </template>
       </el-table-column>
@@ -67,7 +67,7 @@
         header-align="center"
         align="center" width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button type="text" size="small" v-if="isAuth('wx:freepublish:getArticleFromId')"
                      @click="detailHandle(scope.row.articleId)">查看
           </el-button>
@@ -90,6 +90,7 @@
 import PublishDetail from './wx-free-publish-detail'
 
 export default {
+  compatConfig: {MODE: 2},
   components: {
     PublishDetail
   },

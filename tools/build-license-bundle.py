@@ -1,4 +1,4 @@
-"""从实际JAR和webpack模块生成第三方许可证据, 不自动把未知许可批准为可分发."""
+"""从实际JAR和构建模块生成第三方许可证据, 不自动把未知许可批准为可分发."""
 
 import hashlib
 import io
@@ -182,8 +182,8 @@ def backend_records():
     return list(records.values())
 
 
-def frontend_records():
-    """依据webpack实际模块追溯npm包, 排除未入包开发工具."""
+def frontend_package_roots():
+    """只读解析实际构建图中的npm根目录, 供生成与准入检查共用."""
     stats = ROOT / ".tools/copyright/webpack-stats.json"
     if not stats.is_file():
         raise FileNotFoundError("请先运行tools/build-copyright-ui.cjs")
@@ -205,8 +205,13 @@ def frontend_records():
             if (parent / "package.json").is_file():
                 folders.add(parent)
                 break
+    return sorted(folders)
+
+
+def frontend_records():
+    """依据实际构建模块追溯npm包, 排除未入包开发工具."""
     records = []
-    for folder in sorted(folders):
+    for folder in frontend_package_roots():
         metadata = folder / "package.json"
         if not metadata.is_file():
             continue
@@ -227,13 +232,17 @@ def frontend_records():
                     "evidence": [write_evidence("dompurify-" + package["version"],
                                                 "LICENSE", (vendored / "LICENSE").read_bytes())],
                     "source": "https://registry.npmjs.org/dompurify/" + package["version"]})
+    records.append({"name": "element-ui", "version": "2.15.10", "license": "MIT",
+                    "usage": "只复用图标字体和对应CSS, 不包含旧Vue2组件运行代码",
+                    "evidence": ["vendor/platform-wxshop/legal/licenses/element-ui/LICENSE"],
+                    "source": "https://github.com/ElemeFE/element/tree/v2.15.10"})
     return records
 
 
 def main():
     """输出版本化发布许可索引和仍需决策的清单."""
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    data = {"date": "2026-10-14", "backend": backend_records(),
+    data = {"date": "2026-10-16", "backend": backend_records(),
             "frontend": frontend_records()}
     data["unresolvedBackend"] = [entry["file"] for entry in data["backend"]
                                  if entry["status"] == "待核验"]

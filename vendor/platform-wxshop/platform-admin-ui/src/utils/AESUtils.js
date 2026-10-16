@@ -1,52 +1,16 @@
-import CryptoJS from 'crypto-js/crypto-js'
-
-// 默认的 KEY 与 iv 如果没有给
-const KEY = CryptoJS.enc.Utf8.parse('_aes_secret_key_')
-const IV = CryptoJS.enc.Utf8.parse('_aes_secret_iv__')
-
-/**
- * AES加密 ：字符串 key iv  返回base64
- */
-export function Encrypt (word, keyStr, ivStr) {
-  let key = KEY
-  let iv = IV
-
-  if (keyStr) {
-    key = CryptoJS.enc.Utf8.parse(keyStr)
-    iv = CryptoJS.enc.Utf8.parse(ivStr)
+/** 保持后端历史AES-CBC零填充协议, 固定公开密钥不能替代HTTPS传输保护. */
+export async function Encrypt(word, keyStr = '_aes_secret_key_', ivStr = '_aes_secret_iv__') {
+  if (!globalThis.crypto || !globalThis.crypto.subtle) {
+    const error = new Error('请使用HTTPS或本机安全环境登录');
+    error.code = 'SECURE_CONTEXT_REQUIRED';
+    throw error;
   }
-
-  let srcs = CryptoJS.enc.Utf8.parse(word)
-  var encrypted = CryptoJS.AES.encrypt(srcs, key, {
-    iv: iv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.ZeroPadding
-  })
-  return CryptoJS.enc.Base64.stringify(encrypted.ciphertext)
-}
-
-/**
- * AES 解密 ：字符串 key iv  返回base64
- *
- */
-export function Decrypt (word, keyStr, ivStr) {
-  let key = KEY
-  let iv = IV
-
-  if (keyStr) {
-    key = CryptoJS.enc.Utf8.parse(keyStr)
-    iv = CryptoJS.enc.Utf8.parse(ivStr)
-  }
-
-  let base64 = CryptoJS.enc.Base64.parse(word)
-  let src = CryptoJS.enc.Base64.stringify(base64)
-
-  var decrypt = CryptoJS.AES.decrypt(src, key, {
-    iv: iv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.ZeroPadding
-  })
-
-  var decryptedStr = decrypt.toString(CryptoJS.enc.Utf8)
-  return decryptedStr.toString()
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(word);
+  const padded = new Uint8Array(Math.ceil(bytes.length / 16) * 16);
+  padded.set(bytes);
+  const key = await crypto.subtle.importKey('raw', encoder.encode(keyStr), 'AES-CBC', false, ['encrypt']);
+  // Web Crypto会追加一个完整PKCS7块, 去掉该块可保持既有零填充密文协议.
+  const encrypted = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-CBC', iv: encoder.encode(ivStr)}, key, padded));
+  return btoa(String.fromCharCode(...encrypted.subarray(0, encrypted.length - 16)));
 }

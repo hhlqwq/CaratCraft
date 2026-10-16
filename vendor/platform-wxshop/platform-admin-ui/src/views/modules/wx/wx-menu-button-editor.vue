@@ -7,8 +7,8 @@
     <div class="menu-input-group">
       <div class="menu-label">菜单名称</div>
       <div class="menu-input">
-        <input type="text" name="name" placeholder="请输入菜单名称" class="menu-input-text" v-model="button.name"
-               @input="checkMenuName(button.name)">
+        <input type="text" name="name" placeholder="请输入菜单名称" class="menu-input-text" :value="button.name" @input="updateButton('name', $event.target.value)"
+               >
         <p class="menu-tips" style="color:#e15f63" v-show="menuNameBounds">字数超过上限</p>
         <p class="menu-tips">字数不超过{{ selectedMenuLevel == 1 ? '5' : '8' }}个汉字</p>
       </div>
@@ -17,7 +17,7 @@
       <div class="menu-input-group">
         <div class="menu-label">菜单内容</div>
         <div class="menu-input">
-          <select v-model="button.type" name="type" class="menu-input-text">
+          <select :value="button.type" @change="updateButton('type', $event.target.value)" name="type" class="menu-input-text">
             <option value="view">跳转网页(view)</option>
             <option value="media_id">发送消息(media_id)</option>
             <option value="view_limited">跳转公众号图文消息链接(view_limited)</option>
@@ -37,7 +37,7 @@
           <p class="menu-tips">订阅者点击该子菜单会跳到以下链接</p>
           <div class="menu-label">页面地址</div>
           <div class="menu-input">
-            <input type="text" placeholder="" class="menu-input-text" v-model="button.url">
+            <input type="text" placeholder="" class="menu-input-text" :value="button.url" @input="updateButton('url', $event.target.value)">
           </div>
         </div>
       </div>
@@ -46,8 +46,8 @@
           <p class="menu-tips">订阅者点击该菜单会收到以下图片</p>
           <div class="menu-label">media_id</div>
           <div class="menu-input">
-            <el-input v-model="button.mediaId" placeholder="图片media_id">
-              <div slot="append" @click="selectMedia('image')">从图片库中选择</div>
+            <el-input :model-value="button.mediaId" @update:model-value="updateButton('mediaId', $event)" placeholder="图片media_id">
+              <template #append><div  @click="selectMedia('image')">从图片库中选择</div></template>
             </el-input>
           </div>
         </div>
@@ -57,8 +57,8 @@
           <p class="menu-tips">订阅者点击该菜单会打开以下图文链接</p>
           <div class="menu-label">media_id</div>
           <div class="menu-input">
-            <el-input v-model="button.mediaId" placeholder="图文消息media_id">
-              <div slot="append" @click="selectMedia('news')">从素材库中选择</div>
+            <el-input :model-value="button.mediaId" @update:model-value="updateButton('mediaId', $event)" placeholder="图文消息media_id">
+              <template #append><div  @click="selectMedia('news')">从素材库中选择</div></template>
             </el-input>
           </div>
         </div>
@@ -69,20 +69,20 @@
           <div class="menu-label">小程序appId</div>
           <div class="menu-input">
             <input type="text" placeholder="小程序的appId（仅认证公众号可配置）" class="menu-input-text"
-                   v-model="button.appId">
+                   :value="button.appId" @input="updateButton('appId', $event.target.value)">
           </div>
         </div>
         <div class="menu-input-group">
           <div class="menu-label">小程序路径</div>
           <div class="menu-input">
             <input type="text" placeholder="小程序的页面路径 pages/index/index" class="menu-input-text"
-                   v-model="button.pagePath">
+                   :value="button.pagePath" @input="updateButton('pagePath', $event.target.value)">
           </div>
         </div>
         <div class="menu-input-group">
           <div class="menu-label">备用网页</div>
           <div class="menu-input">
-            <input type="text" placeholder="" class="menu-input-text" v-model="button.url">
+            <input type="text" placeholder="" class="menu-input-text" :value="button.url" @input="updateButton('url', $event.target.value)">
             <p class="menu-tips">旧版微信客户端无法支持小程序，用户点击菜单时将会打开备用网页。</p>
           </div>
         </div>
@@ -92,7 +92,7 @@
           <p class="menu-tips">用于消息接口推送，不超过128字节</p>
           <div class="menu-label">菜单KEY值</div>
           <div class="menu-input">
-            <input type="text" placeholder="" class="menu-input-text" v-model="button.key">
+            <input type="text" placeholder="" class="menu-input-text" :value="button.key" @input="updateButton('key', $event.target.value)">
           </div>
         </div>
       </div>
@@ -105,6 +105,7 @@
 <script>
 
 export default {
+  compatConfig: {MODE: 2},
   components: {
     AssetsSelector: () => import('./assets/assets-selector')
   },
@@ -127,6 +128,11 @@ export default {
     }
   },
   methods: {
+    /** 通过父级更新菜单, 不在子组件中直接改写传入对象. */
+    updateButton (field, value) {
+      this.$emit('change', {...this.button, [field]: value})
+      if (field === 'name') this.checkMenuName(value)
+    },
     selectMedia (selectType) {
       this.assetsSelectorVisible = true
       this.selectType = selectType
@@ -146,12 +152,12 @@ export default {
       var len = 0
       for (var i = 0; i < val.length; i++) {
         var a = val.charAt(i)
-        a.match(/[^\x00-\xff]/ig) != null ? len += 2 : len += 1
+        a.charCodeAt(0) > 255 ? len += 2 : len += 1
       }
       return len
     },
     onAssetsSelect (assetsInfo) {
-      this.button.mediaId = assetsInfo.mediaId
+      this.updateButton('mediaId', assetsInfo.mediaId)
       this.assetsSelectorVisible = false
     }
   }

@@ -2,10 +2,10 @@
   <el-dialog
     title="日志列表"
     :close-on-click-modal="false"
-    :visible.sync="visible"
+    v-model="visible"
     :lock-scroll="false"
     width="75%">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.beanName" placeholder="bean名称" clearable></el-input>
       </el-form-item>
@@ -44,9 +44,9 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small">成功</el-tag>
-          <el-tag v-else @click.native="showErrorInfo(scope.row.logId)" size="small" type="danger"
+          <el-tag v-else @click="showErrorInfo(scope.row.logId)" size="small" type="danger"
                   style="cursor: pointer;">失败
           </el-tag>
         </template>
@@ -79,6 +79,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

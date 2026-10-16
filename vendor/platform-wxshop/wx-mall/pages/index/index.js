@@ -55,18 +55,23 @@ Page({
     this.setData({ searchKeyword: keyword });
     this.submitSearch();
   },
+  /** 演示标签只跟随服务端商品编码, 不将真实商品统一标为演示. */
+  markDemo: function (item) {
+    item.isDemo = /^DEMO-/.test(item.goodsSn || '');
+    return item;
+  },
   getIndexData: function () {
     let that = this;
     var data = {};
     util.request(api.IndexUrlNewGoods).then(function (res) {
       if (res.code === 0) {
-        data.newGoods = res.data.newGoodsList
+        data.newGoods = (res.data.newGoodsList || []).map(that.markDemo)
         that.setData(data);
       }
     });
     util.request(api.IndexUrlHotGoods).then(function (res) {
       if (res.code === 0) {
-        data.hotGoods = res.data.hotGoodsList
+        data.hotGoods = (res.data.hotGoodsList || []).map(that.markDemo)
         that.setData(data);
       }
     });

@@ -15,8 +15,12 @@ class HostMonitorServiceTest {
   @Test
   void collectReturnsCompatibleSnapshot() {
     Map<String, Object> snapshot = new HostMonitorService().collect();
-    assertTrue(snapshot.keySet().containsAll(List.of(
-        "cupInfo", "memoryInfo", "sysInfo", "jvmInfo", "diskInfos", "processList")));
+    assertTrue(
+        snapshot
+            .keySet()
+            .containsAll(
+                List.of(
+                    "cupInfo", "memoryInfo", "sysInfo", "jvmInfo", "diskInfos", "processList")));
     Map<?, ?> cpu = (Map<?, ?>) snapshot.get("cupInfo");
     double load = ((Number) cpu.get("usePercent")).doubleValue();
     assertTrue(Double.isFinite(load) && load >= 0 && load <= 1);
@@ -44,6 +48,8 @@ class HostMonitorServiceTest {
       keys.add(disk.get("uuid"));
       long total = ((Number) disk.get("totalSpace")).longValue();
       long available = ((Number) disk.get("usableSpace")).longValue();
+      long used = ((Number) disk.get("usedSpace")).longValue();
+      assertEquals(total, used + available);
       assertTrue(total > 0 && available >= 0 && available <= total);
     }
     assertEquals(disks.size(), keys.size());

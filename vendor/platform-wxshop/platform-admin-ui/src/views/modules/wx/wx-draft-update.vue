@@ -3,7 +3,7 @@
     title="修改"
     :close-on-click-modal="false"
     :before-close="handleClose"
-    :visible.sync="visible">
+    v-model="visible">
     <el-row v-if="dataForm.newsItem.length>0">
       <el-col tag="center" :span="6">
         <el-card shadow="hover" :style="{ width: '150px' }" v-for="(item, index) in dataForm.newsItem" :key="index">
@@ -16,7 +16,7 @@
         </el-card>
       </el-col>
       <el-col :span="18">
-        <el-form :model="dataForm" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+        <el-form :model="dataForm" ref="dataForm" @keyup.enter="dataFormSubmit()"
                  label-width="80px">
           <el-tabs v-model="tableName">
             <el-tab-pane :label="item.title" v-for="(item, index) in dataForm.newsItem" :key="index" :name="index+''">
@@ -63,10 +63,10 @@
         </el-form>
       </el-col>
     </el-row>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="handleClose">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
     <assets-selector v-if="assetsSelectorVisible" :visible="assetsSelectorVisible"
                      selectType="image" @selected="onAssetsSelect"
                      @onClose="assetsSelectorVisible=false"></assets-selector>
@@ -75,6 +75,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   components: {
     AssetsSelector: () => import('./assets/assets-selector')
   },

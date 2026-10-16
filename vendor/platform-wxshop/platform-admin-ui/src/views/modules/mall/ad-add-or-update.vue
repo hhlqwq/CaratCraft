@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : !disabled ? '修改' : '查看'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="120px">
       <el-form-item label="所属广告位" prop="adPositionId">
         <el-select v-model="dataForm.adPositionId" :disabled="disabled" clearable filterable placeholder="请选择">
@@ -70,15 +70,16 @@
         <el-input v-model="dataForm.content" type="textarea" :disabled="disabled" placeholder=""></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button v-if="!disabled" type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       adPositions: [],

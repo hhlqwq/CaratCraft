@@ -1,6 +1,6 @@
 <template>
   <div class="mod-topiccategory">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.title" placeholder="主题" clearable></el-input>
       </el-form-item>
@@ -34,7 +34,7 @@
         header-align="center"
         align="center"
         label="图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.picUrl)" :src="scope.row.picUrl"/>
         </template>
       </el-table-column>
@@ -44,7 +44,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:topiccategory:info')" type="text" size="small"
                      @click="showDetails(scope.row.id)">查看
           </el-button>
@@ -75,6 +75,7 @@
 import AddOrUpdate from './topiccategory-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

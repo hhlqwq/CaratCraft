@@ -3,7 +3,7 @@
     title="网络检测"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-alert
       style="margin: 0 0 30px 0"
       title="为了帮助开发者排查回调连接失败的问题，提供这个网络检测的API。它可以对开发者URL做域名解析，然后对所有IP进行一次ping操作，得到丢包率和耗时。(请勿重复调用)"
@@ -12,12 +12,12 @@
       show-icon>
     </el-alert>
     <el-card class="box-card">
-      <div slot="header" class="clearfix">
+      <template #header><div  class="clearfix">
         <span>DNS</span>
-      </div>
+      </div></template>
       <el-table :data="dataForm.dnsInfos">
         <el-table-column property="realOperator" label="运营商">
-          <template slot-scope="scope">
+          <template #default="scope">
             <span>{{ getOperator(scope.row.realOperator) }} </span>
           </template>
         </el-table-column>
@@ -26,12 +26,12 @@
     </el-card>
     <el-divider></el-divider>
     <el-card class="box-card">
-      <div slot="header" class="clearfix">
+      <template #header><div  class="clearfix">
         <span>PING</span>
-      </div>
+      </div></template>
       <el-table :data="dataForm.pingInfos">
         <el-table-column property="fromOperator" label="运营商">
-          <template slot-scope="scope">
+          <template #default="scope">
             <span>{{ getOperator(scope.row.fromOperator) }} </span>
           </template>
         </el-table-column>
@@ -45,6 +45,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

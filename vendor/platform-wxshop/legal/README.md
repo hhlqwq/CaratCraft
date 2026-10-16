@@ -1,6 +1,6 @@
 # CaratCraft应用发布许可材料
 
-2026-10-14版权整改后的实际应用依赖见[运行组件索引](generated/runtime-components.json). 该索引记录256个不同的后端运行JAR、36个前端/复制样式组件, 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
+2026-10-16整体验证后的实际应用依赖见[运行组件索引](generated/runtime-components.json). 该索引记录256个不同的后端运行JAR、25个前端/复制样式组件, 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
 
 ## 保留、替换与义务
 
@@ -9,7 +9,7 @@
 - JNA、JSqlParser、Javassist等多许可组件选择其Apache2分支. Logback、AspectJ、JaCoCo及相应Jakarta库选择适用EPL分支; 老Java API库按所附CDDL分支处理. 不以出现GPL候选字样就认定应用必须全部开源.
 - `sources/`提供13份需要随应用交付处理的对应Java库源码. 不能在商业交付时仅复制应用JAR而遗漏此目录及许可原文.
 - 若旧MIT npm包未附独立LICENSE, 保留同版本官方MIT元数据、经完整性校验的原始发布包及标准MIT文本. 原包内版权声明原样保留, 不编造版权日期或把作者改为项目作者.
-- CSS内复制的normalize.css7.0.0另有MIT证据. ElementUI主题字体与已安装官方2.15.10字体哈希一致, 保留其MIT文本; 这些库字体不是项目自有字体.
+- CSS内复制的normalize.css7.0.0另有MIT证据. ElementUI图标字体保留原已核验的2.15.10副本, 新组件运行代码使用Element Plus, 保留其MIT文本; 这些库字体不是项目自有字体.
 - [项目素材来源](project-assets.json)记录161个重新绘制的资源, 由`tools/generate-project-assets.py`中的几何图形生成. 珠宝图片是标注DEMO的功能示意, 商家上线必须使用其有权发布的真实商品图与文案.
 
 源码原有BSD/Apache版权头保留, 包括只出现在法律声明里的历史名称. [源码声明集合](SOURCE-NOTICES.txt)同时随应用提供. 无关品牌的产品展示、推广、回调默认值和统计账号已清理. 许可材料中出现第三方名字不表示其为本项目提供背书.

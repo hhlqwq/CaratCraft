@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : !disabled ? '修改' : '查看'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()" label-width="80px">
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()" label-width="80px">
       <el-form-item label="用户Id" prop="userId">
         <el-input v-model="dataForm.userId" :disabled="disabled" placeholder="用户Id"></el-input>
       </el-form-item>
@@ -21,15 +21,16 @@
         <el-input v-model="dataForm.typeId" :disabled="disabled" placeholder=""></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button v-if="!disabled" type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
   export default {
+  compatConfig: {MODE: 2},
     data () {
       return {
         disabled: false,

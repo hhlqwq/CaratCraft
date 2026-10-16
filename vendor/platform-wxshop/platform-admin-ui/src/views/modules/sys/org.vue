@@ -1,6 +1,6 @@
 <template>
   <div class="mod-org">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList()">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList()">
       <el-form-item>
         <el-input v-model="searchForm.orgName" placeholder="机构名称" clearable></el-input>
       </el-form-item>
@@ -44,7 +44,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="success">正常</el-tag>
         </template>
@@ -60,7 +60,7 @@
         header-align="center"
         align="center"
         label="创建者">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ transUser(scope.row.createUserId) }}</span>
         </template>
       </el-table-column>
@@ -77,7 +77,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:org:update')" type="text" size="small"
                      @click="addOrUpdateHandle(scope.row.orgNo, scope.row.parentName)">
             修改
@@ -97,6 +97,7 @@ import TableTreeColumn from '@/components/table-tree-column'
 import AddOrUpdate from './org-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

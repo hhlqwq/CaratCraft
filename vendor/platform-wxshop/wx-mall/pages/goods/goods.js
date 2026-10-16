@@ -336,7 +336,7 @@ Page({
               openAttr: !that.data.openAttr,
             });
             wx.navigateTo({
-              url: '/pages/shopping/checkout/checkout?isBuy=true',
+              url: '/pages/shopping/checkout/checkout?isBuy=true&checkoutId=' + encodeURIComponent(res.data.checkoutId),
             })
           } else {
             wx.showToast({

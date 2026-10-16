@@ -13,7 +13,8 @@
 </template>
 
 <script>
-export default {}
+export default {
+  compatConfig: {MODE: 2},}
 </script>
 
 <style lang="scss">

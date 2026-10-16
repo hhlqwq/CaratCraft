@@ -14,10 +14,10 @@
             <div class="card-footer">
               <div>{{ item.updateTime }}</div>
               <div class="flex justify-between align-center" v-show="!selectMode">
-                <el-button size="mini" type="text" icon="el-icon-copy-document" v-clipboard:copy="item.mediaId"
+                <el-button size="small" type="text" icon="el-icon-copy-document" v-clipboard:copy="item.mediaId"
                            v-clipboard:success="onCopySuccess" v-clipboard:error="onCopyError">复制media_id
                 </el-button>
-                <el-button size="mini" type="text" icon="el-icon-delete" @click="deleteHandle(item.mediaId)">删除
+                <el-button size="small" type="text" icon="el-icon-delete" @click="deleteHandle(item.mediaId)">删除
                 </el-button>
               </div>
             </div>
@@ -33,6 +33,7 @@
 <script>
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'material-news',
   props: {
     selectMode: {

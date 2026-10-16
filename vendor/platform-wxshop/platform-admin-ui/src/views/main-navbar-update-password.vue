@@ -2,9 +2,9 @@
   <el-dialog
     title="修改密码"
     :lock-scroll="false"
-    :visible.sync="visible"
+    v-model="visible"
     :append-to-body="true">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="账号">
         <span>{{ userName }}</span>
@@ -19,10 +19,10 @@
         <el-input type="password" v-model="dataForm.confirmPassword"></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
@@ -30,6 +30,7 @@
 import {clearLoginInfo} from '@/utils'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     let validateConfirmPassword = (rule, value, callback) => {
       if (this.dataForm.newPassword !== value) {

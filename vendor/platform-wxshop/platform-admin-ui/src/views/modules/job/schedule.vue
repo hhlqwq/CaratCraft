@@ -1,6 +1,6 @@
 <template>
   <div class="mod-schedule">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.beanName" placeholder="bean名称" clearable></el-input>
       </el-form-item>
@@ -69,7 +69,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small">正常</el-tag>
           <el-tag v-else size="small" type="danger">暂停</el-tag>
         </template>
@@ -80,7 +80,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:schedule:update')" type="text" size="small"
                      @click="addOrUpdateHandle(scope.row.jobId)">修改
           </el-button>
@@ -120,6 +120,7 @@ import AddOrUpdate from './schedule-add-or-update'
 import Log from './schedule-log'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

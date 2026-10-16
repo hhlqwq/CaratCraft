@@ -1,6 +1,6 @@
 <template>
   <div class="mod-role">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.roleName" placeholder="角色名称" clearable></el-input>
       </el-form-item>
@@ -48,7 +48,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:role:update')" type="text" size="small"
                      @click="addOrUpdateHandle(scope.row.roleId)">修改
           </el-button>
@@ -76,6 +76,7 @@
 import AddOrUpdate from './role-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

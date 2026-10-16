@@ -41,7 +41,7 @@
 }
 
 .weixin-bd {
-  background: url(~@/assets/img/bg_mobile_head_default.png) no-repeat;
+  background: url(@/assets/img/bg_mobile_head_default.png) no-repeat;
   -webkit-background-size: cover;
   -moz-background-size: cover;
   -o-background-size: cover;
@@ -56,7 +56,7 @@
 }
 
 .weixin-preview .weixin-menu {
-  background: url(~@/assets/img/bg_mobile_foot_default.png) no-repeat;
+  background: url(@/assets/img/bg_mobile_foot_default.png) no-repeat;
   position: absolute;
   bottom: 0;
   left: 0;

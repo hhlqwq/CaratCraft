@@ -3,24 +3,25 @@
     :title="modeDesc[mode]+'用户标签'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="dialogVisible">
+    v-model="dialogVisible">
     <div>
       <el-select v-model="selectedTagid" filterable placeholder="请选择标签" style="width:100%">
         <el-option v-for="tagid in tagidsInOption" :key="tagid" :label="getTagName(tagid)" :value="tagid"></el-option>
       </el-select>
       <div style="margin-top:20px;">已选择用户数：{{ wxUsers.length }}</div>
     </div>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="dialogVisible=false">关闭</el-button>
             <el-button type="primary" @click="dataFormSubmit()"
                        :disabled="submitting">{{ submitting ? '保存中...' : '确定' }}</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 <script>
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'wx-user-tagging',
   props: {
     wxUsers: Array

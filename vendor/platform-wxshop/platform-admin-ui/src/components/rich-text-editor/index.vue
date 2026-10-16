@@ -19,13 +19,13 @@
          role="textbox" aria-multiline="true" :aria-readonly="String(disabled)"
          :aria-label="placeholder" :data-placeholder="placeholder"
          @input="emitContent" @paste="handlePaste" @blur="rememberSelection"></div>
-    <el-dialog title="插入图片" :visible.sync="imageDialog" width="440px" append-to-body>
+    <el-dialog title="插入图片" v-model="imageDialog" width="440px" append-to-body>
       <el-img v-if="imageDialog" v-model="imageUrl"></el-img>
       <p class="editor-tip">请使用你有权发布的图片, 商品演示图应明确标注用途.</p>
-      <span slot="footer">
+      <template #footer><span >
         <el-button @click="imageDialog = false">取消</el-button>
         <el-button type="primary" :disabled="!imageUrl" @click="insertImage">插入</el-button>
-      </span>
+      </span></template>
     </el-dialog>
   </div>
 </template>
@@ -44,6 +44,7 @@ export function sanitizeHtml(html) {
 }
 
 export default {
+  compatConfig: { MODE: 2 },
   name: 'RichTextEditor',
   props: {
     value: { type: String, default: '' },
@@ -238,7 +239,7 @@ export default {
 .editor-source { display: block; width: 100%; border: 0; resize: vertical; font-family: monospace; }
 .is-readonly { background: #fafafa; }
 .editor-tip { color: #606266; line-height: 1.6; }
-.editor-content >>> img { max-width: 100%; }
-.editor-content >>> table { border-collapse: collapse; max-width: 100%; }
-.editor-content >>> td, .editor-content >>> th { border: 1px solid #dcdfe6; padding: 6px; }
+.editor-content :deep(img) { max-width: 100%; }
+.editor-content :deep(table) { border-collapse: collapse; max-width: 100%; }
+.editor-content :deep(td), .editor-content :deep(th) { border: 1px solid #dcdfe6; padding: 6px; }
 </style>

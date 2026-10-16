@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-14",
+  "date": "2026-10-16",
   "backend": [
     {
       "file": "quartz-2.3.2.jar",
@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "791b6036192c2448351a6fd4b5f25dc0e71db93f42218f8d0bbf3d8048a27688",
+      "sha256": "4083d04123f57675729a46d441b91840464982e5776612bfd437562d22f47877",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -141,7 +141,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "bfea66d5a02470de584e62deac8e4e95d55c3fe3a3ed3a92d8d156ae41133fec",
+      "sha256": "d2ffe7071d6938a677ab079d7c4c91406f557be4655ace2b860ccafbb3b4a888",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -5873,12 +5873,175 @@
   ],
   "frontend": [
     {
-      "name": "async-validator",
-      "version": "1.8.5",
+      "name": "@ctrl/tinycolor",
+      "version": "4.2.1",
       "license": "MIT",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/async-validator-1.8.5/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/async-validator-1.8.5/LICENSE.md"
+        "vendor/platform-wxshop/legal/generated/evidence/_ctrl_tinycolor-4.2.1/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_ctrl_tinycolor-4.2.1/LICENSE"
+      ],
+      "source": "scttcper/tinycolor",
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@element-plus/icons-vue",
+      "version": "2.3.2",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_element-plus_icons-vue-2.3.2/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_element-plus_icons-vue-2.3.2/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/element-plus/element-plus-icons.git",
+        "directory": "packages/vue"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@floating-ui/core",
+      "version": "1.8.0",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_core-1.8.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_core-1.8.0/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/floating-ui/floating-ui.git",
+        "directory": "packages/core"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@floating-ui/dom",
+      "version": "1.8.0",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_dom-1.8.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_dom-1.8.0/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/floating-ui/floating-ui.git",
+        "directory": "packages/dom"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@floating-ui/utils",
+      "version": "0.2.12",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_utils-0.2.12/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_floating-ui_utils-0.2.12/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/floating-ui/floating-ui.git",
+        "directory": "packages/utils"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@sxzz/popperjs-es",
+      "version": "2.11.8",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_sxzz_popperjs-es-2.11.8/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_sxzz_popperjs-es-2.11.8/LICENSE.md"
+      ],
+      "source": "github:popperjs/popper-core",
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vue/compat",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_compat-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_compat-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vue/devtools-api",
+      "version": "6.6.4",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_devtools-api-6.6.4/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_devtools-api-6.6.4/UPSTREAM-LICENSE"
+      ],
+      "source": {
+        "url": "https://github.com/vuejs/vue-devtools.git",
+        "type": "git",
+        "directory": "packages/api"
+      },
+      "upstreamEvidence": [
+        {
+          "url": "https://raw.githubusercontent.com/vuejs/vue-devtools/df6ab6bb7791a7a525a97990de73b3ea5e9a1941/LICENSE",
+          "sha256": "050bbca6960784db52ff387271bf2ecc5cbed7cf8581b415d528a6ecb6585015",
+          "gitHead": "df6ab6bb7791a7a525a97990de73b3ea5e9a1941"
+        }
+      ],
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vue/shared",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_shared-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_shared-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git",
+        "directory": "packages/shared"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vueuse/core",
+      "version": "15.0.0",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vueuse_core-15.0.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vueuse_core-15.0.0/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vueuse/vueuse.git",
+        "directory": "packages/core"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vueuse/shared",
+      "version": "15.0.0",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vueuse_shared-15.0.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vueuse_shared-15.0.0/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vueuse/vueuse.git",
+        "directory": "packages/shared"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "async-validator",
+      "version": "4.2.5",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/async-validator-4.2.5/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/async-validator-4.2.5/LICENSE.md"
       ],
       "source": {
         "type": "git",
@@ -5888,11 +6051,11 @@
     },
     {
       "name": "axios",
-      "version": "0.21.4",
+      "version": "1.20.0",
       "license": "MIT",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/axios-0.21.4/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/axios-0.21.4/LICENSE"
+        "vendor/platform-wxshop/legal/generated/evidence/axios-1.20.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/axios-1.20.0/LICENSE"
       ],
       "source": {
         "type": "git",
@@ -5901,203 +6064,58 @@
       "selectedLicense": "MIT"
     },
     {
-      "name": "babel-helper-vue-jsx-merge-props",
-      "version": "2.0.3",
+      "name": "dayjs",
+      "version": "1.11.23",
       "license": "MIT",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/babel-helper-vue-jsx-merge-props-2.0.3/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-helper-vue-jsx-merge-props-2.0.3/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-helper-vue-jsx-merge-props-2.0.3/OFFICIAL-VERSION-METADATA.json"
+        "vendor/platform-wxshop/legal/generated/evidence/dayjs-1.11.23/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/dayjs-1.11.23/LICENSE"
       ],
       "source": {
         "type": "git",
-        "url": "git+https://github.com/vuejs/babel-helper-vue-jsx-merge-props.git"
+        "url": "https://github.com/iamkun/dayjs.git"
       },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "element-plus",
+      "version": "2.14.7",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/element-plus-2.14.7/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/element-plus-2.14.7/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/element-plus/element-plus.git"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "lodash-es",
+      "version": "4.18.1",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/lodash-es-4.18.1/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/lodash-es-4.18.1/LICENSE"
+      ],
+      "source": "lodash/lodash",
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "lodash-unified",
+      "version": "1.0.3",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/lodash-unified-1.0.3/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/lodash-unified-1.0.3/MIT-TEXT.txt",
+        "vendor/platform-wxshop/legal/generated/evidence/lodash-unified-1.0.3/OFFICIAL-VERSION-METADATA.json"
+      ],
+      "source": "",
       "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/babel-helper-vue-jsx-merge-props-2.0.3.tgz",
-        "url": "https://registry.npmjs.org/babel-helper-vue-jsx-merge-props/-/babel-helper-vue-jsx-merge-props-2.0.3.tgz",
-        "sha256": "82f1a2cb5aad0a27bb92828aa04d8478bf385798d630c1f9eb71cdd564aa44be"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "babel-polyfill",
-      "version": "6.26.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/babel-polyfill-6.26.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-polyfill-6.26.0/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-polyfill-6.26.0/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": "https://github.com/babel/babel/tree/master/packages/babel-polyfill",
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/babel-polyfill-6.26.0.tgz",
-        "url": "https://registry.npmjs.org/babel-polyfill/-/babel-polyfill-6.26.0.tgz",
-        "sha256": "c5832182f92d691d5a786bb65c263fa659f21b61e954afb38755ca241abebc16"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "babel-runtime",
-      "version": "6.26.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/babel-runtime-6.26.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-runtime-6.26.0/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/babel-runtime-6.26.0/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": "https://github.com/babel/babel/tree/master/packages/babel-runtime",
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/babel-runtime-6.26.0.tgz",
-        "url": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.26.0.tgz",
-        "sha256": "14d2488946744b70c47999b48b1989aa3b85d828181b3c61f35818be9033946b"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "base64-js",
-      "version": "1.5.1",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/base64-js-1.5.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/base64-js-1.5.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/beatgammit/base64-js.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "buffer",
-      "version": "4.9.2",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/buffer-4.9.2/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/buffer-4.9.2/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/feross/buffer.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "clipboard",
-      "version": "2.0.11",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/clipboard-2.0.11/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/clipboard-2.0.11/LICENSE"
-      ],
-      "source": "zenorocha/clipboard.js",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "core-js",
-      "version": "2.6.12",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/core-js-2.6.12/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/core-js-2.6.12/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/zloirock/core-js.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "crypto-js",
-      "version": "4.2.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/crypto-js-4.2.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/crypto-js-4.2.0/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "http://github.com/brix/crypto-js.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "deepmerge",
-      "version": "1.5.2",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/deepmerge-1.5.2/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/deepmerge-1.5.2/license.txt"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/KyleAMathews/deepmerge.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "echarts",
-      "version": "5.6.0",
-      "license": "Apache-2.0",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/echarts-5.6.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/echarts-5.6.0/LICENSE",
-        "vendor/platform-wxshop/legal/generated/evidence/echarts-5.6.0/NOTICE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git+https://github.com/apache/echarts.git"
-      },
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "name": "element-ui",
-      "version": "2.15.10",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/element-ui-2.15.10/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/element-ui-2.15.10/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git@github.com:ElemeFE/element.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "ieee754",
-      "version": "1.2.1",
-      "license": "BSD-3-Clause",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/ieee754-1.2.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/ieee754-1.2.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/feross/ieee754.git"
-      },
-      "selectedLicense": "BSD-3-Clause"
-    },
-    {
-      "name": "isarray",
-      "version": "1.0.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/isarray-1.0.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/isarray-1.0.0/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/isarray-1.0.0/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/juliangruber/isarray.git"
-      },
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/isarray-1.0.0.tgz",
-        "url": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz",
-        "sha256": "e23c76f14f5222e07e39d89858b61e8e33f96956de9e0df3659cbdf8db950c87"
+        "file": "vendor/platform-wxshop/legal/sources/lodash-unified-1.0.3.tgz",
+        "url": "https://registry.npmjs.org/lodash-unified/-/lodash-unified-1.0.3.tgz",
+        "sha256": "22282888b7d6042186f7b241a6d3376a059feffa3ebe1647bbfdd9893b16e3a2"
       },
       "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
       "selectedLicense": "MIT"
@@ -6114,273 +6132,60 @@
       "selectedLicense": "MIT"
     },
     {
-      "name": "normalize-wheel",
-      "version": "1.0.1",
+      "name": "memoize-one",
+      "version": "6.0.0",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/memoize-one-6.0.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/memoize-one-6.0.0/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "https://github.com/alexreardon/memoize-one.git"
+      },
+      "selectedLicense": "MIT"
+    },
+    {
+      "name": "normalize-wheel-es",
+      "version": "1.2.0",
       "license": "BSD-3-Clause",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/normalize-wheel-1.0.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/normalize-wheel-1.0.1/LICENSE"
+        "vendor/platform-wxshop/legal/generated/evidence/normalize-wheel-es-1.2.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/normalize-wheel-es-1.2.0/LICENSE"
       ],
-      "source": "",
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/sxzz/normalize-wheel-es.git"
+      },
       "selectedLicense": "BSD-3-Clause"
     },
     {
-      "name": "process",
-      "version": "0.11.10",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/process-0.11.10/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/process-0.11.10/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/shtylman/node-process.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "regenerator-runtime",
-      "version": "0.10.5",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.10.5/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.10.5/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.10.5/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime"
-      },
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/regenerator-runtime-0.10.5.tgz",
-        "url": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.10.5.tgz",
-        "sha256": "f8d0fdf16aac76d45f3024905d1d57238df46e9f2ec11f7da0525ab2ea0c794c"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "regenerator-runtime",
-      "version": "0.11.1",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.11.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.11.1/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/regenerator-runtime-0.11.1/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/facebook/regenerator/tree/master/packages/regenerator-runtime"
-      },
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/regenerator-runtime-0.11.1.tgz",
-        "url": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz",
-        "sha256": "cdd8985b84b3b6b08fe5dcb39b9506d70ddddffda9f9d703dd33534c60bc373b"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "resize-observer-polyfill",
-      "version": "1.5.1",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/resize-observer-polyfill-1.5.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/resize-observer-polyfill-1.5.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/que-etc/resize-observer-polyfill.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "svg-baker-runtime",
-      "version": "1.4.7",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/svg-baker-runtime-1.4.7/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/svg-baker-runtime-1.4.7/MIT-TEXT.txt",
-        "vendor/platform-wxshop/legal/generated/evidence/svg-baker-runtime-1.4.7/OFFICIAL-VERSION-METADATA.json"
-      ],
-      "source": "https://github.com/JetBrains/svg-mixer/tree/v1/packages/svg-baker-runtime",
-      "originalPackage": {
-        "file": "vendor/platform-wxshop/legal/sources/svg-baker-runtime-1.4.7.tgz",
-        "url": "https://registry.npmjs.org/svg-baker-runtime/-/svg-baker-runtime-1.4.7.tgz",
-        "sha256": "f3bb7e6e55d4e20994f38b86fc8a002cf7cb6e403c602864c74211047db4e5e8"
-      },
-      "evidenceMethod": "官方同版本MIT声明+原始发布包全部版权声明+标准MIT文本, 不替换署名",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "svg-sprite-loader",
-      "version": "6.0.11",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/svg-sprite-loader-6.0.11/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/svg-sprite-loader-6.0.11/LICENSE"
-      ],
-      "source": "JetBrains/svg-sprite-loader",
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "throttle-debounce",
-      "version": "1.1.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/throttle-debounce-1.1.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/throttle-debounce-1.1.0/LICENSE.md"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git+https://github.com/niksy/throttle-debounce.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "tiny-cookie",
-      "version": "1.0.1",
-      "license": [
-        {
-          "type": "MIT",
-          "url": "https://github.com/Alex1990/tiny-cookie/blob/master/LICENSE"
-        }
-      ],
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/tiny-cookie-1.0.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/tiny-cookie-1.0.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git://github.com/Alex1990/tiny-cookie.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "tslib",
-      "version": "2.3.0",
-      "license": "0BSD",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/tslib-2.3.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/tslib-2.3.0/LICENSE.txt"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/Microsoft/tslib.git"
-      },
-      "selectedLicense": "0BSD"
-    },
-    {
-      "name": "vue-clipboard2",
-      "version": "0.3.3",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vue-clipboard2-0.3.3/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vue-clipboard2-0.3.3/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git+https://github.com/Inndy/vue-clipboard2.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "vue-cookie",
-      "version": "1.1.4",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vue-cookie-1.1.4/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vue-cookie-1.1.4/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/alfhen/vue-cookie.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "vue-loader",
-      "version": "15.11.1",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vue-loader-15.11.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vue-loader-15.11.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/vuejs/vue-loader.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
       "name": "vue-router",
-      "version": "3.6.5",
+      "version": "4.6.4",
       "license": "MIT",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vue-router-3.6.5/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vue-router-3.6.5/LICENSE"
+        "vendor/platform-wxshop/legal/generated/evidence/vue-router-4.6.4/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/vue-router-4.6.4/LICENSE"
       ],
       "source": {
         "type": "git",
-        "url": "https://github.com/vuejs/vue-router.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "vue",
-      "version": "2.7.16",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vue-2.7.16/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vue-2.7.16/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git+https://github.com/vuejs/vue.git"
+        "url": "git+https://github.com/vuejs/router.git"
       },
       "selectedLicense": "MIT"
     },
     {
       "name": "vuex",
-      "version": "3.6.2",
+      "version": "4.1.0",
       "license": "MIT",
       "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/vuex-3.6.2/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/vuex-3.6.2/LICENSE"
+        "vendor/platform-wxshop/legal/generated/evidence/vuex-4.1.0/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/vuex-4.1.0/LICENSE"
       ],
       "source": {
         "type": "git",
         "url": "git+https://github.com/vuejs/vuex.git"
       },
       "selectedLicense": "MIT"
-    },
-    {
-      "name": "webpack",
-      "version": "4.47.0",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/webpack-4.47.0/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/webpack-4.47.0/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/webpack/webpack.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
-      "name": "zrender",
-      "version": "5.6.1",
-      "license": "BSD-3-Clause",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/zrender-5.6.1/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/zrender-5.6.1/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "https://github.com/ecomfe/zrender.git"
-      },
-      "selectedLicense": "BSD-3-Clause"
     },
     {
       "name": "dompurify",
@@ -6391,6 +6196,17 @@
       ],
       "source": "https://registry.npmjs.org/dompurify/3.4.17",
       "selectedLicense": "Apache-2.0"
+    },
+    {
+      "name": "element-ui",
+      "version": "2.15.10",
+      "license": "MIT",
+      "usage": "只复用图标字体和对应CSS, 不包含旧Vue2组件运行代码",
+      "evidence": [
+        "vendor/platform-wxshop/legal/licenses/element-ui/LICENSE"
+      ],
+      "source": "https://github.com/ElemeFE/element/tree/v2.15.10",
+      "selectedLicense": "MIT"
     },
     {
       "name": "normalize.css",
@@ -6411,6 +6227,7 @@
     }
   ],
   "unresolvedBackend": [],
+  "licenseEvidenceBlockers": [],
   "sourceBundles": [
     {
       "file": "vendor/platform-wxshop/legal/sources/mchange-commons-java-0.2.15-sources.jar",
@@ -6491,6 +6308,5 @@
       "license": "CDDL (以随附版本原文为准)"
     }
   ],
-  "distributionBlockers": [],
-  "licenseEvidenceBlockers": []
+  "distributionBlockers": []
 }

@@ -3,7 +3,7 @@
     title="消息回复"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm">
       <el-form-item prop="replyContent">
         <el-input v-model="dataForm.replyContent" type="textarea" :rows="5" placeholder="回复内容" maxlength="600"
@@ -11,16 +11,17 @@
         <el-button type="text" v-show="'text'==dataForm.replyType" @click="addLink">插入链接</el-button>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="visible = false">取消</el-button>
             <el-button type="success" @click="dataFormSubmit()"
                        :disabled="uploading">{{ uploading ? '发送中...' : '发送' }}</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,
@@ -36,9 +37,6 @@ export default {
         ]
       }
     }
-  },
-  components: {
-    WxMsgPreview: () => import('@/components/wx-msg-preview')
   },
   methods: {
     init (openid) {

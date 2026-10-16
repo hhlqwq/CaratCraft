@@ -1,6 +1,6 @@
 <template>
   <div class="mod-goods">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="商品名称" clearable></el-input>
       </el-form-item>
@@ -32,14 +32,14 @@
       <el-table-column prop="goodsNumber" header-align="center" align="center" label="库存"
                        width="90"></el-table-column>
       <el-table-column prop="isOnSale" header-align="center" align="center" label="上架" width="90">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag :type="scope.row.isOnSale === 1 ? 'success' : 'info'" size="small">
             {{ scope.row.isOnSale === 1 ? '是' : '否' }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="180" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:goods:info')" type="text" size="small" @click="showDetails(scope.row.id)">查看
           </el-button>
           <el-button v-if="isAuth('mall:goods:update')" type="text" size="small"
@@ -70,6 +70,7 @@
 import AddOrUpdate from './goods-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

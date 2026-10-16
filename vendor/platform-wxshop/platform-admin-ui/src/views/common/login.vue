@@ -9,7 +9,7 @@
         </div>
         <div class="login-main">
           <h3 class="login-title">管理员登录</h3>
-          <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+          <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
                    status-icon>
             <el-form-item prop="userName">
               <el-input v-model="dataForm.userName" placeholder="帐号" aria-label="管理员账号" autocomplete="username" autofocus></el-input>
@@ -52,6 +52,7 @@ import {Encrypt} from '@/utils/AESUtils'
 import {isNavigationFailure} from 'vue-router'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       dataForm: {
@@ -99,18 +100,18 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.loginSubmitting = true
-          this.$http({
+          Promise.resolve().then(async () => this.$http({
             url: '/sys/login',
             method: 'post',
             loading: false,
             showError: false,
             data: {
               'userName': this.dataForm.userName,
-              'password': Encrypt(this.dataForm.password),
+              'password': await Encrypt(this.dataForm.password),
               'uuid': this.dataForm.uuid,
               'captcha': this.dataForm.captcha
             }
-          }).then(({data}) => {
+          })).then(({data}) => {
             if (data && data.code === 0) {
               const token = String(data.data || '').trim()
               if (!token) {
@@ -138,7 +139,7 @@ export default {
             }
           }).catch((error) => {
             const status = error.response && error.response.status
-            const message = status
+            const message = error.code === 'SECURE_CONTEXT_REQUIRED' ? error.message : status
               ? `后台服务请求失败（HTTP ${status}）`
               : '无法连接后台服务，请确认服务已启动并使用端口 8888 访问'
             this.showLoginError(message)

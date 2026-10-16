@@ -1,6 +1,6 @@
 <template>
   <div class="mod-helpissue">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.typeName" placeholder="问题分类" clearable></el-input>
       </el-form-item>
@@ -55,7 +55,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:helpissue:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -86,6 +86,7 @@
 import AddOrUpdate from './helpissue-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

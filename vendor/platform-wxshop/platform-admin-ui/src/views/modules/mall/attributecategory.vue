@@ -1,6 +1,6 @@
 <template>
   <div class="mod-attributecategory">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="参数名" clearable></el-input>
       </el-form-item>
@@ -35,7 +35,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.enabled === 0" size="small" type="danger">关闭</el-tag>
           <el-tag v-else-if="scope.row.enabled === 1" size="small" type="success">开启</el-tag>
         </template>
@@ -46,7 +46,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:attributecategory:info')" type="text" size="small"
                      @click="showDetails(scope.row.id)">查看
           </el-button>
@@ -77,6 +77,7 @@
 import AddOrUpdate from './attributecategory-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

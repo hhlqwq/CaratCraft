@@ -14,7 +14,7 @@
 - `platform-api`: 微信小程序商城API.
 - `platform-biz`: 订单、商品、定制、库存等业务实现.
 - `platform-common`: 公共配置与工具.
-- `platform-admin-ui`: Vue2管理端, 项目HTML编辑组件保留HTML和普通图片能力.
+- `platform-admin-ui`: Vue3/Element Plus/Vite管理端, 项目HTML编辑组件保留HTML和普通图片能力.
 - `wx-mall`: 原生微信小程序, 商品与专题HTML使用微信原生rich-text.
 - `_sql`: 新库结构与项目演示种子, 既有数据库升级按迁移文件审查后执行.
 

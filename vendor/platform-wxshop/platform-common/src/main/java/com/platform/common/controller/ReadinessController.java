@@ -21,8 +21,10 @@ public class ReadinessController {
   private final String revision;
 
   /** 注入依赖提供者和构建元数据, 存活探针不触发数据库或缓存连接. */
-  public ReadinessController(ObjectProvider<DataSource> databases,
-      ObjectProvider<RedisConnectionFactory> caches, @Value("${projectVersion:unknown}") String version,
+  public ReadinessController(
+      ObjectProvider<DataSource> databases,
+      ObjectProvider<RedisConnectionFactory> caches,
+      @Value("${projectVersion:unknown}") String version,
       @Value("${BUILD_REVISION:workspace}") String revision) {
     this.databases = databases;
     this.caches = caches;
@@ -46,16 +48,21 @@ public class ReadinessController {
         return ResponseEntity.status(503).body(metadata("not_ready"));
       }
       try (Connection connection = source.getConnection();
-          var statement = connection.prepareStatement("SELECT COUNT(*) FROM information_schema.tables "
-              + "WHERE table_schema=DATABASE() AND table_name IN ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_MIGRATION')")) {
+          var statement =
+              connection.prepareStatement(
+                  "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND"
+                      + " table_name IN"
+                      + " ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_MIGRATION','CC_REFUND','CC_STOCK_LOG')")) {
         statement.setQueryTimeout(3);
         try (var rows = statement.executeQuery()) {
-          if (!rows.next() || rows.getInt(1) != 3) {
+          if (!rows.next() || rows.getInt(1) != 5) {
             return ResponseEntity.status(503).body(metadata("schema_required"));
           }
         }
-        try (var versionQuery = connection.prepareStatement(
-            "SELECT version FROM CC_SCHEMA_MIGRATION WHERE version='V20261015_02_disable_obsolete_demo.sql'");
+        try (var versionQuery =
+                connection.prepareStatement(
+                    "SELECT version FROM CC_SCHEMA_MIGRATION WHERE"
+                        + " version='V20261016_02_material_history.sql'");
             var versions = versionQuery.executeQuery()) {
           if (!versions.next()) {
             return ResponseEntity.status(503).body(metadata("schema_required"));
@@ -75,7 +82,14 @@ public class ReadinessController {
 
   /** 保持固定的非敏感响应字段, 不序列化异常对象. */
   private Map<String, String> metadata(String status) {
-    return Map.of("status", status, "version", version, "revision", revision,
-        "requiredSchema", "V20261015_02");
+    return Map.of(
+        "status",
+        status,
+        "version",
+        version,
+        "revision",
+        revision,
+        "requiredSchema",
+        "V20261016_02");
   }
 }

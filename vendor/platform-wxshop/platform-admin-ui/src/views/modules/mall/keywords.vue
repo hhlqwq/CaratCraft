@@ -1,6 +1,6 @@
 <template>
   <div class="mod-keywords">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.keyword" placeholder="关键字" clearable></el-input>
       </el-form-item>
@@ -34,7 +34,7 @@
         header-align="center"
         align="center"
         label="热搜">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isHot === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isHot === 1" size="small" type="success">是</el-tag>
         </template>
@@ -44,7 +44,7 @@
         header-align="center"
         align="center"
         label="默认">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isDefault === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isDefault === 1" size="small" type="success">是</el-tag>
         </template>
@@ -54,7 +54,7 @@
         header-align="center"
         align="center"
         label="显示">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isShow === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isShow === 1" size="small" type="success">是</el-tag>
         </template>
@@ -76,7 +76,7 @@
         header-align="center"
         align="center"
         label="类型">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.type === 0" size="small" type="success">小程序</el-tag>
           <el-tag v-else-if="scope.row.type === 1" size="small" type="danger">公众号</el-tag>
           <el-tag v-else-if="scope.row.type === 2" size="small">APP</el-tag>
@@ -89,7 +89,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:keywords:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -120,6 +120,7 @@
 import AddOrUpdate from './keywords-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

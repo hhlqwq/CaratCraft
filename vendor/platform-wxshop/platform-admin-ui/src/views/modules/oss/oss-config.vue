@@ -3,10 +3,10 @@
     title="云存储配置"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="140px">
-      <el-form-item size="mini" label="存储类型">
+      <el-form-item size="small" label="存储类型">
         <el-radio-group v-model="dataForm.type">
           <el-radio :label="1">七牛</el-radio>
           <el-radio :label="2">阿里云</el-radio>
@@ -20,7 +20,7 @@
         <el-form-item label="域名">
           <el-input v-model="dataForm.qiniuDomain" placeholder="七牛绑定的域名"></el-input>
         </el-form-item>
-        <el-form-item size="mini" label="存储区域">
+        <el-form-item size="small" label="存储区域">
           <el-radio-group v-model="dataForm.qiniuRegion">
             <el-radio :label="1">华东-浙江</el-radio>
             <el-radio :label="2">华北-河北</el-radio>
@@ -126,15 +126,16 @@
         </el-form-item>
       </template>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

@@ -3,31 +3,31 @@
     title="查看"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-descriptions :column="3" border>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-user"></i>
           会员昵称
         </template>
         {{ dataForm.nickname }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-tickets"></i>
           优惠券
         </template>
         {{ dataForm.title }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-date"></i>
           领用时间
         </template>
         {{ dataForm.addTime }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-star-off"></i>
           领取类型
         </template>
@@ -36,7 +36,7 @@
         <el-tag v-else-if="dataForm.type === 2" size="small" type="danger">领券中心领取</el-tag>
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-star-off"></i>
           状态
         </template>
@@ -45,28 +45,29 @@
         <el-tag v-else-if="dataForm.status === 2" size="small" type="info">过期</el-tag>
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-alarm-clock"></i>
           使用时间
         </template>
         {{ dataForm.usedTime }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           <i class="el-icon-wallet"></i>
           订单编号
         </template>
         {{ dataForm.orderSn }}
       </el-descriptions-item>
     </el-descriptions>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

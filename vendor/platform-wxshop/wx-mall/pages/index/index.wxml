@@ -58,7 +58,7 @@
     </view>
     <scroll-view class="product-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
       <navigator class="product-card" url="../goods/goods?id={{item.id}}" wx:for="{{newGoods}}" wx:key="id">
-        <view class="demo-label">演示</view>
+        <view wx:if="{{item.isDemo}}" class="demo-label">演示</view>
         <image class="product-image" src="{{item.listPicUrl}}" mode="aspectFill" webp="{{true}}"></image>
         <view class="product-name">{{item.name}}</view>
         <view class="product-price">¥ {{item.retailPrice}}</view>

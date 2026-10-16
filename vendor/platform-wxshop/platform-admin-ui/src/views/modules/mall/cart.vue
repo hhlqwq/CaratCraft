@@ -1,6 +1,6 @@
 <template>
   <div class="mod-cart">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.nickname" placeholder="会员昵称" clearable></el-input>
       </el-form-item>
@@ -68,7 +68,7 @@
         header-align="center"
         align="center"
         label="是否选中">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.checked === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.checked === 1" size="small" type="success">是</el-tag>
         </template>
@@ -78,7 +78,7 @@
         header-align="center"
         align="center"
         label="商品图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.listPicUrl)" :src="scope.row.listPicUrl"/>
         </template>
       </el-table-column>
@@ -88,7 +88,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:cart:delete')" type="text" size="small" @click="deleteHandle(scope.row.id)">删除
           </el-button>
         </template>
@@ -112,6 +112,7 @@
 import AddOrUpdate from './cart-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

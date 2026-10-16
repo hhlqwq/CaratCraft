@@ -37,7 +37,7 @@ Page({
     }, 'POST', 'application/json').then(function (res) {
       if (res.code === 0) {
         wx.showToast({
-          title: '评论成功',
+          title: '已提交审核',
           complete: function(){
             wx.navigateBack({
               delta: 1

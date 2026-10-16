@@ -22,6 +22,8 @@ Page({
     couponCode: '',
     buyType: '',
     submitting: false,
+    checkoutId: '',
+    requestKey: '',
     designSnapshotId: null
   },
   /** 初始化结算类型和定制快照 / Initializes checkout type and customization snapshot. */
@@ -29,6 +31,8 @@ Page({
     var isBuy = options.isBuy === true || options.isBuy === 'true';
     var querySnapshotId = Number(options.designSnapshotId || 0);
     this.setData({
+      checkoutId: options.checkoutId || '',
+      requestKey: 'checkout_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12),
       isBuy: isBuy,
       buyType: isBuy ? 'buy' : 'cart',
       designSnapshotId: isBuy ? (querySnapshotId || null) : null
@@ -46,7 +50,8 @@ Page({
     util.request(url, {
       addressId: that.data.addressId,
       couponId: that.data.couponId,
-      type: buyType
+      type: buyType,
+      checkoutId: that.data.checkoutId
     }).then(function (res) {
       if (res.code !== 0) return Promise.reject(new Error(res.msg || '结算信息加载失败'));
       var contextSnapshotId = Number(res.data.designSnapshotId || 0);
@@ -56,12 +61,7 @@ Page({
       }
       var designSnapshotId = contextSnapshotId || currentSnapshotId || null;
       that.setData({ designSnapshotId: designSnapshotId });
-      var quoteRequest = designSnapshotId
-        ? util.request(api.CustomizationCheckoutQuote, { snapshotId: designSnapshotId })
-        : Promise.resolve({ code: 0, data: null });
-      return quoteRequest.then(function (quoteRes) {
-        return { checkout: res, quote: quoteRes };
-      });
+      return {checkout: res, quote: {code: 0, data: null}};
     }).then(function (result) {
       var res = result.checkout;
       var quoteRes = result.quote;
@@ -186,6 +186,9 @@ Page({
       addressId: this.data.addressId,
       couponId: this.data.couponId,
       type: this.data.buyType,
+      checkoutId: this.data.checkoutId,
+      requestKey: this.data.requestKey,
+      expectedActualPrice: this.data.actualPrice,
       designSnapshotId: this.data.designSnapshotId
     }, 'POST', 'application/json').then(res => {
       if (res.code === 0) {

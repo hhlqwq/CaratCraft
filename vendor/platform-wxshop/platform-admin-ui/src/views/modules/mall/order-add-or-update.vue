@@ -3,7 +3,7 @@
     :title="!dataForm.id ? '新建订单' : '订单详情'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible"
+    v-model="visible"
     width="980px"
     class="order-detail-dialog">
     <div class="order-hero">
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="110px">
       <section class="section-card">
         <h3 class="section-title">基础信息</h3>
@@ -148,14 +148,14 @@
     </el-form>
 
     <el-divider v-if="dataForm.id">订单商品明细</el-divider>
-    <el-table v-if="dataForm.id" :data="orderGoodsList" border size="mini" style="width: 100%; margin-top: 12px;">
+    <el-table v-if="dataForm.id" :data="orderGoodsList" border size="small" style="width: 100%; margin-top: 12px;">
       <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
       <el-table-column prop="goodsId" label="商品ID" width="100" align="center"></el-table-column>
       <el-table-column prop="goodsName" label="商品名称" min-width="220" show-overflow-tooltip></el-table-column>
       <el-table-column prop="number" label="数量" width="80" align="center"></el-table-column>
       <el-table-column prop="retailPrice" label="零售价" width="100" align="center"></el-table-column>
       <el-table-column label="图片" width="100" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-image
             v-if="scope.row.listPicUrl"
             :src="scope.row.listPicUrl"
@@ -168,15 +168,16 @@
       </el-table-column>
     </el-table>
 
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button v-if="!disabled && !dataForm.id" type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       disabled: false,

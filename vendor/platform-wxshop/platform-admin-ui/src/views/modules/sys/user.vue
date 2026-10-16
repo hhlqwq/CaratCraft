@@ -1,6 +1,6 @@
 <template>
   <div class="mod-user">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.userName" placeholder="用户名" clearable></el-input>
       </el-form-item>
@@ -57,7 +57,7 @@
         header-align="center"
         align="center"
         label="性别">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ transDict('SEX', scope.row.sex) }}</span>
         </template>
       </el-table-column>
@@ -72,7 +72,7 @@
         header-align="center"
         align="center"
         label="所属机构">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ transOrg(scope.row.orgNo) }}</span>
         </template>
       </el-table-column>
@@ -93,7 +93,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="success">正常</el-tag>
         </template>
@@ -110,7 +110,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:user:update')" type="text" size="small"
                      @click="addOrUpdateHandle(scope.row.userId)">修改
           </el-button>
@@ -138,6 +138,7 @@
 import AddOrUpdate from './user-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

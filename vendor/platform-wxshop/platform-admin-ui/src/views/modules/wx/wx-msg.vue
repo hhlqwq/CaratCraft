@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="dataForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-select v-model="dataForm.startTime" placeholder="时间">
           <el-option v-for="(name,key) in timeSelections" :key="key" :value="name" :label="key"></el-option>
@@ -51,6 +51,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       timeSelections: {

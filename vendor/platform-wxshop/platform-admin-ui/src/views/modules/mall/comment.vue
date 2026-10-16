@@ -4,7 +4,7 @@
       <el-table-column type="selection" header-align="center" align="center" width="50"></el-table-column>
       <el-table-column prop="id" header-align="center" align="center" label="ID" width="80"></el-table-column>
       <el-table-column header-align="center" align="left" label="商品" min-width="220">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-link type="primary" :underline="false" @click="showGoodsDetails(scope.row.valueId)">
             {{ scope.row.goodsName || ('商品ID: ' + scope.row.valueId) }}
           </el-link>
@@ -13,7 +13,7 @@
       <el-table-column prop="content" header-align="center" align="left" label="评论内容"
                        show-overflow-tooltip></el-table-column>
       <el-table-column prop="status" header-align="center" align="center" label="状态" width="90">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small">待审核</el-tag>
           <el-tag v-if="scope.row.status === 1" size="small" type="success">通过</el-tag>
         </template>
@@ -21,7 +21,7 @@
       <el-table-column prop="userNickname" header-align="center" align="center" label="评论用户"
                        width="110"></el-table-column>
       <el-table-column prop="addTime" header-align="center" align="center" label="评论时间" width="260">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-date-picker
             v-model="scope.row.addTime"
             type="datetime"
@@ -32,7 +32,7 @@
         </template>
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:comment:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -66,6 +66,7 @@ import AddOrUpdate from './comment-add-or-update'
 import GoodsDetail from './goods-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

@@ -1,6 +1,6 @@
 <template>
   <div class="mod-collect">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.nickname" placeholder="会员昵称" clearable></el-input>
       </el-form-item>
@@ -40,7 +40,7 @@
         header-align="center"
         align="center"
         label="添加时间">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ scope.row.addTime }}</span>
         </template>
       </el-table-column>
@@ -50,7 +50,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:collect:delete')" type="text" size="small" @click="deleteHandle(scope.row.id)">
             删除
           </el-button>
@@ -72,6 +72,7 @@
 <script>
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

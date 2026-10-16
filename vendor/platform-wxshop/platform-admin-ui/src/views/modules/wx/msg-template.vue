@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="dataForm" @keyup.enter.native="getDataList()">
+    <el-form :inline="true" :model="dataForm" @keyup.enter="getDataList()">
       <el-form-item>
         <el-input v-model="dataForm.title" placeholder="标题" clearable></el-input>
       </el-form-item>
@@ -35,7 +35,7 @@
       <el-table-column prop="templateId" show-overflow-tooltip header-align="center" align="center" label="模板ID">
       </el-table-column>
       <el-table-column prop="title" header-align="center" align="center" label="标题">
-        <a :href="scope.row.url" slot-scope="scope">{{ scope.row.title }}</a>
+        <template #default="scope"><a :href="scope.row.url" >{{ scope.row.title }}</a></template>
       </el-table-column>
       <el-table-column prop="name" header-align="center" align="center" label="模版名称">
       </el-table-column>
@@ -43,10 +43,10 @@
                        width="200">
       </el-table-column>
       <el-table-column prop="status" header-align="center" align="center" label="是否有效">
-        <span slot-scope="scope">{{ scope.row.status ? '是' : '否' }}</span>
+        <template #default="scope"><span >{{ scope.row.status ? '是' : '否' }}</span></template>
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button type="text" size="small" @click="addOrUpdateHandle(scope.row.id)">配置</el-button>
           <el-button type="text" size="small" @click="deleteHandle(scope.row.id)">删除</el-button>
         </template>
@@ -67,6 +67,7 @@ import AddOrUpdate from './msg-template-add-or-update'
 import TemplateMsgTask from '@/components/template-msg-task'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       dataForm: {

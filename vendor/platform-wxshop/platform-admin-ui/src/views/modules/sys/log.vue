@@ -1,6 +1,6 @@
 <template>
   <div class="mod-log">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.key" placeholder="用户名／用户操作" clearable></el-input>
       </el-form-item>
@@ -77,6 +77,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

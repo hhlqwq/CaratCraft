@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :lock-scroll="false"
     :close-on-click-modal="false"
-    :visible.sync="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="媒体文件">
         <el-button type="primary">
@@ -25,16 +25,17 @@
         <el-input v-model="dataForm.fileName" placeholder="为便于管理建议按用途分类+素材内容命名"></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="visible = false">取消</el-button>
             <el-button type="primary" @click="dataFormSubmit()"
                        :disabled="uploading">{{ uploading ? '提交中...' : '提交' }}</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

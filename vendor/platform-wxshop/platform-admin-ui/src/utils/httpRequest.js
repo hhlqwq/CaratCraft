@@ -1,12 +1,12 @@
-import Vue from 'vue'
+import cookie from '@/utils/cookie'
 import axios from 'axios'
 import router from '@/router'
 import merge from 'lodash/merge'
 import {clearLoginInfo} from '@/utils'
 import {
-  Message,
-  Loading
-} from 'element-ui'
+  ElMessage as Message,
+  ElLoading as Loading
+} from 'element-plus'
 
 // 超时时间
 axios.defaults.timeout = 30000
@@ -18,24 +18,26 @@ const BASE_URL = process.env.NODE_ENV !== 'production' && process.env.OPEN_PROXY
 // 对面暴露的基础请求路径
 axios.BASE_URL = BASE_URL
 let authExpiredNotified = false
+const loadingLayers = new Map()
+let loadingSequence = 0
 
 /**
  * 请求拦截
  */
 axios.interceptors.request.use(config => {
   config.requestOptions = {
-    showError: config.showError !== false,
-    loadingInstance: null
+    showError: config.showError !== false
   }
   if (config.loading !== false) {
-    config.requestOptions.loadingInstance = Loading.service({
+    config.loadingId = ++loadingSequence
+    loadingLayers.set(config.loadingId, Loading.service({
       text: 'Loading...',
       spinner: 'el-icon-loading',
       background: 'rgba(0, 0, 0, 0.7)'
-    })
+    }))
   }
   // 记录本次请求实际使用的令牌，避免旧请求的 401 清除新登录令牌 / Records the request token to isolate stale 401 responses.
-  config.authToken = Vue.cookie.get('token') || ''
+  config.authToken = cookie.get('token') || ''
   config.headers['token'] = config.authToken
   // 请求地址处理
   config.url = BASE_URL + config.url
@@ -62,7 +64,7 @@ axios.interceptors.request.use(config => {
  */
 axios.interceptors.response.use(response => {
   closeLoading(response.config)
-  if (response.data && response.data.code === 0 && Vue.cookie.get('token')) {
+  if (response.data && response.data.code === 0 && cookie.get('token')) {
     authExpiredNotified = false
   }
   // 401, token失效
@@ -95,12 +97,18 @@ axios.interceptors.response.use(response => {
     handleUnauthorized(config, responseData.msg)
     return Promise.reject(error)
   }
+  const status = error.response && error.response.status
+  const payload = error.response && error.response.data
+  const businessFailure = status >= 400 && status < 500 && payload && typeof payload.code === 'number'
   if (!config.requestOptions || config.requestOptions.showError) {
-    const status = error.response && error.response.status
-    const message = status
-      ? `请求失败（HTTP ${status}），请稍后重试`
-      : '无法连接后台服务，请检查服务是否启动及网络配置'
+    const message = payload && typeof payload.msg === 'string'
+      ? payload.msg.slice(0, 200)
+      : (status ? `请求失败（HTTP ${status}），请稍后重试` : '无法连接后台服务，请检查网络配置')
     Message({message, type: 'error', showClose: true, duration: 3000})
+  }
+  // 旧页面仍按code处理可恢复的业务错误, 真实网络/服务故障保持拒绝.
+  if (businessFailure) {
+    return error.response
   }
   return Promise.reject(error)
 })
@@ -110,9 +118,10 @@ axios.interceptors.response.use(response => {
  * @param {Object} config Axios 请求配置 / Axios request configuration.
  */
 function closeLoading (config) {
-  const options = config && config.requestOptions
-  if (options && options.loadingInstance) {
-    options.loadingInstance.close()
+  const instance = config && loadingLayers.get(config.loadingId)
+  if (instance) {
+    instance.close()
+    loadingLayers.delete(config.loadingId)
   }
 }
 
@@ -123,13 +132,13 @@ function closeLoading (config) {
  */
 function handleUnauthorized (config, reason) {
   const requestToken = (config && config.authToken) || ''
-  const currentToken = Vue.cookie.get('token') || ''
+  const currentToken = cookie.get('token') || ''
   if (requestToken !== currentToken) {
     return
   }
 
   clearLoginInfo()
-  if (router.currentRoute.name === 'login') {
+  if ((router.currentRoute.value || router.currentRoute).name === 'login') {
     return
   }
 

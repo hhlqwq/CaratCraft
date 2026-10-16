@@ -27,7 +27,8 @@ def source_files():
             if path.name.lower() == "agents.md":
                 continue
             selected.append(path)
-        elif relative.startswith(("tools/", "legal/", "data/", "docs/copyright-")):
+        elif relative.startswith(("tools/", "legal/", "data/", "docs/copyright-", "docs/remediation-",
+                                  "docs/client-requirements-", "docs/wechat-ai-", "docs/source-style")):
             selected.append(path)
         elif relative in {"README.md", ".gitignore", ".gitattributes", "dev.ps1", "dev.sh"}:
             selected.append(path)
@@ -38,14 +39,15 @@ def source_files():
 
 def main():
     """准入检查通过后打包应用和可重新构建的源码, 输出校验清单."""
-    subprocess.run(["python", str(ROOT / "tools/check-copyright-distribution.py")],
+    import sys
+    subprocess.run([sys.executable, str(ROOT / "tools/check-copyright-distribution.py")],
                    cwd=ROOT, check=True)
     DESTINATION.mkdir(parents=True, exist_ok=True)
-    source = DESTINATION / "caratcraft-source-20261014.zip"
+    source = DESTINATION / "caratcraft-source-20261016.zip"
     with zipfile.ZipFile(source, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in source_files():
             archive.write(path, path.relative_to(ROOT).as_posix())
-    application = DESTINATION / "caratcraft-application-20261014.zip"
+    application = DESTINATION / "caratcraft-application-20261016.zip"
     with zipfile.ZipFile(application, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for module in ["platform-admin", "platform-api"]:
             jar = VENDOR / module / "target" / (module + ".jar")

@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="类型" prop="type">
         <el-radio-group v-model="dataForm.type">
@@ -24,7 +24,7 @@
           append-to-body
           title="选择上级菜单"
           :lock-scroll="false"
-          :visible.sync="visiblePopover">
+          v-model="visiblePopover">
           <el-tree
             :data="menuList"
             :props="menuListTreeProps"
@@ -72,10 +72,10 @@
         </el-row>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
@@ -83,6 +83,7 @@
 import Icon from '@/icons'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     const validateUrl = (rule, value, callback) => {
       if (this.dataForm.type === 1 && !/\S/.test(value)) {

@@ -3,26 +3,27 @@
     title="公众号用户标签管理"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="dialogVisible">
+    v-model="dialogVisible">
     <div class="panel  flex flex-wrap" v-loading="submitting">
       <el-tag v-for="tag in wxUserTags" closable @click="editTag(tag.id,tag.name)" @close="deleteTag(tag.id)"
               :disable-transitions="false" :key="tag.id">
         ID：{{tag.id}}；名称：{{tag.name}}
       </el-tag>
       <el-input class="input-new-tag" v-if="inputVisible" placeholder="回车确认" v-model="inputValue" ref="saveTagInput"
-                size="small" @keyup.enter.native="addTag">
+                size="small" @keyup.enter="addTag">
       </el-input>
       <el-button v-else class="button-new-tag" size="small" @click="showInput">+ 添加</el-button>
     </div>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
             <el-button @click="dialogVisible=false">关闭</el-button>
-        </span>
+        </span></template>
   </el-dialog>
 </template>
 <script>
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'wx-user-tags-manager',
   props: {
     visible: {

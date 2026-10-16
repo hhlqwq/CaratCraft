@@ -3,8 +3,8 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
-    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter.native="dataFormSubmit()"
+    v-model="visible">
+    <el-form inline :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
              label-width="80px">
       <el-form-item label="所属分组" prop="groupId" :error="groupWrong">
         <el-select v-model="dataForm.groupId" placeholder="所属分组" :disabled="!!dataForm.id" @change="changeGroup">
@@ -35,15 +35,16 @@
         <el-input type="textarea" v-model="dataForm.remark" placeholder="备注" class="width200"></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

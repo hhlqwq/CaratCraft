@@ -12,30 +12,28 @@
     <div class="site-navbar__body clearfix">
       <el-menu
         class="site-navbar__menu"
-        mode="horizontal">
-        <el-menu-item class="site-navbar__switch" index="0" @click="sidebarFold = !sidebarFold">
+        mode="horizontal" :ellipsis="false">
+        <el-menu-item class="site-navbar__switch" index="0" aria-label="展开或折叠导航" @click="sidebarFold = !sidebarFold">
           <icon-svg name="zhedie"></icon-svg>
         </el-menu-item>
       </el-menu>
       <el-menu
         class="site-navbar__menu site-navbar__menu--right"
-        mode="horizontal">
-        <el-menu-item index="1" @click="showTheme()">
-          <template slot="title">
+        mode="horizontal" :ellipsis="false">
+        <el-menu-item index="1" aria-label="布局设置" @click="showTheme()">
             <el-badge is-dot value="new">
               <icon-svg name="xitongpeizhi" class="el-icon-setting"></icon-svg>
             </el-badge>
-          </template>
         </el-menu-item>
         <el-menu-item class="site-navbar__avatar" index="2">
           <el-dropdown :show-timeout="0" placement="bottom">
             <span class="el-dropdown-link">
               <icon-svg name="admin" class="el-icon-setting"></icon-svg>{{ userName }}
             </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item @click.native="updatePasswordHandle()">修改密码</el-dropdown-item>
-              <el-dropdown-item @click.native="logoutHandle()">退出</el-dropdown-item>
-            </el-dropdown-menu>
+            <template #dropdown><el-dropdown-menu >
+              <el-dropdown-item @click="updatePasswordHandle()">修改密码</el-dropdown-item>
+              <el-dropdown-item @click="logoutHandle()">退出</el-dropdown-item>
+            </el-dropdown-menu></template>
           </el-dropdown>
         </el-menu-item>
       </el-menu>
@@ -52,6 +50,7 @@ import UpdatePassword from './main-navbar-update-password'
 import {clearLoginInfo} from '@/utils'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       updatePassowrdVisible: false,

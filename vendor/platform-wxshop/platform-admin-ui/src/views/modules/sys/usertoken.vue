@@ -1,6 +1,6 @@
 <template>
   <div class="mod-usertoken">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="用户名" clearable></el-input>
       </el-form-item>
@@ -27,7 +27,7 @@
         header-align="center"
         align="center"
         label="用户名">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ transUser(scope.row.userId) }}</span>
         </template>
       </el-table-column>
@@ -55,7 +55,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:usertoken:offline')" type="text" size="small"
                      @click="offlineHandle(scope.row.userId)">下线
           </el-button>
@@ -75,6 +75,7 @@
 </template>
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

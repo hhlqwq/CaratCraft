@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-select v-model="searchForm.tagid" filterable clearable placeholder="用户标签">
           <el-option v-for="item in wxUserTags" :key="item.id" :label="item.name" :value="item.id"></el-option>
@@ -54,28 +54,28 @@
       <el-table-column prop="city" header-align="center" align="center" label="城市">
       </el-table-column>
       <el-table-column prop="headImgUrl" header-align="center" align="center" label="头像">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img class="headimg" @click="openImg(scope.row.headImgUrl)" v-if="scope.row.headImgUrl"
                :src="scope.row.headImgUrl"/>
         </template>
       </el-table-column>
       <el-table-column prop="tagidList" header-align="center" align="center" label="标签" show-overflow-tooltip>
-        <template slot-scope="scope">
+        <template #default="scope">
           <span v-for="tagid in scope.row.tagidList" :key="tagid">{{ getTagName(tagid) }} </span>
         </template>
       </el-table-column>
       <el-table-column prop="subscribeTime" header-align="center" align="center" label="订阅时间">
-        <template slot-scope="scope">{{ scope.row.subscribeTime }}</template>
+        <template #default="scope">{{ scope.row.subscribeTime }}</template>
       </el-table-column>
       <el-table-column prop="qrSceneStr" header-align="center" align="center" label="场景值">
       </el-table-column>
       <el-table-column prop="subscribeScene" header-align="center" align="center" label="关注渠道来源">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ getSubscribeScene(scope.row.subscribeScene) }} </span>
         </template>
       </el-table-column>
       <el-table-column prop="subscribe" header-align="center" align="center" label="是否关注">
-        <span slot-scope="scope">{{ scope.row.subscribe ? '是' : '否' }}</span>
+        <template #default="scope"><span >{{ scope.row.subscribe ? '是' : '否' }}</span></template>
       </el-table-column>
       <el-table-column prop="integral" header-align="center" align="center" label="积分">
       </el-table-column>
@@ -96,6 +96,7 @@ import WxUserTagging from './wx-user-tagging'
 import {mapState} from 'vuex'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       showWxUserTagsEditor: false,

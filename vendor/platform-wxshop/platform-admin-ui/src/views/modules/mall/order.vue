@@ -1,6 +1,8 @@
 <template>
   <div class="mod-order">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-button v-if="isAuth('mall:order:list')" @click="$refs.refunds.open()">退款售后</el-button>
+    <refund-panel ref="refunds" />
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.orderSn" placeholder="订单编号" clearable></el-input>
       </el-form-item>
@@ -35,7 +37,7 @@
       <el-table-column prop="actualPrice" header-align="center" align="center" label="实付金额"
                        width="100"></el-table-column>
       <el-table-column header-align="center" align="center" label="订单状态" width="100">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag size="small" :type="orderStatusType(scope.row.orderStatus)">{{
               orderStatusText(scope.row.orderStatus)
             }}
@@ -43,7 +45,7 @@
         </template>
       </el-table-column>
       <el-table-column header-align="center" align="center" label="支付状态" width="100">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag size="small" :type="payStatusType(scope.row.payStatus)">{{
               payStatusText(scope.row.payStatus)
             }}
@@ -51,7 +53,7 @@
         </template>
       </el-table-column>
       <el-table-column header-align="center" align="center" label="发货状态" width="100">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag size="small" :type="shippingStatusType(scope.row.shippingStatus)">
             {{ shippingStatusText(scope.row.shippingStatus) }}
           </el-tag>
@@ -60,7 +62,7 @@
       <el-table-column prop="addTime" header-align="center" align="center" label="下单时间"
                        min-width="160"></el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="220" label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:order:info')" type="text" size="small" @click="showDetails(scope.row.id)">查看
           </el-button>
           <el-button
@@ -94,7 +96,7 @@
 
     <el-dialog
       title="订单发货"
-      :visible.sync="shipDialogVisible"
+      v-model="shipDialogVisible"
       width="420px"
       :close-on-click-modal="false">
       <el-form :model="shipForm" :rules="shipRule" ref="shipForm" label-width="90px">
@@ -112,18 +114,20 @@
           <el-input v-model.trim="shipForm.shippingNo" placeholder="请输入快递单号"></el-input>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
+      <template #footer><span  class="dialog-footer">
         <el-button @click="shipDialogVisible = false">取消</el-button>
         <el-button type="primary" @click="submitShip()">确认发货</el-button>
-      </span>
+      </span></template>
     </el-dialog>
   </div>
 </template>
 
 <script>
 import AddOrUpdate from './order-add-or-update'
+import RefundPanel from './refund-panel'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {
@@ -150,7 +154,7 @@ export default {
       }
     }
   },
-  components: {AddOrUpdate},
+  components: {AddOrUpdate, RefundPanel},
   activated () {
     this.loadShippingCompanies()
     this.getDataList()

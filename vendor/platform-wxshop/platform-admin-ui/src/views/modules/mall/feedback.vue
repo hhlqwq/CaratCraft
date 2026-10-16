@@ -1,6 +1,6 @@
 <template>
   <div class="mod-feedback">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.nickname" placeholder="会员昵称" clearable></el-input>
       </el-form-item>
@@ -60,7 +60,7 @@
         header-align="center"
         align="center"
         label="反馈类型">
-        <template slot-scope="scope">
+        <template #default="scope">
           <span>{{ transDict('FEED_TYPE', scope.row.feedType) }}</span>
         </template>
       </el-table-column>
@@ -76,7 +76,7 @@
         header-align="center"
         align="center"
         label="状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="danger">未读</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="success">已读</el-tag>
         </template>
@@ -93,7 +93,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:feedback:info')" type="text" size="small" @click="showDetails(scope.row.msgId)">
             查看
           </el-button>
@@ -122,6 +122,7 @@
 import AddOrUpdate from './feedback-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

@@ -4,7 +4,7 @@
     :lock-scroll="false"
     width="30%"
     center
-    :visible.sync="visible">
+    v-model="visible">
     <el-form>
       <h2>布局设置</h2>
       <el-form-item label="导航条类型">
@@ -24,6 +24,7 @@
 </template>
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false

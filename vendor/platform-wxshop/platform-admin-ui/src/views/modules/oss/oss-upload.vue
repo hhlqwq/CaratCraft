@@ -4,7 +4,7 @@
     :close-on-click-modal="false"
     @close="closeHandle"
     :lock-scroll="false"
-    :visible.sync="visible"
+    v-model="visible"
     append-to-body>
     <el-upload
       drag
@@ -17,13 +17,14 @@
       style="text-align: center;">
       <i class="el-icon-upload"></i>
       <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-      <div class="el-upload__tip" slot="tip">支持 JPG、PNG、GIF、WebP，单张不超过 5 MB。</div>
+      <template #tip><div class="el-upload__tip" >支持 JPG、PNG、GIF、WebP，单张不超过 5 MB。</div></template>
     </el-upload>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

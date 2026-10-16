@@ -3,7 +3,7 @@
     :title="!form.goods.id ? '新增商品' : !disabled ? '编辑商品' : '查看商品'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible"
+    v-model="visible"
     width="90%">
     <el-tabs v-model="activeTab" type="border-card">
       <el-tab-pane label="基础信息" name="base">
@@ -98,11 +98,11 @@
 
       <el-tab-pane label="商品参数" name="attr">
         <div class="mb10">
-          <el-button v-if="!disabled" type="primary" size="mini" @click="addAttribute">新增参数</el-button>
+          <el-button v-if="!disabled" type="primary" size="small" @click="addAttribute">新增参数</el-button>
         </div>
         <el-table :data="form.attributes" border>
           <el-table-column label="属性" width="240">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-select v-model="scope.row.attributeId" :disabled="disabled" filterable placeholder="请选择属性"
                          @change="onAttributeChange(scope.row)">
                 <el-option v-for="item in attributeOptions" :key="item.id" :label="item.name"
@@ -111,12 +111,12 @@
             </template>
           </el-table-column>
           <el-table-column label="属性值" min-width="280">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input v-model="scope.row.value" :disabled="disabled" placeholder="请输入属性值"></el-input>
             </template>
           </el-table-column>
           <el-table-column v-if="!disabled" label="操作" width="100" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-button type="text" @click="removeAttribute(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
@@ -125,27 +125,27 @@
 
       <el-tab-pane label="商品相册" name="gallery">
         <div class="mb10">
-          <el-button v-if="!disabled" type="primary" size="mini" @click="addGallery">新增图片</el-button>
+          <el-button v-if="!disabled" type="primary" size="small" @click="addGallery">新增图片</el-button>
         </div>
         <el-table :data="form.gallery" border>
           <el-table-column label="图片" width="260">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-img v-model="scope.row.imgUrl" :disabled="disabled"></el-img>
             </template>
           </el-table-column>
           <el-table-column label="描述">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input v-model="scope.row.imgDesc" :disabled="disabled" placeholder="描述"></el-input>
             </template>
           </el-table-column>
           <el-table-column label="排序" width="240" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input-number v-model="scope.row.sortOrder" :disabled="disabled" :min="1"
                                controls-position="right"></el-input-number>
             </template>
           </el-table-column>
           <el-table-column v-if="!disabled" label="操作" width="120" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-button type="text" @click="removeGallery(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
@@ -154,12 +154,12 @@
 
       <el-tab-pane label="规格与规格值" name="spec">
         <div class="mb10">
-          <el-button v-if="!disabled" type="primary" size="mini" @click="addSpecGroup">新增规格</el-button>
-          <el-button v-if="!disabled" size="mini" @click="rebuildSkuList">重建SKU</el-button>
+          <el-button v-if="!disabled" type="primary" size="small" @click="addSpecGroup">新增规格</el-button>
+          <el-button v-if="!disabled" size="small" @click="rebuildSkuList">重建SKU</el-button>
         </div>
         <el-table :data="form.specs" border>
           <el-table-column label="规格名" width="260">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-select v-model="scope.row.specificationId" :disabled="disabled" filterable placeholder="请选择规格"
                          @change="onSpecificationChange(scope.row)">
                 <el-option v-for="item in specificationOptions" :key="item.id" :label="item.name"
@@ -168,7 +168,7 @@
             </template>
           </el-table-column>
           <el-table-column label="规格值">
-            <template slot-scope="scope">
+            <template #default="scope">
               <div v-for="(value, valueIndex) in scope.row.values" :key="valueIndex" class="spec-value-row">
                 <el-input v-model="value.value" :disabled="disabled" placeholder="规格值"
                           class="spec-value-input"></el-input>
@@ -179,7 +179,7 @@
             </template>
           </el-table-column>
           <el-table-column v-if="!disabled" label="操作" width="100" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-button type="text" @click="removeSpecGroup(scope.$index)">删除</el-button>
             </template>
           </el-table-column>
@@ -191,29 +191,29 @@
                   title="规格变更后请点击“重建SKU”，系统会按规格组合生成 SKU。"></el-alert>
         <el-table :data="form.skuList" border class="mt10">
           <el-table-column label="规格组合" min-width="260">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-tag size="small">{{ scope.row.specLabel || '默认规格' }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="SKU编码" width="180">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input v-model="scope.row.goodsSn" :disabled="disabled" placeholder="SKU编码"></el-input>
             </template>
           </el-table-column>
           <el-table-column label="库存" width="240" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input-number v-model="scope.row.goodsNumber" :disabled="disabled" :min="0"
                                controls-position="right"></el-input-number>
             </template>
           </el-table-column>
           <el-table-column label="零售价" width="240" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input-number v-model="scope.row.retailPrice" :disabled="disabled" :min="0" :precision="2"
                                controls-position="right"></el-input-number>
             </template>
           </el-table-column>
           <el-table-column label="市场价" width="240" align="center">
-            <template slot-scope="scope">
+            <template #default="scope">
               <el-input-number v-model="scope.row.marketPrice" :disabled="disabled" :min="0" :precision="2"
                                controls-position="right"></el-input-number>
             </template>
@@ -222,10 +222,10 @@
       </el-tab-pane>
     </el-tabs>
 
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
       <el-button v-if="!disabled" type="primary" @click="dataFormSubmit">保存</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
@@ -233,6 +233,7 @@
 import DOMPurify from '@/third-party/dompurify/purify.es.mjs'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       disabled: false,

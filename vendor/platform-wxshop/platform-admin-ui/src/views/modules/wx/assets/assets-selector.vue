@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     title="选择素材"
-    :visible.sync="dataVisible"
+    v-model="dataVisible"
     :modal="true"
     :lock-scroll="false"
     append-to-body
@@ -12,6 +12,7 @@
 </template>
 <script>
 export default {
+  compatConfig: {MODE: 2},
   name: 'assets-selector',
   data: function () {
     return {

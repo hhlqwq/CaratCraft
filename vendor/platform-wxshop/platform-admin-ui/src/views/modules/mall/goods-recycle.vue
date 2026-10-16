@@ -9,7 +9,7 @@
       <div class="retention-badge">30 天可恢复</div>
     </section>
 
-    <el-form :inline="true" :model="searchForm" class="filter-bar" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" class="filter-bar" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="搜索已删除商品" clearable></el-input>
       </el-form-item>
@@ -29,17 +29,17 @@
       <el-table-column prop="goodsSn" label="商品编码" min-width="150" align="center"></el-table-column>
       <el-table-column prop="retailPrice" label="零售价" width="110" align="center"></el-table-column>
       <el-table-column label="删除时间" min-width="170" align="center">
-        <template slot-scope="scope">{{ formatDate(scope.row.deleteTime) }}</template>
+        <template #default="scope">{{ formatDate(scope.row.deleteTime) }}</template>
       </el-table-column>
       <el-table-column label="剩余时间" width="120" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag :type="remainingDays(scope.row.deleteTime) <= 3 ? 'danger' : 'warning'" size="small">
             {{ remainingDays(scope.row.deleteTime) }} 天
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column fixed="right" label="操作" width="180" align="center">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:goods:recycle:restore')" type="text" size="small"
                      @click="restoreHandle(scope.row.id)">恢复</el-button>
           <el-button v-if="isAuth('mall:goods:recycle:delete')" type="text" size="small"
@@ -56,6 +56,7 @@
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {name: ''},

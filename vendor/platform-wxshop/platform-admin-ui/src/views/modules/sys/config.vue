@@ -1,6 +1,6 @@
 <template>
   <div class="mod-config">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.paramKey" placeholder="参数名" clearable></el-input>
       </el-form-item>
@@ -30,9 +30,9 @@
         header-align="center"
         align="center"
         label="参数名">
-        <template slot-scope="scope">
-          <el-input ref="gain" size="mini" v-if="isAuth('sys:config:update')&&scope.row.isOK"
-                    @keyup.native.enter="blurClick(scope)" @blur="blurClick(scope)"
+        <template #default="scope">
+          <el-input ref="gain" size="small" v-if="isAuth('sys:config:update')&&scope.row.isOK"
+                    @keyup.enter="blurClick(scope)" @blur="blurClick(scope)"
                     v-model="scope.row.paramKey"></el-input>
           <span v-else>{{ scope.row.paramKey }}</span>
         </template>
@@ -42,9 +42,9 @@
         header-align="center"
         align="center"
         label="参数值">
-        <template slot-scope="scope">
-          <el-input ref="gain" size="mini" v-if="isAuth('sys:config:update')&&scope.row.isOK1"
-                    @keyup.native.enter="blurClick(scope)" @blur="blurClick(scope)"
+        <template #default="scope">
+          <el-input ref="gain" size="small" v-if="isAuth('sys:config:update')&&scope.row.isOK1"
+                    @keyup.enter="blurClick(scope)" @blur="blurClick(scope)"
                     v-model="scope.row.paramValue"></el-input>
           <span v-else>{{ scope.row.paramValue }}</span>
         </template>
@@ -55,9 +55,9 @@
         header-align="center"
         align="center"
         label="备注">
-        <template slot-scope="scope">
-          <el-input ref="gain" size="mini" v-if="isAuth('sys:config:update')&&scope.row.isOK2"
-                    @keyup.native.enter="blurClick(scope)" @blur="blurClick(scope)"
+        <template #default="scope">
+          <el-input ref="gain" size="small" v-if="isAuth('sys:config:update')&&scope.row.isOK2"
+                    @keyup.enter="blurClick(scope)" @blur="blurClick(scope)"
                     v-model="scope.row.remark"></el-input>
           <span v-else>{{ scope.row.remark }}</span>
         </template>
@@ -81,6 +81,7 @@
 import AddOrUpdate from './config-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {
@@ -105,13 +106,13 @@ export default {
     cellclick (row, column) {
       if (this.isAuth('sys:config:update')) {
         if (column.label === '参数名') {
-          this.$set(row, 'isOK', true)
+          row.isOK = true
         }
         if (column.label === '参数值') {
-          this.$set(row, 'isOK1', true)
+          row.isOK1 = true
         }
         if (column.label === '备注') {
-          this.$set(row, 'isOK2', true)
+          row.isOK2 = true
         }
         this.updateValue = row[column.property]
         this.$nextTick(() => {
@@ -121,13 +122,13 @@ export default {
     },
     blurClick ({row, column}) {
       if (column.label === '参数名') {
-        this.$set(row, 'isOK', false)
+        row.isOK = false
       }
       if (column.label === '参数值') {
-        this.$set(row, 'isOK1', false)
+        row.isOK1 = false
       }
       if (column.label === '备注') {
-        this.$set(row, 'isOK2', false)
+        row.isOK2 = false
       }
       if (this.updateValue !== row[column.property]) {
         this.$http({

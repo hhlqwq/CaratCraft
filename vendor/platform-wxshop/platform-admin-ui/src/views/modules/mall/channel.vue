@@ -1,6 +1,6 @@
 <template>
   <div class="mod-channel">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="参数名" clearable></el-input>
       </el-form-item>
@@ -40,7 +40,7 @@
         header-align="center"
         align="center"
         label="图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img @click="openImg(scope.row.iconUrl)" :src="scope.row.iconUrl"/>
         </template>
       </el-table-column>
@@ -56,7 +56,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:channel:info')" type="text" size="small" @click="showDetails(scope.row.id)">
             查看
           </el-button>
@@ -87,6 +87,7 @@
 import AddOrUpdate from './channel-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

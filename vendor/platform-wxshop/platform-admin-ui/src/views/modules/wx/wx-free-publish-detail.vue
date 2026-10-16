@@ -2,7 +2,7 @@
   <el-dialog
     title="查看"
     :close-on-click-modal="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-row v-if="dataForm.newsItem.length>0">
       <el-col tag="center" :span="6">
         <el-card shadow="hover" :style="{ width: '150px' }" v-for="(item, index) in dataForm.newsItem" :key="index">
@@ -29,7 +29,7 @@
                 <rich-text-editor v-model="item.content" disabled placeholder="详情"></rich-text-editor>
               </el-form-item>
               <el-form-item label="封面" prop="thumbUrl">
-                <el-img v-model="item.thumbUrl" disabled disabled></el-img>
+                <el-img v-model="item.thumbUrl" disabled></el-img>
               </el-form-item>
               <el-form-item label="摘要" prop="digest">
                 <el-input type="textarea" disabled :rows="5" v-model="item.digest" maxlength="120" show-word-limit
@@ -51,21 +51,22 @@
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="临时链接" prop="url">
-                <el-input v-model="item.url" disabled placeholder="草稿的临时链接" disabled></el-input>
+                <el-input v-model="item.url" disabled placeholder="草稿的临时链接"></el-input>
               </el-form-item>
             </el-tab-pane>
           </el-tabs>
         </el-form>
       </el-col>
     </el-row>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       tableName: '0',

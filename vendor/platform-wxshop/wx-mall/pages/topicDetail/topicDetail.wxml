@@ -4,37 +4,7 @@
   </scroll-view>
   <view class="topic-goods">
   </view>
-  <scroll-view class="comments">
-    <view class="h">
-      <text class="t">精选留言</text>
-      <image bindtap="postComment" class="i" src="/static/images/icons/icon-comment-add.png"></image>
-    </view>
-     <view class="has-comments" wx:if="{{commentList.length > 0 }}">
-      <view class="b">
-        <view class="item" wx:for="{{commentList}}" wx:key="id">
-          <view class="info">
-            <view class="user">
-              <image class="avatar" src="{{item.userInfo.avatar}}"></image>
-              <text class="nickname">{{item.userInfo.nickname}}</text>
-            </view>
-            <view class="time">{{item.addTime}}</view>
-          </view>
-          <view class="comment">
-            {{item.content}}
-          </view>
-        </view>
-      </view>
-      <view class="load" wx:if="{{commentCount > 5}}">
-        <navigator url="/pages/topicComment/topicComment?valueId={{topic.id}}&typeId=1">查看更多</navigator>
-      </view>
-    </view>
-    <view class="no-comments" wx:if="{{commentList.length <= 0}}">
-        <view class="b">
-            <image class="icon" src="/static/images/icons/empty-comment.png"></image>
-            <text class="txt">等你来留言</text>
-        </view>
-    </view>
-  </scroll-view>
+
   <scroll-view class="rec-box">
     <view class="h">
       <text class="txt">专题推荐</text>

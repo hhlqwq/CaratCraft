@@ -133,14 +133,18 @@ test('结算先读取所选地址, 提交按钮阻止重复请求', async () => 
   assert.equal(page.data.submitting, false);
 });
 
-/** Vue组件脚本由现有Babel转成测试模块, 其他组件使用占位依赖. */
+/** 使用当前Vue编译器读取组件, 导入依赖替换为占位对象, 不依赖旧Babel工具链. */
 function loadVue(relative) {
-  const babel = require(path.join(root, 'platform-admin-ui/node_modules/babel-core'));
-  const source = fs.readFileSync(path.join(root, relative), 'utf8').split('<script>')[1]
-      .split('</script>')[0];
-  const transformed = babel.transform(source, {babelrc: false, plugins: [
-    require(path.join(root, 'platform-admin-ui/node_modules/babel-plugin-transform-es2015-modules-commonjs')),
-  ]}).code;
+  const compiler = require(path.join(root, 'platform-admin-ui/node_modules/@vue/compiler-sfc'));
+  const source = compiler.parse(fs.readFileSync(path.join(root, relative), 'utf8')).descriptor.script.content;
+  let transformed = compiler.rewriteDefault(source, '_component');
+  const imports = compiler.babelParse(transformed, {sourceType: 'module'}).program.body
+      .filter(node => node.type === 'ImportDeclaration');
+  for (const node of imports.reverse()) {
+    transformed = transformed.slice(0, node.start) + node.specifiers.map(item =>
+      'const ' + item.local.name + ' = {};').join('\n') + transformed.slice(node.end);
+  }
+  transformed += '\nmodule.exports.default = _component;';
   const module = {exports: {}};
   vm.runInNewContext(transformed, {module, exports: module.exports,
     require: () => ({}), FileReader: class {

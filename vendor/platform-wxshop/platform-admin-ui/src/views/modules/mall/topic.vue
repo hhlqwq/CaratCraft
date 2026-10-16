@@ -1,6 +1,6 @@
 <template>
   <div class="mod-topic">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="参数名" clearable></el-input>
       </el-form-item>
@@ -34,7 +34,7 @@
         header-align="center"
         align="center"
         label="头像">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.avatar)" :src="scope.row.avatar"/>
         </template>
       </el-table-column>
@@ -43,7 +43,7 @@
         header-align="center"
         align="center"
         label="专题图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.itemPicUrl)" :src="scope.row.itemPicUrl"/>
         </template>
       </el-table-column>
@@ -77,7 +77,7 @@
         header-align="center"
         align="center"
         label="场景图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.scenePicUrl)" :src="scope.row.scenePicUrl"/>
         </template>
       </el-table-column>
@@ -87,7 +87,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:topic:info')" type="text" size="small" @click="showDetails(scope.row.id)">查看
           </el-button>
           <el-button v-if="isAuth('mall:topic:update')" type="text" size="small"
@@ -117,6 +117,7 @@
 import AddOrUpdate from './topic-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

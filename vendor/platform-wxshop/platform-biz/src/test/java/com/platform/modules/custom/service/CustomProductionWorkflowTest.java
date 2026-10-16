@@ -26,6 +26,19 @@ class CustomProductionWorkflowTest {
   private MallOrderEntity order;
   private ProductionWorkOrderEntity work;
 
+  /** 列表动作与实际流转共享状态图, 退款冻结后立即隐藏制作入口. */
+  @Test
+  void allowedActionsFollowOrderFreezeAndSharedGraph() {
+    order.setId(10);
+    when(orders.listByIds(any())).thenReturn(java.util.List.of(order));
+    service.describeAllowedActions(java.util.List.of(work));
+    org.junit.jupiter.api.Assertions.assertEquals(
+        java.util.List.of("REVIEWED"), work.getAllowedActions());
+    order.setPayStatus(3);
+    service.describeAllowedActions(java.util.List.of(work));
+    org.junit.jupiter.api.Assertions.assertTrue(work.getAllowedActions().isEmpty());
+  }
+
   /** 初始化已支付待履约订单和待审核工单. */
   @BeforeEach
   void setUp() {
@@ -49,7 +62,8 @@ class CustomProductionWorkflowTest {
   @Test
   void refundBlocksProduction() {
     order.setPayStatus(3);
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
     verify(workOrders, never()).update(any(), any(Wrapper.class));
   }
@@ -57,17 +71,19 @@ class CustomProductionWorkflowTest {
   /** 跳过审核开工或直接取消工单都应拒绝. */
   @Test
   void invalidJumpAndDirectCancellationAreRejected() {
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.transition(1L, "PRODUCING", "跳步", 7L, "测试商家"));
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.transition(1L, "CANCELLED", "直接取消", 7L, "测试商家"));
   }
 
   /** 状态条件更新失败时不得写入操作成功日志. */
   @Test
   void concurrentStateChangeDoesNotWriteLog() {
-    assertThrows(IllegalStateException.class,
-        () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
+    assertThrows(
+        IllegalStateException.class, () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
     verify(logs, never()).insert(any(WorkOrderLogEntity.class));
   }
 
@@ -75,7 +91,7 @@ class CustomProductionWorkflowTest {
   @Test
   void failedLogPreventsSuccessfulTransition() {
     when(workOrders.update(any(), any(Wrapper.class))).thenReturn(1);
-    assertThrows(IllegalStateException.class,
-        () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
+    assertThrows(
+        IllegalStateException.class, () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
   }
 }

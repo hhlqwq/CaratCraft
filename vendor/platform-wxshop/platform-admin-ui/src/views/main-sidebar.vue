@@ -6,9 +6,9 @@
                :collapse="sidebarFold"
                :collapseTransition="false"
                class="site-sidebar__menu">
-        <el-menu-item index="home" @click="$router.push({ name: 'home' })">
+        <el-menu-item index="home" aria-label="首页" @click="$router.push({ name: 'home' })">
           <icon-svg name="shouye" class="site-sidebar__menu-icon"></icon-svg>
-          <span slot="title">首页</span>
+          <template #title><span >首页</span></template>
         </el-menu-item>
         <sub-menu
           v-for="menu in menuList"
@@ -26,6 +26,7 @@ import SubMenu from './main-sidebar-sub-menu'
 import {isURL} from '@/utils/validate'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       dynamicMenuRoutes: []

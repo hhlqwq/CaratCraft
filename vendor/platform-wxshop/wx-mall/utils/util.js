@@ -144,7 +144,7 @@ function redirect (url) {
   //判断页面是否需要登录
   if (false) {
     wx.redirectTo({
-      url: '/pages/auth/login/login'
+      url: '/pages/auth/btnAuth/btnAuth'
     })
     return false
   } else {

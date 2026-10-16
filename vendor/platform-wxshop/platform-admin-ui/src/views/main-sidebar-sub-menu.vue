@@ -1,10 +1,9 @@
 <template>
-  <div>
-    <el-submenu
+    <el-sub-menu
       v-if="menu.list && menu.list.length >= 1"
       :index="menu.menuId + ''"
       :popper-class="'site-sidebar--' + sidebarLayoutSkin + '-popper'">
-      <template slot="title">
+      <template #title>
         <icon-svg :name="menu.icon || 'wechat'" class="site-sidebar__menu-icon"></icon-svg>
         <span>{{ menu.name }}</span>
       </template>
@@ -14,18 +13,18 @@
         :menu="item"
         :dynamicMenuRoutes="dynamicMenuRoutes">
       </sub-menu>
-    </el-submenu>
-    <el-menu-item v-else :index="menu.menuId + ''" @click="gotoRouteHandle(menu)">
+    </el-sub-menu>
+    <el-menu-item v-else :index="menu.menuId + ''" :aria-label="menu.name" @click="gotoRouteHandle(menu)">
       <icon-svg :name="menu.icon || 'wechat'" class="site-sidebar__menu-icon"></icon-svg>
       <span>{{ menu.name }}</span>
     </el-menu-item>
-  </div>
 </template>
 
 <script>
 import SubMenu from './main-sidebar-sub-menu'
 
 export default {
+  compatConfig: {MODE: 2},
   name: 'sub-menu',
   props: {
     menu: {

@@ -26,7 +26,7 @@ def main():
     lines = ["# 全仓审查整改台账", "", "历史问题来源: [原审查清单](audit-2026-10-13.md).",
              "原清单保留整改前事实, 当前进度以本台账为准. 只有修改及对应验证完成后才标记已完成.", "",
              "状态统计: " + "; ".join(f"{key} {value}项" for key, value in counts.items()), "",
-             "商用交付包仍对应2026-10-14版权整改版本, 后续修复完成后需重新生成, 不将旧包视作最新修复版.", "",
+             "交付包以工作区`.tools/copyright/release/manifest.json`列出的文件及哈希为准, 历史压缩包不替代当前源码. 外部支付、微信真机及正式AI配置的验证边界见最新整改报告.", "",
              "| 编号 | 优先级 | 问题 | 状态 | 修改与验证 |", "|---|---|---|---|---|"]
     for item in items:
         detail = "; ".join(value for value in [item["changes"], item["validation"]] if value)

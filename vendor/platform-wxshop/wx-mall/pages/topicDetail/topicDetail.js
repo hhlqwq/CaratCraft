@@ -57,29 +57,12 @@ Page({
       }
     });
   },
-  getCommentList(){
-    let that = this;
-    util.request(api.CommentList, { valueId: that.data.id, typeId: 1, size: 5 }).then(function (res) {
-      if (res.code === 0) {
-
-        that.setData({
-          commentList: res.data.records,
-          commentCount: res.data.total
-        });
-      }
-    });
-  },
-  postComment (){
-    wx.navigateTo({
-      url: '/pages/commentPost/commentPost?valueId='+this.data.id + '&typeId=1',
-    })
-  },
   onReady: function () {
 
   },
   onShow: function () {
     // 页面显示
-    this.getCommentList();
+
   },
   onHide: function () {
     // 页面隐藏

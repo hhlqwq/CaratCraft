@@ -3,7 +3,7 @@
     title="查看"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-form :model="dataForm" ref="dataForm" label-width="80px">
       <el-form-item label="" prop="goodsId">
         <el-input v-model="dataForm.goodsId" :disabled="disabled" placeholder=""></el-input>
@@ -18,14 +18,15 @@
         <el-input v-model="dataForm.picUrl" :disabled="disabled" placeholder=""></el-input>
       </el-form-item>
     </el-form>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">关闭</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       disabled: false,

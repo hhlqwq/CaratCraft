@@ -1,6 +1,6 @@
 <template>
   <div class="mod-smslog">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.sendId" placeholder="发送编号" clearable></el-input>
       </el-form-item>
@@ -85,7 +85,7 @@
         header-align="center"
         align="center"
         label="提交状态">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.sendStatus === 0" size="small">成功</el-tag>
           <el-tag v-else size="small" type="danger">异常</el-tag>
         </template>
@@ -101,7 +101,7 @@
         header-align="center"
         align="center"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('sys:smslog:delete')" type="text" size="small" @click="deleteHandle(scope.row.id)">
             删除
           </el-button>
@@ -126,6 +126,7 @@
 import SmsConfig from './sms-config'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

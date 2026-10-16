@@ -1,6 +1,6 @@
 <template>
   <div class="mod-brand">
-    <el-form :inline="true" :model="searchForm" @keyup.enter.native="getDataList(1)">
+    <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
       <el-form-item>
         <el-input v-model="searchForm.name" placeholder="品牌名称" clearable></el-input>
       </el-form-item>
@@ -48,7 +48,7 @@
         header-align="center"
         align="center"
         label="图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.listPicUrl)" :src="scope.row.listPicUrl"/>
         </template>
       </el-table-column>
@@ -64,7 +64,7 @@
         header-align="center"
         align="center"
         label="图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.picUrl)" :src="scope.row.picUrl"/>
         </template>
       </el-table-column>
@@ -79,7 +79,7 @@
         header-align="center"
         align="center"
         label="显示">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isShow === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isShow === 1" size="small" type="success">是</el-tag>
         </template>
@@ -95,7 +95,7 @@
         header-align="center"
         align="center"
         label="app显示图片">
-        <template slot-scope="scope">
+        <template #default="scope">
           <img style="height: 50%;width: 50%" @click="openImg(scope.row.appListPicUrl)" :src="scope.row.appListPicUrl"/>
         </template>
       </el-table-column>
@@ -104,7 +104,7 @@
         header-align="center"
         align="center"
         label="新品牌">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag v-if="scope.row.isNew === 0" size="small" type="danger">否</el-tag>
           <el-tag v-else-if="scope.row.isNew === 1" size="small" type="success">是</el-tag>
         </template>
@@ -121,7 +121,7 @@
         align="center"
         width="150"
         label="操作">
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button v-if="isAuth('mall:brand:info')" type="text" size="small" @click="showDetails(scope.row.id)">查看
           </el-button>
           <el-button v-if="isAuth('mall:brand:update')" type="text" size="small"
@@ -151,6 +151,7 @@
 import AddOrUpdate from './brand-add-or-update'
 
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       searchForm: {

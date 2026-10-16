@@ -3,41 +3,42 @@
     title="查看"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    :visible.sync="visible">
+    v-model="visible">
     <el-descriptions :column="3" border>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           手机
         </template>
         {{ dataForm.mobile }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           反馈时间
         </template>
         {{ dataForm.addTime }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           反馈类型
         </template>
         <el-dict code="FEED_TYPE" disabled v-model="dataForm.feedType"></el-dict>
       </el-descriptions-item>
       <el-descriptions-item>
-        <template slot="label">
+        <template #label>
           详细内容
         </template>
         {{ dataForm.content }}
       </el-descriptions-item>
     </el-descriptions>
-    <span slot="footer" class="dialog-footer">
+    <template #footer><span  class="dialog-footer">
       <el-button @click="visible = false">取消</el-button>
-    </span>
+    </span></template>
   </el-dialog>
 </template>
 
 <script>
 export default {
+  compatConfig: {MODE: 2},
   data () {
     return {
       visible: false,

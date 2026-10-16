@@ -1,4 +1,4 @@
-import Vue from 'vue'
+import cookie from '@/utils/cookie'
 import router from '@/router'
 import store from '@/store'
 
@@ -166,7 +166,7 @@ export function openImg (imageUrl) {
  * 清除登录信息
  */
 export function clearLoginInfo () {
-  Vue.cookie.delete('token')
+  cookie.delete('token')
   sessionStorage.removeItem('menuList')
   sessionStorage.removeItem('permissions')
   sessionStorage.removeItem('dictList')

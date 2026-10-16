@@ -7,7 +7,10 @@ Page({
     orderInfo: {},
     orderGoods: [],
     handleOption: {},
-    customization: null
+    customization: null,
+    refund: {},
+    refundReason: '',
+    refundSubmitting: false
   },
   onLoad: function (options) {
     // 页面初始化 options为页面跳转所带来的参数
@@ -31,6 +34,32 @@ Page({
         //that.payTimer();
       }
     });
+    util.request(api.RefundStatus, {orderId: this.data.orderId}).then(function (res) {
+      if (res.code === 0) {
+        var names = {PENDING_REVIEW: '待商家审核', APPROVED: '已通过审核, 等待退款', PROCESSING: '退款处理中', RETRY: '退款对账中', SUCCEEDED: '退款已完成', REJECTED: '审核未通过', MANUAL_REVIEW: '需商家处理退款异常'};
+        res.data.label = names[res.data.status] || '';
+        that.setData({refund: res.data});
+      }
+    }).catch(function () {});
+  },
+  /** 售后理由只随本人订单申请提交. */
+  changeRefundReason: function (event) {
+    this.setData({refundReason: event.detail.value});
+  },
+  /** 申请审核不显示为资金已退回, 防止误导用户. */
+  requestRefund: function () {
+    if (this.data.refundSubmitting) return;
+    var reason = this.data.refundReason.trim();
+    if (!reason) return util.showErrorToast('请填写售后理由');
+    var that = this;
+    this.setData({refundSubmitting: true});
+    return util.request(api.RefundRequest, {orderId: this.data.orderId, reason: reason}, 'POST', 'application/json')
+      .then(function (res) {
+        if (res.code !== 0) throw new Error(res.msg || '申请失败');
+        wx.showToast({title: '申请已提交', icon: 'none'});
+        that.getOrderDetail();
+      }).catch(function (error) { util.showErrorToast(error.message || '申请失败'); })
+      .then(function () { that.setData({refundSubmitting: false}); });
   },
   /** 将后端快照转换为订单展示字段 / Formats customization snapshot for display. */
   formatCustomization: function (customization) {
