@@ -42,6 +42,16 @@ def main():
     import sys
     subprocess.run([sys.executable, str(ROOT / "tools/check-copyright-distribution.py")],
                    cwd=ROOT, check=True)
+    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
+    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT).strip())
+    if not dirty:
+        assets = json.loads((VENDOR / "legal/project-assets.json").read_text(encoding="utf-8"))
+        for index, asset in enumerate(assets, 1):
+            content = subprocess.check_output(["git", "show", "HEAD:" + asset["file"]], cwd=ROOT)
+            if hashlib.sha256(content).hexdigest() != asset["sha256"]:
+                raise ValueError("Git中的素材字节与来源清单不一致: " + asset["file"])
+            if index % 50 == 0 or index == len(assets):
+                print(f"Git素材校验进度: {index}/{len(assets)}", flush=True)
     DESTINATION.mkdir(parents=True, exist_ok=True)
     source = DESTINATION / "caratcraft-source-20261016.zip"
     with zipfile.ZipFile(source, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -62,8 +72,6 @@ def main():
     records = [{"file": path.name, "bytes": path.stat().st_size,
                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
                for path in [source, application]]
-    revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
-    dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT).strip())
     for record in records:
         record.update(revision=revision, sourceTreeDirty=dirty)
     manifest = DESTINATION / "manifest.json"

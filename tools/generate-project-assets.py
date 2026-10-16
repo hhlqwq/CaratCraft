@@ -230,7 +230,7 @@ def write_svg(path):
            '<title>项目几何示意图</title><g fill="none" stroke="' + color +
            '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
            shape + '</g></svg>\n')
-    path.write_text(svg, encoding="utf-8")
+    path.write_text(svg, encoding="utf-8", newline="\n")
 
 
 def main():
