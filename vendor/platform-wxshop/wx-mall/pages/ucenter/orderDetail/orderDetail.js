@@ -65,15 +65,19 @@ Page({
   formatCustomization: function (customization) {
     if (!customization) return null;
     var engraving = '';
+    var quote = {};
     try {
       engraving = (JSON.parse(customization.configurationJson || '{}').engraving || '').trim();
+      quote = JSON.parse(customization.priceBreakdownJson || '{}');
     } catch (error) {
       engraving = '';
     }
     return {
       previewUrl: customization.previewUrl || '/static/images/logo.png',
       status: customization.designStatus || customization.status || '已保存',
-      engraving: engraving || '未填写'
+      engraving: engraving || '未填写',
+      arrangement: quote.arrangement || [], components: quote.components || [],
+      lengthText: quote.lengthComplete ? quote.estimatedLengthMm + 'mm (估算, 成品以商家确认为准)' : '尺寸未配置完整'
     };
   },
   payTimer() {

@@ -13,3 +13,5 @@ page { background: #f2f5f9; }
 .actions button { margin: 0; }
 .continue { margin: 0; border: 1rpx solid #b47a3f; color: #9b642e; background: #fff; }
 .pay { margin: 0; border: 1rpx solid #1f5145; color: #fff; background: #1f5145; }
+.arrangement-count { font-size: 23rpx; color: #315c4b; padding: 14rpx 8rpx; }
+.arrangement-part { font-size: 21rpx; color: #6c6356; padding: 4rpx 8rpx; }

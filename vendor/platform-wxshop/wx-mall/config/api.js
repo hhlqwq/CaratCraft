@@ -77,6 +77,8 @@ module.exports = {
   CommentCount: API_BASE_URL + 'comment/count', //评论总数
   CommentPost: API_BASE_URL + 'comment/post', //发表评论
 
+  CommunityBase: API_BASE_URL + 'community/', // 社区发布和点赞
+
   TopicList: API_BASE_URL + 'topic/list', //专题列表
   TopicDetail: API_BASE_URL + 'topic/detail', //专题详情
   TopicRelated: API_BASE_URL + 'topic/related', //相关专题

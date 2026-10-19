@@ -75,6 +75,7 @@ Page({
         var displayOrderTotal = designQuote ? displayGoodsTotal + Number(res.data.freightPrice || 0) : res.data.orderTotalPrice;
         var displayActual = designQuote ? Math.max(0, displayOrderTotal - Number(res.data.couponPrice || 0)) : res.data.actualPrice;
         that.setData({
+          designQuote: designQuote || null,
           checkedGoodsList: res.data.checkedGoodsList,
           checkedAddress: res.data.checkedAddress,
           actualPrice: displayActual,

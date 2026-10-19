@@ -96,6 +96,35 @@ class CustomDesignServiceImplTest {
     assertEquals("ORDERED", snapshot.getStatus());
   }
 
+  /** 排列订单扣减及退款恢复冻结累计用量, 工单保留逐颗顺序而不重读材料配置. */
+  @Test
+  void arrangementUsesFrozenAggregateForStockAndProduction() {
+    var snapshot = new CustomDesignSnapshotEntity();
+    snapshot.setId(88L);
+    snapshot.setUserId(7L);
+    snapshot.setGoodsId(10);
+    snapshot.setStatus("LOCKED");
+    String frozen =
+        "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"akoya\",\"quantity\":6,\"instances\":3}],\"arrangement\":[{\"position\":0,\"name\":\"原珍珠\"},{\"position\":1,\"name\":\"原珍珠\"},{\"position\":2,\"name\":\"原珍珠\"}]}";
+    snapshot.setPriceBreakdownJson(frozen);
+    when(snapshotDao.selectById(88L)).thenReturn(snapshot);
+    service.bindOrder(88L, 7L, 100, 101);
+    verify(stockDao).deductStock(10, "pearl", "akoya", 6);
+    var binding = unpaidBinding();
+    when(bindingDao.selectOne(any())).thenReturn(binding);
+    when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+    when(workOrderDao.selectCount(any())).thenReturn(0L);
+    service.markOrderPaid(100);
+    var work = ArgumentCaptor.forClass(ProductionWorkOrderEntity.class);
+    verify(workOrderDao).insert(work.capture());
+    assertEquals(frozen, work.getValue().getCraftJson());
+    binding.setStatus("PAID");
+    when(stockDao.restoreStock(10, "pearl", "akoya", 6)).thenReturn(1);
+    service.cancelOrder(100);
+    verify(stockDao).restoreStock(10, "pearl", "akoya", 6);
+    verify(quoteService, times(0)).quote(any());
+  }
+
   /** 验证支付成功只生成一次工单 / Verifies idempotent work order creation. */
   @Test
   void paidOrderCreatesOneWorkOrder() {

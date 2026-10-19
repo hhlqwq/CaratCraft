@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "4083d04123f57675729a46d441b91840464982e5776612bfd437562d22f47877",
+      "sha256": "3ec00bf2f6f8f4ce9e85d20a428d2ada284a6e4f0efbd9b3d9e3d2a7d4ff7777",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -128,10 +128,12 @@
       "evidence": [
         "vendor/platform-wxshop/legal/generated/evidence/platform-biz-2.0.0.jar/platform-biz-2.0.0.pom",
         "vendor/platform-wxshop/legal/generated/evidence/platform-biz-2.0.0.jar/platform-2.0.0.pom",
-        "vendor/platform-wxshop/legal/generated/evidence/platform-biz-2.0.0.jar/spring-boot-starter-parent-3.2.5.pom"
+        "vendor/platform-wxshop/legal/generated/evidence/platform-biz-2.0.0.jar/spring-boot-starter-parent-3.2.5.pom",
+        "vendor/platform-wxshop/LICENSE",
+        "vendor/platform-wxshop/legal/SOURCE-NOTICES.txt"
       ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/platform/platform-biz/2.0.0/platform-biz-2.0.0-sources.jar",
-      "status": "项目模块, 见底座LICENSE及源码头",
+      "sourceUrl": "https://gitee.com/hhlqwq/carat-craft/tree/master/vendor/platform-wxshop/platform-biz",
+      "status": "项目模块, 保留根LICENSE及源码原有声明",
       "coordinates": "com.platform:platform-biz:2.0.0",
       "selectedLicense": "Apache-2.0"
     },
@@ -141,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "d2ffe7071d6938a677ab079d7c4c91406f557be4655ace2b860ccafbb3b4a888",
+      "sha256": "9c7e9d337824d9695463774410ee041a039e599d7aaf66a5336e8f80b024256b",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -151,10 +153,12 @@
       "evidence": [
         "vendor/platform-wxshop/legal/generated/evidence/platform-common-2.0.0.jar/platform-common-2.0.0.pom",
         "vendor/platform-wxshop/legal/generated/evidence/platform-common-2.0.0.jar/platform-2.0.0.pom",
-        "vendor/platform-wxshop/legal/generated/evidence/platform-common-2.0.0.jar/spring-boot-starter-parent-3.2.5.pom"
+        "vendor/platform-wxshop/legal/generated/evidence/platform-common-2.0.0.jar/spring-boot-starter-parent-3.2.5.pom",
+        "vendor/platform-wxshop/LICENSE",
+        "vendor/platform-wxshop/legal/SOURCE-NOTICES.txt"
       ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/platform/platform-common/2.0.0/platform-common-2.0.0-sources.jar",
-      "status": "项目模块, 见底座LICENSE及源码头",
+      "sourceUrl": "https://gitee.com/hhlqwq/carat-craft/tree/master/vendor/platform-wxshop/platform-common",
+      "status": "项目模块, 保留根LICENSE及源码原有声明",
       "coordinates": "com.platform:platform-common:2.0.0",
       "selectedLicense": "Apache-2.0"
     },

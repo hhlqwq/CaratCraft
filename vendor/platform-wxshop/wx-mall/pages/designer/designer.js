@@ -1,9 +1,9 @@
 var util = require('../../utils/util.js');
 var api = require('../../config/api.js');
 var aiRecommendation = require('../../services/ai-recommendation.js');
+var arrangement = require('../../services/necklace-arrangement.js');
 
 var DEFAULT_GOODS_ID = 1999105;
-var DEFAULT_PREVIEW = {layers: [], missing: [], description: '', ratio: 100};
 
 /**
  * 项链 DIY 页面 / Necklace DIY page.
@@ -16,6 +16,12 @@ Page({
     componentGroups: [],
     selectedOptionIds: [],
     selectedOptionNames: [],
+    arrangementOptionIds: [],
+    arrangementNodes: [],
+    activeIndex: -1,
+    copyCount: 1,
+    canUndo: false,
+    dimensionNotice: '',
     engraving: '',
     quote: {},
     quoting: false,
@@ -23,7 +29,6 @@ Page({
     primaryProductId: 0,
     saving: false,
     productConfig: {},
-    previewLayers: DEFAULT_PREVIEW,
     loadingConfig: false,
     configError: '',
     showOptional: false,
@@ -137,21 +142,17 @@ Page({
       this.setData({aiError: '材料配置已变化, 请重新推荐', aiResult: null});
       return;
     }
-    var groups = this.data.componentGroups.map(function (group) {
-      group.options.forEach(function (option) {
-        option.selected = selected.indexOf(Number(option.id)) >= 0;
-      });
-      group.hasSelection = group.options.some(function (option) { return option.selected; });
-      return group;
+    var that = this;
+    return new Promise(function (resolve) {
+      wx.showModal({title: '采用材料建议', content: '将用推荐材料替换当前排列, 之后可撤回。AI建议不会自动确定每种材料的颗数。', success: function (res) {
+        resolve(res.confirm ? that.updateArrangement(selected, true) : undefined);
+      }, fail: function () { resolve(); }});
     });
-    this.setData({componentGroups: groups, selectedOptionIds: selected, showOptional: true,
-      selectedOptionNames: this.getSelectedOptionNames(groups, selected)});
-    this.refreshPreview();
-    return this.refreshQuote();
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
   loadConfig: function (restoredConfiguration) {
+    this._snapshotSeq = (this._snapshotSeq || 0) + 1;
     this.invalidateAi();
     var that = this;
     var configSeq = (this._configSeq = (this._configSeq || 0) + 1);
@@ -169,23 +170,14 @@ Page({
         pearl: '珍珠种类与规格',
         material: '贵金属材质',
         gem: '钻石与宝石',
-        fitting: '搭配配件',
+        fitting: '配饰',
+        accessory: '配饰',
+        clasp: '尾扣',
         style: '成品款式',
         chain: '链条材质',
         length: '项链长度',
         pendant: '吊坠款式',
         engraving: '刻字工艺'
-      };
-      var groupDescriptions = {
-        pearl: '淡水与海水珍珠按品种、品质、尺寸分别报价。',
-        material: '选择 18K 金、铂金等主体或连接件材质。',
-        gem: '选择钻石、莫桑石、锆石等镶嵌方案。',
-        fitting: '可按需增加耳钉、耳钩、耳坠或项链扣，不选也可以。',
-        style: '确定珠宝的整体结构和佩戴方式。',
-        chain: '选择链条的金属和工艺。',
-        length: '选择适合佩戴场景的成品长度。',
-        pendant: '选择吊坠造型。',
-        engraving: '选择刻字位置或工艺。'
       };
       var primaryTypes = String((res.data.product || {}).requiredComponentTypes || '').split(',')
         .map(function(type) { return type.trim(); }).filter(Boolean);
@@ -200,7 +192,7 @@ Page({
           groups[option.componentType] = {
             type: option.componentType,
             name: groupNames[option.componentType] || option.componentType,
-            description: groupDescriptions[option.componentType] || '请选择一个适合当前设计的选项。',
+            description: '点击材料, 插入当前选中位置之后; 可重复添加。',
             required: primaryTypes.indexOf(option.componentType) >= 0,
             primary: primaryTypes.indexOf(option.componentType) >= 0,
             options: []
@@ -211,7 +203,7 @@ Page({
       var componentGroups = Object.keys(groups).map(function (key, index) {
         return groups[key];
       });
-      var groupOrder = ['pearl', 'material', 'style', 'gem', 'length', 'fitting'];
+      var groupOrder = ['pearl', 'clasp', 'accessory', 'fitting', 'chain', 'material', 'style', 'gem', 'length'];
       componentGroups.sort(function (left, right) {
         return groupOrder.indexOf(left.type) - groupOrder.indexOf(right.type);
       });
@@ -219,8 +211,8 @@ Page({
       componentGroups.forEach(function (group) {
         if (group.primary) group.step = ++step;
       });
-      var restoredOptionIds = restoredConfiguration && restoredConfiguration.optionIds
-        ? restoredConfiguration.optionIds.map(function (id) { return Number(id); })
+      var restoredOptionIds = restoredConfiguration && (restoredConfiguration.arrangementOptionIds || restoredConfiguration.optionIds)
+        ? (restoredConfiguration.arrangementOptionIds || restoredConfiguration.optionIds).map(function (id) { return Number(id); })
         : [];
       if (restoredOptionIds.some(function (id) { return !options.some(function (option) { return Number(option.id) === id; }); })) {
         that.setData({loadingConfig: false, configError: '原草稿包含已停用材料, 已保留原设计, 请联系商家核对或新建设计'});
@@ -232,7 +224,7 @@ Page({
           option.selected = restoredOptionIds.indexOf(Number(option.id)) >= 0;
           if (option.selected) selectedOptionIds.push(Number(option.id));
         });
-        if (group.required && !group.options.some(function (option) { return option.selected; })
+        if (!restoredConfiguration && group.required && !group.options.some(function (option) { return option.selected; })
             && group.options.length > 0) {
           group.options[0].selected = true;
           selectedOptionIds.push(Number(group.options[0].id));
@@ -248,10 +240,11 @@ Page({
         primaryProductId: res.data.primaryProductId,
         productConfig: res.data.product,
         loadingConfig: false,
-        configError: ''
+        configError: '',
+        activeIndex: -1
       });
-      that.refreshPreview();
-      that.refreshQuote();
+      that._history = [];
+      that.updateArrangement(restoredConfiguration ? restoredOptionIds : selectedOptionIds, false);
     }).catch(function (error) {
       if (configSeq !== that._configSeq || requestedGoodsId !== that.data.goodsId) return;
       that.setData({
@@ -264,8 +257,12 @@ Page({
   /** 加载本人设计快照并恢复选项 / Loads an owned snapshot and restores its choices. */
   loadDesignSnapshot: function (snapshotId) {
     var that = this;
-    that.setData({ loadingConfig: true, configError: '' });
-    util.request(api.CustomizationDetail, { snapshotId: snapshotId }).then(function (res) {
+    var seq = this._snapshotSeq = (this._snapshotSeq || 0) + 1;
+    this._configSeq = (this._configSeq || 0) + 1;
+    this._quoteSeq = (this._quoteSeq || 0) + 1;
+    that.setData({ loadingConfig: true, configError: '', quote: {}, draftId: snapshotId, draftVersion: null });
+    return util.request(api.CustomizationDetail, { snapshotId: snapshotId }).then(function (res) {
+      if (seq !== that._snapshotSeq || that._unloaded) return;
       if (res.code !== 0) {
         that.setData({ loadingConfig: false, configError: res.msg || '设计加载失败' });
         return;
@@ -287,6 +284,7 @@ Page({
         });
       }
     }).catch(function (error) {
+      if (seq !== that._snapshotSeq || that._unloaded) return;
       that.setData({
         loadingConfig: false,
         configError: error && error.message ? error.message : '设计加载失败，请稍后重试'
@@ -296,65 +294,95 @@ Page({
 
   /** 重新加载定制配置 / Reloads customizer configuration. */
   retryLoadConfig: function () {
-    this.loadConfig();
+    if (this.data.draftId) this.loadDesignSnapshot(this.data.draftId);
+    else this.loadConfig();
   },
 
-  /** 选择互斥组件 / Selects one option in a component group. */
+  /** 点击材料库时在当前实例之后插入一项, 同类材料可以多次添加. */
   selectOption: function (event) {
-    var optionId = Number(event.currentTarget.dataset.id);
-    var componentType = event.currentTarget.dataset.type;
-    var selected = this.data.selectedOptionIds.slice();
-    var selectedGroup = null;
-    this.data.componentGroups.forEach(function (group) {
-      if (group.type === componentType) {
-        selectedGroup = group;
-        group.options.forEach(function (option) {
-          var index = selected.indexOf(option.id);
-          if (index >= 0) selected.splice(index, 1);
-        });
-      }
-    });
-    var isCurrentSelection = this.data.selectedOptionIds.indexOf(optionId) >= 0;
-    if (!isCurrentSelection || (selectedGroup && selectedGroup.required)) selected.push(optionId);
+    if (this.data.loadingConfig || this.data.saving) return;
+    try {
+      this.updateArrangement(arrangement.edit(this.data.arrangementOptionIds, 'insert', this.data.activeIndex,
+        event.currentTarget.dataset.id), true);
+      this.setData({activeIndex: Math.min(this.data.arrangementOptionIds.length - 1, this.data.activeIndex + 1)});
+    } catch (error) { wx.showToast({title: error.message, icon: 'none'}); }
+  },
+
+  /** 选中实例以插入、复制、删除或调序, 重复材料保持独立位置. */
+  selectInstance: function (event) {
+    this.setData({activeIndex: Number(event.currentTarget.dataset.index)});
+  },
+
+  /** 批量复制数量仅影响当前选中材料, 超限时整次操作不执行. */
+  changeCopyCount: function (event) {
+    this.setData({copyCount: event.detail.value});
+  },
+
+  /** 统一记录排列历史, 每次变更立即废弃旧报价. */
+  updateArrangement: function (ids, remember) {
+    if (remember) {
+      this._history = this._history || [];
+      this._history.push(this.data.arrangementOptionIds.slice());
+      if (this._history.length > 50) this._history.shift();
+    }
+    var options = [];
     var groups = this.data.componentGroups.map(function (group) {
-      group.options = group.options.map(function (option) {
-        option.selected = selected.indexOf(option.id) >= 0;
-        return option;
+      group.options.forEach(function (option) {
+        option.selected = ids.indexOf(Number(option.id)) >= 0;
+        options.push(option);
       });
       group.hasSelection = group.options.some(function (option) { return option.selected; });
       return group;
     });
-    this.setData({
-      selectedOptionIds: selected,
-      componentGroups: groups,
-      selectedOptionNames: this.getSelectedOptionNames(groups, selected)
-    });
-    this.refreshPreview();
-    this.refreshQuote();
+    var nodes = arrangement.preview(ids, options);
+    this.setData({arrangementOptionIds: ids.slice(), arrangementNodes: nodes,
+      selectedOptionIds: Array.from(new Set(ids)), componentGroups: groups,
+      canUndo: Boolean(this._history && this._history.length),
+      activeIndex: Math.min(this.data.activeIndex, ids.length - 1),
+      dimensionNotice: nodes.some(function (node) { return !node.known; }) ? '部分材料缺少实测尺寸, 以示意符号展示, 无法给出完整长度。' : '',
+      selectedOptionNames: nodes.map(function (node) { return node.name; })});
+    return this.refreshQuote();
+  },
+
+  /** 撤回最后一次排列操作, 不修改已下单快照. */
+  undoArrangement: function () {
+    if (!this._history || !this._history.length || this.data.saving) return;
+    this.updateArrangement(this._history.pop(), false);
+  },
+
+  /** 按实例索引操作, 清空经确认后仍可撤回. */
+  editInstance: function (event) {
+    if (this.data.saving) return;
+    var action = event.currentTarget.dataset.action;
+    var that = this;
+    if (action === 'clear') {
+      wx.showModal({title: '清空排列', content: '清空当前材料, 可通过撤回恢复。', success: function (res) {
+        if (res.confirm) that.updateArrangement([], true);
+      }});
+      return;
+    }
+    try {
+      var index = this.data.activeIndex;
+      if (index < 0 || index >= this.data.arrangementOptionIds.length) throw new Error('请先选中一个材料实例');
+      var count = action === 'copy' ? Number(this.data.copyCount) : 1;
+      if (!Number.isInteger(count) || count < 1 || count > 300) throw new Error('复制数量须为1到300的整数');
+      var next = this.data.arrangementOptionIds;
+      for (var i = 0; i < count; i++) next = arrangement.edit(next, action, index + (action === 'copy' ? i : 0));
+      this.updateArrangement(next, true);
+      if (action === 'left' || action === 'right') this.setData({activeIndex: Math.max(0, Math.min(this.data.arrangementOptionIds.length - 1, index + (action === 'left' ? -1 : 1)))});
+      if (action === 'copy') this.setData({activeIndex: index + count});
+    } catch (error) { wx.showToast({title: error.message, icon: 'none'}); }
   },
 
   /** 清除可选升级项 / Clears an optional upgrade selection. */
   clearOptional: function (event) {
-    var componentType = event.currentTarget.dataset.type;
-    var selected = this.data.selectedOptionIds.slice();
-    var groups = this.data.componentGroups.map(function (group) {
-      if (group.type !== componentType || group.required) return group;
-      group.options = group.options.map(function (option) {
-        var index = selected.indexOf(option.id);
-        if (index >= 0) selected.splice(index, 1);
-        option.selected = false;
-        return option;
-      });
-      group.hasSelection = false;
-      return group;
+    if (this.data.saving) return;
+    var type = event.currentTarget.dataset.type;
+    var removed = [];
+    this.data.componentGroups.forEach(function (group) {
+      if (group.type === type && !group.required) group.options.forEach(function (option) { removed.push(Number(option.id)); });
     });
-    this.setData({
-      selectedOptionIds: selected,
-      componentGroups: groups,
-      selectedOptionNames: this.getSelectedOptionNames(groups, selected)
-    });
-    this.refreshPreview();
-    this.refreshQuote();
+    this.updateArrangement(this.data.arrangementOptionIds.filter(function (id) { return removed.indexOf(id) < 0; }), true);
   },
 
   /** 获取当前已选组件名称 / Gets the names of selected component options. */
@@ -368,49 +396,6 @@ Page({
     return names;
   },
 
-  /** 刷新分层效果预览 / Refreshes the layered preview. */
-  refreshPreview: function () {
-    this.setData({ previewLayers: this.resolvePreviewLayers() });
-  },
-
-  /** 获取按组件类型索引的已选项 / Gets selected options indexed by component type. */
-  getSelectedOptionsByType: function () {
-    var selected = this.data.selectedOptionIds;
-    var result = {};
-    this.data.componentGroups.forEach(function (group) {
-      group.options.forEach(function (option) {
-        if (selected.indexOf(option.id) >= 0) result[group.type] = option;
-      });
-    });
-    return result;
-  },
-
-  /** 使用商家配置的透明图层和顺序, 缺失时明确提示而不猜测材质图片. */
-  resolvePreviewLayers: function () {
-    var selected = this.getSelectedOptionsByType();
-    var missing = [];
-    var layers = [];
-    Object.keys(selected).forEach(function(type) {
-      var option = selected[type];
-      var url = option.assetUrl || '';
-      if (url && (/^https:\/\//i.test(url) || /^\/(?!\/)/.test(url))) {
-        layers.push({id: option.id, url: url, zIndex: Number(option.zIndex || 0)});
-      } else {
-        missing.push(option.name || type);
-      }
-    });
-    layers.sort(function(left, right) { return left.zIndex - right.zIndex; });
-    var product = this.data.productConfig || {};
-    var width = Number(product.previewWidth || 750);
-    var height = Number(product.previewHeight || 750);
-    return {
-      layers: layers,
-      missing: missing,
-      ratio: Math.max(25, Math.min(400, height / width * 100)),
-      description: this.getSelectedOptionNames(this.data.componentGroups, this.data.selectedOptionIds).join('、')
-    };
-  },
-
   /** 展开或收起可选搭配 / Toggles optional customization groups. */
   toggleOptional: function () {
     this.setData({ showOptional: !this.data.showOptional });
@@ -418,6 +403,7 @@ Page({
 
   /** 更新刻字并刷新报价（防抖）/ Updates engraving and refreshes quote with debounce. */
   changeEngraving: function (event) {
+    if (this.data.saving) return;
     var that = this;
     that.setData({ engraving: event.detail.value, quote: {}, quoting: true, quoteError: '' });
     this._quoteSeq = (this._quoteSeq || 0) + 1;
@@ -436,7 +422,7 @@ Page({
     that.setData({quote: {}, quoting: true, quoteError: ''});
     return util.request(api.CustomizationQuote, {
       goodsId: that.data.goodsId,
-      optionIds: that.data.selectedOptionIds,
+      arrangementOptionIds: that.data.arrangementOptionIds,
       engraving: that.data.engraving
     }, 'POST', 'application/json').then(function (res) {
       if (seq !== that._quoteSeq) return;
@@ -457,6 +443,7 @@ Page({
   persistDesign: function (startCheckout) {
     var that = this;
     if (that.data.saving) return Promise.reject(new Error('正在保存'));
+    if (that.data.loadingConfig || that.data.configError) return Promise.reject(new Error('请先加载有效的材料配置'));
     if (that.data.quoting || that.data.quoteError || !that.data.quote.totalPrice) {
       return Promise.reject(new Error('请等待有效报价后再保存或结算'));
     }
@@ -465,7 +452,7 @@ Page({
       goodsId: that.data.goodsId,
       draftId: that.data.draftId,
       version: that.data.draftVersion,
-      optionIds: that.data.selectedOptionIds,
+      arrangementOptionIds: that.data.arrangementOptionIds,
       engraving: that.data.engraving
     }, 'POST', 'application/json').then(function (res) {
       that.setData({ saving: false });
@@ -554,6 +541,7 @@ Page({
     this._unloaded = true;
     this.invalidateAi();
     this._configSeq = (this._configSeq || 0) + 1;
+    this._snapshotSeq = (this._snapshotSeq || 0) + 1;
     this._quoteSeq = (this._quoteSeq || 0) + 1;
     if (this._engravingTimer) clearTimeout(this._engravingTimer);
   }

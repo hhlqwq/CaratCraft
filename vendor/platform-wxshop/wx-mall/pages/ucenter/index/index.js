@@ -17,6 +17,7 @@ Page({
     },
     profileSaving: false,
     menuItems: [
+      { title: '购物车', url: '/pages/cart/cart', badge: '购' },
       { title: '我的订单', url: '/pages/ucenter/order/order', badge: '单' },
       { title: '我的设计', url: '/pages/ucenter/design/design', badge: '设' },
       { title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券' },

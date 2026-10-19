@@ -1,4 +1,9 @@
 <view class="container">
+    <view wx:if="{{designQuote}}" class="address-box" style="height:auto;padding:24rpx;box-sizing:border-box">
+        <view>定制材料确认 · {{designQuote.arrangement.length || 0}}个实例</view>
+        <view wx:for="{{designQuote.components}}" wx:key="optionId" style="font-size:24rpx;line-height:1.8">{{item.name}} × {{item.instances || 1}} / 用量{{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
+        <view style="font-size:24rpx;line-height:1.8">{{designQuote.lengthComplete ? '估算长度: ' + designQuote.estimatedLengthMm + 'mm' : '尺寸未配置完整'}}。成品长度以商家确认为准。</view>
+    </view>
     <view class="address-box">
         <view class="address-item" bindtap="selectAddress" wx:if="{{checkedAddress.id > 0}}">
             <view class="l">

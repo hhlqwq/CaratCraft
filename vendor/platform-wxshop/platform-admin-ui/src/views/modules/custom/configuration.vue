@@ -71,6 +71,15 @@
           <el-col :xs="24" :sm="24" :lg="12"><el-form-item label="不能搭配"><el-input v-model="ruleForm.incompatible" placeholder="组件类型:代码, 多项用英文逗号分隔" /></el-form-item></el-col>
           <el-col :xs="24" :sm="24" :lg="12"><el-form-item label="必须搭配"><el-input v-model="ruleForm.required" placeholder="组件类型:代码, 未提供规则可留空" /></el-form-item></el-col>
         </el-row>
+        <el-alert title="排列中每添加一次材料, 收取一次配件价格并扣减一次单件耗用量。尺寸填写实测值, 不取规格区间中点; 未配置尺寸不显示完整长度。" type="info" :closable="false" />
+        <el-row :gutter="18">
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="珍珠直径mm"><el-input v-model="ruleForm.diameterMm" inputmode="decimal" clearable placeholder="实测尺寸, 未知留空" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="配件占长mm"><el-input v-model="ruleForm.spanMm" inputmode="decimal" clearable placeholder="实测尺寸, 未知留空" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="链材长度mm"><el-input v-model="ruleForm.lengthMm" inputmode="decimal" clearable placeholder="实测尺寸, 未知留空" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="形状"><el-input v-model="ruleForm.shape" maxlength="30" placeholder="近正圆; 异形珍珠请明确填写" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="光泽"><el-input v-model="ruleForm.luster" maxlength="30" placeholder="极光" /></el-form-item></el-col>
+          <el-col :xs="24" :sm="12" :lg="12"><el-form-item label="瑕疵"><el-input v-model="ruleForm.blemish" maxlength="30" placeholder="微瑕" /></el-form-item></el-col>
+        </el-row>
         <el-button v-if="isAuth('custom:config:update')" type="primary" :disabled="!selectedGoodsId" @click="saveOption">保存配件</el-button>
         <el-button @click="resetOption">新建配件</el-button>
       </el-form>
@@ -122,9 +131,10 @@ export default {
       selectedGoodsId: null,
       product: createProduct(),
       option: createOption(),
-      ruleForm: {quantity: 1, unit: '件', incompatible: '', required: ''},
+      ruleForm: {quantity: 1, unit: '件', incompatible: '', required: '', diameterMm: null, spanMm: null, lengthMm: null, shape: '近正圆', luster: '极光', blemish: '微瑕'},
       componentTypes: [
         {value: 'clasp', label: '尾扣（clasp）'},
+        {value: 'accessory', label: '配饰（accessory）'},
         {value: 'pearl', label: '珍珠种类与规格（pearl）'},
         {value: 'material', label: '贵金属材质（material）'},
         {value: 'gem', label: '钻石与宝石（gem）'},
@@ -146,6 +156,14 @@ export default {
     this.loadProducts()
   },
   methods: {
+    // 空尺寸保持未知, 不让数字控件自动补成最小值或将空串转成零.
+    measuredSize (value) {
+      if (value === null || value === undefined || String(value).trim() === '') return null
+      const text = String(value).trim()
+      const size = Number(text)
+      if (!/^\d+(\.\d{1,3})?$/.test(text) || !Number.isFinite(size) || size <= 0 || size > 3000) throw new Error('尺寸须为0.001到3000mm, 最多三位小数, 未知请留空')
+      return size
+    },
     // 加载商城商品 / Loads mall products.
     loadGoods () {
       this.$http({url: '/custom/configuration/goods', method: 'get'}).then(({data}) => {
@@ -202,14 +220,14 @@ export default {
     // 重置配件编辑表单 / Resets the component editor.
     resetOption () {
       this.option = createOption()
-      this.ruleForm = {quantity: 1, unit: '件', incompatible: '', required: ''}
+      this.ruleForm = {quantity: 1, unit: '件', incompatible: '', required: '', diameterMm: null, spanMm: null, lengthMm: null, shape: '近正圆', luster: '极光', blemish: '微瑕'}
     },
     // 编辑配件 / Edits a component option.
     editOption (row) {
       this.option = Object.assign(createOption(), row)
       try {
         const rules = JSON.parse(row.materialParams || '{}')
-        this.ruleForm = {quantity: rules.stockQuantity === undefined ? 1 : rules.stockQuantity, unit: rules.stockUnit || '件', incompatible: (rules.incompatibleWith || []).join(','), required: (rules.requires || []).join(',')}
+        this.ruleForm = {quantity: rules.stockQuantity === undefined ? 1 : rules.stockQuantity, unit: rules.stockUnit || '件', incompatible: (rules.incompatibleWith || []).join(','), required: (rules.requires || []).join(','), diameterMm: rules.diameterMm || null, spanMm: rules.spanMm || null, lengthMm: rules.lengthMm || null, shape: rules.shape || '近正圆', luster: rules.luster || '极光', blemish: rules.blemish || '微瑕'}
       } catch (error) {
         this.$message.error('原材料规则无法读取, 请联系管理员核对')
       }
@@ -221,12 +239,18 @@ export default {
         const rules = Object.assign({}, JSON.parse(this.option.materialParams || '{}'), {
           stockQuantity: this.ruleForm.quantity,
           stockUnit: this.ruleForm.unit,
+          diameterMm: this.measuredSize(this.ruleForm.diameterMm),
+          spanMm: this.measuredSize(this.ruleForm.spanMm),
+          lengthMm: this.measuredSize(this.ruleForm.lengthMm),
+          shape: this.ruleForm.shape,
+          luster: this.ruleForm.luster,
+          blemish: this.ruleForm.blemish,
           incompatibleWith: this.ruleForm.incompatible.split(',').map(value => value.trim()).filter(Boolean),
           requires: this.ruleForm.required.split(',').map(value => value.trim()).filter(Boolean)
         })
         payload = Object.assign({goodsId: this.selectedGoodsId}, this.option, {materialParams: JSON.stringify(rules)})
       } catch (error) {
-        return this.$message.error('材料规则格式无法读取')
+        return this.$message.error(error.message || '材料规则格式无法读取')
       }
       this.$http({url: '/custom/configuration/option/save', method: 'post', data: payload, showError: false}).then(({data}) => {
         if (!data || data.code !== 0) {

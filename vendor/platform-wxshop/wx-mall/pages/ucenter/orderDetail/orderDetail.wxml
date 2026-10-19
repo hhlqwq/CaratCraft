@@ -44,7 +44,10 @@
 
     <view wx:if="{{customization}}" class="customization-card">
         <view class="customization-title">定制配置</view>
-        <image class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill" webp="{{true}}"></image>
+        <image wx:if="{{!customization.arrangement.length}}" class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill" webp="{{true}}"></image>
+        <view wx:if="{{customization.arrangement.length}}" class="customization-text">下单材料排列 / {{customization.lengthText}}</view>
+        <view wx:for="{{customization.arrangement}}" wx:key="position" class="customization-text">{{index + 1}}. {{item.name}} · {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸未配置'}}</view>
+        <view wx:for="{{customization.components}}" wx:key="optionId" class="customization-text">{{item.name}}: {{item.instances || 1}}个实例 / 耗用{{item.quantity}}{{item.unit}}</view>
         <view class="customization-text">设计状态：{{customization.status}}</view>
         <view class="customization-text">刻字内容：{{customization.engraving}}</view>
     </view>

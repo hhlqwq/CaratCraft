@@ -169,6 +169,17 @@ test('合法商品JSON可以进入确认与保存', async () => {
   assert.equal(saves, 1);
 });
 
+/** 未知尺寸不得被自动写成最小值或零, 小数精度和范围需在提交前校验. */
+test('材料尺寸留空保持未知并拒绝无效测量值', () => {
+  const component = loadVue('platform-admin-ui/src/views/modules/custom/configuration.vue');
+  const parse = component.methods.measuredSize;
+  assert.equal(parse(null), null);
+  assert.equal(parse(''), null);
+  assert.equal(parse('  '), null);
+  assert.equal(parse('8.125'), 8.125);
+  for (const value of ['0', '-1', '3001', '8.1234', '1e2', '8-9', '未知']) assert.throws(() => parse(value));
+});
+
 /** 创建可控制返回顺序的定制页, 不接入真实微信接口. */
 function designerFixture() {
   let page;
@@ -185,7 +196,8 @@ function designerFixture() {
         requests.push({url: '/ai/recommend', data, resolve, reject});
       }),
     },
-  }, {Page: definition => { page = definition; }, wx: {}, setTimeout, clearTimeout});
+    '../../services/necklace-arrangement.js': require('../vendor/platform-wxshop/wx-mall/services/necklace-arrangement.js'),
+  }, {Page: definition => { page = definition; }, wx: {showModal: options => options.success({confirm: true})}, setTimeout, clearTimeout});
   page.setData = values => Object.assign(page.data, values);
   return {page, requests};
 }
@@ -272,8 +284,9 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
   assert.equal(page.data.productConfig.goodsId, 2);
   assert.equal(page.data.primaryProductId, 22);
   assert.equal(page.data.componentGroups[0].required, true);
-  assert.equal(page.data.previewLayers.layers[0].url, '/merchant-layer.png');
-  assert.equal(page.data.previewLayers.ratio, 150);
+  assert.equal(page.data.arrangementNodes[0].name, '链长');
+  assert.equal(page.data.arrangementNodes[0].known, false);
+  assert.deepEqual(Array.from(page.data.arrangementOptionIds), [2]);
 });
 
 /** 只有开发环境可以覆盖API, 正式版本忽略本机残留覆盖值. */

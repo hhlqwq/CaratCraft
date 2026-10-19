@@ -34,7 +34,10 @@
     "pages/shopping/selCoupon/selCoupon",
     "pages/ucenter/help/help",
     "pages/ucenter/helpInfo/helpInfo",
-    "pages/auth/btnAuth/btnAuth"
+    "pages/auth/btnAuth/btnAuth",
+    "pages/community/index",
+    "pages/community/detail",
+    "pages/community/publish"
   ],
   "window": {
     "backgroundTextStyle": "dark",
@@ -53,19 +56,19 @@
         "pagePath": "pages/index/index",
         "iconPath": "static/images/ic_menu_choice_nor.png",
         "selectedIconPath": "static/images/ic_menu_choice_pressed.png",
-        "text": "首页"
+        "text": "商城"
       },
       {
         "pagePath": "pages/designer/designer",
-        "iconPath": "static/images/ic_menu_topic_nor.png",
-        "selectedIconPath": "static/images/ic_menu_topic_pressed.png",
-        "text": "定制"
+        "iconPath": "static/images/ic_menu_sort_nor.png",
+        "selectedIconPath": "static/images/ic_menu_sort_pressed.png",
+        "text": "DIY"
       },
       {
-        "pagePath": "pages/cart/cart",
-        "iconPath": "static/images/ic_menu_shoping_nor.png",
-        "selectedIconPath": "static/images/ic_menu_shoping_pressed.png",
-        "text": "购物车"
+        "pagePath": "pages/community/index",
+        "iconPath": "static/images/ic_menu_topic_nor.png",
+        "selectedIconPath": "static/images/ic_menu_topic_pressed.png",
+        "text": "社区"
       },
       {
         "pagePath": "pages/ucenter/index/index",

@@ -5,10 +5,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../.tools/copyright/admin-ui-dist');
 const port = Number(process.env.CARATCRAFT_FIXTURE_PORT || 18981);
 const modules = [['mall/order', '订单管理'], ['custom/configuration', '定制配置'],
-  ['custom/work-order', '制作工单'], ['custom/component-stock', '材料库存'], ['mall/goods', '商品管理']];
+  ['custom/work-order', '制作工单'], ['custom/component-stock', '材料库存'], ['mall/goods', '商品管理'], ['community/posts', '社区管理']];
 const permissions = ['mall:order:list', 'mall:order:update', 'mall:goods:list', 'mall:goods:save',
   'custom:config:list', 'custom:config:update', 'custom:work:list', 'custom:work:update',
-  'custom:stock:list', 'custom:stock:update', 'sys:monitor:server'];
+  'custom:stock:list', 'custom:stock:update', 'sys:monitor:server', 'community:post:list', 'community:post:moderate'];
 const routes = {
   '/sys/menu/nav': {menuList: modules.map(([url, name], index) => ({menuId: index + 1, name, url, list: []})),
     permissions, dictList: [], orgList: [], userList: []},
@@ -17,6 +17,11 @@ const routes = {
   '/custom/configuration/goods': [{id: 900001, name: '隔离测试珍珠项链'}],
   '/custom/configuration/products': [{goodsId: 900001, enabled: 0, requiredComponentTypes: 'pearl,chain,clasp', previewWidth: 600, previewHeight: 600}],
   '/custom/configuration/options': [],
+  '/community/posts/list': {records: [{id: 900001, kind: 'DESIGN', title: '隔离测试: 大小珍珠交错排列',
+    content: '这是一份用于检查界面排版的模拟分享。材料大小与位置可在DIY中调整。\n不连接业务后端, 不会发布真实社区内容。',
+    imagesJson: '[]', designJson: JSON.stringify({arrangement: [{position: 0, name: '测试淡水珍珠', sizeMm: 8}, {position: 1, name: '测试尾扣', sizeMm: 12}]}),
+    status: 'PENDING', version: 0, likes: 0, moderationReason: '', createTime: '2026-10-19 12:00:00'}], total: 1},
+  '/community/posts/logs': [{operatorName: '界面测试账号', fromStatus: 'PENDING', toStatus: 'HIDDEN', reason: '模拟审核记录', createTime: '2026-10-19 12:00:00'}],
 };
 
 /** 固定回归数据只支持读取, 未实现的业务写入明确拒绝. */

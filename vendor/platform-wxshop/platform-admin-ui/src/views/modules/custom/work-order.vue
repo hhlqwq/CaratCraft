@@ -24,10 +24,11 @@
       <el-table-column label="制作内容" min-width="280">
         <template #default="scope">
           <div v-for="(line, index) in craftSummary(scope.row)" :key="index" class="craft-line">{{ line }}</div>
+          <details v-if="arrangementLines(scope.row).length"><summary>查看冻结排列顺序</summary><div v-for="(line, index) in arrangementLines(scope.row)" :key="index" class="craft-line">{{ line }}</div></details>
         </template>
       </el-table-column>
       <el-table-column label="设计预览" min-width="130"><template #default="scope">
-        <div class="work-preview"><img v-for="layer in previewLayers(scope.row)" :key="layer.optionId" :src="layer.assetUrl" alt="设计图层" /></div>
+        <span v-if="arrangementLines(scope.row).length">逐项顺序见制作内容</span><div v-else class="work-preview"><img v-for="layer in previewLayers(scope.row)" :key="layer.optionId" :src="layer.assetUrl" alt="设计图层" /></div>
       </template></el-table-column>
       <el-table-column prop="createTime" label="创建时间" min-width="160"></el-table-column>
       <el-table-column fixed="right" label="操作" width="200">
@@ -87,6 +88,12 @@ export default {
     this.loadWorkOrders()
   },
   methods: {
+    // 显示下单时逐个材料的冻结顺序和尺寸, 不按当前配置重建.
+    arrangementLines (row) {
+      try {
+        return (JSON.parse(row.craftJson || '{}').arrangement || []).map((item, index) => `${index + 1}. ${item.name} · ${item.sizeMm || '尺寸未配置'}${item.sizeMm ? 'mm' : ''}`)
+      } catch (error) { return [] }
+    },
     // 切换有限页数据.
     changePage (page) {
       this.page = page

@@ -51,7 +51,9 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
       throw new IllegalArgumentException("请选择定制商品");
     }
     MallGoodsEntity goods = mallGoodsService.getById(request.getGoodsId());
-    if (goods == null || !Integer.valueOf(1).equals(goods.getIsOnSale())) {
+    if (goods == null
+        || Integer.valueOf(1).equals(goods.getIsDelete())
+        || !Integer.valueOf(1).equals(goods.getIsOnSale())) {
       throw new IllegalArgumentException("定制商品不可售");
     }
     if (request.getEngraving() != null && request.getEngraving().length() > 20) {
@@ -66,11 +68,26 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
     BigDecimal optionTotal = BigDecimal.ZERO;
     java.util.List<CustomComponentOptionEntity> selectedOptions = new java.util.ArrayList<>();
     java.util.List<Map<String, Object>> components = new java.util.ArrayList<>();
-    Set<Long> selectedIds = new HashSet<>();
     Set<String> selectedTypes = new HashSet<>();
-    if (request.getOptionIds() != null) {
-      for (Long optionId : request.getOptionIds()) {
-        if (!selectedIds.add(optionId)) {
+    boolean arranged = request.getArrangementOptionIds() != null;
+    List<Long> instanceIds = arranged ? request.getArrangementOptionIds() : request.getOptionIds();
+    if (arranged && instanceIds.isEmpty()) throw new IllegalArgumentException("请先添加设计材料");
+    if (arranged && request.getOptionIds() != null && !request.getOptionIds().isEmpty()) {
+      throw new IllegalArgumentException("不能同时提交排列和旧版选项");
+    }
+    if (instanceIds != null && instanceIds.size() > 300) {
+      throw new IllegalArgumentException("单件设计最多300个材料实例");
+    }
+    Map<Long, Integer> counts = new LinkedHashMap<>();
+    if (instanceIds != null) {
+      for (Long id : instanceIds) {
+        if (id == null || id <= 0) throw new IllegalArgumentException("材料ID无效");
+        counts.merge(id, 1, Integer::sum);
+      }
+    }
+    if (instanceIds != null) {
+      for (Long optionId : counts.keySet()) {
+        if (!arranged && counts.get(optionId) > 1) {
           throw new IllegalArgumentException("定制选项不能重复");
         }
         CustomComponentOptionEntity option =
@@ -78,9 +95,10 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                 .filter(item -> item.getId().equals(optionId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("包含无效的定制选项"));
-        if (!selectedTypes.add(option.getComponentType())) {
+        if (!arranged && !selectedTypes.add(option.getComponentType())) {
           throw new IllegalArgumentException("同类组件只能选择一个");
         }
+        selectedTypes.add(option.getComponentType());
         selectedOptions.add(option);
         var rules =
             com.platform.modules.custom.service.ComponentRules.parse(option.getMaterialParams());
@@ -89,9 +107,16 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         component.put("componentType", option.getComponentType());
         component.put("optionCode", option.getOptionCode());
         component.put("name", option.getName());
-        component.put("quantity", rules.quantity());
+        int instances = counts.get(optionId);
+        int quantity = Math.multiplyExact(rules.quantity(), instances);
+        if (quantity > 10000) throw new IllegalArgumentException("单种材料累计用量不能超过10000单位");
+        component.put("instances", instances);
+        component.put("quantity", quantity);
         component.put("unit", rules.unit());
-        component.put("linePrice", option.getPriceDelta());
+        BigDecimal unitPrice = Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO);
+        if (unitPrice.signum() < 0) throw new IllegalArgumentException("材料价格不能为负数");
+        component.put("unitPrice", unitPrice);
+        component.put("linePrice", unitPrice.multiply(BigDecimal.valueOf(instances)));
         component.put("assetUrl", option.getAssetUrl());
         component.put("zIndex", option.getZIndex());
         component.put("materialParams", option.getMaterialParams());
@@ -103,12 +128,11 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                     .eq(ComponentStockEntity::getGoodsId, request.getGoodsId())
                     .eq(ComponentStockEntity::getComponentType, option.getComponentType())
                     .eq(ComponentStockEntity::getOptionCode, option.getOptionCode()));
-        if (rules.quantity() > 0
-            && (stock == null || stock.getStock() == null || stock.getStock() < rules.quantity())) {
+        if (quantity > 0
+            && (stock == null || stock.getStock() == null || stock.getStock() < quantity)) {
           throw new IllegalArgumentException("组件 " + option.getName() + " 库存不足");
         }
-        optionTotal =
-            optionTotal.add(Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO));
+        optionTotal = optionTotal.add(unitPrice.multiply(BigDecimal.valueOf(instances)));
       }
     }
     CustomProductEntity customProduct =
@@ -129,6 +153,11 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
     result.put("totalPrice", totalPrice);
     result.put("selectedOptionIds", request.getOptionIds());
     result.put("components", components);
+    if (arranged) {
+      result.putAll(
+          com.platform.modules.custom.service.NecklaceArrangement.describe(
+              instanceIds, selectedOptions));
+    }
     result.put("previewWidth", customProduct.getPreviewWidth());
     result.put("previewHeight", customProduct.getPreviewHeight());
     result.put("engraving", request.getEngraving());

@@ -33,6 +33,7 @@ Page({
           goodsId: item.goodsId,
           version: item.version,
           layers: that.getFrozenLayers(item.priceBreakdownJson),
+          arrangement: that.getFrozenArrangement(item.priceBreakdownJson),
           previewUrl: item.previewUrl || '/static/images/logo.png',
           canContinue: item.status === 'DRAFT',
           canPay: item.status === 'DRAFT',
@@ -66,6 +67,11 @@ Page({
         return Object.assign({}, line, {assetUrl: /^\//.test(line.assetUrl) ? api.ApiOrigin + line.assetUrl : line.assetUrl});
       }).sort(function (a, b) { return Number(a.zIndex || 0) - Number(b.zIndex || 0); });
     } catch (error) { return []; }
+  },
+
+  /** 使用保存时的排列顺序, 后续材料停用或改名不改变列表内容. */
+  getFrozenArrangement: function (json) {
+    try { return JSON.parse(json || '{}').arrangement || []; } catch (error) { return []; }
   },
 
   /** 用户确认后归档本人版本, 下单设计不显示删除操作. */

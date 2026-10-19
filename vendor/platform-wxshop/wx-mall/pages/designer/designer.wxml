@@ -2,7 +2,7 @@
   <view class="intro-card">
     <view class="intro-eyebrow">按需定制</view>
     <view class="intro-title">珍珠项链定制</view>
-    <view class="intro-description">必选项目以商家当前配置为准, 其他搭配可按需选择。</view>
+    <view class="intro-description">从材料库添加珍珠、尾扣、配饰和链条, 点击排列中的材料进行编辑。</view>
   </view>
 
   <view class="ai-card">
@@ -50,13 +50,29 @@
       </view>
       <view class="demo-badge">搭配预览</view>
     </view>
-    <view class="preview-stage" style="height: 0; padding-bottom: {{previewLayers.ratio || 100}}%;">
-      <image wx:for="{{previewLayers.layers}}" wx:key="id" class="preview-layer"
-             style="z-index: {{item.zIndex}};" src="{{item.url}}" mode="aspectFit" webp="{{true}}"></image>
+    <view class="necklace-stage">
+      <view class="necklace-guide"></view>
+      <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">从下方材料库开始设计</view>
+      <view wx:for="{{arrangementNodes}}" wx:key="index" class="necklace-node {{item.pearl ? 'pearl-node' : 'part-node'}} {{activeIndex === index ? 'active-node' : ''}}"
+            style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
+            data-index="{{index}}" bindtap="selectInstance"></view>
     </view>
-    <view wx:if="{{previewLayers.missing.length}}" class="preview-disclaimer">部分已选组件未配置图层: {{previewLayers.missing}}</view>
-    <view class="selected-line" wx:if="{{previewLayers.description}}">已选：{{previewLayers.description}}</view>
-    <view class="preview-disclaimer">效果图用于搭配参考，实际成品以商家确认和最终工艺为准。</view>
+    <view class="preview-disclaimer">二维结构示意: 珍珠按已配置直径比例显示, 其他材料用定位符号表示, 不代表实物颜色和外观。</view>
+    <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
+    <view class="arrangement-tools">
+      <button size="mini" disabled="{{!canUndo || saving}}" bindtap="undoArrangement">撤回</button>
+      <button size="mini" data-action="clear" bindtap="editInstance" disabled="{{!arrangementNodes.length || saving}}">清空</button>
+      <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="copy" bindtap="editInstance">复制</button>
+      <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="remove" bindtap="editInstance">删除</button>
+      <button size="mini" disabled="{{activeIndex <= 0 || saving}}" data-action="left" bindtap="editInstance">前移</button>
+      <button size="mini" disabled="{{activeIndex < 0 || activeIndex >= arrangementNodes.length - 1 || saving}}" data-action="right" bindtap="editInstance">后移</button>
+    </view>
+    <view class="copy-count">批量复制数量<input type="number" maxlength="3" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" /><text>选中一个材料后点击“复制”, 最多300个实例。</text></view>
+    <scroll-view scroll-x class="instance-strip">
+      <view wx:for="{{arrangementNodes}}" wx:key="index" class="instance-chip {{activeIndex === index ? 'chosen-chip' : ''}}" data-index="{{index}}" bindtap="selectInstance">{{index + 1}}. {{item.name}} {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸待补'}}</view>
+    </scroll-view>
+    <view class="preview-disclaimer">{{quote.lengthComplete ? '估算长度: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}。{{quote.lengthNotice}}</view>
+    <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
     <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
     <view class="price-row">
       <view>
@@ -144,7 +160,7 @@
         </view>
       </view>
       <input class="engraving" maxlength="20" placeholder="例如：姓名、日期或纪念文字"
-             value="{{engraving}}" bindinput="changeEngraving"></input>
+             value="{{engraving}}" bindinput="changeEngraving" disabled="{{saving}}"></input>
     </view>
   </view>
 

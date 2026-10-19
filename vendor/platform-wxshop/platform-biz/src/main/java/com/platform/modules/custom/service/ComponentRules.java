@@ -26,10 +26,26 @@ public record ComponentRules(
           || quantity > 10000) throw new IllegalArgumentException();
       String unit = root.path("stockUnit").asText("件");
       if (unit.isBlank() || unit.length() > 10) throw new IllegalArgumentException();
+      for (String key : List.of("diameterMm", "spanMm", "lengthMm")) {
+        JsonNode value = root.path(key);
+        if (!value.isMissingNode() && !value.isNull()) {
+          if (!value.isNumber()) throw new IllegalArgumentException();
+          var size = value.decimalValue();
+          if (size.signum() <= 0
+              || size.compareTo(new java.math.BigDecimal("3000")) > 0
+              || size.scale() > 3) throw new IllegalArgumentException();
+        }
+      }
+      for (String key : List.of("shape", "luster", "blemish")) {
+        JsonNode value = root.path(key);
+        if (!value.isMissingNode()
+            && (!value.isTextual() || value.asText().isBlank() || value.asText().length() > 30))
+          throw new IllegalArgumentException();
+      }
       return new ComponentRules(
           quantity, unit, keys(root.path("incompatibleWith")), keys(root.path("requires")));
     } catch (Exception failure) {
-      throw new IllegalArgumentException("材料规则格式无效, 请检查单位、用量和搭配规则");
+      throw new IllegalArgumentException("材料规则格式无效, 请检查单位、用量、尺寸、品质和搭配规则");
     }
   }
 
