@@ -55,7 +55,7 @@ public class QiniuCloudStorageService extends AbstractCloudStorageService {
   @Override
   public String upload(byte[] data, String path) {
     try {
-      Response res = uploadManager.put(data, path, token);
+      Response res = uploadManager.put(data, path, token, null, contentType(path), true);
       if (!res.isOK()) {
         throw new RuntimeException("上传七牛出错：" + res.toString());
       }

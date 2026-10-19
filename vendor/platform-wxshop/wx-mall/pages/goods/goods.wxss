@@ -683,3 +683,18 @@
   background: #d4af37;
   color: #ffffff;
 }
+
+.product-video {
+  width: 100%;
+  height: 430rpx;
+  margin: 24rpx 0;
+  background: #17231f;
+}
+.video-error,
+.goods-error {
+  padding: 40rpx 28rpx;
+  font-size: 27rpx;
+  line-height: 1.8;
+  color: #777066;
+  text-align: center;
+}

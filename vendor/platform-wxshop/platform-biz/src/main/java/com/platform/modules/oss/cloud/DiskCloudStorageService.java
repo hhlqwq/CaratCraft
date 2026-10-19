@@ -23,7 +23,8 @@ import com.platform.common.utils.Constant;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.imageio.stream.FileImageOutputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -34,18 +35,15 @@ import org.apache.commons.io.IOUtils;
  */
 public class DiskCloudStorageService extends AbstractCloudStorageService {
 
+  /** 读取商家文件存储配置, 目录在实际上传时创建. */
   public DiskCloudStorageService(CloudStorageConfig config) {
     this.config = config;
-
-    // 初始化
-    init();
   }
 
-  private void init() {}
-
+  /** 将随机命名文件写入配置目录内, 支持视频子目录且不覆盖现有文件. */
   @Override
   public String upload(byte[] data, String path) {
-    if (data.length < Constant.THREE || "".equals(path)) {
+    if (data == null || data.length < Constant.THREE || path == null || path.isEmpty()) {
       throw new BusinessException("上传文件为空");
     }
     // 本地存储必需要以"/"开头
@@ -53,27 +51,15 @@ public class DiskCloudStorageService extends AbstractCloudStorageService {
       path = "/" + path;
     }
     try {
-      String fileName = config.getDiskPath() + path;
-
-      String dateDir = path.split("/")[1];
-
-      // 文件夹
-      File dirFile = new File(config.getDiskPath() + "/" + dateDir);
-      if (!dirFile.exists()) {
-        dirFile.mkdirs();
+      File root = new File(config.getDiskPath()).getCanonicalFile();
+      File target = new File(root, path.substring(1)).getCanonicalFile();
+      if (!target.toPath().startsWith(root.toPath()) || target.equals(root)) {
+        throw new BusinessException("上传路径越界");
       }
-
-      File file = new File(fileName);
-      if (!file.exists()) {
-        file.createNewFile();
-      }
-      // 打开输入流
-      FileImageOutputStream imageOutput = new FileImageOutputStream(file);
-      imageOutput.write(data, 0, data.length);
-      imageOutput.close();
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BusinessException("上传文件失败", e);
+      Files.createDirectories(target.toPath().getParent());
+      Files.write(target.toPath(), data, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+    } catch (IOException error) {
+      throw new BusinessException("上传文件失败", error);
     }
 
     return config.getProxyServer() + path;

@@ -119,5 +119,6 @@ module.exports = {
   OrderQuery: API_BASE_URL + 'pay/query', //微信查询订单状态
 
   HelpTypeList: API_BASE_URL + 'helpissue/typeList', //查看帮助类型列表
+  PearlCatalog: API_BASE_URL + 'pearl-catalog/list', //按珍珠来源及成品品类组合筛选
   HelpIssueList: API_BASE_URL + 'helpissue/issueList', //查看问题列表
 };

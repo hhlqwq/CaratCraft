@@ -18,6 +18,7 @@
  */
 package com.platform.modules.oss.cloud;
 
+import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.SpringContextUtils;
 import com.platform.modules.sys.service.SysConfigService;
@@ -36,11 +37,16 @@ public final class UploadFactory {
         (SysConfigService) SpringContextUtils.getBean("sysConfigService");
   }
 
+  /** 按商家配置创建独立存储访问对象, 调用方负责在完成后关闭. */
   public static AbstractCloudStorageService build() {
     // 获取云存储配置信息
     CloudStorageConfig config =
         sysConfigService.getConfigObject(
             Constant.CLOUD_STORAGE_CONFIG_KEY, CloudStorageConfig.class);
+
+    if (config == null || config.getType() == null) {
+      throw new BusinessException("请先配置文件存储类型");
+    }
 
     if (config.getType() == Constant.CloudService.QINIU.getValue()) {
       return new QiniuCloudStorageService(config);
@@ -55,6 +61,13 @@ public final class UploadFactory {
     } else if (config.getType() == Constant.CloudService.HUAWEI.getValue()) {
       return new HuaWeiCloudStorageService(config);
     }
-    return null;
+    throw new BusinessException("文件存储类型不受支持");
+  }
+
+  /** 保存已完成安全重编码的PNG, 无论成功或失败都释放独占存储客户端. */
+  public static String uploadPng(byte[] png) {
+    try (var storage = build()) {
+      return storage.uploadSuffix(png, ".png");
+    }
   }
 }

@@ -3,62 +3,113 @@ const api = require('../../config/api.js');
 
 Page({
   data: {
-    navList: [],
-    categoryList: [],
-    currentCategory: {},
-    scrollLeft: 0,
-    scrollTop: 0,
-    goodsCount: 0,
-    scrollHeight: 0,
-  },
-  /** 初始化商城目录状态并读取页面所需数据. */
-  onLoad: function (options) {
-    this.getCatalog();
-  },
-  /** 读取分类导航及商品数量供目录页面展示. */
-  getCatalog: function () {
-    const that = this;
-    wx.showLoading({
-      title: '加载中...',
-    });
-    util.request(api.CatalogList).then(function (res) {
-      that.setData({
-        navList: res.data.categoryList,
-        currentCategory: res.data.currentCategory,
-      });
-      wx.hideLoading();
-    });
-    util.request(api.GoodsCount).then(function (res) {
-      that.setData({
-        goodsCount: res.data.goodsCount,
-      });
-    });
-  },
-  /** 读取指定分类的子分类信息并更新当前选择. */
-  getCurrentCategory: function (id) {
-    const that = this;
-    util.request(api.CatalogCurrent, {id: id}).then(function (res) {
-      that.setData({
-        currentCategory: res.data.currentCategory,
-      });
-    });
+    sources: [
+      {id: '', name: '全部来源'},
+      {id: 'FRESHWATER', name: '淡水珍珠'},
+      {id: 'SEAWATER', name: '海水珍珠'},
+    ],
+    types: [
+      {id: '', name: '全部品类'},
+      {id: 'NECKLACE', name: '项链'},
+      {id: 'EARRINGS', name: '耳饰'},
+      {id: 'BRACELET', name: '手链'},
+      {id: 'RING', name: '戒指'},
+    ],
+    source: '',
+    type: '',
+    goods: [],
+    total: 0,
+    page: 1,
+    loading: false,
+    hasMore: true,
+    error: '',
   },
 
-  /** 读取当前分类下的商品展示列表. */
-  getList: function () {
-    const that = this;
-    util.request(api.Catalog + that.data.currentCategory.id).then(function (res) {
-      that.setData({
-        categoryList: res.data,
-      });
-    });
+  /** 读取入口筛选参数, 首次加载使用与列表分页一致的查询. */
+  onLoad(options) {
+    this.requestVersion = 0;
+    const source = this.data.sources.some((item) => item.id === options.source)
+      ? options.source
+      : '';
+    const type = this.data.types.some((item) => item.id === options.type) ? options.type : '';
+    this.setData({source, type});
+    this.reload();
   },
-  /** 根据点击的分类标识切换商品展示范围. */
-  switchCate: function (event) {
-    if (this.data.currentCategory.id == event.currentTarget.dataset.id) {
-      return false;
+
+  /** 切换一个维度保留另一个维度, 不允许迟到请求覆盖新的筛选结果. */
+  selectFilter(event) {
+    const field = event.currentTarget.dataset.field;
+    const value = event.currentTarget.dataset.id;
+    if (!['source', 'type'].includes(field) || this.data[field] === value) {
+      return;
     }
+    this.setData({[field]: value});
+    this.reload();
+  },
 
-    this.getCurrentCategory(event.currentTarget.dataset.id);
+  /** 创建新的请求代次, 清空旧分页并从第一页重新加载. */
+  reload() {
+    this.requestVersion++;
+    this.setData({goods: [], page: 1, total: 0, loading: false, hasMore: true, error: ''});
+    return this.loadMore();
+  },
+
+  /** 成功后才推进页码, 错误时保留当前页供用户重试. */
+  async loadMore() {
+    if (this.data.loading || !this.data.hasMore) {
+      return;
+    }
+    const version = this.requestVersion;
+    const page = this.data.page;
+    this.setData({loading: true, error: ''});
+    try {
+      const response = await util.request(api.PearlCatalog, {
+        source: this.data.source,
+        type: this.data.type,
+        page,
+        limit: 20,
+      });
+      if (version !== this.requestVersion) {
+        return;
+      }
+      if (response.code !== 0) {
+        throw new Error(response.msg || '商品加载失败');
+      }
+      const records = response.data.records || [];
+      const goods = this.data.goods.concat(records);
+      this.setData({
+        goods,
+        total: response.data.total,
+        page: page + 1,
+        hasMore: records.length > 0 && goods.length < response.data.total,
+      });
+    } catch (error) {
+      if (version === this.requestVersion) {
+        this.setData({error: error.message || '暂时无法加载商品, 请重试'});
+      }
+    } finally {
+      if (version === this.requestVersion) {
+        this.setData({loading: false});
+      }
+    }
+  },
+
+  /** 触底继续加载下一页, 加载中和到达末页时保持当前列表. */
+  onReachBottom() {
+    this.loadMore();
+  },
+
+  /** 重新请求当前筛选结果, 完成后结束微信下拉刷新提示. */
+  async onPullDownRefresh() {
+    try {
+      await this.reload();
+    } finally {
+      wx.stopPullDownRefresh();
+    }
+  },
+
+  /** 离开页面即废弃请求代次, 避免异步完成后再次更新销毁页面. */
+  onUnload() {
+    this.requestVersion++;
   },
 });

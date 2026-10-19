@@ -1,4 +1,5 @@
-<scroll-view class="container" scroll-y="true">
+<view wx:if="{{goodsError}}" class="goods-error"><text>{{goodsError}}</text><button bindtap="getGoodsInfo">重试加载</button><navigator url="/pages/catalog/catalog">返回商城</navigator></view>
+<scroll-view wx:else class="container" scroll-y="true">
   <view wx:if="{{!openAttr}}">
     <swiper class="goodsimgs" indicator-dots="true" autoplay="true" interval="3000" duration="1000">
       <swiper-item wx:for="{{gallery}}" wx:key="id">
@@ -18,18 +19,13 @@
         </view>
       </view>
     </view>
+    <video wx:if="{{goods.videoUrl}}" class="product-video" src="{{goods.videoUrl}}" poster="{{goods.primaryPicUrl}}" controls="{{true}}" autoplay="{{false}}" binderror="handleVideoError" />
+    <view wx:if="{{videoError}}" class="video-error">视频暂时无法播放, 可先查看图片或联系商家</view>
     <view class="section-nav section-attr" bindtap="switchAttrPop">
       <view class="t">请选择规格数量</view>
       <image class="i" src="../../static/images/address_right.png" background-size="cover"></image>
     </view>
-    <!--<view class="section-nav section-act">
-      <view class="t">
-        <view class="label">1个促销:</view>
-        <view class="tag">万圣趴</view>
-        <view class="text">全场满499，额外送糖果</view>
-      </view>
-      <image class="i" src="../../static/images/address_right.png" background-size="cover"></image>
-    </view>-->
+
     <view class="comments" wx:if="{{comment.count > 0}}">
       <view class="h">
         <navigator url="../comment/comment?valueId={{goods.id}}&typeId=0">
@@ -140,7 +136,7 @@
 
 </scroll-view>
 
-<view class="bottom-btn">
+<view wx:if="{{!goodsError && goods.id}}" class="bottom-btn">
   <view class="l l-collect {{ openAttr ? 'back' : ''}}" bindtap="closeAttrOrCollect">
     <image class="icon" src="{{ collectBackImage }}"></image>
   </view>

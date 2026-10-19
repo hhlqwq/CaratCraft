@@ -71,6 +71,11 @@ public class CatalogApplicationService {
     //
     Long userId = loginUser == null ? null : loginUser.getId();
     MallGoodsEntity info = goodsService.getById(id);
+    if (info == null
+        || !Integer.valueOf(0).equals(info.getIsDelete())
+        || !Integer.valueOf(1).equals(info.getIsOnSale())) {
+      throw new IllegalArgumentException("商品已下架或不存在");
+    }
     Map<String, Object> param = new HashMap<>();
     param.put("goodsId", id);
     //

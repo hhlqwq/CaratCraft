@@ -48,7 +48,7 @@ public class MinioCloudStorageService extends AbstractCloudStorageService {
       minioClient.putObject(
           PutObjectArgs.builder().bucket(config.getMinioBucketName()).object(path).stream(
                   inputStream, data.length, -1)
-              .contentType("image/jpg")
+              .contentType(contentType(path))
               .build());
       inputStream.close();
       String url =

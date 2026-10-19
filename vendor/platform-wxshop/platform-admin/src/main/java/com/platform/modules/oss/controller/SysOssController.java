@@ -144,24 +144,14 @@ public class SysOssController extends AbstractController {
       throw new BusinessException("上传文件不能为空");
     }
 
-    // 上传文件
-    String suffix = ".png";
-    String url =
-        Objects.requireNonNull(UploadFactory.build())
-            .uploadSuffix(SafeImageUpload.readPng(file), suffix);
-
-    String suffixLowerCase = suffix.toLowerCase();
-    String p12 = ".p12";
-    if (!suffixLowerCase.contains(p12)) {
-      // 保存文件信息
-      SysUserEntity user = getUser();
-      SysOssEntity ossEntity = new SysOssEntity();
-      ossEntity.setUrl(url);
-      ossEntity.setCreateDate(new Date());
-      ossEntity.setCreateUserId(user.getUserId());
-      ossEntity.setCreateUserOrgNo(user.getOrgNo());
-      sysOssService.save(ossEntity);
-    }
+    String url = UploadFactory.uploadPng(SafeImageUpload.readPng(file));
+    SysUserEntity user = getUser();
+    SysOssEntity ossEntity = new SysOssEntity();
+    ossEntity.setUrl(url);
+    ossEntity.setCreateDate(new Date());
+    ossEntity.setCreateUserId(user.getUserId());
+    ossEntity.setCreateUserOrgNo(user.getOrgNo());
+    sysOssService.save(ossEntity);
     // 返回上传结果, 保留既有客户端字段.
     Map<String, Object> result = new HashMap<>(8);
     result.put("url", url);

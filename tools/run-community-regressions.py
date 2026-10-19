@@ -1,4 +1,4 @@
-"""在已初始化的独立测试库运行社区、排列及关联交易回归, 不启动项目服务."""
+"""在独立测试库运行社区、排列、商城媒体及交易回归, 不启动项目服务."""
 
 import argparse
 from datetime import datetime
@@ -14,6 +14,7 @@ def main():
     """密码只进入子进程环境, 输出中仅保留测试进度和失败摘要."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", required=True)
+    parser.add_argument("--package", action="store_true", help="定向测试通过后同时打包后端")
     args = parser.parse_args()
     if not re.fullmatch(r"caratcraft_init_audit_[0-9]{8}_[a-f0-9]{6}", args.database):
         raise ValueError("只允许使用独立初始化测试库")
@@ -32,12 +33,14 @@ def main():
     env["MAVEN_OPTS"] = f'-javaagent:{agent} -Djava.io.tmpdir={temporary} -Djansi.tmpdir={temporary} -Dfile.encoding=UTF-8'
     tests = ",".join(["CustomQuoteServiceImplTest", "CustomDesignServiceImplTest", "CustomConfigurationServiceTest",
                       "CustomProductionWorkflowTest", "CommunityDatabaseTest", "OrderTransactionDatabaseTest",
-                      "AppCustomizationControllerTest", "AppCommunityControllerTest", "ReadinessControllerTest", "SafeImageUploadTest"])
+                      "AppCustomizationControllerTest", "AppCommunityControllerTest", "ReadinessControllerTest", "SafeImageUploadTest",
+                      "ProductVideoUploadTest", "PearlProductValidatorTest", "PearlCatalogServiceTest", "DiskCloudStorageServiceTest"])
     command = [str(ROOT / ".tools/maven/apache-maven-3.9.11/bin/mvn.cmd"), "-o",
                "-s", str(ROOT / ".tools/copyright/maven-central.xml"),
                "-f", str(ROOT / "vendor/platform-wxshop/pom.xml"),
                "-Dmaven.repo.local=" + str(ROOT / ".tools/m2"), "-DforkCount=0",
-               "-Dsurefire.failIfNoSpecifiedTests=false", "-Dtest=" + tests, "test"]
+               "-Dsurefire.failIfNoSpecifiedTests=false", "-Dtest=" + tests,
+               "package" if args.package else "test"]
     log = ROOT / ".tools/copyright/community-java-tests.log"
     print("[1/2] 执行社区、排列、旧设计及交易回归: " + args.database, flush=True)
     with log.open("w", encoding="utf-8") as output:

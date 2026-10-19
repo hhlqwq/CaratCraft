@@ -20,6 +20,7 @@ package com.platform.modules.oss.cloud;
 
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.common.auth.DefaultCredentialProvider;
+import com.aliyun.oss.model.ObjectMetadata;
 import com.platform.common.exception.BusinessException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -31,6 +32,13 @@ import java.io.InputStream;
  * @since 2019-01-17 16:21:01
  */
 public class AliyunCloudStorageService extends AbstractCloudStorageService {
+
+  /** 释放本次上传创建的OSS连接池, 不保留闲置客户端. */
+  @Override
+  public void close() {
+    client.shutdown();
+  }
+
   private OSSClient client;
 
   public AliyunCloudStorageService(CloudStorageConfig config) {
@@ -57,7 +65,9 @@ public class AliyunCloudStorageService extends AbstractCloudStorageService {
   @Override
   public String upload(InputStream inputStream, String path) {
     try {
-      client.putObject(config.getAliyunBucketName(), path, inputStream);
+      ObjectMetadata metadata = new ObjectMetadata();
+      metadata.setContentType(contentType(path));
+      client.putObject(config.getAliyunBucketName(), path, inputStream, metadata);
     } catch (Exception e) {
       throw new BusinessException("上传文件失败，请检查配置信息", e);
     }

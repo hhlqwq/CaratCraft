@@ -10,7 +10,6 @@ import com.platform.modules.oss.cloud.UploadFactory;
 import com.platform.modules.wx.entity.WxUserEntity;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,7 +58,7 @@ public class AppCommunityController {
       throws IOException {
     byte[] png = SafeImageUpload.readPng(file);
     long mediaId = community.reserveImage(user.getId());
-    String url = Objects.requireNonNull(UploadFactory.build()).uploadSuffix(png, ".png");
+    String url = UploadFactory.uploadPng(png);
     return RestResponse.ok(community.registerImage(user.getId(), mediaId, url));
   }
 

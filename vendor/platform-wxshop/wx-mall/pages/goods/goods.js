@@ -1,11 +1,14 @@
 const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
+const pearlCatalog = require('../../services/pearl-catalog.js');
 
 Page({
   data: {
     id: 0,
     goodsDetailHtml: '',
     goods: {},
+    goodsError: '',
+    videoError: false,
     gallery: [],
     attribute: [],
     issueList: [],
@@ -27,37 +30,50 @@ Page({
   /** 读取商品详情、规格和购物车数量并更新展示状态. */
   getGoodsInfo: function () {
     const that = this;
-    util.request(api.GoodsDetail, {id: that.data.id}).then(function (res) {
-      if (res.code === 0) {
-        that.setData({
-          goods: res.data.info,
-          gallery: res.data.gallery,
-          attribute: res.data.attribute,
-          issueList: res.data.issue,
-          comment: res.data.comment,
-          brand: res.data.brand,
-          specificationList: res.data.specificationList,
-          productList: res.data.productList,
-          userHasCollect: res.data.userHasCollect,
-        });
-        //设置默认值
-        that.setDefSpecInfo(that.data.specificationList);
-        if (res.data.userHasCollect == 1) {
-          that.setData({
-            collectBackImage: that.data.hasCollectImage,
-          });
-        } else {
-          that.setData({
-            collectBackImage: that.data.noCollectImage,
-          });
+    that.setData({goodsError: '', videoError: false});
+    return util
+      .request(api.GoodsDetail, {id: that.data.id})
+      .then(function (res) {
+        if (res.code !== 0) {
+          throw new Error(res.msg || '商品暂时不可查看');
         }
+        if (res.code === 0) {
+          that.setData({
+            goods: res.data.info,
+            gallery: res.data.gallery,
+            attribute: pearlCatalog.parameters(res.data.info).concat(res.data.attribute || []),
+            issueList: res.data.issue,
+            comment: res.data.comment,
+            brand: res.data.brand,
+            specificationList: res.data.specificationList,
+            productList: res.data.productList,
+            userHasCollect: res.data.userHasCollect,
+          });
+          //设置默认值
+          that.setDefSpecInfo(that.data.specificationList);
+          if (res.data.userHasCollect == 1) {
+            that.setData({
+              collectBackImage: that.data.hasCollectImage,
+            });
+          } else {
+            that.setData({
+              collectBackImage: that.data.noCollectImage,
+            });
+          }
 
-        /* 使用微信原生富文本组件显示HTML, 不再分发旧解析库. */
-        that.setData({goodsDetailHtml: res.data.info.goodsDesc || ''});
+          /* 使用微信原生富文本组件显示HTML, 不再分发旧解析库. */
+          that.setData({goodsDetailHtml: res.data.info.goodsDesc || ''});
 
-        that.getGoodsRelated();
-      }
-    });
+          that.getGoodsRelated();
+        }
+      })
+      .catch(function (error) {
+        that.setData({goodsError: error.message || '商品暂时不可查看, 请稍后重试'});
+      });
+  },
+  /** 播放错误仅提示当前视频不可用, 保留商品图片和正常购买入口. */
+  handleVideoError() {
+    this.setData({videoError: true});
   },
   /** 图片加载失败时替换为本地占位图 / Replaces failed product images with a local placeholder. */
   handleImageError: function (event) {

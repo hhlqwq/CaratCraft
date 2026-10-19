@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -76,13 +75,9 @@ public class AppUploadController {
       throw new BusinessException("上传文件不能为空");
     }
 
-    String suffix = ".png";
-
     String url;
     try {
-      url =
-          Objects.requireNonNull(UploadFactory.build())
-              .uploadSuffix(SafeImageUpload.readPng(file), suffix);
+      url = UploadFactory.uploadPng(SafeImageUpload.readPng(file));
     } catch (IOException e) {
       return RestResponse.fail("上传文件失败");
     }
@@ -116,11 +111,8 @@ public class AppUploadController {
 
     try {
       for (MultipartFile file : files) {
-        String suffix = ".png";
         // 上传文件
-        String url =
-            Objects.requireNonNull(UploadFactory.build())
-                .uploadSuffix(SafeImageUpload.readPng(file), suffix);
+        String url = UploadFactory.uploadPng(SafeImageUpload.readPng(file));
         urls.add(url);
         // 保存文件信息
         SysOssEntity ossEntity = new SysOssEntity();

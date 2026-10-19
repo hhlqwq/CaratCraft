@@ -10,7 +10,7 @@
       <el-tab-pane label="基础信息" name="base">
         <el-form :model="form.goods" :rules="dataRule" ref="dataForm" label-width="120px">
           <el-row :gutter="20">
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="商品名称" prop="name">
                 <el-input
                   v-model="form.goods.name"
@@ -19,7 +19,7 @@
                 ></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="商品分类" prop="categoryId">
                 <el-select
                   v-model="form.goods.categoryId"
@@ -36,7 +36,7 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="品牌" prop="brandId">
                 <el-select
                   v-model="form.goods.brandId"
@@ -56,7 +56,7 @@
             </el-col>
           </el-row>
           <el-row :gutter="20">
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="商品编码" prop="goodsSn">
                 <el-input
                   v-model="form.goods.goodsSn"
@@ -65,7 +65,7 @@
                 ></el-input>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="库存" prop="goodsNumber">
                 <el-input-number
                   v-model="form.goods.goodsNumber"
@@ -75,7 +75,7 @@
                 ></el-input-number>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="零售价格" prop="retailPrice">
                 <el-input-number
                   v-model="form.goods.retailPrice"
@@ -88,7 +88,7 @@
             </el-col>
           </el-row>
           <el-row :gutter="20">
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="市场价" prop="marketPrice">
                 <el-input-number
                   v-model="form.goods.marketPrice"
@@ -99,7 +99,7 @@
                 ></el-input-number>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="上架状态" prop="isOnSale">
                 <el-radio-group v-model="form.goods.isOnSale" :disabled="disabled">
                   <el-radio-button :label="1">上架</el-radio-button>
@@ -107,7 +107,7 @@
                 </el-radio-group>
               </el-form-item>
             </el-col>
-            <el-col :span="8">
+            <el-col :xs="24" :sm="12" :lg="8">
               <el-form-item label="新品" prop="isNew">
                 <el-radio-group v-model="form.goods.isNew" :disabled="disabled">
                   <el-radio-button :label="1">是</el-radio-button>
@@ -144,6 +144,116 @@
             <el-button type="success" @click="openDetail">预览详情</el-button>
           </el-form-item>
         </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="珍珠参数" name="pearl">
+        <el-alert
+          title="仅填写商家确认的商品事实. 来源和品类将决定商城筛选结果, 未填写的参数不会对消费者展示."
+          type="info"
+          :closable="false"
+        />
+        <el-form label-width="110px" class="mt10">
+          <el-row :gutter="20">
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="珍珠来源"
+                ><el-select
+                  v-model="form.goods.pearlSource"
+                  :disabled="disabled"
+                  clearable
+                  placeholder="请选择来源"
+                  ><el-option label="淡水珍珠" value="FRESHWATER" /><el-option
+                    label="海水珍珠"
+                    value="SEAWATER" /></el-select></el-form-item
+            ></el-col>
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="成品品类"
+                ><el-select
+                  v-model="form.goods.jewelryType"
+                  :disabled="disabled"
+                  clearable
+                  placeholder="请选择品类"
+                  ><el-option
+                    v-for="item in jewelryTypes"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id" /></el-select></el-form-item
+            ></el-col>
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="珍珠品种"
+                ><el-input
+                  v-model="form.goods.pearlVariety"
+                  :disabled="disabled"
+                  maxlength="60"
+                  placeholder="填写实际品种, 未知可留空" /></el-form-item
+            ></el-col>
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="产地"
+                ><el-input
+                  v-model="form.goods.pearlOrigin"
+                  :disabled="disabled"
+                  maxlength="100"
+                  placeholder="填写已确认产地, 未知可留空" /></el-form-item
+            ></el-col>
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="直径下限(mm)"
+                ><el-input
+                  v-model="form.goods.pearlDiameterMin"
+                  :disabled="disabled"
+                  placeholder="最多三位小数, 未知留空" /></el-form-item
+            ></el-col>
+            <el-col :xs="24" :sm="12"
+              ><el-form-item label="直径上限(mm)"
+                ><el-input
+                  v-model="form.goods.pearlDiameterMax"
+                  :disabled="disabled"
+                  placeholder="与下限同时填写或同时留空" /></el-form-item
+            ></el-col>
+            <el-col v-for="item in pearlTextFields" :key="item.key" :xs="24" :sm="12"
+              ><el-form-item :label="item.name"
+                ><el-input
+                  v-model="form.goods[item.key]"
+                  :disabled="disabled"
+                  maxlength="30"
+                  placeholder="以实际商品为准" /></el-form-item
+            ></el-col>
+          </el-row>
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="商品视频" name="video">
+        <el-alert
+          title="支持30MB以内、60秒以内、1080p以内的H.264 MP4, 可带单声道或双声道AAC-LC音轨. 上传后仍需保存商品. 不支持HEVC和分片MP4, 请先导出兼容格式."
+          type="info"
+          :closable="false"
+        />
+        <div class="mt10">
+          <input
+            v-if="!disabled"
+            type="file"
+            accept="video/mp4,.mp4"
+            :disabled="videoUploading"
+            @change="uploadVideo"
+            aria-label="选择商品MP4视频"
+          />
+        </div>
+        <el-progress v-if="videoUploading" class="mt10" :percentage="videoProgress" />
+        <p v-if="videoUploading">
+          {{ videoProgress < 100 ? '正在上传视频...' : '上传完成, 正在校验视频并写入存储...' }}
+        </p>
+        <video
+          v-if="form.goods.videoUrl"
+          class="product-video"
+          :src="form.goods.videoUrl"
+          controls
+          preload="metadata"
+        />
+        <p v-else>尚未设置商品视频</p>
+        <el-button
+          v-if="!disabled && form.goods.videoUrl"
+          :disabled="videoUploading"
+          @click="removeVideo"
+          >移除商品视频</el-button
+        >
       </el-tab-pane>
 
       <el-tab-pane label="商品参数" name="attr">
@@ -348,7 +458,13 @@
     <template #footer
       ><span class="dialog-footer">
         <el-button @click="visible = false">取消</el-button>
-        <el-button v-if="!disabled" type="primary" @click="dataFormSubmit">保存</el-button>
+        <el-button
+          v-if="!disabled"
+          type="primary"
+          :disabled="videoUploading"
+          @click="dataFormSubmit"
+          >保存</el-button
+        >
       </span></template
     >
   </el-dialog>
@@ -362,9 +478,22 @@ export default {
   data() {
     return {
       disabled: false,
+      videoUploading: false,
+      videoProgress: 0,
       visible: false,
       activeTab: 'base',
       form: this.getDefaultForm(),
+      jewelryTypes: [
+        {id: 'NECKLACE', name: '项链'},
+        {id: 'EARRINGS', name: '耳饰'},
+        {id: 'BRACELET', name: '手链'},
+        {id: 'RING', name: '戒指'},
+      ],
+      pearlTextFields: [
+        {key: 'pearlShape', name: '形状'},
+        {key: 'pearlLuster', name: '光泽'},
+        {key: 'pearlBlemish', name: '瑕疵说明'},
+      ],
       brandOptions: [],
       categoryOptions: [],
       attributeOptions: [],
@@ -382,6 +511,17 @@ export default {
         goods: {
           id: '',
           categoryId: '',
+          pearlSource: '',
+          jewelryType: '',
+          pearlVariety: '',
+          pearlOrigin: '',
+          pearlShape: '',
+          pearlLuster: '',
+          pearlBlemish: '',
+          pearlDiameterMin: null,
+          pearlDiameterMax: null,
+          videoMediaId: 0,
+          videoUrl: '',
           goodsSn: '',
           name: '',
           brandId: '',
@@ -418,6 +558,8 @@ export default {
       this.visible = true;
       this.activeTab = 'base';
       this.form = this.getDefaultForm();
+      this.videoUploading = false;
+      this.videoProgress = 0;
       this.form.goods.id = id || '';
 
       this.$nextTick(() => {
@@ -563,8 +705,90 @@ export default {
         };
       });
     },
+    /** 上传结果只写入发起请求时的商品表单, 切换商品后忽略迟到响应. */
+    async uploadVideo(event) {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file || this.videoUploading || this.disabled) {
+        return;
+      }
+      if (!/\.mp4$/i.test(file.name) || file.size > 30 * 1024 * 1024) {
+        this.$message.error('请选择30MB以内的MP4视频');
+        return;
+      }
+      const form = this.form;
+      this.videoUploading = true;
+      this.videoProgress = 0;
+      try {
+        const body = new FormData();
+        body.append('file', file);
+        const {data} = await this.$http({
+          url: '/mall/product-video/upload',
+          method: 'post',
+          data: body,
+          headers: {'Content-Type': 'multipart/form-data'},
+          timeout: 120000,
+          showError: false,
+          loading: false,
+          onUploadProgress: (progress) => {
+            if (this.form === form && progress.total) {
+              this.videoProgress = Math.min(
+                100,
+                Math.round((progress.loaded * 100) / progress.total)
+              );
+            }
+          },
+        });
+        if (this.form !== form) {
+          return;
+        }
+        if (!data || data.code !== 0) {
+          throw new Error((data && data.msg) || '视频上传失败');
+        }
+        form.goods.videoMediaId = data.data.id;
+        form.goods.videoUrl = data.data.url;
+        this.$message.success('视频上传成功, 保存商品后生效');
+      } catch (error) {
+        if (this.form === form) {
+          this.$message.error(error.message || '视频上传失败, 请重试');
+        }
+      } finally {
+        if (this.form === form) {
+          this.videoUploading = false;
+        }
+      }
+    },
+    /** 仅清除商品对媒体的引用, 不删除可能被其他商品引用的存储文件. */
+    removeVideo() {
+      this.form.goods.videoMediaId = 0;
+      this.form.goods.videoUrl = '';
+    },
+    /** 将可空测量文本转换为数值, 不用最小值补造未知尺寸. */
+    measuredDiameter(value) {
+      const text = value == null ? '' : String(value).trim();
+      if (!text) {
+        return null;
+      }
+      if (!/^\d+(?:\.\d{1,3})?$/.test(text) || Number(text) <= 0 || Number(text) > 3000) {
+        throw new Error('珍珠直径需为大于0且不超过3000的毫米数值, 最多三位小数');
+      }
+      return Number(text);
+    },
+    /** 整理聚合请求并校验专属分类和尺寸区间, 不修改原始编辑表单. */
     sanitizePayload() {
       const payload = JSON.parse(JSON.stringify(this.form));
+      const goods = payload.goods;
+      if (goods.isOnSale === 1 && (!goods.pearlSource || !goods.jewelryType)) {
+        throw new Error('上架前请在珍珠参数中填写珍珠来源和成品品类');
+      }
+      goods.pearlDiameterMin = this.measuredDiameter(goods.pearlDiameterMin);
+      goods.pearlDiameterMax = this.measuredDiameter(goods.pearlDiameterMax);
+      if (
+        (goods.pearlDiameterMin === null) !== (goods.pearlDiameterMax === null) ||
+        (goods.pearlDiameterMin !== null && goods.pearlDiameterMax < goods.pearlDiameterMin)
+      ) {
+        throw new Error('直径上下限需同时填写且上限不小于下限, 或同时留空');
+      }
       payload.attributes = (payload.attributes || []).filter(
         (item) => item.attributeId && item.value
       );
@@ -579,12 +803,23 @@ export default {
       }));
       return payload;
     },
+    /** 上传过程中禁止保存, 表单及珍珠参数均通过校验后再提交商品聚合数据. */
     dataFormSubmit() {
+      if (this.videoUploading) {
+        return;
+      }
       this.$refs.dataForm.validate((valid) => {
         if (!valid) {
           return;
         }
-        const payload = this.sanitizePayload();
+        let payload;
+        try {
+          payload = this.sanitizePayload();
+        } catch (error) {
+          this.activeTab = 'pearl';
+          this.$message.error(error.message);
+          return;
+        }
         const hasSpecs = payload.specs && payload.specs.length > 0;
         if (hasSpecs && (!payload.skuList || payload.skuList.length === 0)) {
           this.$message.error('存在规格时必须生成SKU');
@@ -609,6 +844,13 @@ export default {
 </script>
 
 <style scoped>
+.product-video {
+  width: 100%;
+  max-width: 640px;
+  max-height: 60vh;
+  margin-top: 20px;
+  background: #17231f;
+}
 .mb10 {
   margin-bottom: 10px;
 }

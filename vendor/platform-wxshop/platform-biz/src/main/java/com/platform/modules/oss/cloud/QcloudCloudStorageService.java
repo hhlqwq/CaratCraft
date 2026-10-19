@@ -37,6 +37,13 @@ import java.io.InputStream;
  * @since 2019-01-17 16:21:01
  */
 public class QcloudCloudStorageService extends AbstractCloudStorageService {
+
+  /** 释放本次上传创建的COS连接池和后台资源. */
+  @Override
+  public void close() {
+    client.shutdown();
+  }
+
   private COSClient client;
 
   public QcloudCloudStorageService(CloudStorageConfig config) {
@@ -73,9 +80,10 @@ public class QcloudCloudStorageService extends AbstractCloudStorageService {
 
     try {
       // 上传到腾讯云
+      ObjectMetadata metadata = new ObjectMetadata();
+      metadata.setContentType(contentType(path));
       PutObjectRequest putObjectRequest =
-          new PutObjectRequest(
-              config.getQcloudBucketName(), path, inputStream, new ObjectMetadata());
+          new PutObjectRequest(config.getQcloudBucketName(), path, inputStream, metadata);
       client.putObject(putObjectRequest);
       return config.getQcloudDomain() + path;
     } catch (Exception e) {

@@ -62,7 +62,7 @@ public class ReadinessController {
         try (var versionQuery =
                 connection.prepareStatement(
                     "SELECT version FROM CC_SCHEMA_MIGRATION WHERE"
-                        + " version='V20261019_01_community.sql'");
+                        + " version='V20261019_02_storefront.sql'");
             var versions = versionQuery.executeQuery()) {
           if (!versions.next()) {
             return ResponseEntity.status(503).body(metadata("schema_required"));
@@ -90,6 +90,6 @@ public class ReadinessController {
         "revision",
         revision,
         "requiredSchema",
-        "V20261019_01");
+        "V20261019_02");
   }
 }

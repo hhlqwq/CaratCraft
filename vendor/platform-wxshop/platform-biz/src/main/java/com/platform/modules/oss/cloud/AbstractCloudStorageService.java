@@ -18,9 +18,11 @@
  */
 package com.platform.modules.oss.cloud;
 
+import com.platform.common.utils.Constant;
 import com.platform.common.utils.DateUtils;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 
@@ -30,9 +32,13 @@ import org.apache.commons.lang.StringUtils;
  * @author 何海龙
  * @since 2019-01-17 16:21:01
  */
-public abstract class AbstractCloudStorageService {
+public abstract class AbstractCloudStorageService implements AutoCloseable {
   /** 云存储配置信息 */
   CloudStorageConfig config;
+
+  /** 默认没有独占客户端资源, 持有独立连接池的实现负责重写并释放. */
+  @Override
+  public void close() {}
 
   /**
    * 文件路径
@@ -52,6 +58,35 @@ public abstract class AbstractCloudStorageService {
     }
 
     return path + suffix;
+  }
+
+  /** 视频保留商家配置的云存储前缀, 在其下增加独立video目录. */
+  public String getVideoPath() {
+    String prefix = "";
+    Integer type = config.getType();
+    if (Integer.valueOf(Constant.CloudService.QINIU.getValue()).equals(type)) {
+      prefix = config.getQiniuPrefix();
+    } else if (Integer.valueOf(Constant.CloudService.ALIYUN.getValue()).equals(type)) {
+      prefix = config.getAliyunPrefix();
+    } else if (Integer.valueOf(Constant.CloudService.QCLOUD.getValue()).equals(type)) {
+      prefix = config.getQcloudPrefix();
+    } else if (Integer.valueOf(Constant.CloudService.HUAWEI.getValue()).equals(type)) {
+      prefix = config.getHuaweiPrefix();
+    }
+    return getPath(StringUtils.isBlank(prefix) ? "video" : prefix + "/video", ".mp4");
+  }
+
+  /** 已验证媒体按实际输出后缀设置MIME, 不再把视频或PNG硬编码成JPEG. */
+  protected String contentType(String path) {
+    String lower = path.toLowerCase(Locale.ROOT);
+    return switch (lower.substring(lower.lastIndexOf('.') + 1)) {
+      case "mp4" -> "video/mp4";
+      case "png" -> "image/png";
+      case "jpg", "jpeg" -> "image/jpeg";
+      case "gif" -> "image/gif";
+      case "webp" -> "image/webp";
+      default -> "application/octet-stream";
+    };
   }
 
   /**
