@@ -22,7 +22,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallAddressEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,64 +33,64 @@ import java.util.Map;
  */
 public interface MallAddressService extends IService<MallAddressEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallAddressEntity> queryAll(Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallAddressEntity> queryAll(Map<String, Object> params);
 
-    /**
-     * 查询所有列表
-     *
-     * @param queryWrapper 查询参数
-     * @return List
-     */
-    List<MallAddressEntity> queryAllByWrapper(QueryWrapper<MallAddressEntity> queryWrapper);
+  /**
+   * 查询所有列表
+   *
+   * @param queryWrapper 查询参数
+   * @return List
+   */
+  List<MallAddressEntity> queryAllByWrapper(QueryWrapper<MallAddressEntity> queryWrapper);
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return Page
-     */
-    Page<MallAddressEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return Page
+   */
+  Page<MallAddressEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 新增
-     *
-     * @param mallAddress
-     * @return 新增结果
-     */
-    boolean add(MallAddressEntity mallAddress);
+  /**
+   * 新增
+   *
+   * @param mallAddress
+   * @return 新增结果
+   */
+  boolean add(MallAddressEntity mallAddress);
 
-    /**
-     * 根据主键更新
-     *
-     * @param mallAddress
-     * @return 更新结果
-     */
-    boolean update(MallAddressEntity mallAddress);
+  /**
+   * 根据主键更新
+   *
+   * @param mallAddress
+   * @return 更新结果
+   */
+  boolean update(MallAddressEntity mallAddress);
 
-    /**
-     * 根据主键删除
-     *
-     * @param id id
-     * @return 删除结果
-     */
-    boolean delete(Integer id);
+  /**
+   * 根据主键删除
+   *
+   * @param id id
+   * @return 删除结果
+   */
+  boolean delete(Integer id);
 
-    /**
-     * 根据主键批量删除
-     *
-     * @param ids ids
-     * @return 删除结果
-     */
-    boolean deleteBatch(Integer[] ids);
+  /**
+   * 根据主键批量删除
+   *
+   * @param ids ids
+   * @return 删除结果
+   */
+  boolean deleteBatch(Integer[] ids);
 
-    List<MallAddressEntity> queryList(Map<String, Object> param);
+  List<MallAddressEntity> queryList(Map<String, Object> param);
 
-    /** 按当前用户保存地址, 串行维护默认地址并拒绝跨用户更新. */
-    boolean saveOwned(MallAddressEntity address);
+  /** 按当前用户保存地址, 串行维护默认地址并拒绝跨用户更新. */
+  boolean saveOwned(MallAddressEntity address);
 }

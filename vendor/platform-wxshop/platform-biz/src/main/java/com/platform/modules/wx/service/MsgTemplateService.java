@@ -21,9 +21,8 @@ package com.platform.modules.wx.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.wx.entity.MsgTemplateEntity;
-import me.chanjar.weixin.common.error.WxErrorException;
-
 import java.util.Map;
+import me.chanjar.weixin.common.error.WxErrorException;
 
 /**
  * 消息模板
@@ -31,27 +30,26 @@ import java.util.Map;
  * @author 何海龙
  */
 public interface MsgTemplateService extends IService<MsgTemplateEntity> {
-    /**
-     * 分页查询用户数据
-     *
-     * @param params 查询参数
-     * @return PageUtils 分页结果
-     */
-    Page<MsgTemplateEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询用户数据
+   *
+   * @param params 查询参数
+   * @return PageUtils 分页结果
+   */
+  Page<MsgTemplateEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 通过模板名称查询
-     *
-     * @param name name
-     * @return
-     */
-    MsgTemplateEntity selectByName(String name);
+  /**
+   * 通过模板名称查询
+   *
+   * @param name name
+   * @return
+   */
+  MsgTemplateEntity selectByName(String name);
 
-    /**
-     * 同步公众号已添加的消息模板
-     *
-     * @throws WxErrorException
-     */
-    void syncWxTemplate() throws WxErrorException;
+  /**
+   * 同步公众号已添加的消息模板
+   *
+   * @throws WxErrorException
+   */
+  void syncWxTemplate() throws WxErrorException;
 }
-

@@ -23,16 +23,15 @@ import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.Constant;
 import com.platform.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.Arrays;
 
 /**
  * 权限(Token)验证
@@ -43,55 +42,58 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class AuthorizationInterceptor implements HandlerInterceptor {
 
-    private final JwtUtils jwtUtils;
+  private final JwtUtils jwtUtils;
 
-    private static final String[] IGNORE_TOKEN_URI = new String[]{"/search/seachList", "/cart/myCart", "/user/footprintList", "/search/history"};
+  private static final String[] IGNORE_TOKEN_URI =
+      new String[] {"/search/seachList", "/cart/myCart", "/user/footprintList", "/search/history"};
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+  @Override
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
 
-        // 跨域由MVC白名单统一处理, 预检不校验用户凭证.
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            return true;
-        }
-
-        String maAppId = request.getHeader("maAppId");
-        request.setAttribute(Constant.MA_APPID, maAppId);
-
-        IgnoreAuth annotation;
-        if (handler instanceof HandlerMethod) {
-            annotation = ((HandlerMethod) handler).getMethodAnnotation(IgnoreAuth.class);
-        } else {
-            return true;
-        }
-
-        //如果有@IgnoreAuth注解，则不验证token
-        if (annotation != null) {
-            return true;
-        }
-
-        //获取用户凭证
-        String token = request.getHeader(jwtUtils.getHeader());
-        if (StringUtils.isBlank(token)) {
-            token = request.getParameter(jwtUtils.getHeader());
-        }
-
-        //凭证为空
-        if (StringUtils.isBlank(token)) {
-            if (Arrays.stream(IGNORE_TOKEN_URI).anyMatch(uri -> request.getRequestURI().contains(uri))) {
-                return true;
-            }
-            throw new BusinessException(jwtUtils.getHeader() + "不能为空", HttpStatus.UNAUTHORIZED.value());
-        }
-
-        Claims claims = jwtUtils.getClaimByToken(token);
-        if (claims == null || jwtUtils.isTokenExpired(claims.getExpiration())) {
-            throw new BusinessException(jwtUtils.getHeader() + "失效，请重新登录", HttpStatus.UNAUTHORIZED.value());
-        }
-
-        //设置userId到request里，后续根据userId，获取用户信息
-        request.setAttribute(Constant.USER_KEY, claims.getSubject());
-
-        return true;
+    // 跨域由MVC白名单统一处理, 预检不校验用户凭证.
+    if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+      return true;
     }
+
+    String maAppId = request.getHeader("maAppId");
+    request.setAttribute(Constant.MA_APPID, maAppId);
+
+    IgnoreAuth annotation;
+    if (handler instanceof HandlerMethod) {
+      annotation = ((HandlerMethod) handler).getMethodAnnotation(IgnoreAuth.class);
+    } else {
+      return true;
+    }
+
+    // 如果有@IgnoreAuth注解，则不验证token
+    if (annotation != null) {
+      return true;
+    }
+
+    // 获取用户凭证
+    String token = request.getHeader(jwtUtils.getHeader());
+    if (StringUtils.isBlank(token)) {
+      token = request.getParameter(jwtUtils.getHeader());
+    }
+
+    // 凭证为空
+    if (StringUtils.isBlank(token)) {
+      if (Arrays.stream(IGNORE_TOKEN_URI).anyMatch(uri -> request.getRequestURI().contains(uri))) {
+        return true;
+      }
+      throw new BusinessException(jwtUtils.getHeader() + "不能为空", HttpStatus.UNAUTHORIZED.value());
+    }
+
+    Claims claims = jwtUtils.getClaimByToken(token);
+    if (claims == null || jwtUtils.isTokenExpired(claims.getExpiration())) {
+      throw new BusinessException(
+          jwtUtils.getHeader() + "失效，请重新登录", HttpStatus.UNAUTHORIZED.value());
+    }
+
+    // 设置userId到request里，后续根据userId，获取用户信息
+    request.setAttribute(Constant.USER_KEY, claims.getSubject());
+
+    return true;
+  }
 }

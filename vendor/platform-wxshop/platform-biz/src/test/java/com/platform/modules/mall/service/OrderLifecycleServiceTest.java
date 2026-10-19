@@ -73,7 +73,8 @@ class OrderLifecycleServiceTest {
     when(workOrders.selectOne(any())).thenReturn(work);
     assertThrows(IllegalArgumentException.class, () -> service.ship(10, "测试快递", "TEST123"));
     work.setStatus("COMPLETED");
-    when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class))).thenReturn(true);
+    when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
+        .thenReturn(true);
     service.ship(10, "测试快递", "TEST123");
     verify(orders).update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
   }
@@ -81,22 +82,33 @@ class OrderLifecycleServiceTest {
   /** 零元、超精度和已预支付订单禁止改价. */
   @Test
   void priceRejectsZeroPrecisionAndPrepayment() {
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.adjustPrice(10, BigDecimal.ZERO, "operator", "测试"));
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.adjustPrice(10, new BigDecimal("1.001"), "operator", "测试"));
     order.setPayStatus(1);
-    assertThrows(IllegalArgumentException.class,
+    assertThrows(
+        IllegalArgumentException.class,
         () -> service.adjustPrice(10, new BigDecimal("188.00"), "operator", "测试"));
   }
 
   /** 改价流水保存失败应抛出异常, 由事务统一回滚金额更新. */
   @Test
   void priceAuditFailureRollsBack() {
-    when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class))).thenReturn(true);
-    assertThrows(IllegalStateException.class,
+    when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
+        .thenReturn(true);
+    assertThrows(
+        IllegalStateException.class,
         () -> service.adjustPrice(10, new BigDecimal("188.00"), "operator", "协商折扣"));
-    verify(logs).insert(10, new BigDecimal("199.00"), new BigDecimal("188.00"),
-        new BigDecimal("-11.00"), "operator", "协商折扣");
+    verify(logs)
+        .insert(
+            10,
+            new BigDecimal("199.00"),
+            new BigDecimal("188.00"),
+            new BigDecimal("-11.00"),
+            "operator",
+            "协商折扣");
   }
 }

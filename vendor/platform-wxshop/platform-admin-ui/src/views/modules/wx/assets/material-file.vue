@@ -2,40 +2,75 @@
   <div class="mod-menu">
     <el-form :inline="true" :model="dataForm">
       <el-form-item v-show="!selectMode">
-        <el-button size="small" v-if="isAuth('wx:wxassets:save')" type="primary" @click="addOrUpdateHandle()">新增
+        <el-button
+          size="small"
+          v-if="isAuth('wx:wxassets:save')"
+          type="primary"
+          @click="addOrUpdateHandle()"
+          >新增
         </el-button>
       </el-form-item>
     </el-form>
     <div v-loading="dataListLoading">
       <div class="card" v-for="item in dataList" :key="item.mediaId" @click="onSelect(item)">
-        <el-image v-if="fileType==='image'" class="card-image" :src="item.url" fit="contain" lazy></el-image>
+        <el-image
+          v-if="fileType === 'image'"
+          class="card-image"
+          :src="item.url"
+          fit="contain"
+          lazy
+        ></el-image>
         <div v-else class="card-preview">
-          <div v-if="fileType==='voice'" class="card-preview-icon el-icon-microphone"></div>
-          <div v-if="fileType==='video'" class="card-preview-icon el-icon-video-camera-solid"></div>
-          <div class="card-preview-text">管理后台不支持预览<br/>微信中可正常播放</div>
+          <div v-if="fileType === 'voice'" class="card-preview-icon el-icon-microphone"></div>
+          <div
+            v-if="fileType === 'video'"
+            class="card-preview-icon el-icon-video-camera-solid"
+          ></div>
+          <div class="card-preview-text">管理后台不支持预览<br />微信中可正常播放</div>
         </div>
         <div class="card-footer">
           <div class="text-cut-name">{{ item.name }}</div>
           <div>{{ item.updateTime }}</div>
           <div class="flex justify-between align-center" v-show="!selectMode">
-            <el-button size="small" type="text" icon="el-icon-copy-document" v-clipboard:copy="item.mediaId"
-                       v-clipboard:success="onCopySuccess" v-clipboard:error="onCopyError">复制media_id
+            <el-button
+              size="small"
+              type="text"
+              icon="el-icon-copy-document"
+              v-clipboard:copy="item.mediaId"
+              v-clipboard:success="onCopySuccess"
+              v-clipboard:error="onCopyError"
+              >复制media_id
             </el-button>
-            <el-button size="small" type="text" icon="el-icon-delete" @click="deleteHandle(item.mediaId)">删除
+            <el-button
+              size="small"
+              type="text"
+              icon="el-icon-delete"
+              @click="deleteHandle(item.mediaId)"
+              >删除
             </el-button>
           </div>
         </div>
       </div>
     </div>
-    <el-pagination @current-change="currentChangeHandle" :current-page="pageIndex" :page-sizes="[20]" :page-size="20"
-                   :total="totalCount" layout="total, prev,pager, next, jumper">
+    <el-pagination
+      @current-change="currentChangeHandle"
+      :current-page="pageIndex"
+      :page-sizes="[20]"
+      :page-size="20"
+      :total="totalCount"
+      layout="total, prev,pager, next, jumper"
+    >
     </el-pagination>
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="onChange"></add-or-update>
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refreshDataList="onChange"
+    ></add-or-update>
   </div>
 </template>
 <script>
-import AddOrUpdate from './material-file-add-or-update'
+import AddOrUpdate from './material-file-add-or-update';
 
 export default {
   compatConfig: {MODE: 2},
@@ -44,18 +79,18 @@ export default {
     fileType: {
       // image、voice、video
       type: String,
-      default: 'image'
+      default: 'image',
     },
     selectMode: {
       // 是否选择模式，选择模式下点击素材选中，不可新增和删除
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   components: {
-    AddOrUpdate
+    AddOrUpdate,
   },
-  data () {
+  data() {
     return {
       dataForm: {},
       addOrUpdateVisible: false,
@@ -63,104 +98,103 @@ export default {
       pageIndex: 1,
       pageSize: 20,
       totalCount: 0,
-      dataListLoading: false
-    }
+      dataListLoading: false,
+    };
   },
-  mounted () {
-    this.init()
+  mounted() {
+    this.init();
   },
   methods: {
-    init () {
+    init() {
       if (!this.dataList.length) {
-        this.getDataList()
+        this.getDataList();
       }
     },
-    getDataList () {
+    getDataList() {
       if (this.dataListLoading) {
-        return
+        return;
       }
-      this.dataListLoading = true
+      this.dataListLoading = true;
       this.$http({
         url: '/manage/wxAssets/materialFileBatchGet',
         params: {
-          'page': this.pageIndex,
-          'type': this.fileType
-        }
+          page: this.pageIndex,
+          type: this.fileType,
+        },
       }).then(({data}) => {
         if (data && data.code === 0) {
-          this.dataList = data.data.items
-          this.totalCount = data.data.totalCount
-          this.pageIndex++
+          this.dataList = data.data.items;
+          this.totalCount = data.data.totalCount;
+          this.pageIndex++;
         } else {
-          this.$message.error(data.msg)
+          this.$message.error(data.msg);
         }
-        this.dataListLoading = false
-      })
+        this.dataListLoading = false;
+      });
     },
     // 新增 / 修改
-    addOrUpdateHandle () {
-      this.addOrUpdateVisible = true
+    addOrUpdateHandle() {
+      this.addOrUpdateVisible = true;
       this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(this.fileType)
-      })
+        this.$refs.addOrUpdate.init(this.fileType);
+      });
     },
-    onSelect (itemInfo) {
+    onSelect(itemInfo) {
       if (!this.selectMode) {
-        return
+        return;
       }
-      this.$emit('selected', itemInfo)
+      this.$emit('selected', itemInfo);
     },
     // 删除
-    deleteHandle (id) {
+    deleteHandle(id) {
       this.$confirm(`确定对[mediaId=${id}]进行删除操作?`, '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
       }).then(() => {
         this.$http({
           url: '/manage/wxAssets/materialDelete',
           method: 'post',
           data: {
-            mediaId: id
-          }
+            mediaId: id,
+          },
         }).then(({data}) => {
           if (data && data.code === 0) {
             this.$message({
               message: '操作成功',
               type: 'success',
-              duration: 1500
-            })
-            this.onChange()
+              duration: 1500,
+            });
+            this.onChange();
           }
-        })
-      })
+        });
+      });
     },
     // 当前页
-    currentChangeHandle (val) {
-      this.pageIndex = val
-      this.getDataList()
+    currentChangeHandle(val) {
+      this.pageIndex = val;
+      this.getDataList();
     },
-    onCopySuccess () {
-      this.$message.success('已复制')
+    onCopySuccess() {
+      this.$message.success('已复制');
     },
-    onCopyError () {
-      this.$message.error('复制失败,可能是此浏览器不支持复制')
+    onCopyError() {
+      this.$message.error('复制失败,可能是此浏览器不支持复制');
     },
-    onChange () {
-      this.pageIndex = 1
-      this.getDataList()
-      this.$emit('change')
-    }
-
-  }
-}
+    onChange() {
+      this.pageIndex = 1;
+      this.getDataList();
+      this.$emit('change');
+    },
+  },
+};
 </script>
 <style scoped>
 .card {
   width: 170px;
   display: inline-block;
-  background: #FFFFFF;
-  border: 1px solid #EBEEF5;
+  background: #ffffff;
+  border: 1px solid #ebeef5;
   box-shadow: 1px 1px 20px 0 rgba(0, 0, 0, 0.1);
   margin: 0 10px 10px 0;
   vertical-align: top;

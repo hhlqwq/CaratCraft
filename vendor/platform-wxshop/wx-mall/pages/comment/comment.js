@@ -1,6 +1,5 @@
-var app = getApp();
-var util = require('../../utils/util.js');
-var api = require('../../config/api.js');
+const util = require('../../utils/util.js');
+const api = require('../../config/api.js');
 
 Page({
   data: {
@@ -14,88 +13,78 @@ Page({
     hasPicCount: 0,
     allPage: 1,
     picPage: 1,
-    size: 20
+    size: 20,
   },
+  /** 读取全部评价与图片评价的数量. */
   getCommentCount: function () {
-    let that = this;
-    util.request(api.CommentCount, { valueId: that.data.valueId, typeId: that.data.typeId}).then(function (res) {
-      if (res.code === 0) {
-
-        that.setData({
-          allCount: res.data.allCount,
-          hasPicCount: res.data.hasPicCount
-        });
-      }
-    });
-  },
-  getCommentList: function(){
-    let that = this;
-    util.request(api.CommentList, { 
-      valueId: that.data.valueId, 
-      typeId: that.data.typeId, 
-      size: that.data.size,
-      page: (that.data.showType == 0 ? that.data.allPage : that.data.picPage),
-      showType: that.data.showType 
-      }).then(function (res) {
-      if (res.code === 0) {
-
-        if (that.data.showType == 0) {
+    const that = this;
+    util
+      .request(api.CommentCount, {valueId: that.data.valueId, typeId: that.data.typeId})
+      .then(function (res) {
+        if (res.code === 0) {
           that.setData({
-            allCommentList: that.data.allCommentList.concat(res.data.data),
-            allPage: res.data.currentPage,
-            comments: that.data.allCommentList.concat(res.data.data)
-          });
-        } else {
-          that.setData({
-            picCommentList: that.data.picCommentList.concat(res.data.data),
-            picPage: res.data.currentPage,
-            comments: that.data.picCommentList.concat(res.data.data)
+            allCount: res.data.allCount,
+            hasPicCount: res.data.hasPicCount,
           });
         }
-      }
-    });
+      });
   },
+  /** 按当前评价类型分页读取列表. */
+  getCommentList: function () {
+    const that = this;
+    util
+      .request(api.CommentList, {
+        valueId: that.data.valueId,
+        typeId: that.data.typeId,
+        size: that.data.size,
+        page: that.data.showType == 0 ? that.data.allPage : that.data.picPage,
+        showType: that.data.showType,
+      })
+      .then(function (res) {
+        if (res.code === 0) {
+          if (that.data.showType == 0) {
+            that.setData({
+              allCommentList: that.data.allCommentList.concat(res.data.data),
+              allPage: res.data.currentPage,
+              comments: that.data.allCommentList.concat(res.data.data),
+            });
+          } else {
+            that.setData({
+              picCommentList: that.data.picCommentList.concat(res.data.data),
+              picPage: res.data.currentPage,
+              comments: that.data.picCommentList.concat(res.data.data),
+            });
+          }
+        }
+      });
+  },
+  /** 初始化商品评价状态并读取页面所需数据. */
   onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
     this.setData({
       typeId: options.typeId,
-      valueId: options.valueId
+      valueId: options.valueId,
     });
     this.getCommentCount();
     this.getCommentList();
   },
-  onReady: function () {
-    // 页面渲染完成
 
-  },
-  onShow: function () {
-    // 页面显示
-
-  },
-  onHide: function () {
-    // 页面隐藏
-
-  },
-  onUnload: function () {
-    // 页面关闭
-
-  },
+  /** 切换评价类型并重新读取对应列表. */
   switchTab: function () {
     this.setData({
-      showType: this.data.showType == 1 ? 0 :1
+      showType: this.data.showType == 1 ? 0 : 1,
     });
 
     this.getCommentList();
   },
-  onReachBottom: function(){
-    if ( this.data.showType == 0) {
-
+  /** 触底时继续加载商品评价的下一页内容. */
+  onReachBottom: function () {
+    if (this.data.showType == 0) {
       if (this.data.allCount / this.data.size < this.data.allPage) {
         return false;
       }
 
       this.setData({
-        'allPage' : this.data.allPage + 1
+        allPage: this.data.allPage + 1,
       });
     } else {
       if (this.data.hasPicCount / this.data.size < this.data.picPage) {
@@ -103,12 +92,10 @@ Page({
       }
 
       this.setData({
-        'picPage': this.data.picPage + 1
+        picPage: this.data.picPage + 1,
       });
     }
 
-
-
     this.getCommentList();
-  }
-})
+  },
+});

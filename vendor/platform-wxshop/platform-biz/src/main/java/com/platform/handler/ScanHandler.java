@@ -19,14 +19,13 @@
 package com.platform.handler;
 
 import com.platform.modules.wx.service.MsgReplyService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * 微信公众号消息处理（扫码）
@@ -37,15 +36,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScanHandler extends AbstractHandler {
 
-    private final MsgReplyService msgReplyService;
+  private final MsgReplyService msgReplyService;
 
-    @Override
-    public WxMpXmlOutMessage handle(WxMpXmlMessage wxMpXmlMessage, Map<String, Object> map,
-                                    WxMpService wxMpService, WxSessionManager wxSessionManager) {
-        //扫码事件处理
-        this.logger.info("用户扫描带参二维码 OPENID: " + wxMpXmlMessage.getFromUser());
-        msgReplyService.tryAutoReply(true, wxMpXmlMessage.getFromUser(), wxMpXmlMessage.getEventKey());
+  @Override
+  public WxMpXmlOutMessage handle(
+      WxMpXmlMessage wxMpXmlMessage,
+      Map<String, Object> map,
+      WxMpService wxMpService,
+      WxSessionManager wxSessionManager) {
+    // 扫码事件处理
+    this.logger.info("用户扫描带参二维码 OPENID: " + wxMpXmlMessage.getFromUser());
+    msgReplyService.tryAutoReply(true, wxMpXmlMessage.getFromUser(), wxMpXmlMessage.getEventKey());
 
-        return null;
-    }
+    return null;
+  }
 }

@@ -22,10 +22,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 实体
@@ -36,44 +35,34 @@ import java.util.Date;
 @Data
 @TableName("mall_feedback")
 public class MallFeedbackEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer msgId;
-    /**
-     * 会员Id
-     */
-    private Integer userId;
-    /**
-     * 会员会员名称
-     */
-    private String userName;
-    /**
-     * 手机
-     */
-    private String mobile;
-    /**
-     * 反馈类型
-     */
-    private Integer feedType;
-    /**
-     * 详细内容
-     */
-    private String content;
-    /**
-     * 状态
-     */
-    private Integer status;
-    /**
-     * 反馈时间
-     */
-    private Date addTime;
-    /**
-     * 微信昵称
-     */
-    @TableField(exist = false)
-    private String nickname;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer msgId;
+
+  /** 会员Id */
+  private Integer userId;
+
+  /** 会员会员名称 */
+  private String userName;
+
+  /** 手机 */
+  private String mobile;
+
+  /** 反馈类型 */
+  private Integer feedType;
+
+  /** 详细内容 */
+  private String content;
+
+  /** 状态 */
+  private Integer status;
+
+  /** 反馈时间 */
+  private Date addTime;
+
+  /** 微信昵称 */
+  @TableField(exist = false)
+  private String nickname;
 }

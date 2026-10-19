@@ -20,16 +20,13 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.modules.mall.entity.MallProductEntity;
 import com.platform.modules.mall.entity.MallUserCouponEntity;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Update;
-
-import java.util.Date;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Dao
@@ -40,33 +37,39 @@ import java.util.Map;
 @Mapper
 public interface MallUserCouponDao extends BaseMapper<MallUserCouponEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallUserCouponEntity> queryAll(@Param("params") Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallUserCouponEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    /**
-     * 自定义分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallUserCouponEntity> selectMallUserCouponPage(Page<MallUserCouponEntity> page, @Param("params") Map<String, Object> params);
+  /**
+   * 自定义分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallUserCouponEntity> selectMallUserCouponPage(
+      Page<MallUserCouponEntity> page, @Param("params") Map<String, Object> params);
 
-    List<MallUserCouponEntity> queryList(Map<String, Object> param);
+  List<MallUserCouponEntity> queryList(Map<String, Object> param);
 
-    /** 原子占用用户优惠券 / Atomically claims a user coupon. */
-    @Update("UPDATE mall_user_coupon SET coupon_status = 2, used_time = #{usedTime}, order_id = #{orderId} "
-            + "WHERE id = #{id} AND user_id = #{userId} AND coupon_status = 1")
-    int claim(@Param("id") Integer id, @Param("userId") Long userId,
-              @Param("orderId") Integer orderId, @Param("usedTime") Date usedTime);
+  /** 原子占用用户优惠券 / Atomically claims a user coupon. */
+  @Update(
+      "UPDATE mall_user_coupon SET coupon_status = 2, used_time = #{usedTime}, order_id ="
+          + " #{orderId} WHERE id = #{id} AND user_id = #{userId} AND coupon_status = 1")
+  int claim(
+      @Param("id") Integer id,
+      @Param("userId") Long userId,
+      @Param("orderId") Integer orderId,
+      @Param("usedTime") Date usedTime);
 
-    /** 释放未支付订单占用的优惠券 / Releases a coupon claimed by an unpaid order. */
-    @Update("UPDATE mall_user_coupon SET coupon_status = 1, used_time = NULL, order_id = 0 "
-            + "WHERE order_id = #{orderId} AND coupon_status = 2")
-    int releaseByOrder(@Param("orderId") Integer orderId);
+  /** 释放未支付订单占用的优惠券 / Releases a coupon claimed by an unpaid order. */
+  @Update(
+      "UPDATE mall_user_coupon SET coupon_status = 1, used_time = NULL, order_id = 0 "
+          + "WHERE order_id = #{orderId} AND coupon_status = 2")
+  int releaseByOrder(@Param("orderId") Integer orderId);
 }

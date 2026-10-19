@@ -25,13 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallHelpTypeDao;
 import com.platform.modules.mall.entity.MallHelpTypeEntity;
 import com.platform.modules.mall.service.MallHelpTypeService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -40,50 +38,51 @@ import java.util.Map;
  * @since 2025-06-29 21:09:17
  */
 @Service("mallHelpTypeService")
-public class MallHelpTypeServiceImpl extends ServiceImpl<MallHelpTypeDao, MallHelpTypeEntity> implements MallHelpTypeService {
+public class MallHelpTypeServiceImpl extends ServiceImpl<MallHelpTypeDao, MallHelpTypeEntity>
+    implements MallHelpTypeService {
 
-    @Override
-    public List<MallHelpTypeEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallHelpTypeEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallHelpTypeEntity> queryAllByWrapper(QueryWrapper<MallHelpTypeEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallHelpTypeEntity> queryAllByWrapper(QueryWrapper<MallHelpTypeEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallHelpTypeEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallHelpTypeEntity> page = new Query<MallHelpTypeEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallHelpTypePage(page, params));
-    }
+  @Override
+  public Page<MallHelpTypeEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallHelpTypeEntity> page = new Query<MallHelpTypeEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallHelpTypePage(page, params));
+  }
 
-    @Override
-    public boolean add(MallHelpTypeEntity mallHelpType) {
-        return this.save(mallHelpType);
-    }
+  @Override
+  public boolean add(MallHelpTypeEntity mallHelpType) {
+    return this.save(mallHelpType);
+  }
 
-    @Override
-    public boolean update(MallHelpTypeEntity mallHelpType) {
-        return this.updateById(mallHelpType);
-    }
+  @Override
+  public boolean update(MallHelpTypeEntity mallHelpType) {
+    return this.updateById(mallHelpType);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallHelpTypeEntity> queryList(Map<String, Object> objectObjectHashMap) {
-        return baseMapper.queryList(objectObjectHashMap);
-    }
+  @Override
+  public List<MallHelpTypeEntity> queryList(Map<String, Object> objectObjectHashMap) {
+    return baseMapper.queryList(objectObjectHashMap);
+  }
 }

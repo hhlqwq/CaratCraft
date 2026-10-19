@@ -22,9 +22,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -35,44 +34,40 @@ import java.io.Serializable;
 @Data
 @TableName("mall_collect")
 public class MallCollectEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 用户Id
-     */
-    private Long userId;
-    /**
-     * 产品Id
-     */
-    private Integer valueId;
-    /**
-     * 添加时间
-     */
-    private Long addTime;
-    /**
-     * 是否提醒
-     */
-    private Integer isAttention;
-    /**
-     *
-     */
-    private Integer typeId;
-    /**
-     * 微信昵称
-     */
-    @TableField(exist = false)
-    private String nickname;
-    @TableField(exist = false)
-    private String name;
-    @TableField(exist = false)
-    private String listPicUrl;
-    @TableField(exist = false)
-    private String goodsBrief;
-    @TableField(exist = false)
-    private String retailPrice;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 用户Id */
+  private Long userId;
+
+  /** 产品Id */
+  private Integer valueId;
+
+  /** 添加时间 */
+  private Long addTime;
+
+  /** 是否提醒 */
+  private Integer isAttention;
+
+  /** */
+  private Integer typeId;
+
+  /** 微信昵称 */
+  @TableField(exist = false)
+  private String nickname;
+
+  @TableField(exist = false)
+  private String name;
+
+  @TableField(exist = false)
+  private String listPicUrl;
+
+  @TableField(exist = false)
+  private String goodsBrief;
+
+  @TableField(exist = false)
+  private String retailPrice;
 }

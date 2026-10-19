@@ -44,47 +44,42 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/manage/wxMenu")
 @RequiredArgsConstructor
 public class WxMenuManageController {
-    private final WxMpService wxMpService;
+  private final WxMpService wxMpService;
 
-    /**
-     * 获取公众号菜单
-     */
-    @Operation(summary = "获取公众号菜单", description = "获取公众号菜单")
-    @GetMapping("/getMenu")
-    public RestResponse<WxMpMenu> getMenu() throws WxErrorException {
-        WxMpMenu wxMpMenu = wxMpService.getMenuService().menuGet();
-        return RestResponse.ok(wxMpMenu);
-    }
+  /** 获取公众号菜单 */
+  @Operation(summary = "获取公众号菜单", description = "获取公众号菜单")
+  @GetMapping("/getMenu")
+  public RestResponse<WxMpMenu> getMenu() throws WxErrorException {
+    WxMpMenu wxMpMenu = wxMpService.getMenuService().menuGet();
+    return RestResponse.ok(wxMpMenu);
+  }
 
-    /**
-     * 创建、更新菜单
-     */
-    @Operation(summary = "发布公众号菜单", description = "发布公众号菜单")
-    @SysLog("发布公众号菜单")
-    @PostMapping("/updateMenu")
-    @RequiresPermissions("wx:menu:save")
-    public RestResponse<String> updateMenu(@RequestBody WxMenu wxMenu) throws WxErrorException {
-        wxMpService.getMenuService().menuCreate(wxMenu);
-        return RestResponse.ok();
-    }
+  /** 创建、更新菜单 */
+  @Operation(summary = "发布公众号菜单", description = "发布公众号菜单")
+  @SysLog("发布公众号菜单")
+  @PostMapping("/updateMenu")
+  @RequiresPermissions("wx:menu:save")
+  public RestResponse<String> updateMenu(@RequestBody WxMenu wxMenu) throws WxErrorException {
+    wxMpService.getMenuService().menuCreate(wxMenu);
+    return RestResponse.ok();
+  }
 
-    /**
-     * 网络检测
-     * 为了帮助开发者排查回调连接失败的问题，提供这个网络检测的API。它可以对开发者URL做域名解析，然后对所有IP进行一次ping操作，得到丢包率和耗时。
-     *
-     * @param action 执行的检测动作，允许的值：dns（做域名解析）、ping（做ping检测）、all（dns和ping都做）
-     * @return RestResponse
-     */
-    @Operation(summary = "网络检测", description = "网络检测")
-    @SysLog("网络检测")
-    @GetMapping("/netCheck")
-    public RestResponse<WxNetCheckResult> netCheck(String action) {
-        WxNetCheckResult result;
-        try {
-            result = wxMpService.netCheck(action, "DEFAULT");
-        } catch (WxErrorException e) {
-            return RestResponse.fail(e.getMessage());
-        }
-        return RestResponse.ok(result);
+  /**
+   * 网络检测 为了帮助开发者排查回调连接失败的问题，提供这个网络检测的API。它可以对开发者URL做域名解析，然后对所有IP进行一次ping操作，得到丢包率和耗时。
+   *
+   * @param action 执行的检测动作，允许的值：dns（做域名解析）、ping（做ping检测）、all（dns和ping都做）
+   * @return RestResponse
+   */
+  @Operation(summary = "网络检测", description = "网络检测")
+  @SysLog("网络检测")
+  @GetMapping("/netCheck")
+  public RestResponse<WxNetCheckResult> netCheck(String action) {
+    WxNetCheckResult result;
+    try {
+      result = wxMpService.netCheck(action, "DEFAULT");
+    } catch (WxErrorException e) {
+      return RestResponse.fail(e.getMessage());
     }
+    return RestResponse.ok(result);
+  }
 }

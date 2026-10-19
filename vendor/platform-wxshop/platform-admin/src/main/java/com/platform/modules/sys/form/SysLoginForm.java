@@ -27,8 +27,8 @@ import lombok.Data;
  */
 @Data
 public class SysLoginForm {
-    private String userName;
-    private String password;
-    private String captcha;
-    private String uuid;
+  private String userName;
+  private String password;
+  private String captcha;
+  private String uuid;
 }

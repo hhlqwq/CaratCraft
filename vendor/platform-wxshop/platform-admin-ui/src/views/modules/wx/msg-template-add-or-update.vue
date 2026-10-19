@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    title="模板配置"
-    :close-on-click-modal="false"
-    :lock-scroll="false"
-    v-model="visible">
+  <el-dialog title="模板配置" :close-on-click-modal="false" :lock-scroll="false" v-model="visible">
     <el-form :model="dataForm" :rules="dataRule" ref="dataForm" label-width="100px" size="small">
       <el-form-item label="标题" prop="title">
         <el-input v-model="dataForm.title" placeholder="标题"></el-input>
@@ -27,21 +23,40 @@
         </el-col>
         <el-col :span="8">
           <el-form-item label="有效" prop="status">
-            <el-switch v-model="dataForm.status" placeholder="是否有效" :active-value="true"
-                       :inactive-value="false"></el-switch>
+            <el-switch
+              v-model="dataForm.status"
+              placeholder="是否有效"
+              :active-value="true"
+              :inactive-value="false"
+            ></el-switch>
           </el-form-item>
         </el-col>
       </el-row>
       <div class="form-group-area">
         <el-form-item class="form-group-title">消息填充数据，请对照模板内容填写</el-form-item>
         <el-form-item>
-          <el-input type="textarea" disabled autosize v-model="dataForm.content" placeholder="模版"></el-input>
+          <el-input
+            type="textarea"
+            disabled
+            autosize
+            v-model="dataForm.content"
+            placeholder="模版"
+          ></el-input>
         </el-form-item>
-        <el-row v-for="(item,index) in dataForm.data" :key="item.name">
+        <el-row v-for="(item, index) in dataForm.data" :key="item.name">
           <el-col :span="16">
-            <el-form-item :label="item.name" :prop="'data.'+index+'.value'"
-                          :rules="[{required: true,message: '填充内容不得为空', trigger: 'blur' }]">
-              <el-input type="textarea" autosize rows="1" v-model="item.value" placeholder="填充内容"></el-input>
+            <el-form-item
+              :label="item.name"
+              :prop="'data.' + index + '.value'"
+              :rules="[{required: true, message: '填充内容不得为空', trigger: 'blur'}]"
+            >
+              <el-input
+                type="textarea"
+                autosize
+                rows="1"
+                v-model="item.value"
+                placeholder="填充内容"
+              ></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="8">
@@ -52,17 +67,19 @@
         </el-row>
       </div>
     </el-form>
-    <template #footer><span  class="dialog-footer">
-            <el-button @click="visible = false">取消</el-button>
-            <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-        </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {
@@ -74,39 +91,33 @@ export default {
         miniprogram: {appid: '', pagePath: ''},
         content: '',
         status: true,
-        name: ''
+        name: '',
       },
       dataRule: {
-        title: [
-          {required: true, message: '标题不能为空', trigger: 'blur'}
-        ],
-        data: [
-          {required: true, message: '内容不能为空', trigger: 'blur'}
-        ],
-        name: [
-          {required: true, message: '模版名称不能为空', trigger: 'blur'}
-        ]
-      }
-    }
+        title: [{required: true, message: '标题不能为空', trigger: 'blur'}],
+        data: [{required: true, message: '内容不能为空', trigger: 'blur'}],
+        name: [{required: true, message: '模版名称不能为空', trigger: 'blur'}],
+      },
+    };
   },
   methods: {
-    init (id) {
-      console.log('init', id)
-      this.dataForm.id = id || 0
-      this.visible = true
+    init(id) {
+      console.log('init', id);
+      this.dataForm.id = id || 0;
+      this.visible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs['dataForm'].resetFields();
         if (this.dataForm.id) {
           this.$http({
             url: `/manage/msgTemplate/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.transformTemplate(data.data)
+              this.transformTemplate(data.data);
             }
-          })
+          });
         }
-      })
+      });
     },
     /**
      * 根据content信息展开data配置项(content为微信公众平台后台配置的模板)
@@ -114,51 +125,51 @@ export default {
      * 则生成data=[{name:'first',value:'',color:''},{name:'first',value:'',color:''},{name:'first',value:'',color:''}]
      * 展示表单让管理员给对应的字段填充内容
      */
-    transformTemplate (template) {
+    transformTemplate(template) {
       if (!template.miniprogram) {
-        template.miniprogram = {appid: '', pagePath: ''}
+        template.miniprogram = {appid: '', pagePath: ''};
       }
       // 已经配置过了，直接读取
       if (template.data instanceof Array) {
-        this.dataForm = template
-        return
+        this.dataForm = template;
+        return;
       }
 
-      template.data = []
+      template.data = [];
       // 示例： ["{{first.DATA}}", "{{keyword1.DATA}}", "{{keyword2.DATA}}", "{{remark.DATA}}"]
-      let keysArray = template.content.match(/\{\{(\w*)\.DATA\}\}/g) || []
-      keysArray.map(item => {
-        let name = item.replace('{{', '').replace('.DATA}}', '')
-        template.data.push({'name': name, 'value': '', color: '#000000'})
-      })
-      this.dataForm = template
+      const keysArray = template.content.match(/\{\{(\w*)\.DATA\}\}/g) || [];
+      keysArray.map((item) => {
+        const name = item.replace('{{', '').replace('.DATA}}', '');
+        template.data.push({name: name, value: '', color: '#000000'});
+      });
+      this.dataForm = template;
     },
     // 表单提交
-    dataFormSubmit () {
+    dataFormSubmit() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({
             url: `/manage/msgTemplate/${!this.dataForm.id ? 'save' : 'update'}`,
             method: 'post',
-            data: this.dataForm
+            data: this.dataForm,
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({
                 message: '操作成功',
                 type: 'success',
-                duration: 1500
-              })
-              this.visible = false
-              this.$emit('refreshDataList')
+                duration: 1500,
+              });
+              this.visible = false;
+              this.$emit('refreshDataList');
             } else {
-              this.$message.error(data.msg)
+              this.$message.error(data.msg);
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>
 <style scoped>
 .form-group-area {

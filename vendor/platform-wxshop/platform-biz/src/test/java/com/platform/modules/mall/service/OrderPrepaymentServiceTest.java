@@ -32,8 +32,9 @@ class OrderPrepaymentServiceTest {
     WxPayConfig config = new WxPayConfig();
     config.setAppId("miniapp-test");
     when(gateway.getConfig()).thenReturn(config);
-    OrderPrepaymentService service = new OrderPrepaymentService(orders, provider,
-        "miniapp-test", "https://merchant.example/pay/notify");
+    OrderPrepaymentService service =
+        new OrderPrepaymentService(
+            orders, provider, "miniapp-test", "https://merchant.example/pay/notify");
     MallOrderEntity order = new MallOrderEntity();
     order.setUserId(7L);
     order.setOrderStatus(0);
@@ -50,7 +51,8 @@ class OrderPrepaymentServiceTest {
     result.setPackageValue("prepay_id=isolated");
     when(gateway.createOrder(any(WxPayUnifiedOrderRequest.class))).thenReturn(result);
     service.prepare(10, user, "127.0.0.1");
-    ArgumentCaptor<WxPayUnifiedOrderRequest> request = ArgumentCaptor.forClass(WxPayUnifiedOrderRequest.class);
+    ArgumentCaptor<WxPayUnifiedOrderRequest> request =
+        ArgumentCaptor.forClass(WxPayUnifiedOrderRequest.class);
     verify(gateway).createOrder(request.capture());
     assertEquals("miniapp-openid", request.getValue().getOpenid());
     assertEquals(19900, request.getValue().getTotalFee());

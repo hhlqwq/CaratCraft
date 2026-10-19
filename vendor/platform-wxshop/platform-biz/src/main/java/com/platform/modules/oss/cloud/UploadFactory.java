@@ -29,30 +29,32 @@ import com.platform.modules.sys.service.SysConfigService;
  * @since 2019-01-17 16:21:01
  */
 public final class UploadFactory {
-    private static SysConfigService sysConfigService;
+  private static SysConfigService sysConfigService;
 
-    static {
-        UploadFactory.sysConfigService = (SysConfigService) SpringContextUtils.getBean("sysConfigService");
+  static {
+    UploadFactory.sysConfigService =
+        (SysConfigService) SpringContextUtils.getBean("sysConfigService");
+  }
+
+  public static AbstractCloudStorageService build() {
+    // 获取云存储配置信息
+    CloudStorageConfig config =
+        sysConfigService.getConfigObject(
+            Constant.CLOUD_STORAGE_CONFIG_KEY, CloudStorageConfig.class);
+
+    if (config.getType() == Constant.CloudService.QINIU.getValue()) {
+      return new QiniuCloudStorageService(config);
+    } else if (config.getType() == Constant.CloudService.ALIYUN.getValue()) {
+      return new AliyunCloudStorageService(config);
+    } else if (config.getType() == Constant.CloudService.QCLOUD.getValue()) {
+      return new QcloudCloudStorageService(config);
+    } else if (config.getType() == Constant.CloudService.DISCK.getValue()) {
+      return new DiskCloudStorageService(config);
+    } else if (config.getType() == Constant.CloudService.MINIO.getValue()) {
+      return new MinioCloudStorageService(config);
+    } else if (config.getType() == Constant.CloudService.HUAWEI.getValue()) {
+      return new HuaWeiCloudStorageService(config);
     }
-
-    public static AbstractCloudStorageService build() {
-        //获取云存储配置信息
-        CloudStorageConfig config = sysConfigService.getConfigObject(Constant.CLOUD_STORAGE_CONFIG_KEY, CloudStorageConfig.class);
-
-        if (config.getType() == Constant.CloudService.QINIU.getValue()) {
-            return new QiniuCloudStorageService(config);
-        } else if (config.getType() == Constant.CloudService.ALIYUN.getValue()) {
-            return new AliyunCloudStorageService(config);
-        } else if (config.getType() == Constant.CloudService.QCLOUD.getValue()) {
-            return new QcloudCloudStorageService(config);
-        } else if (config.getType() == Constant.CloudService.DISCK.getValue()) {
-            return new DiskCloudStorageService(config);
-        } else if (config.getType() == Constant.CloudService.MINIO.getValue()) {
-            return new MinioCloudStorageService(config);
-        } else if (config.getType() == Constant.CloudService.HUAWEI.getValue()) {
-            return new HuaWeiCloudStorageService(config);
-        }
-        return null;
-    }
-
+    return null;
+  }
 }

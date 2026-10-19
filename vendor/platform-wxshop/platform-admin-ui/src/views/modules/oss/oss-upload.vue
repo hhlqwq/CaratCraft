@@ -5,7 +5,8 @@
     @close="closeHandle"
     :lock-scroll="false"
     v-model="visible"
-    append-to-body>
+    append-to-body
+  >
     <el-upload
       drag
       :action="url"
@@ -14,10 +15,13 @@
       :on-success="successHandle"
       multiple
       :file-list="fileList"
-      style="text-align: center;">
+      style="text-align: center"
+    >
       <i class="el-icon-upload"></i>
       <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-      <template #tip><div class="el-upload__tip" >支持 JPG、PNG、GIF、WebP，单张不超过 5 MB。</div></template>
+      <template #tip
+        ><div class="el-upload__tip">支持 JPG、PNG、GIF、WebP，单张不超过 5 MB。</div></template
+      >
     </el-upload>
   </el-dialog>
 </template>
@@ -25,56 +29,56 @@
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       url: '',
       num: 0,
       successNum: 0,
-      fileList: []
-    }
+      fileList: [],
+    };
   },
   methods: {
-    init (id) {
-      this.url = this.$http.BASE_URL + `/sys/oss/upload?token=${this.$cookie.get('token')}`
-      this.visible = true
+    init(id) {
+      this.url = this.$http.BASE_URL + `/sys/oss/upload?token=${this.$cookie.get('token')}`;
+      this.visible = true;
     },
     // 校验上传图片类型和大小 / Validates image type and size.
-    beforeUploadHandle (file) {
-      const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    beforeUploadHandle(file) {
+      const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        this.$message.error('只支持 JPG、PNG、GIF、WebP 格式的图片！')
-        return false
+        this.$message.error('只支持 JPG、PNG、GIF、WebP 格式的图片！');
+        return false;
       }
       if (file.size > 5 * 1024 * 1024) {
-        this.$message.error('单张图片不能超过 5 MB！')
-        return false
+        this.$message.error('单张图片不能超过 5 MB！');
+        return false;
       }
-      this.num++
+      this.num++;
     },
     // 上传成功
-    successHandle (response, file, fileList) {
-      this.fileList = fileList
-      this.successNum++
+    successHandle(response, file, fileList) {
+      this.fileList = fileList;
+      this.successNum++;
       if (response && response.code === 0) {
         if (this.num === this.successNum) {
           this.$confirm('操作成功, 是否继续操作?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
-            type: 'warning'
+            type: 'warning',
           }).catch(() => {
-            this.visible = false
-          })
+            this.visible = false;
+          });
         }
       } else {
-        this.$message.error(response.msg)
+        this.$message.error(response.msg);
       }
     },
     // 弹窗关闭时
-    closeHandle () {
-      this.fileList = []
-      this.$emit('refreshDataList')
-    }
-  }
-}
+    closeHandle() {
+      this.fileList = [];
+      this.$emit('refreshDataList');
+    },
+  },
+};
 </script>

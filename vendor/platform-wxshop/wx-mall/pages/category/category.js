@@ -1,5 +1,5 @@
-var util = require('../../utils/util.js');
-var api = require('../../config/api.js');
+const util = require('../../utils/util.js');
+const api = require('../../config/api.js');
 
 Page({
   data: {
@@ -16,125 +16,116 @@ Page({
     loadmoreText: '正在加载更多数据',
     nomoreText: '全部加载完成',
     nomore: false,
-    totalPages: 1
+    totalPages: 1,
   },
+  /** 初始化分类商品状态并读取页面所需数据. */
   onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
-    var that = this;
+    const that = this;
     if (options.id) {
       that.setData({
-        id: parseInt(options.id)
+        id: parseInt(options.id),
       });
     }
 
     wx.getSystemInfo({
       success: function (res) {
         that.setData({
-          scrollHeight: res.windowHeight
+          scrollHeight: res.windowHeight,
         });
-      }
+      },
     });
 
-
     this.getCategoryInfo();
-
   },
+  /** 读取当前分类详情与可切换的同级分类. */
   getCategoryInfo: function () {
-    let that = this;
-    util.request(api.GoodsCategory, { id: this.data.id })
-      .then(function (res) {
+    const that = this;
+    util.request(api.GoodsCategory, {id: this.data.id}).then(function (res) {
+      if (res.code == 0) {
+        that.setData({
+          navList: res.data.brotherCategory,
+          currentCategory: res.data.currentCategory,
+        });
 
-        if (res.code == 0) {
-          that.setData({
-            navList: res.data.brotherCategory,
-            currentCategory: res.data.currentCategory
-          });
-
-          //nav位置
-          let currentIndex = 0;
-          let navListCount = that.data.navList.length;
-          for (let i = 0; i < navListCount; i++) {
-            currentIndex += 1;
-            if (that.data.navList[i].id == that.data.id) {
-              break;
-            }
+        //nav位置
+        let currentIndex = 0;
+        const navListCount = that.data.navList.length;
+        for (let i = 0; i < navListCount; i++) {
+          currentIndex += 1;
+          if (that.data.navList[i].id == that.data.id) {
+            break;
           }
-          if (currentIndex > navListCount / 2 && navListCount > 5) {
-            that.setData({
-              scrollLeft: currentIndex * 60
-            });
-          }
-          that.getGoodsList();
-
-        } else {
-          //显示错误信息
         }
-        
-      });
-  },
-  onReady: function () {
-    // 页面渲染完成
-  },
-  onShow: function () {
-    // 页面显示
-  },
-  onHide: function () {
-    // 页面隐藏
+        if (currentIndex > navListCount / 2 && navListCount > 5) {
+          that.setData({
+            scrollLeft: currentIndex * 60,
+          });
+        }
+        that.getGoodsList();
+      } else {
+        //显示错误信息
+      }
+    });
   },
 
   /**
-     * 页面上拉触底事件的处理函数
-     */
+   * 页面上拉触底事件的处理函数
+   */
   onReachBottom: function () {
-    this.getGoodsList()
+    this.getGoodsList();
   },
 
+  /** 按当前条件分页读取分类商品商品列表. */
   getGoodsList: function () {
-    var that = this;
+    const that = this;
 
-    if (that.data.totalPages <= that.data.page-1) {
+    if (that.data.totalPages <= that.data.page - 1) {
       that.setData({
-        nomore: true
-      })
+        nomore: true,
+      });
       return;
     }
 
-    util.request(api.GoodsList, {categoryId: that.data.id, page: that.data.page, size: that.data.size})
+    util
+      .request(api.GoodsList, {
+        categoryId: that.data.id,
+        page: that.data.page,
+        size: that.data.size,
+      })
       .then(function (res) {
         that.setData({
-          goodsList: that.data.goodsList.concat(res.data.goodsList.records),        
+          goodsList: that.data.goodsList.concat(res.data.goodsList.records),
           page: res.data.goodsList.current + 1,
-          totalPages: res.data.goodsList.pages
+          totalPages: res.data.goodsList.pages,
         });
       });
   },
-  onUnload: function () {
-    // 页面关闭
-  },
+
+  /** 根据点击的分类标识切换商品展示范围. */
   switchCate: function (event) {
     if (this.data.id == event.currentTarget.dataset.id) {
       return false;
     }
-    var that = this;
-    var clientX = event.detail.x;
-    var currentTarget = event.currentTarget;
+    const that = this;
+    const clientX = event.detail.x;
+    const currentTarget = event.currentTarget;
     if (clientX < 60) {
       that.setData({
-        scrollLeft: currentTarget.offsetLeft - 60
+        scrollLeft: currentTarget.offsetLeft - 60,
       });
     } else if (clientX > 330) {
       that.setData({
-        scrollLeft: currentTarget.offsetLeft
+        scrollLeft: currentTarget.offsetLeft,
       });
     }
     this.setData({
       id: event.currentTarget.dataset.id,
-      page:1,
+      page: 1,
       totalPages: 1,
       goodsList: [],
-      nomore: false
+      nomore: false,
     });
-    
+
     this.getCategoryInfo();
-  }
-})
+  },
+});

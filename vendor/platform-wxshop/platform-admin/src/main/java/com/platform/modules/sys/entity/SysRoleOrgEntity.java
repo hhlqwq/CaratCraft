@@ -20,13 +20,11 @@ package com.platform.modules.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
- * 角色与机构对应关系实体
- * 表名 sys_role_org
+ * 角色与机构对应关系实体 表名 sys_role_org
  *
  * @author 何海龙
  * @since 2019-01-21 17:20:07
@@ -34,16 +32,13 @@ import java.io.Serializable;
 @Data
 @TableName("SYS_ROLE_ORG")
 public class SysRoleOrgEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @TableId
-    private String id;
-    /**
-     * 角色ID
-     */
-    private String roleId;
-    /**
-     * 机构ID
-     */
-    private String orgNo;
+  @TableId private String id;
+
+  /** 角色ID */
+  private String roleId;
+
+  /** 机构ID */
+  private String orgNo;
 }

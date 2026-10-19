@@ -19,14 +19,13 @@
 package com.platform.handler;
 
 import com.platform.modules.wx.service.WxUserService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * 微信公众号消息处理（取消关注）
@@ -37,17 +36,18 @@ import java.util.Map;
 @Component
 public class UnsubscribeHandler extends AbstractHandler {
 
-    private final WxUserService userService;
+  private final WxUserService userService;
 
-    @Override
-    public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage,
-                                    Map<String, Object> context, WxMpService wxMpService,
-                                    WxSessionManager sessionManager) {
-        String openid = wxMessage.getFromUser();
-        this.logger.info("取消关注用户 OPENID: " + openid);
+  @Override
+  public WxMpXmlOutMessage handle(
+      WxMpXmlMessage wxMessage,
+      Map<String, Object> context,
+      WxMpService wxMpService,
+      WxSessionManager sessionManager) {
+    String openid = wxMessage.getFromUser();
+    this.logger.info("取消关注用户 OPENID: " + openid);
 
-        userService.unsubscribe(openid);
-        return null;
-    }
-
+    userService.unsubscribe(openid);
+    return null;
+  }
 }

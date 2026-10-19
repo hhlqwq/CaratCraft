@@ -27,20 +27,19 @@ import java.util.List;
  */
 public final class SkuCartesianHelper {
 
-    private SkuCartesianHelper() {
-    }
+  private SkuCartesianHelper() {}
 
-    public static long countCartesian(List<? extends List<?>> dimensions) {
-        if (dimensions == null || dimensions.isEmpty()) {
-            return 0L;
-        }
-        long count = 1L;
-        for (List<?> dimension : dimensions) {
-            if (dimension == null || dimension.isEmpty()) {
-                return 0L;
-            }
-            count = count * dimension.size();
-        }
-        return count;
+  public static long countCartesian(List<? extends List<?>> dimensions) {
+    if (dimensions == null || dimensions.isEmpty()) {
+      return 0L;
     }
+    long count = 1L;
+    for (List<?> dimension : dimensions) {
+      if (dimension == null || dimension.isEmpty()) {
+        return 0L;
+      }
+      count = count * dimension.size();
+    }
+    return count;
+  }
 }

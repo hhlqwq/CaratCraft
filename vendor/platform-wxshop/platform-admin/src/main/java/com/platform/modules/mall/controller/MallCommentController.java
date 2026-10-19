@@ -28,13 +28,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 评论Controller
@@ -49,60 +48,69 @@ import java.util.Map;
 @Tag(name = "MallCommentController|评论")
 public class MallCommentController extends AbstractController {
 
-    private final MallCommentService mallCommentService;
+  private final MallCommentService mallCommentService;
 
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("mall:comment:list")
-    public RestResponse<List<MallCommentEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallCommentService.queryAll(params));
-    }
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("mall:comment:list")
+  public RestResponse<List<MallCommentEntity>> queryAll(@RequestParam Map<String, Object> params) {
+    return RestResponse.ok(mallCommentService.queryAll(params));
+  }
 
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("mall:comment:list")
-    public RestResponse<Page<MallCommentEntity>> list(@RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallCommentService.queryPage(params));
-    }
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("mall:comment:list")
+  public RestResponse<Page<MallCommentEntity>> list(@RequestParam Map<String, Object> params) {
+    return RestResponse.ok(mallCommentService.queryPage(params));
+  }
 
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情",
-            parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "主键", example = "1", required = true)})
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("mall:comment:info")
-    public RestResponse<MallCommentEntity> info(@PathVariable("id") Integer id) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("id", String.valueOf(id));
-        List<MallCommentEntity> list = mallCommentService.queryAll(params);
-        if (list.isEmpty()) {
-            return RestResponse.ok(mallCommentService.getById(id));
-        }
-        return RestResponse.ok(list.get(0));
+  @Operation(
+      summary = "根据主键查询详情",
+      description = "根据主键查询详情",
+      parameters = {
+        @Parameter(
+            in = ParameterIn.PATH,
+            name = "id",
+            description = "主键",
+            example = "1",
+            required = true)
+      })
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("mall:comment:info")
+  public RestResponse<MallCommentEntity> info(@PathVariable("id") Integer id) {
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", String.valueOf(id));
+    List<MallCommentEntity> list = mallCommentService.queryAll(params);
+    if (list.isEmpty()) {
+      return RestResponse.ok(mallCommentService.getById(id));
     }
+    return RestResponse.ok(list.get(0));
+  }
 
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增评论")
-    @PostMapping("/save")
-    @RequiresPermissions("mall:comment:save")
-    public RestResponse<String> save(@RequestBody MallCommentEntity mallComment) {
-        mallCommentService.add(mallComment);
-        return RestResponse.ok();
-    }
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增评论")
+  @PostMapping("/save")
+  @RequiresPermissions("mall:comment:save")
+  public RestResponse<String> save(@RequestBody MallCommentEntity mallComment) {
+    mallCommentService.add(mallComment);
+    return RestResponse.ok();
+  }
 
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改评论")
-    @PostMapping("/update")
-    @RequiresPermissions("mall:comment:update")
-    public RestResponse<String> update(@RequestBody MallCommentEntity mallComment) {
-        mallCommentService.update(mallComment);
-        return RestResponse.ok();
-    }
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改评论")
+  @PostMapping("/update")
+  @RequiresPermissions("mall:comment:update")
+  public RestResponse<String> update(@RequestBody MallCommentEntity mallComment) {
+    mallCommentService.update(mallComment);
+    return RestResponse.ok();
+  }
 
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除评论")
-    @PostMapping("/delete")
-    @RequiresPermissions("mall:comment:delete")
-    public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallCommentService.deleteBatch(ids);
-        return RestResponse.ok();
-    }
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除评论")
+  @PostMapping("/delete")
+  @RequiresPermissions("mall:comment:delete")
+  public RestResponse<String> delete(@RequestBody Integer[] ids) {
+    mallCommentService.deleteBatch(ids);
+    return RestResponse.ok();
+  }
 }

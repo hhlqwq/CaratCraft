@@ -14,8 +14,11 @@ function resolveBaseUrl() {
   if (!/^https?:\/\/[^\s?#]+\/$/.test(value)) {
     throw new Error('请在config/environment.js配置当前环境的API地址');
   }
-  if (version !== 'develop' && (!/^https:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z0-9.-]+(?::\d+)?\//.test(value)
-      || /^https:\/\/(localhost|127\.|0\.0\.0\.0)/.test(value))) {
+  if (
+    version !== 'develop' &&
+    (!/^https:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z0-9.-]+(?::\d+)?\//.test(value) ||
+      /^https:\/\/(localhost|127\.|0\.0\.0\.0)/.test(value))
+  ) {
     throw new Error('体验版和正式版必须使用已配置合法域名的HTTPS地址');
   }
   return value;
@@ -117,4 +120,4 @@ module.exports = {
 
   HelpTypeList: API_BASE_URL + 'helpissue/typeList', //查看帮助类型列表
   HelpIssueList: API_BASE_URL + 'helpissue/issueList', //查看问题列表
-}
+};

@@ -24,8 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * redis分布式锁
- * 2019-08-07 09:55
+ * redis分布式锁 2019-08-07 09:55
  *
  * @author 何海龙
  */
@@ -34,48 +33,48 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RedisLock {
 
-    private final RedisTemplateUtil redisTemplateUtil;
+  private final RedisTemplateUtil redisTemplateUtil;
 
-    /**
-     * 加锁
-     *
-     * @param key   key
-     * @param value 当前时间+超时时间
-     * @return boolean
-     */
-    public boolean lock(String key, String value) {
-        if (redisTemplateUtil.setIfAbsent(key, value)) {
-            return true;
-        }
-        //currentValue=A   这两个线程的value都是B  其中一个线程拿到锁
-        String currentValue = redisTemplateUtil.get(key).toString();
-        //如果锁过期
-        if (!StringUtils.isEmpty(currentValue) && Long.parseLong(currentValue) < System.currentTimeMillis()) {
-            //获取上一个锁的时间
-            String oldValue = redisTemplateUtil.get(key).toString();
+  /**
+   * 加锁
+   *
+   * @param key key
+   * @param value 当前时间+超时时间
+   * @return boolean
+   */
+  public boolean lock(String key, String value) {
+    if (redisTemplateUtil.setIfAbsent(key, value)) {
+      return true;
+    }
+    // currentValue=A   这两个线程的value都是B  其中一个线程拿到锁
+    String currentValue = redisTemplateUtil.get(key).toString();
+    // 如果锁过期
+    if (!StringUtils.isEmpty(currentValue)
+        && Long.parseLong(currentValue) < System.currentTimeMillis()) {
+      // 获取上一个锁的时间
+      String oldValue = redisTemplateUtil.get(key).toString();
 
-            redisTemplateUtil.set(key, value);
-            return !StringUtils.isEmpty(oldValue) && oldValue.equals(currentValue);
-        }
-
-        return false;
+      redisTemplateUtil.set(key, value);
+      return !StringUtils.isEmpty(oldValue) && oldValue.equals(currentValue);
     }
 
-    /**
-     * 解锁
-     *
-     * @param key   key
-     * @param value value
-     */
-    public void unlock(String key, String value) {
-        try {
-            String currentValue = redisTemplateUtil.get(key).toString();
-            if (!StringUtils.isEmpty(currentValue) && currentValue.equals(value)) {
-                redisTemplateUtil.del(key);
-            }
-        } catch (Exception e) {
-            log.error("【redis分布式锁】解锁异常：" + e);
-        }
-    }
+    return false;
+  }
 
+  /**
+   * 解锁
+   *
+   * @param key key
+   * @param value value
+   */
+  public void unlock(String key, String value) {
+    try {
+      String currentValue = redisTemplateUtil.get(key).toString();
+      if (!StringUtils.isEmpty(currentValue) && currentValue.equals(value)) {
+        redisTemplateUtil.del(key);
+      }
+    } catch (Exception e) {
+      log.error("【redis分布式锁】解锁异常：" + e);
+    }
+  }
 }

@@ -6,9 +6,15 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDictDataList()">查询</el-button>
-        <el-button v-if="isAuth('sys:dict:save')" type="primary" @click="addOrUpdateDictHandle()">新增</el-button>
-        <el-button v-if="isAuth('sys:dict:delete')" type="danger" @click="deleteDictHandle()"
-                   :disabled="dictDataListSelections.length <= 0">批量删除
+        <el-button v-if="isAuth('sys:dict:save')" type="primary" @click="addOrUpdateDictHandle()"
+          >新增</el-button
+        >
+        <el-button
+          v-if="isAuth('sys:dict:delete')"
+          type="danger"
+          @click="deleteDictHandle()"
+          :disabled="dictDataListSelections.length <= 0"
+          >批量删除
         </el-button>
       </el-form-item>
     </el-form>
@@ -16,52 +22,37 @@
       :data="dictDataList"
       border
       @selection-change="selectionChangeDictHandle"
-      style="width: 100%;">
-      <el-table-column
-        type="selection"
-        header-align="center"
-        align="center"
-        width="50">
+      style="width: 100%"
+    >
+      <el-table-column type="selection" header-align="center" align="center" width="50">
       </el-table-column>
-      <el-table-column
-        prop="code"
-        header-align="center"
-        align="center"
-        label="分组编码">
+      <el-table-column prop="code" header-align="center" align="center" label="分组编码">
       </el-table-column>
-      <el-table-column
-        prop="name"
-        header-align="center"
-        align="center"
-        label="字典名称">
+      <el-table-column prop="name" header-align="center" align="center" label="字典名称">
       </el-table-column>
-      <el-table-column
-        prop="value"
-        header-align="center"
-        align="center"
-        label="字典值">
+      <el-table-column prop="value" header-align="center" align="center" label="字典值">
       </el-table-column>
-      <el-table-column
-        prop="status"
-        header-align="center"
-        align="center"
-        label="状态">
+      <el-table-column prop="status" header-align="center" align="center" label="状态">
         <template #default="scope">
           <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
           <el-tag v-else-if="scope.row.status === 1" size="small" type="success">正常</el-tag>
         </template>
       </el-table-column>
-      <el-table-column
-        fixed="right"
-        header-align="center"
-        align="center"
-        width="150"
-        label="操作">
+      <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
         <template #default="scope">
-          <el-button v-if="isAuth('sys:dict:update')" type="text" size="small"
-                     @click="addOrUpdateDictHandle(scope.row.id)">修改
+          <el-button
+            v-if="isAuth('sys:dict:update')"
+            type="text"
+            size="small"
+            @click="addOrUpdateDictHandle(scope.row.id)"
+            >修改
           </el-button>
-          <el-button v-if="isAuth('sys:dict:delete')" type="text" size="small" @click="deleteDictHandle(scope.row.id)">
+          <el-button
+            v-if="isAuth('sys:dict:delete')"
+            type="text"
+            size="small"
+            @click="deleteDictHandle(scope.row.id)"
+          >
             删除
           </el-button>
         </template>
@@ -74,23 +65,27 @@
       :page-sizes="[10, 20, 50, 100]"
       :page-size="dictPageSize"
       :total="dictTotalPage"
-      layout="total, sizes, prev, pager, next, jumper">
+      layout="total, sizes, prev, pager, next, jumper"
+    >
     </el-pagination>
     <!-- 弹窗, 新增 / 修改 -->
-    <dict-add-or-update v-if="dictVisible" ref="dictAddOrUpdate"
-                        @refreshDataList="getDictDataList"></dict-add-or-update>
+    <dict-add-or-update
+      v-if="dictVisible"
+      ref="dictAddOrUpdate"
+      @refreshDataList="getDictDataList"
+    ></dict-add-or-update>
   </div>
 </template>
 
 <script>
-import DictAddOrUpdate from './dict-add-or-update'
+import DictAddOrUpdate from './dict-add-or-update';
 
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       searchForm: {
-        name: ''
+        name: '',
       },
       dictDataList: [],
       dictPageIndex: 1,
@@ -99,89 +94,92 @@ export default {
       dictDataListSelections: [],
       dictVisible: false,
       groupId: '',
-      code: ''
-    }
+      code: '',
+    };
   },
   components: {
-    DictAddOrUpdate
+    DictAddOrUpdate,
   },
   methods: {
     // 获取数据列表
-    getDictDataList (groupId, code) {
+    getDictDataList(groupId, code) {
       if (groupId) {
-        this.groupId = groupId
+        this.groupId = groupId;
       }
       if (code) {
-        this.code = code
+        this.code = code;
       }
       this.$http({
         url: '/sys/dict/list',
         method: 'get',
         params: {
-          'page': this.dictPageIndex,
-          'limit': this.dictPageSize,
-          'name': this.searchForm.name,
-          'code': this.code
-        }
+          page: this.dictPageIndex,
+          limit: this.dictPageSize,
+          name: this.searchForm.name,
+          code: this.code,
+        },
       }).then(({data}) => {
         if (data && data.code === 0) {
-          this.dictDataList = data.data.records
-          this.dictTotalPage = data.data.total
+          this.dictDataList = data.data.records;
+          this.dictTotalPage = data.data.total;
         } else {
-          this.dictDataList = []
-          this.dictTotalPage = 0
+          this.dictDataList = [];
+          this.dictTotalPage = 0;
         }
-      })
+      });
     },
     // 每页数
-    sizeChangeDictHandle (val) {
-      this.dictPageSize = val
-      this.dictPageIndex = 1
-      this.getDictDataList()
+    sizeChangeDictHandle(val) {
+      this.dictPageSize = val;
+      this.dictPageIndex = 1;
+      this.getDictDataList();
     },
     // 当前页
-    currentChangeDictHandle (val) {
-      this.dictPageIndex = val
-      this.getDictDataList()
+    currentChangeDictHandle(val) {
+      this.dictPageIndex = val;
+      this.getDictDataList();
     },
     // 多选
-    selectionChangeDictHandle (val) {
-      this.dictDataListSelections = val
+    selectionChangeDictHandle(val) {
+      this.dictDataListSelections = val;
     },
     // 新增 / 修改
-    addOrUpdateDictHandle (id) {
-      this.dictVisible = true
+    addOrUpdateDictHandle(id) {
+      this.dictVisible = true;
       this.$nextTick(() => {
-        this.$refs.dictAddOrUpdate.init(id)
-      })
+        this.$refs.dictAddOrUpdate.init(id);
+      });
     },
     // 删除
-    deleteDictHandle (id) {
-      let ids = id ? [id] : this.dictDataListSelections.map(item => {
-        return item.id
-      })
+    deleteDictHandle(id) {
+      const ids = id
+        ? [id]
+        : this.dictDataListSelections.map((item) => {
+            return item.id;
+          });
       this.$confirm('确定对所选项进行[删除]操作?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.$http({
-          url: '/sys/dict/delete',
-          method: 'post',
-          data: ids
-        }).then(({data}) => {
-          if (data && data.code === 0) {
-            this.$message({
-              message: '操作成功',
-              type: 'success',
-              duration: 1500
-            })
-            this.getDictDataList()
-          }
-        })
-      }).catch(() => {
+        type: 'warning',
       })
-    }
-  }
-}
+        .then(() => {
+          this.$http({
+            url: '/sys/dict/delete',
+            method: 'post',
+            data: ids,
+          }).then(({data}) => {
+            if (data && data.code === 0) {
+              this.$message({
+                message: '操作成功',
+                type: 'success',
+                duration: 1500,
+              });
+              this.getDictDataList();
+            }
+          });
+        })
+        .catch(() => {});
+    },
+  },
+};
 </script>

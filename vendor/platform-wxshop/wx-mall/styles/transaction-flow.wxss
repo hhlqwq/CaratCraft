@@ -38,7 +38,7 @@ page .save-btn {
 page .order-total .r,
 page .bottom-btn .r,
 page .save-btn,
-page button[type="primary"] {
+page button[type='primary'] {
   border-radius: 14rpx;
   background: #17352f;
   color: #ffffff;

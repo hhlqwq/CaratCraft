@@ -9,9 +9,9 @@ import com.platform.modules.mall.dto.GoodsAggregateDTO;
  */
 public interface MallGoodsAggregateService {
 
-    GoodsAggregateDTO getAggregate(Integer goodsId);
+  GoodsAggregateDTO getAggregate(Integer goodsId);
 
-    Integer saveAggregate(GoodsAggregateDTO aggregateDTO);
+  Integer saveAggregate(GoodsAggregateDTO aggregateDTO);
 
-    Integer updateAggregate(GoodsAggregateDTO aggregateDTO);
+  Integer updateAggregate(GoodsAggregateDTO aggregateDTO);
 }

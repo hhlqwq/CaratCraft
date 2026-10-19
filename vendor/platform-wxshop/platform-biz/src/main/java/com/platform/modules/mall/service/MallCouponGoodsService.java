@@ -22,7 +22,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallCouponGoodsEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,59 +33,59 @@ import java.util.Map;
  */
 public interface MallCouponGoodsService extends IService<MallCouponGoodsEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallCouponGoodsEntity> queryAll(Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallCouponGoodsEntity> queryAll(Map<String, Object> params);
 
-    /**
-     * 查询所有列表
-     *
-     * @param queryWrapper 查询参数
-     * @return List
-     */
-    List<MallCouponGoodsEntity> queryAllByWrapper(QueryWrapper<MallCouponGoodsEntity> queryWrapper);
+  /**
+   * 查询所有列表
+   *
+   * @param queryWrapper 查询参数
+   * @return List
+   */
+  List<MallCouponGoodsEntity> queryAllByWrapper(QueryWrapper<MallCouponGoodsEntity> queryWrapper);
 
-    /**
-     * 分页查询优惠券关联商品
-     *
-     * @param params 查询参数
-     * @return Page
-     */
-    Page<MallCouponGoodsEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询优惠券关联商品
+   *
+   * @param params 查询参数
+   * @return Page
+   */
+  Page<MallCouponGoodsEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 新增优惠券关联商品
-     *
-     * @param mallCouponGoods 优惠券关联商品
-     * @return 新增结果
-     */
-    boolean add(MallCouponGoodsEntity mallCouponGoods);
+  /**
+   * 新增优惠券关联商品
+   *
+   * @param mallCouponGoods 优惠券关联商品
+   * @return 新增结果
+   */
+  boolean add(MallCouponGoodsEntity mallCouponGoods);
 
-    /**
-     * 根据主键更新优惠券关联商品
-     *
-     * @param mallCouponGoods 优惠券关联商品
-     * @return 更新结果
-     */
-    boolean update(MallCouponGoodsEntity mallCouponGoods);
+  /**
+   * 根据主键更新优惠券关联商品
+   *
+   * @param mallCouponGoods 优惠券关联商品
+   * @return 更新结果
+   */
+  boolean update(MallCouponGoodsEntity mallCouponGoods);
 
-    /**
-     * 根据主键删除优惠券关联商品
-     *
-     * @param id id
-     * @return 删除结果
-     */
-    boolean delete(Integer id);
+  /**
+   * 根据主键删除优惠券关联商品
+   *
+   * @param id id
+   * @return 删除结果
+   */
+  boolean delete(Integer id);
 
-    /**
-     * 根据主键批量删除
-     *
-     * @param ids ids
-     * @return 删除结果
-     */
-    boolean deleteBatch(Integer[] ids);
+  /**
+   * 根据主键批量删除
+   *
+   * @param ids ids
+   * @return 删除结果
+   */
+  boolean deleteBatch(Integer[] ids);
 }

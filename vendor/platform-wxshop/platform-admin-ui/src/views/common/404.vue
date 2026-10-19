@@ -5,7 +5,8 @@
         <h2 class="not-found-title">400</h2>
         <p class="not-found-desc">抱歉！您访问的页面<em>失联</em>啦 ...</p>
         <el-button @click="$router.go(-1)">返回上一页</el-button>
-        <el-button type="primary" class="not-found-btn-gohome" @click="$router.push({ name: 'home' })">进入首页
+        <el-button type="primary" class="not-found-btn-gohome" @click="$router.push({name: 'home'})"
+          >进入首页
         </el-button>
       </div>
     </div>
@@ -14,7 +15,8 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},}
+  compatConfig: {MODE: 2},
+};
 </script>
 
 <style lang="scss">
@@ -59,12 +61,10 @@ export default {
       font-style: normal;
       color: #ee8145;
     }
-
   }
 
   .not-found-btn-gohome {
     margin-left: 30px;
   }
-
 }
 </style>

@@ -25,28 +25,31 @@ import com.platform.common.utils.Query;
 import com.platform.modules.sys.dao.SysLogDao;
 import com.platform.modules.sys.entity.SysLogEntity;
 import com.platform.modules.sys.service.SysLogService;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 /**
  * @author 何海龙
  */
 @Service("sysLogService")
-public class SysLogServiceImpl extends ServiceImpl<SysLogDao, SysLogEntity> implements SysLogService {
+public class SysLogServiceImpl extends ServiceImpl<SysLogDao, SysLogEntity>
+    implements SysLogService {
 
-    @Override
-    public Page<SysLogEntity> queryPage(Map<String, Object> params) {
-        String key = (String) params.get("key");
-        String ip = (String) params.get("ip");
+  @Override
+  public Page<SysLogEntity> queryPage(Map<String, Object> params) {
+    String key = (String) params.get("key");
+    String ip = (String) params.get("ip");
 
-        Page<SysLogEntity> page = new Query<SysLogEntity>(params).getPage();
+    Page<SysLogEntity> page = new Query<SysLogEntity>(params).getPage();
 
-        return baseMapper.selectPage(page,
-                new QueryWrapper<SysLogEntity>()
-                        .like(StringUtils.isNotBlank(ip), "IP", ip)
-                        .and(StringUtils.isNotBlank(key), queryWrapper -> queryWrapper.like("USER_NAME", key).or().like("OPERATION", key))
-                        .orderByDesc("CREATE_TIME"));
-    }
+    return baseMapper.selectPage(
+        page,
+        new QueryWrapper<SysLogEntity>()
+            .like(StringUtils.isNotBlank(ip), "IP", ip)
+            .and(
+                StringUtils.isNotBlank(key),
+                queryWrapper -> queryWrapper.like("USER_NAME", key).or().like("OPERATION", key))
+            .orderByDesc("CREATE_TIME"));
+  }
 }

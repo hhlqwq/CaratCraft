@@ -22,7 +22,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallGoodsEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,97 +33,97 @@ import java.util.Map;
  */
 public interface MallGoodsService extends IService<MallGoodsEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallGoodsEntity> queryAll(Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallGoodsEntity> queryAll(Map<String, Object> params);
 
-    /**
-     * 查询所有列表
-     *
-     * @param queryWrapper 查询参数
-     * @return List
-     */
-    List<MallGoodsEntity> queryAllByWrapper(QueryWrapper<MallGoodsEntity> queryWrapper);
+  /**
+   * 查询所有列表
+   *
+   * @param queryWrapper 查询参数
+   * @return List
+   */
+  List<MallGoodsEntity> queryAllByWrapper(QueryWrapper<MallGoodsEntity> queryWrapper);
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return Page
-     */
-    Page<MallGoodsEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return Page
+   */
+  Page<MallGoodsEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 分页查询回收站商品。
-     *
-     * @param params 查询参数。
-     * @return 回收站分页数据。
-     */
-    Page<MallGoodsEntity> queryRecyclePage(Map<String, Object> params);
+  /**
+   * 分页查询回收站商品。
+   *
+   * @param params 查询参数。
+   * @return 回收站分页数据。
+   */
+  Page<MallGoodsEntity> queryRecyclePage(Map<String, Object> params);
 
-    /**
-     * 新增
-     *
-     * @param mallGoods
-     * @return 新增结果
-     */
-    boolean add(MallGoodsEntity mallGoods);
+  /**
+   * 新增
+   *
+   * @param mallGoods
+   * @return 新增结果
+   */
+  boolean add(MallGoodsEntity mallGoods);
 
-    /**
-     * 根据主键更新
-     *
-     * @param mallGoods
-     * @return 更新结果
-     */
-    boolean update(MallGoodsEntity mallGoods);
+  /**
+   * 根据主键更新
+   *
+   * @param mallGoods
+   * @return 更新结果
+   */
+  boolean update(MallGoodsEntity mallGoods);
 
-    /**
-     * 根据主键删除
-     *
-     * @param id id
-     * @return 删除结果
-     */
-    boolean delete(Integer id);
+  /**
+   * 根据主键删除
+   *
+   * @param id id
+   * @return 删除结果
+   */
+  boolean delete(Integer id);
 
-    /**
-     * 根据主键批量删除
-     *
-     * @param ids ids
-     * @return 删除结果
-     */
-    boolean deleteBatch(Integer[] ids);
+  /**
+   * 根据主键批量删除
+   *
+   * @param ids ids
+   * @return 删除结果
+   */
+  boolean deleteBatch(Integer[] ids);
 
-    /**
-     * 批量恢复回收站商品，恢复后保持下架状态。
-     *
-     * @param ids 商品 ID。
-     * @return 是否恢复成功。
-     */
-    boolean restoreBatch(Integer[] ids);
+  /**
+   * 批量恢复回收站商品，恢复后保持下架状态。
+   *
+   * @param ids 商品 ID。
+   * @return 是否恢复成功。
+   */
+  boolean restoreBatch(Integer[] ids);
 
-    /**
-     * 批量永久删除回收站商品及可重建关联数据。
-     *
-     * @param ids 商品 ID。
-     * @return 实际删除商品数量。
-     */
-    int permanentlyDeleteBatch(Integer[] ids);
+  /**
+   * 批量永久删除回收站商品及可重建关联数据。
+   *
+   * @param ids 商品 ID。
+   * @return 实际删除商品数量。
+   */
+  int permanentlyDeleteBatch(Integer[] ids);
 
-    /**
-     * 清理超过保留期的回收站商品。
-     *
-     * @param expireTime 最晚删除时间。
-     * @return 实际删除商品数量。
-     */
-    int purgeExpiredRecycleBin(java.util.Date expireTime);
+  /**
+   * 清理超过保留期的回收站商品。
+   *
+   * @param expireTime 最晚删除时间。
+   * @return 实际删除商品数量。
+   */
+  int purgeExpiredRecycleBin(java.util.Date expireTime);
 
-    List<MallGoodsEntity> queryCatalogProductList(Map<String, Object> params);
+  List<MallGoodsEntity> queryCatalogProductList(Map<String, Object> params);
 
-    List<MallGoodsEntity> queryList(Map<String, Object> param);
+  List<MallGoodsEntity> queryList(Map<String, Object> param);
 
-    long queryTotal(Map<String, Object> params);
+  long queryTotal(Map<String, Object> params);
 }

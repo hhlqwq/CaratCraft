@@ -1,14 +1,15 @@
-@import "../../../styles/account-archive.wxss";
+@import '../../../styles/account-archive.wxss';
 
-page ,.container{
-   width: 750rpx;
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background: #f4f4f4;
-    position: relative;
+page,
+.container {
+  width: 750rpx;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #f4f4f4;
+  position: relative;
 }
-.help-head{
+.help-head {
   background-color: #fff;
   padding: 30rpx;
   font-size: 35rpx;
@@ -25,7 +26,7 @@ page ,.container{
 }
 
 .list-group::before {
-  content: " ";
+  content: ' ';
   position: absolute;
   left: 0;
   top: 0;
@@ -38,7 +39,7 @@ page ,.container{
 }
 
 .list-group::after {
-  content: " ";
+  content: ' ';
   position: absolute;
   left: 0;
   bottom: 0;
@@ -62,7 +63,7 @@ page ,.container{
 }
 
 .list-cell::before {
-  content: " ";
+  content: ' ';
   position: absolute;
   top: 0;
   right: 0;
@@ -101,7 +102,7 @@ page ,.container{
 }
 
 .list-cell-ft.router::after {
-  content: " ";
+  content: ' ';
   display: inline-block;
   height: 6px;
   width: 6px;

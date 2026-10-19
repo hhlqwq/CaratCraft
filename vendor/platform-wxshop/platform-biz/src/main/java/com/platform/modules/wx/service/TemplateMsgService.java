@@ -25,17 +25,17 @@ import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
  * @author 何海龙
  */
 public interface TemplateMsgService {
-    /**
-     * 发送微信模版消息
-     *
-     * @param msg
-     */
-    void sendTemplateMsg(WxMpTemplateMessage msg);
+  /**
+   * 发送微信模版消息
+   *
+   * @param msg
+   */
+  void sendTemplateMsg(WxMpTemplateMessage msg);
 
-    /**
-     * 批量消息发送
-     *
-     * @param form
-     */
-    void sendMsgBatch(TemplateMsgBatchForm form);
+  /**
+   * 批量消息发送
+   *
+   * @param form
+   */
+  void sendMsgBatch(TemplateMsgBatchForm form);
 }

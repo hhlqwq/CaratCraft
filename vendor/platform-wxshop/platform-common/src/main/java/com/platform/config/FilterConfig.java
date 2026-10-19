@@ -19,39 +19,37 @@
 package com.platform.config;
 
 import com.platform.common.xss.XssFilter;
+import jakarta.servlet.DispatcherType;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.servlet.DispatcherType;
-
 /**
- * admin、api都用到的
- * 过滤器配置
+ * admin、api都用到的 过滤器配置
  *
  * @author 何海龙
  */
 @Configuration
 public class FilterConfig {
 
-    @Bean
-    public FilterRegistrationBean<XssFilter> xssFilterRegistration() {
-        FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
-        registration.setDispatcherTypes(DispatcherType.REQUEST);
-        registration.setFilter(new XssFilter());
-        registration.addUrlPatterns("/*");
-        registration.setName("xssFilter");
-        registration.setOrder(Integer.MAX_VALUE);
-        return registration;
-    }
+  @Bean
+  public FilterRegistrationBean<XssFilter> xssFilterRegistration() {
+    FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
+    registration.setDispatcherTypes(DispatcherType.REQUEST);
+    registration.setFilter(new XssFilter());
+    registration.addUrlPatterns("/*");
+    registration.setName("xssFilter");
+    registration.setOrder(Integer.MAX_VALUE);
+    return registration;
+  }
 
-    @Bean
-    public FilterRegistrationBean<AntiSqlInjectionFilter> antiSqlInjectionFilterRegistration() {
-        FilterRegistrationBean<AntiSqlInjectionFilter> registration = new FilterRegistrationBean<>();
-        registration.setDispatcherTypes(DispatcherType.REQUEST);
-        registration.setFilter(new AntiSqlInjectionFilter());
-        registration.addUrlPatterns("/*");
-        registration.setName("antiSqlInjectionFilter");
-        return registration;
-    }
+  @Bean
+  public FilterRegistrationBean<AntiSqlInjectionFilter> antiSqlInjectionFilterRegistration() {
+    FilterRegistrationBean<AntiSqlInjectionFilter> registration = new FilterRegistrationBean<>();
+    registration.setDispatcherTypes(DispatcherType.REQUEST);
+    registration.setFilter(new AntiSqlInjectionFilter());
+    registration.addUrlPatterns("/*");
+    registration.setName("antiSqlInjectionFilter");
+    return registration;
+  }
 }

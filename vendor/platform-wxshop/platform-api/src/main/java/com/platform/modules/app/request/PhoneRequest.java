@@ -9,10 +9,12 @@ import lombok.Data;
 @Data
 @Schema(description = "手机号")
 public class PhoneRequest {
-    @Schema(description = "手机号", example = "15209831990")
-    private String phone;
-    @Schema(description = "手机号", example = "15209831990")
-    private String mobile;
-    @Schema(description = "验证码", example = "15209831990")
-    private String code;
+  @Schema(description = "手机号", example = "15209831990")
+  private String phone;
+
+  @Schema(description = "手机号", example = "15209831990")
+  private String mobile;
+
+  @Schema(description = "验证码", example = "15209831990")
+  private String code;
 }

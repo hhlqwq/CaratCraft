@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallCommentPictureDao;
 import com.platform.modules.mall.entity.MallCommentPictureEntity;
 import com.platform.modules.mall.service.MallCommentPictureService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 商品评论图片表Service实现类
@@ -39,49 +38,52 @@ import java.util.Map;
  * @since 2026-03-15 13:45:49
  */
 @Service("mallCommentPictureService")
-public class MallCommentPictureServiceImpl extends ServiceImpl<MallCommentPictureDao, MallCommentPictureEntity> implements MallCommentPictureService {
+public class MallCommentPictureServiceImpl
+    extends ServiceImpl<MallCommentPictureDao, MallCommentPictureEntity>
+    implements MallCommentPictureService {
 
-    @Override
-    public List<MallCommentPictureEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallCommentPictureEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallCommentPictureEntity> queryAllByWrapper(QueryWrapper<MallCommentPictureEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallCommentPictureEntity> queryAllByWrapper(
+      QueryWrapper<MallCommentPictureEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallCommentPictureEntity> queryPage(Map<String, Object> params) {
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallCommentPictureEntity> page = new Query<MallCommentPictureEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallCommentPicturePage(page, params));
-    }
+  @Override
+  public Page<MallCommentPictureEntity> queryPage(Map<String, Object> params) {
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallCommentPictureEntity> page = new Query<MallCommentPictureEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallCommentPicturePage(page, params));
+  }
 
-    @Override
-    public boolean add(MallCommentPictureEntity mallCommentPicture) {
-        return this.save(mallCommentPicture);
-    }
+  @Override
+  public boolean add(MallCommentPictureEntity mallCommentPicture) {
+    return this.save(mallCommentPicture);
+  }
 
-    @Override
-    public boolean update(MallCommentPictureEntity mallCommentPicture) {
-        return this.updateById(mallCommentPicture);
-    }
+  @Override
+  public boolean update(MallCommentPictureEntity mallCommentPicture) {
+    return this.updateById(mallCommentPicture);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallCommentPictureEntity> queryList(Map<String, Object> paramPicture) {
-        return baseMapper.queryList(paramPicture);
-    }
+  @Override
+  public List<MallCommentPictureEntity> queryList(Map<String, Object> paramPicture) {
+    return baseMapper.queryList(paramPicture);
+  }
 }

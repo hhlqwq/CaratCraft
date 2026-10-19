@@ -1,5 +1,5 @@
-@use "sass:color";
-@use "variables" as *;
+@use 'sass:color';
+@use 'variables' as *;
 *,
 *:before,
 *:after {
@@ -8,7 +8,9 @@
 
 body {
   overflow-y: scroll;
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑',
+    Arial, sans-serif;
   font-size: 14px;
   line-height: 1.15;
   color: #303133;
@@ -34,7 +36,7 @@ img {
 ------------------------------ */
 .clearfix:before,
 .clearfix:after {
-  content: " ";
+  content: ' ';
   display: table;
 }
 
@@ -87,7 +89,7 @@ img {
 ------------------------------ */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity .5s;
+  transition: opacity 0.5s;
 }
 
 .fade-enter,
@@ -125,7 +127,12 @@ img {
 .site-sidebar__menu-icon,
 .site-content__wrapper,
 .site-content--tabs > .el-tabs .el-tabs__header {
-  transition: inline-block .3s, left .3s, width .3s, margin-left .3s, font-size .3s;
+  transition:
+    inline-block 0.3s,
+    left 0.3s,
+    width 0.3s,
+    margin-left 0.3s,
+    font-size 0.3s;
 }
 
 /* Navbar
@@ -137,7 +144,7 @@ img {
   left: 0;
   z-index: 1030;
   height: 50px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   background-color: $navbar--background-color;
 
   &--inverse {
@@ -414,7 +421,9 @@ img {
       right: 0;
       z-index: 930;
       padding: 0 55px 0 15px;
-      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .12), 0 0 6px 0 rgba(0, 0, 0, .04);
+      box-shadow:
+        0 2px 4px 0 rgba(0, 0, 0, 0.12),
+        0 0 6px 0 rgba(0, 0, 0, 0.04);
       background-color: #fff;
 
       > .el-tabs__nav-wrap {
@@ -465,7 +474,7 @@ body {
 
 .site-navbar {
   background: #17231f;
-  border-bottom: 1px solid rgba(201, 168, 107, .35);
+  border-bottom: 1px solid rgba(201, 168, 107, 0.35);
   box-shadow: none;
   height: 64px;
 
@@ -498,7 +507,7 @@ body {
 
   &__menu .el-menu-item:hover,
   &__menu .el-menu-item:focus {
-    background: rgba(255, 255, 255, .06);
+    background: rgba(255, 255, 255, 0.06);
     color: #d8bd88;
   }
 }
@@ -521,13 +530,13 @@ body {
 
       .el-menu-item:hover,
       .el-submenu > .el-submenu__title:hover {
-        background: rgba(255, 255, 255, .035);
+        background: rgba(255, 255, 255, 0.035);
         color: #fff;
       }
 
       .el-menu-item.is-active,
       .el-submenu.is-active > .el-submenu__title {
-        background: rgba(183, 138, 77, .12);
+        background: rgba(183, 138, 77, 0.12);
         border-left-color: #c9a86b;
         color: #e3c895;
       }
@@ -569,7 +578,7 @@ body {
     background: #fbfaf7;
     border-bottom-color: #e7e2d9;
     color: #1e2925;
-    font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+    font-family: Georgia, 'Times New Roman', 'Microsoft YaHei', serif;
     font-size: 16px;
     font-weight: 600;
     padding: 16px 20px;
@@ -667,7 +676,7 @@ body {
 
 .el-dialog {
   border-radius: 2px;
-  box-shadow: 0 24px 70px rgba(21, 30, 27, .22);
+  box-shadow: 0 24px 70px rgba(21, 30, 27, 0.22);
 
   &__header {
     border-bottom: 1px solid #e5e0d7;
@@ -676,7 +685,7 @@ body {
 
   &__title {
     color: #23302b;
-    font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+    font-family: Georgia, 'Times New Roman', 'Microsoft YaHei', serif;
     font-size: 17px;
   }
 
@@ -688,15 +697,35 @@ body {
 }
 
 // 管理端导航在新组件库下使用明确的弹性布局, 避免菜单被折叠为省略号.
-.site-navbar__body { display: flex; justify-content: space-between; }
-.site-navbar__menu--right { margin-left: auto; }
+.site-navbar__body {
+  display: flex;
+  justify-content: space-between;
+}
+.site-navbar__menu--right {
+  margin-left: auto;
+}
 
 // 折叠侧栏优先于组件局部样式, 窄屏不显示截断的品牌和菜单文字.
-.site-wrapper.site-sidebar--fold .site-navbar__brand-lg { display: none; }
-.site-wrapper.site-sidebar--fold .site-navbar__brand { padding-left: 0; text-align: center; }
-.site-wrapper .el-pagination { max-width: 100%; overflow-x: auto; justify-content: flex-end; }
+.site-wrapper.site-sidebar--fold .site-navbar__brand-lg {
+  display: none;
+}
+.site-wrapper.site-sidebar--fold .site-navbar__brand {
+  padding-left: 0;
+  text-align: center;
+}
+.site-wrapper .el-pagination {
+  max-width: 100%;
+  overflow-x: auto;
+  justify-content: flex-end;
+}
 @media (max-width: 700px) {
-  .site-content { padding: 10px; }
-  .merchant-home { padding: 12px; }
-  .el-dialog .el-form-item__label { overflow-wrap: anywhere; }
+  .site-content {
+    padding: 10px;
+  }
+  .merchant-home {
+    padding: 12px;
+  }
+  .el-dialog .el-form-item__label {
+    overflow-wrap: anywhere;
+  }
 }

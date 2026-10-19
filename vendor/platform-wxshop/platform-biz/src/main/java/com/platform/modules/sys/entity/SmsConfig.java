@@ -18,9 +18,8 @@
  */
 package com.platform.modules.sys.entity;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 名称：SmsConfig <br>
@@ -32,43 +31,29 @@ import java.io.Serializable;
  */
 @Data
 public class SmsConfig implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 类型 1：腾讯云SMS 2：阿里云
-     */
-    private Integer type;
+  /** 类型 1：腾讯云SMS 2：阿里云 */
+  private Integer type;
 
-    /**
-     * 腾讯云SMS appid
-     */
-    private int appid;
+  /** 腾讯云SMS appid */
+  private int appid;
 
-    /**
-     * 腾讯云SMS key
-     */
-    private String appkey;
+  /** 腾讯云SMS key */
+  private String appkey;
 
-    /**
-     * 腾讯云SMS 模板ID
-     */
-    private Integer templateId;
+  /** 腾讯云SMS 模板ID */
+  private Integer templateId;
 
-    /**
-     * 阿里云SMS accessKeyId
-     */
-    private String accessKeyId;
-    /**
-     * 阿里云SMS accessSecret
-     */
-    private String accessSecret;
+  /** 阿里云SMS accessKeyId */
+  private String accessKeyId;
 
-    /**
-     * 阿里云SMS 模板code
-     */
-    private String templateCode;
-    /**
-     * 签名
-     */
-    private String sign;
+  /** 阿里云SMS accessSecret */
+  private String accessSecret;
+
+  /** 阿里云SMS 模板code */
+  private String templateCode;
+
+  /** 签名 */
+  private String sign;
 }

@@ -20,9 +20,8 @@ package com.platform.modules.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 系统验证码
@@ -32,14 +31,11 @@ import java.util.Date;
 @Data
 @TableName("SYS_CAPTCHA")
 public class SysCaptchaEntity {
-    @TableId
-    private String uuid;
-    /**
-     * 验证码
-     */
-    private String code;
-    /**
-     * 过期时间
-     */
-    private Date expireTime;
+  @TableId private String uuid;
+
+  /** 验证码 */
+  private String code;
+
+  /** 过期时间 */
+  private Date expireTime;
 }

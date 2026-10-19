@@ -21,9 +21,8 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 商品对应规格表值表实体
@@ -34,27 +33,21 @@ import java.io.Serializable;
 @Data
 @TableName("mall_goods_specification")
 public class MallGoodsSpecificationEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     *
-     */
-    private Integer goodsId;
-    /**
-     *
-     */
-    private Integer specificationId;
-    /**
-     *
-     */
-    private String value;
-    /**
-     *
-     */
-    private String picUrl;
+  /** */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** */
+  private Integer goodsId;
+
+  /** */
+  private Integer specificationId;
+
+  /** */
+  private String value;
+
+  /** */
+  private String picUrl;
 }

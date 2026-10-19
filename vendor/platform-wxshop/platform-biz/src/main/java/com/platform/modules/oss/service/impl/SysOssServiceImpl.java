@@ -24,22 +24,22 @@ import com.platform.common.utils.Query;
 import com.platform.modules.oss.dao.SysOssDao;
 import com.platform.modules.oss.entity.SysOssEntity;
 import com.platform.modules.oss.service.SysOssService;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 /**
  * @author 何海龙
  */
 @Service("sysOssService")
-public class SysOssServiceImpl extends ServiceImpl<SysOssDao, SysOssEntity> implements SysOssService {
+public class SysOssServiceImpl extends ServiceImpl<SysOssDao, SysOssEntity>
+    implements SysOssService {
 
-    @Override
-    public Page<SysOssEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.CREATE_DATE");
-        params.put("asc", false);
-        Page<SysOssEntity> page = new Query<SysOssEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectSysOssPage(page, params));
-    }
+  @Override
+  public Page<SysOssEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.CREATE_DATE");
+    params.put("asc", false);
+    Page<SysOssEntity> page = new Query<SysOssEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectSysOssPage(page, params));
+  }
 }

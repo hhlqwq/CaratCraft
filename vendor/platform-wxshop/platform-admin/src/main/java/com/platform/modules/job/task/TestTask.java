@@ -23,8 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 定时任务
- * testTask为spring bean的名称
+ * 定时任务 testTask为spring bean的名称
  *
  * @author 何海龙
  */
@@ -32,15 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("testTask")
 public class TestTask {
 
-    /**
-     * 过期自动取消订单
-     */
-    @SuppressWarnings(value = "unused")
-    @Transactional(rollbackFor = Exception.class)
-    public void test() {
-        log.info("--------------------------开始定时任务--------------------------");
+  /** 过期自动取消订单 */
+  @SuppressWarnings(value = "unused")
+  @Transactional(rollbackFor = Exception.class)
+  public void test() {
+    log.info("--------------------------开始定时任务--------------------------");
 
-        log.info("--------------------------结束定时任务--------------------------");
-    }
-
+    log.info("--------------------------结束定时任务--------------------------");
+  }
 }

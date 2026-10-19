@@ -20,9 +20,8 @@ package com.platform.modules.sys.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.sys.entity.SysMenuEntity;
-import org.apache.ibatis.annotations.Mapper;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 菜单管理
@@ -32,25 +31,25 @@ import java.util.List;
 @Mapper
 public interface SysMenuDao extends BaseMapper<SysMenuEntity> {
 
-    /**
-     * 获取不包含按钮的菜单列表
-     *
-     * @return List
-     */
-    List<SysMenuEntity> queryNotButtonList();
+  /**
+   * 获取不包含按钮的菜单列表
+   *
+   * @return List
+   */
+  List<SysMenuEntity> queryNotButtonList();
 
-    /**
-     * 查询所有菜单
-     *
-     * @return List
-     */
-    List<SysMenuEntity> queryList();
+  /**
+   * 查询所有菜单
+   *
+   * @return List
+   */
+  List<SysMenuEntity> queryList();
 
-    /**
-     * 查询用户的权限列表
-     *
-     * @param parentId 父级菜单
-     * @return String
-     */
-    String queryMaxIdByParentId(String parentId);
+  /**
+   * 查询用户的权限列表
+   *
+   * @param parentId 父级菜单
+   * @return String
+   */
+  String queryMaxIdByParentId(String parentId);
 }

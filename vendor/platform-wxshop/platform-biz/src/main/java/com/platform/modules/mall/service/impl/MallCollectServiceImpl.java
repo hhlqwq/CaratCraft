@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallCollectDao;
 import com.platform.modules.mall.entity.MallCollectEntity;
 import com.platform.modules.mall.service.MallCollectService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,50 +38,51 @@ import java.util.Map;
  * @since 2024-07-19 20:53:33
  */
 @Service("mallCollectService")
-public class MallCollectServiceImpl extends ServiceImpl<MallCollectDao, MallCollectEntity> implements MallCollectService {
+public class MallCollectServiceImpl extends ServiceImpl<MallCollectDao, MallCollectEntity>
+    implements MallCollectService {
 
-    @Override
-    public List<MallCollectEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallCollectEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallCollectEntity> queryAllByWrapper(QueryWrapper<MallCollectEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallCollectEntity> queryAllByWrapper(QueryWrapper<MallCollectEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallCollectEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallCollectEntity> page = new Query<MallCollectEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallCollectPage(page, params));
-    }
+  @Override
+  public Page<MallCollectEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallCollectEntity> page = new Query<MallCollectEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallCollectPage(page, params));
+  }
 
-    @Override
-    public boolean add(MallCollectEntity mallCollect) {
-        return this.save(mallCollect);
-    }
+  @Override
+  public boolean add(MallCollectEntity mallCollect) {
+    return this.save(mallCollect);
+  }
 
-    @Override
-    public boolean update(MallCollectEntity mallCollect) {
-        return this.updateById(mallCollect);
-    }
+  @Override
+  public boolean update(MallCollectEntity mallCollect) {
+    return this.updateById(mallCollect);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallCollectEntity> queryList(Map<String, Object> param) {
-        return baseMapper.queryList(param);
-    }
+  @Override
+  public List<MallCollectEntity> queryList(Map<String, Object> param) {
+    return baseMapper.queryList(param);
+  }
 }

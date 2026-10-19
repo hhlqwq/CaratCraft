@@ -20,13 +20,11 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallFeedbackEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * Dao
@@ -37,22 +35,23 @@ import java.util.Map;
 @Mapper
 public interface MallFeedbackDao extends BaseMapper<MallFeedbackEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallFeedbackEntity> queryAll(@Param("params") Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallFeedbackEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    /**
-     * 自定义分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallFeedbackEntity> selectMallFeedbackPage(Page<MallFeedbackEntity> page, @Param("params") Map<String, Object> params);
+  /**
+   * 自定义分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallFeedbackEntity> selectMallFeedbackPage(
+      Page<MallFeedbackEntity> page, @Param("params") Map<String, Object> params);
 
-    List<MallFeedbackEntity> queryList(Map<String, Object> param);
+  List<MallFeedbackEntity> queryList(Map<String, Object> param);
 }

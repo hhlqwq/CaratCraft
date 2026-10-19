@@ -28,12 +28,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller
@@ -47,102 +46,111 @@ import java.util.Map;
 @Tag(name = "MallGoodsIssueController|")
 public class MallGoodsIssueController extends AbstractController {
 
-    private final MallGoodsIssueService mallGoodsIssueService;
+  private final MallGoodsIssueService mallGoodsIssueService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("mall:goodsissue:list")
-    public RestResponse<List<MallGoodsIssueEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<MallGoodsIssueEntity> list = mallGoodsIssueService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("mall:goodsissue:list")
+  public RestResponse<List<MallGoodsIssueEntity>> queryAll(
+      @RequestParam Map<String, Object> params) {
+    List<MallGoodsIssueEntity> list = mallGoodsIssueService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("mall:goodsissue:list")
-    public RestResponse<Page<MallGoodsIssueEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<MallGoodsIssueEntity> page = mallGoodsIssueService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("mall:goodsissue:list")
+  public RestResponse<Page<MallGoodsIssueEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<MallGoodsIssueEntity> page = mallGoodsIssueService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情",
-            parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "主键", example = "1", required = true)}
-    )
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("mall:goodsissue:info")
-    public RestResponse<MallGoodsIssueEntity> info(@PathVariable("id") Integer id) {
-        MallGoodsIssueEntity mallGoodsIssue = mallGoodsIssueService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(
+      summary = "根据主键查询详情",
+      description = "根据主键查询详情",
+      parameters = {
+        @Parameter(
+            in = ParameterIn.PATH,
+            name = "id",
+            description = "主键",
+            example = "1",
+            required = true)
+      })
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("mall:goodsissue:info")
+  public RestResponse<MallGoodsIssueEntity> info(@PathVariable("id") Integer id) {
+    MallGoodsIssueEntity mallGoodsIssue = mallGoodsIssueService.getById(id);
 
-        return RestResponse.ok(mallGoodsIssue);
-    }
+    return RestResponse.ok(mallGoodsIssue);
+  }
 
-    /**
-     * 新增
-     *
-     * @param mallGoodsIssue mallGoodsIssue
-     * @return RestResponse
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增")
-    @PostMapping("/save")
-    @RequiresPermissions("mall:goodsissue:save")
-    public RestResponse<String> save(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
+  /**
+   * 新增
+   *
+   * @param mallGoodsIssue mallGoodsIssue
+   * @return RestResponse
+   */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增")
+  @PostMapping("/save")
+  @RequiresPermissions("mall:goodsissue:save")
+  public RestResponse<String> save(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
 
-        mallGoodsIssueService.add(mallGoodsIssue);
+    mallGoodsIssueService.add(mallGoodsIssue);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     *
-     * @param mallGoodsIssue mallGoodsIssue
-     * @return RestResponse
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改")
-    @PostMapping("/update")
-    @RequiresPermissions("mall:goodsissue:update")
-    public RestResponse<String> update(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
+  /**
+   * 修改
+   *
+   * @param mallGoodsIssue mallGoodsIssue
+   * @return RestResponse
+   */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改")
+  @PostMapping("/update")
+  @RequiresPermissions("mall:goodsissue:update")
+  public RestResponse<String> update(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
 
-        mallGoodsIssueService.update(mallGoodsIssue);
+    mallGoodsIssueService.update(mallGoodsIssue);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 根据主键删除
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除")
-    @PostMapping("/delete")
-    @RequiresPermissions("mall:goodsissue:delete")
-    public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallGoodsIssueService.deleteBatch(ids);
+  /**
+   * 根据主键删除
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除")
+  @PostMapping("/delete")
+  @RequiresPermissions("mall:goodsissue:delete")
+  public RestResponse<String> delete(@RequestBody Integer[] ids) {
+    mallGoodsIssueService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

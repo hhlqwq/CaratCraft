@@ -26,111 +26,101 @@ package com.platform.modules.gen.entity;
  * @since 2016年12月20日 上午12:01:45
  */
 public class ColumnEntity {
-    /**
-     * 列名
-     */
-    private String columnName;
-    /**
-     * 列名类型
-     */
-    private String dataType;
-    /**
-     * 列名备注
-     */
-    private String comments;
+  /** 列名 */
+  private String columnName;
 
-    /**
-     * 属性名称(第一个字母大写)，如：user_name => UserName
-     */
-    private String attrName;
-    /**
-     * 属性名称(第一个字母小写)，如：user_name => userName
-     */
-    private String attrname;
+  /** 列名类型 */
+  private String dataType;
 
-    private String columnKey;
-    /**
-     * 属性类型
-     */
-    private String attrType;
-    /**
-     * auto_increment
-     */
-    private String extra;
-    /**
-     * 属性的get方法
-     */
-    private String getMethod;
+  /** 列名备注 */
+  private String comments;
 
-    public String getGetMethod() {
-        return getMethod;
-    }
+  /** 属性名称(第一个字母大写)，如：user_name => UserName */
+  private String attrName;
 
-    public void setGetMethod(String getMethod) {
-        this.getMethod = getMethod;
-    }
+  /** 属性名称(第一个字母小写)，如：user_name => userName */
+  private String attrname;
 
-    public String getColumnName() {
-        return columnName;
-    }
+  private String columnKey;
 
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
-    }
+  /** 属性类型 */
+  private String attrType;
 
-    public String getDataType() {
-        return dataType;
-    }
+  /** auto_increment */
+  private String extra;
 
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
-    }
+  /** 属性的get方法 */
+  private String getMethod;
 
-    public String getComments() {
-        return comments;
-    }
+  public String getGetMethod() {
+    return getMethod;
+  }
 
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
+  public void setGetMethod(String getMethod) {
+    this.getMethod = getMethod;
+  }
 
-    public String getAttrname() {
-        return attrname;
-    }
+  public String getColumnName() {
+    return columnName;
+  }
 
-    public void setAttrname(String attrname) {
-        this.attrname = attrname;
-    }
+  public void setColumnName(String columnName) {
+    this.columnName = columnName;
+  }
 
-    public String getAttrName() {
-        return attrName;
-    }
+  public String getDataType() {
+    return dataType;
+  }
 
-    public void setAttrName(String attrName) {
-        this.attrName = attrName;
-    }
+  public void setDataType(String dataType) {
+    this.dataType = dataType;
+  }
 
-    public String getAttrType() {
-        return attrType;
-    }
+  public String getComments() {
+    return comments;
+  }
 
-    public void setAttrType(String attrType) {
-        this.attrType = attrType;
-    }
+  public void setComments(String comments) {
+    this.comments = comments;
+  }
 
-    public String getExtra() {
-        return extra;
-    }
+  public String getAttrname() {
+    return attrname;
+  }
 
-    public void setExtra(String extra) {
-        this.extra = extra;
-    }
+  public void setAttrname(String attrname) {
+    this.attrname = attrname;
+  }
 
-    public String getColumnKey() {
-        return columnKey;
-    }
+  public String getAttrName() {
+    return attrName;
+  }
 
-    public void setColumnKey(String columnKey) {
-        this.columnKey = columnKey;
-    }
+  public void setAttrName(String attrName) {
+    this.attrName = attrName;
+  }
+
+  public String getAttrType() {
+    return attrType;
+  }
+
+  public void setAttrType(String attrType) {
+    this.attrType = attrType;
+  }
+
+  public String getExtra() {
+    return extra;
+  }
+
+  public void setExtra(String extra) {
+    this.extra = extra;
+  }
+
+  public String getColumnKey() {
+    return columnKey;
+  }
+
+  public void setColumnKey(String columnKey) {
+    this.columnKey = columnKey;
+  }
 }

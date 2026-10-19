@@ -21,7 +21,6 @@ package com.platform.modules.sys.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysDictEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -32,55 +31,55 @@ import java.util.Map;
  * @since 2019-01-15 11:42:20
  */
 public interface SysDictService extends IService<SysDictEntity> {
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<SysDictEntity> queryAll(Map<String, Object> params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<SysDictEntity> queryAll(Map<String, Object> params);
 
-    /**
-     * 查询分页信息
-     *
-     * @param params 查询参数
-     * @return IPage
-     */
-    Page<SysDictEntity> queryPage(Map<String, Object> params);
+  /**
+   * 查询分页信息
+   *
+   * @param params 查询参数
+   * @return IPage
+   */
+  Page<SysDictEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 新增实体
-     *
-     * @param sysDict 实体
-     */
-    void add(SysDictEntity sysDict);
+  /**
+   * 新增实体
+   *
+   * @param sysDict 实体
+   */
+  void add(SysDictEntity sysDict);
 
-    /**
-     * 根据主键更新实体
-     *
-     * @param sysDict 实体
-     */
-    void update(SysDictEntity sysDict);
+  /**
+   * 根据主键更新实体
+   *
+   * @param sysDict 实体
+   */
+  void update(SysDictEntity sysDict);
 
-    /**
-     * 根据主键删除
-     *
-     * @param id 主键
-     */
-    void delete(String id);
+  /**
+   * 根据主键删除
+   *
+   * @param id 主键
+   */
+  void delete(String id);
 
-    /**
-     * 根据主键批量删除
-     *
-     * @param ids ids
-     */
-    void deleteBatch(String[] ids);
+  /**
+   * 根据主键批量删除
+   *
+   * @param ids ids
+   */
+  void deleteBatch(String[] ids);
 
-    /**
-     * 根据code查询数据字典
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<SysDictEntity> queryByCode(Map<String, Object> params);
+  /**
+   * 根据code查询数据字典
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<SysDictEntity> queryByCode(Map<String, Object> params);
 }

@@ -27,12 +27,11 @@ import com.platform.modules.wx.service.MsgReplyService;
 import com.platform.modules.wx.service.WxMsgService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Arrays;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
-import java.util.Map;
 
 /**
  * 微信消息
@@ -45,56 +44,48 @@ import java.util.Map;
 @RestController
 @RequestMapping("/manage/wxMsg")
 public class WxMsgManageController {
-    private final WxMsgService wxMsgService;
-    private final MsgReplyService msgReplyService;
+  private final WxMsgService wxMsgService;
+  private final MsgReplyService msgReplyService;
 
-    /**
-     * 列表
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("wx:wxmsg:list")
-    public RestResponse<Page<WxMsgEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<WxMsgEntity> page = wxMsgService.queryPage(params);
+  /** 列表 */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("wx:wxmsg:list")
+  public RestResponse<Page<WxMsgEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<WxMsgEntity> page = wxMsgService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 信息
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("wx:wxmsg:info")
-    public RestResponse<WxMsgEntity> info(@PathVariable("id") Long id) {
-        WxMsgEntity wxMsg = wxMsgService.getById(id);
+  /** 信息 */
+  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("wx:wxmsg:info")
+  public RestResponse<WxMsgEntity> info(@PathVariable("id") Long id) {
+    WxMsgEntity wxMsg = wxMsgService.getById(id);
 
-        return RestResponse.ok(wxMsg);
-    }
+    return RestResponse.ok(wxMsg);
+  }
 
-    /**
-     * 回复
-     */
-    @Operation(summary = "回复公众号消息", description = "回复公众号消息")
-    @SysLog("回复公众号消息")
-    @PostMapping("/reply")
-    @RequiresPermissions("wx:wxmsg:save")
-    public RestResponse<String> reply(@RequestBody WxMsgReplyForm form) {
+  /** 回复 */
+  @Operation(summary = "回复公众号消息", description = "回复公众号消息")
+  @SysLog("回复公众号消息")
+  @PostMapping("/reply")
+  @RequiresPermissions("wx:wxmsg:save")
+  public RestResponse<String> reply(@RequestBody WxMsgReplyForm form) {
 
-        msgReplyService.reply(form.getOpenid(), form.getReplyType(), form.getReplyContent());
-        return RestResponse.ok();
-    }
+    msgReplyService.reply(form.getOpenid(), form.getReplyType(), form.getReplyContent());
+    return RestResponse.ok();
+  }
 
-    /**
-     * 删除
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除众号消息")
-    @PostMapping("/delete")
-    @RequiresPermissions("wx:wxmsg:delete")
-    public RestResponse<String> delete(@RequestBody Long[] ids) {
-        wxMsgService.removeByIds(Arrays.asList(ids));
+  /** 删除 */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除众号消息")
+  @PostMapping("/delete")
+  @RequiresPermissions("wx:wxmsg:delete")
+  public RestResponse<String> delete(@RequestBody Long[] ids) {
+    wxMsgService.removeByIds(Arrays.asList(ids));
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

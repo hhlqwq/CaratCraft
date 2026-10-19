@@ -1,6 +1,5 @@
-var app = getApp();
-var util = require('../../utils/util.js');
-var api = require('../../config/api.js');
+const util = require('../../utils/util.js');
+const api = require('../../config/api.js');
 
 Page({
   data: {
@@ -9,36 +8,42 @@ Page({
     topic: {},
     topicList: [],
     commentCount: 0,
-    commentList: []
-  },onShareAppMessage: function() {//自定义函数 用户点击右上角分享给好友,要先在分享好友这里设置menus的两个参数,才可以分享朋友圈
+    commentList: [],
+  },
+  /** 提供当前页面的微信好友分享信息. */
+  onShareAppMessage: function () {
+    //自定义函数 用户点击右上角分享给好友,要先在分享好友这里设置menus的两个参数,才可以分享朋友圈
     wx.showShareMenu({
-        withShareTicket: true,
-        menus: ['shareAppMessage', 'shareTimeline']
-      })
+      withShareTicket: true,
+      menus: ['shareAppMessage', 'shareTimeline'],
+    });
     return {
-        title: this.data.topic.title,
-        desc: this.data.topic.content,
-        imageUrl: this.data.topic.scenePicUrl,
-        path: '/pages/topicDetail/topicDetail?id='+this.data.id
-    }
-  },onShareTimeline: function () {//用户点击右上角分享朋友圈
-  return {
+      title: this.data.topic.title,
+      desc: this.data.topic.content,
+      imageUrl: this.data.topic.scenePicUrl,
+      path: '/pages/topicDetail/topicDetail?id=' + this.data.id,
+    };
+  },
+  /** 提供当前页面的朋友圈分享信息. */
+  onShareTimeline: function () {
+    //用户点击右上角分享朋友圈
+    return {
       title: this.data.topic.title,
       query: {
-        id:this.data.id
+        id: this.data.id,
       },
-      imageUrl: this.data.topic.scenePicUrl
-    }
-  },onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
-    var that = this;
+      imageUrl: this.data.topic.scenePicUrl,
+    };
+  },
+  /** 初始化专题详情状态并读取页面所需数据. */
+  onLoad: function (options) {
+    const that = this;
     that.setData({
-      id: parseInt(options.id)
+      id: parseInt(options.id),
     });
 
-    util.request(api.TopicDetail, { id: that.data.id}).then(function (res) {
+    util.request(api.TopicDetail, {id: that.data.id}).then(function (res) {
       if (res.code === 0) {
-
         that.setData({
           topic: res.data,
         });
@@ -48,28 +53,12 @@ Page({
       }
     });
 
-    util.request(api.TopicRelated, { id: that.data.id}).then(function (res) {
+    util.request(api.TopicRelated, {id: that.data.id}).then(function (res) {
       if (res.code === 0) {
-
         that.setData({
-          topicList: res.data
+          topicList: res.data,
         });
       }
     });
   },
-  onReady: function () {
-
-  },
-  onShow: function () {
-    // 页面显示
-
-  },
-  onHide: function () {
-    // 页面隐藏
-
-  },
-  onUnload: function () {
-    // 页面关闭
-
-  }
-})
+});

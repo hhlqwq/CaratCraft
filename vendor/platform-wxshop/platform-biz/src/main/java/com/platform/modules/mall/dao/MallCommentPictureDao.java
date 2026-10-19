@@ -20,13 +20,11 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallCommentPictureEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 商品评论图片表Dao
@@ -37,9 +35,10 @@ import java.util.Map;
  */
 @Mapper
 public interface MallCommentPictureDao extends BaseMapper<MallCommentPictureEntity> {
-    List<MallCommentPictureEntity> queryAll(@Param("params") Map<String, Object> params);
+  List<MallCommentPictureEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    List<MallCommentPictureEntity> selectMallCommentPicturePage(Page<MallCommentPictureEntity> page, @Param("params") Map<String, Object> params);
+  List<MallCommentPictureEntity> selectMallCommentPicturePage(
+      Page<MallCommentPictureEntity> page, @Param("params") Map<String, Object> params);
 
-    List<MallCommentPictureEntity> queryList(Map<String, Object> param);
+  List<MallCommentPictureEntity> queryList(Map<String, Object> param);
 }

@@ -31,19 +31,21 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Component
 public class ActResourceHandlerConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/swagger-ui/**").addResourceLocations("classpath:/static/swagger-ui/");
-        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/");
-        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
-    }
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry
+        .addResourceHandler("/swagger-ui/**")
+        .addResourceLocations("classpath:/static/swagger-ui/");
+    registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/");
+    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+    registry
+        .addResourceHandler("/webjars/**")
+        .addResourceLocations("classpath:/META-INF/resources/webjars/");
+  }
 
-    /**
-     * 注册打印请求拦截器
-     */
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RequestUriLogInterceptor()).addPathPatterns("/**");
-    }
+  /** 注册打印请求拦截器 */
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(new RequestUriLogInterceptor()).addPathPatterns("/**");
+  }
 }

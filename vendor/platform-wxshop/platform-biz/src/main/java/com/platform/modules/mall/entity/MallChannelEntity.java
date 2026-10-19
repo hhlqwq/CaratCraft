@@ -21,9 +21,8 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -34,27 +33,21 @@ import java.io.Serializable;
 @Data
 @TableName("mall_channel")
 public class MallChannelEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     *
-     */
-    private String name;
-    /**
-     *
-     */
-    private String url;
-    /**
-     *
-     */
-    private String iconUrl;
-    /**
-     *
-     */
-    private Integer sortOrder;
+  /** */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** */
+  private String name;
+
+  /** */
+  private String url;
+
+  /** */
+  private String iconUrl;
+
+  /** */
+  private Integer sortOrder;
 }

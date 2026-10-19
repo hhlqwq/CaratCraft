@@ -27,10 +27,10 @@ import lombok.Data;
  */
 @Data
 public class MaterialFileDeleteForm {
-    String mediaId;
+  String mediaId;
 
-    @Override
-    public String toString() {
-        return JSON.toJSONString(this);
-    }
+  @Override
+  public String toString() {
+    return JSON.toJSONString(this);
+  }
 }

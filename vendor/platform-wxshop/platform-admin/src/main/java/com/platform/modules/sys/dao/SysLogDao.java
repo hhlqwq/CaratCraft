@@ -29,6 +29,4 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2019-01-22 10:36:49
  */
 @Mapper
-public interface SysLogDao extends BaseMapper<SysLogEntity> {
-
-}
+public interface SysLogDao extends BaseMapper<SysLogEntity> {}

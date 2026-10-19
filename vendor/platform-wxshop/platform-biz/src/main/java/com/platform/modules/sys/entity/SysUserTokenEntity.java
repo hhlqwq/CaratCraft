@@ -22,10 +22,9 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 系统用户Token
@@ -35,30 +34,22 @@ import java.util.Date;
 @Data
 @TableName("SYS_USER_TOKEN")
 public class SysUserTokenEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 用户ID
-     */
-    @TableId
-    private String userId;
-    /**
-     * token
-     */
-    private String token;
-    /**
-     * 过期时间
-     */
-    private Date expireTime;
-    /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.UPDATE)
-    private Date updateTime;
+  /** 用户ID */
+  @TableId private String userId;
 
-    /**
-     * 用户名
-     */
-    @TableField(exist = false)
-    private String userName;
+  /** token */
+  private String token;
+
+  /** 过期时间 */
+  private Date expireTime;
+
+  /** 更新时间 */
+  @TableField(fill = FieldFill.UPDATE)
+  private Date updateTime;
+
+  /** 用户名 */
+  @TableField(exist = false)
+  private String userName;
 }

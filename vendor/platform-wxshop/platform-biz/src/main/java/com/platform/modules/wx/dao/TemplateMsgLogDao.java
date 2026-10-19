@@ -26,5 +26,4 @@ import org.apache.ibatis.annotations.Mapper;
  * @author 何海龙
  */
 @Mapper
-public interface TemplateMsgLogDao extends BaseMapper<TemplateMsgLogEntity> {
-}
+public interface TemplateMsgLogDao extends BaseMapper<TemplateMsgLogEntity> {}

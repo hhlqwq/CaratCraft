@@ -5,8 +5,9 @@
     :modal="true"
     :lock-scroll="false"
     append-to-body
-    @close="onClose">
-    <material-news v-if="selectType==='news'" @selected="onSelect" selectMode></material-news>
+    @close="onClose"
+  >
+    <material-news v-if="selectType === 'news'" @selected="onSelect" selectMode></material-news>
     <material-file v-else :fileType="selectType" @selected="onSelect" selectMode></material-file>
   </el-dialog>
 </template>
@@ -16,31 +17,31 @@ export default {
   name: 'assets-selector',
   data: function () {
     return {
-      dataVisible: this.visible
-    }
+      dataVisible: this.visible,
+    };
   },
   components: {
     MaterialFile: () => import('./material-file'),
-    MaterialNews: () => import('./material-news')
+    MaterialNews: () => import('./material-news'),
   },
   props: {
     selectType: {
       // image、voice、video、news
       type: String,
-      default: 'image'
+      default: 'image',
     },
     visible: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
   methods: {
-    onSelect (itemInfo) {
-      this.$emit('selected', itemInfo)
+    onSelect(itemInfo) {
+      this.$emit('selected', itemInfo);
     },
-    onClose () {
-      this.$emit('onClose')
-    }
-  }
-}
+    onClose() {
+      this.$emit('onClose');
+    },
+  },
+};
 </script>

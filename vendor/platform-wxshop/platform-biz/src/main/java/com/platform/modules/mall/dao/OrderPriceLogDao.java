@@ -9,10 +9,15 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface OrderPriceLogDao {
   /** 记录原实付、现实付、差额、操作人和操作理由. */
-  @Insert("INSERT INTO CC_ORDER_PRICE_LOG "
-      + "(order_id,old_price,new_price,adjustment,operator_id,reason,create_time) "
-      + "VALUES (#{id},#{oldPrice},#{newPrice},#{adjustment},#{operator},#{reason},NOW())")
-  int insert(@Param("id") Integer id, @Param("oldPrice") BigDecimal oldPrice,
-      @Param("newPrice") BigDecimal newPrice, @Param("adjustment") BigDecimal adjustment,
-      @Param("operator") String operator, @Param("reason") String reason);
+  @Insert(
+      "INSERT INTO CC_ORDER_PRICE_LOG "
+          + "(order_id,old_price,new_price,adjustment,operator_id,reason,create_time) "
+          + "VALUES (#{id},#{oldPrice},#{newPrice},#{adjustment},#{operator},#{reason},NOW())")
+  int insert(
+      @Param("id") Integer id,
+      @Param("oldPrice") BigDecimal oldPrice,
+      @Param("newPrice") BigDecimal newPrice,
+      @Param("adjustment") BigDecimal adjustment,
+      @Param("operator") String operator,
+      @Param("reason") String reason);
 }

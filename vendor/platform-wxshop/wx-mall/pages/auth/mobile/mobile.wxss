@@ -1,11 +1,11 @@
-@import "../../../styles/auth-identity.wxss";
+@import '../../../styles/auth-identity.wxss';
 
 .userinfo {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-bottom: 25rpx;
-  background: linear-gradient(to bottom, #FCD33D 0%, #FFF6D7 100%);
+  background: linear-gradient(to bottom, #fcd33d 0%, #fff6d7 100%);
 }
 
 .userinfo-avatar {
@@ -45,8 +45,8 @@
 .zichan .second-line {
   padding-top: 15rpx;
   padding-bottom: 15rpx;
-  border-top: 1rpx solid #F6F6F6;
-  border-bottom: 1rpx solid #F6F6F6;
+  border-top: 1rpx solid #f6f6f6;
+  border-bottom: 1rpx solid #f6f6f6;
   height: max-content;
 }
 
@@ -62,7 +62,7 @@
   margin-left: 20rpx;
 }
 
-.zichan .second-line .item .image{
+.zichan .second-line .item .image {
   height: 264rpx;
 }
 
@@ -72,7 +72,7 @@
   left: 0;
   width: 560rpx;
   height: 264rpx;
-  background-color: rgba(0,0,0,0.3);
+  background-color: rgba(0, 0, 0, 0.3);
   border-radius: 5px;
   text-align: center;
   color: #fff;
@@ -89,7 +89,7 @@
 
 .desc-line.asset-count {
   font-size: 32rpx;
-  color: #FFC800;
+  color: #ffc800;
 }
 
 .slide-img {
@@ -157,7 +157,7 @@
   line-height: 84rpx;
   width: 250rpx;
   font-size: 30rpx;
-  background-color: #FFC800;
+  background-color: #ffc800;
 }
 
 .login .password-second-line {
@@ -184,7 +184,7 @@
 .third-line button {
   height: 80rpx;
   font-size: 32rpx;
-  background-color: #FFC800;
+  background-color: #ffc800;
 }
 
 .login-type {

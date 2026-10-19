@@ -52,10 +52,13 @@ public class RedisConfig implements org.springframework.cache.annotation.Caching
   @Bean
   @Primary
   public CacheManager cacheManager() {
-    RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-        .entryTtl(Duration.ofHours(6))
-        .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(keyRedisSerializer()))
-        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(valueRedisSerializer()));
+    RedisCacheConfiguration config =
+        RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofHours(6))
+            .serializeKeysWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(keyRedisSerializer()))
+            .serializeValuesWith(
+                RedisSerializationContext.SerializationPair.fromSerializer(valueRedisSerializer()));
     return RedisCacheManager.builder(connectionFactory).cacheDefaults(config).build();
   }
 
@@ -63,23 +66,28 @@ public class RedisConfig implements org.springframework.cache.annotation.Caching
   @Bean
   @Primary
   public KeyGenerator keyGenerator() {
-    return (target, method, params) -> target.getClass().getName() + ":" + method.getName()
-        + ":" + DigestUtils.sha256Hex(Arrays.deepToString(params));
+    return (target, method, params) ->
+        target.getClass().getName()
+            + ":"
+            + method.getName()
+            + ":"
+            + DigestUtils.sha256Hex(Arrays.deepToString(params));
   }
 
   /** 只允许应用实体、购买DTO和集合值类型, 拒绝任意外部类反序列化. */
   @Bean
   public Jackson2JsonRedisSerializer<Object> valueRedisSerializer() {
     ObjectMapper mapper = new ObjectMapper();
-    BasicPolymorphicTypeValidator types = BasicPolymorphicTypeValidator.builder()
-        .allowIfSubType("com.platform.modules.mall.entity.")
-        .allowIfSubType("com.platform.modules.wx.entity.")
-        .allowIfSubType("com.platform.modules.sys.entity.")
-        .allowIfSubType("com.platform.modules.custom.entity.")
-        .allowIfSubType("com.platform.modules.mall.dto.BuyGoodsRequest")
-        .allowIfSubType("java.util.")
-        .allowIfSubType("java.math.")
-        .build();
+    BasicPolymorphicTypeValidator types =
+        BasicPolymorphicTypeValidator.builder()
+            .allowIfSubType("com.platform.modules.mall.entity.")
+            .allowIfSubType("com.platform.modules.wx.entity.")
+            .allowIfSubType("com.platform.modules.sys.entity.")
+            .allowIfSubType("com.platform.modules.custom.entity.")
+            .allowIfSubType("com.platform.modules.mall.dto.BuyGoodsRequest")
+            .allowIfSubType("java.util.")
+            .allowIfSubType("java.math.")
+            .build();
     mapper.activateDefaultTyping(types, ObjectMapper.DefaultTyping.NON_FINAL);
     return new Jackson2JsonRedisSerializer<>(mapper, Object.class);
   }

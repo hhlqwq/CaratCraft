@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    title="查看"
-    :close-on-click-modal="false"
-    :lock-scroll="false"
-    v-model="visible">
+  <el-dialog title="查看" :close-on-click-modal="false" :lock-scroll="false" v-model="visible">
     <el-descriptions :column="3" border>
       <el-descriptions-item>
         <template #label>
@@ -59,16 +55,18 @@
         {{ dataForm.orderSn }}
       </el-descriptions-item>
     </el-descriptions>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {
@@ -79,27 +77,27 @@ export default {
         type: '',
         status: '',
         usedTime: '',
-        orderSn: ''
-      }
-    }
+        orderSn: '',
+      },
+    };
   },
   methods: {
-    init (id) {
-      this.dataForm.id = id || ''
-      this.visible = true
+    init(id) {
+      this.dataForm.id = id || '';
+      this.visible = true;
       this.$nextTick(() => {
         if (this.dataForm.id) {
           this.$http({
             url: `/mall/usercoupon/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.dataForm = data.data
+              this.dataForm = data.data;
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>

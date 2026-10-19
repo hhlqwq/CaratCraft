@@ -6,29 +6,67 @@
       </el-form-item>
       <el-form-item>
         <el-button @click="getDataList(1)">查询</el-button>
-        <el-button v-if="isAuth('wx:wxqrcode:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('wx:wxqrcode:delete')" type="danger" @click="deleteHandle()"
-                   :disabled="dataListSelections.length <= 0">批量删除
+        <el-button v-if="isAuth('wx:wxqrcode:save')" type="primary" @click="addOrUpdateHandle()"
+          >新增</el-button
+        >
+        <el-button
+          v-if="isAuth('wx:wxqrcode:delete')"
+          type="danger"
+          @click="deleteHandle()"
+          :disabled="dataListSelections.length <= 0"
+          >批量删除
         </el-button>
       </el-form-item>
     </el-form>
-    <el-table :data="dataList" border v-loading="dataListLoading" @selection-change="selectionChangeHandle"
-              style="width: 100%;">
+    <el-table
+      :data="dataList"
+      border
+      v-loading="dataListLoading"
+      @selection-change="selectionChangeHandle"
+      style="width: 100%"
+    >
       <el-table-column type="selection" header-align="center" align="center" width="50">
       </el-table-column>
       <el-table-column prop="isTemp" header-align="center" align="center" label="类型">
-        <template #default="scope"><span >{{ scope.row.isTemp ? '临时' : '永久' }}</span></template>
+        <template #default="scope"
+          ><span>{{ scope.row.isTemp ? '临时' : '永久' }}</span></template
+        >
       </el-table-column>
       <el-table-column prop="sceneStr" header-align="center" align="center" label="场景值">
       </el-table-column>
-      <el-table-column prop="ticket" header-align="center" align="center" show-overflow-tooltip label="二维码图片">
-        <template #default="scope"><a target="_blank" :href="'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket='+scope.row.ticket"
-           >{{ scope.row.ticket }}</a></template>
+      <el-table-column
+        prop="ticket"
+        header-align="center"
+        align="center"
+        show-overflow-tooltip
+        label="二维码图片"
+      >
+        <template #default="scope"
+          ><a
+            target="_blank"
+            :href="'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=' + scope.row.ticket"
+            >{{ scope.row.ticket }}</a
+          ></template
+        >
       </el-table-column>
-      <el-table-column prop="url" header-align="center" align="center" show-overflow-tooltip label="解析后的地址">
-        <template #default="scope"><a target="_blank" :href="scope.row.url" >{{ scope.row.url }}</a></template>
+      <el-table-column
+        prop="url"
+        header-align="center"
+        align="center"
+        show-overflow-tooltip
+        label="解析后的地址"
+      >
+        <template #default="scope"
+          ><a target="_blank" :href="scope.row.url">{{ scope.row.url }}</a></template
+        >
       </el-table-column>
-      <el-table-column prop="expireTime" header-align="center" align="center" width="100" label="失效时间">
+      <el-table-column
+        prop="expireTime"
+        header-align="center"
+        align="center"
+        width="100"
+        label="失效时间"
+      >
       </el-table-column>
       <el-table-column fixed="right" header-align="center" align="center" width="150" label="操作">
         <template #default="scope">
@@ -36,24 +74,34 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination @size-change="sizeChangeHandle" @current-change="currentChangeHandle" :current-page="pageIndex"
-                   :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" :total="totalPage"
-                   layout="total, sizes, prev, pager, next, jumper">
+    <el-pagination
+      @size-change="sizeChangeHandle"
+      @current-change="currentChangeHandle"
+      :current-page="pageIndex"
+      :page-sizes="[10, 20, 50, 100]"
+      :page-size="pageSize"
+      :total="totalPage"
+      layout="total, sizes, prev, pager, next, jumper"
+    >
     </el-pagination>
     <!-- 弹窗, 新增 / 修改 -->
-    <add-or-update v-if="addOrUpdateVisible" ref="addOrUpdate" @refreshDataList="getDataList"></add-or-update>
+    <add-or-update
+      v-if="addOrUpdateVisible"
+      ref="addOrUpdate"
+      @refreshDataList="getDataList"
+    ></add-or-update>
   </div>
 </template>
 
 <script>
-import AddOrUpdate from './wx-qrcode-add-or-update'
+import AddOrUpdate from './wx-qrcode-add-or-update';
 
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       dataForm: {
-        sceneStr: ''
+        sceneStr: '',
       },
       dataList: [],
       pageIndex: 1,
@@ -61,89 +109,93 @@ export default {
       totalPage: 0,
       dataListLoading: false,
       dataListSelections: [],
-      addOrUpdateVisible: false
-    }
+      addOrUpdateVisible: false,
+    };
   },
   components: {
-    AddOrUpdate
+    AddOrUpdate,
   },
-  activated () {
-    this.getDataList()
+  activated() {
+    this.getDataList();
   },
   methods: {
     // 获取数据列表
-    getDataList (page) {
+    getDataList(page) {
       if (page) {
-        this.pageIndex = page
+        this.pageIndex = page;
       }
-      this.dataListLoading = true
+      this.dataListLoading = true;
       this.$http({
         url: '/manage/wxQrCode/list',
         method: 'get',
         params: {
-          'page': this.pageIndex,
-          'limit': this.pageSize,
-          'sceneStr': this.dataForm.sceneStr,
-          'sidx': 'create_time',
-          'order': 'desc'
-        }
+          page: this.pageIndex,
+          limit: this.pageSize,
+          sceneStr: this.dataForm.sceneStr,
+          sidx: 'create_time',
+          order: 'desc',
+        },
       }).then(({data}) => {
         if (data && data.code === 0) {
-          this.dataList = data.data.records
-          this.totalPage = data.data.total
+          this.dataList = data.data.records;
+          this.totalPage = data.data.total;
         } else {
-          this.dataList = []
-          this.totalPage = 0
+          this.dataList = [];
+          this.totalPage = 0;
         }
-        this.dataListLoading = false
-      })
+        this.dataListLoading = false;
+      });
     },
     // 每页数
-    sizeChangeHandle (val) {
-      this.pageSize = val
-      this.pageIndex = 1
-      this.getDataList()
+    sizeChangeHandle(val) {
+      this.pageSize = val;
+      this.pageIndex = 1;
+      this.getDataList();
     },
     // 当前页
-    currentChangeHandle (val) {
-      this.pageIndex = val
-      this.getDataList()
+    currentChangeHandle(val) {
+      this.pageIndex = val;
+      this.getDataList();
     },
     // 多选
-    selectionChangeHandle (val) {
-      this.dataListSelections = val
+    selectionChangeHandle(val) {
+      this.dataListSelections = val;
     },
     // 新增 / 修改
-    addOrUpdateHandle (id) {
-      this.addOrUpdateVisible = true
+    addOrUpdateHandle(id) {
+      this.addOrUpdateVisible = true;
       this.$nextTick(() => {
-        this.$refs.addOrUpdate.init(id)
-      })
+        this.$refs.addOrUpdate.init(id);
+      });
     },
     // 删除
-    deleteHandle (id) {
-      var ids = id ? [id] : this.dataListSelections.map(item => item.id)
-      this.$confirm(`确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?（仅删存档）`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
+    deleteHandle(id) {
+      const ids = id ? [id] : this.dataListSelections.map((item) => item.id);
+      this.$confirm(
+        `确定对[id=${ids.join(',')}]进行[${id ? '删除' : '批量删除'}]操作?（仅删存档）`,
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).then(() => {
         this.$http({
           url: '/manage/wxQrCode/delete',
           method: 'post',
-          data: ids
+          data: ids,
         }).then(({data}) => {
           if (data && data.code === 0) {
             this.$message({
               message: '操作成功',
               type: 'success',
-              duration: 1500
-            })
-            this.getDataList()
+              duration: 1500,
+            });
+            this.getDataList();
           }
-        })
-      })
-    }
-  }
-}
+        });
+      });
+    },
+  },
+};
 </script>

@@ -1,6 +1,6 @@
-var util = require('../../utils/util.js');
-var api = require('../../config/api.js');
-var app = getApp()
+const util = require('../../utils/util.js');
+const api = require('../../config/api.js');
+
 Page({
   data: {
     // text:"这是一个页面"
@@ -9,78 +9,68 @@ Page({
     size: 10,
     count: 0,
     scrollTop: 0,
-    showPage: false
+    showPage: false,
   },
+  /** 初始化专题列表状态并读取页面所需数据. */
   onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
     this.getTopic();
+  },
 
-  },
-  onReady: function () {
-    // 页面渲染完成
-  },
-  onShow: function () {
-    // 页面显示
-  },
-  onHide: function () {
-    // 页面隐藏
-  },
-  onUnload: function () {
-    // 页面关闭
-  },
+  /** 在仍有后续内容时加载下一页专题. */
   nextPage: function (event) {
-    var that = this;
+    const that = this;
     if (this.data.page + 1 > that.data.count / that.data.size) {
       return true;
     }
 
-
     that.setData({
-      "page": parseInt(that.data.page) + 1
+      page: parseInt(that.data.page) + 1,
     });
 
     this.getTopic();
-
   },
+  /** 按当前页码读取专题列表及分页信息. */
   getTopic: function () {
-    let that = this;
+    const that = this;
     that.setData({
       scrollTop: 0,
       showPage: false,
-      topicList: []
+      topicList: [],
     });
     // 页面渲染完成
     wx.showToast({
       title: '加载中...',
       icon: 'loading',
-      duration: 2000
+      duration: 2000,
     });
 
-    util.request(api.TopicList, {
-      page: that.data.page,
-      size: that.data.size
-    }).then(function (res) {
-      if (res.code === 0) {
-        that.setData({
-          scrollTop: 0,
-          topicList: res.data.records,
-          showPage: true,
-          count: res.data.total
-        });
-      }
-      wx.hideToast();
-    });
-
+    util
+      .request(api.TopicList, {
+        page: that.data.page,
+        size: that.data.size,
+      })
+      .then(function (res) {
+        if (res.code === 0) {
+          that.setData({
+            scrollTop: 0,
+            topicList: res.data.records,
+            showPage: true,
+            count: res.data.total,
+          });
+        }
+        wx.hideToast();
+      });
   },
+  /** 在当前页大于首页时加载上一页专题. */
   prevPage: function (event) {
     if (this.data.page <= 1) {
       return false;
     }
 
-    var that = this;
+    const that = this;
     that.setData({
-      "page": parseInt(that.data.page) - 1
+      page: parseInt(that.data.page) - 1,
     });
     this.getTopic();
-  }
-})
+  },
+});

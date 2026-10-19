@@ -28,12 +28,11 @@ import com.platform.modules.sys.entity.SysDictGroupEntity;
 import com.platform.modules.sys.service.SysDictGroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 数据字典分组Controller
@@ -47,100 +46,100 @@ import java.util.Map;
 @RequestMapping("sys/dictgroup")
 public class SysDictGroupController {
 
-    private final SysDictGroupService sysDictGroupService;
+  private final SysDictGroupService sysDictGroupService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("sys:dictgroup:list")
-    public RestResponse<List<SysDictGroupEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<SysDictGroupEntity> list = sysDictGroupService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("sys:dictgroup:list")
+  public RestResponse<List<SysDictGroupEntity>> queryAll(@RequestParam Map<String, Object> params) {
+    List<SysDictGroupEntity> list = sysDictGroupService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("sys:dictgroup:list")
-    public RestResponse<Page<SysDictGroupEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<SysDictGroupEntity> page = sysDictGroupService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("sys:dictgroup:list")
+  public RestResponse<Page<SysDictGroupEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<SysDictGroupEntity> page = sysDictGroupService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("sys:dictgroup:info")
-    public RestResponse<SysDictGroupEntity> info(@PathVariable("id") String id) {
-        SysDictGroupEntity sysDictGroup = sysDictGroupService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("sys:dictgroup:info")
+  public RestResponse<SysDictGroupEntity> info(@PathVariable("id") String id) {
+    SysDictGroupEntity sysDictGroup = sysDictGroupService.getById(id);
 
-        return RestResponse.ok(sysDictGroup);
-    }
+    return RestResponse.ok(sysDictGroup);
+  }
 
-    /**
-     * 保存数据字典分组
-     *
-     * @param sysDictGroup sysDictGroup
-     * @return RestResponse
-     */
-    @Operation(summary = "保存数据字典分组", description = "保存数据字典分组")
-    @SysLog("保存数据字典分组")
-    @PostMapping("/save")
-    @RequiresPermissions("sys:dictgroup:save")
-    public RestResponse<String> save(@RequestBody SysDictGroupEntity sysDictGroup) {
-        ValidatorUtils.validateEntity(sysDictGroup, AddGroup.class);
-        sysDictGroupService.add(sysDictGroup);
+  /**
+   * 保存数据字典分组
+   *
+   * @param sysDictGroup sysDictGroup
+   * @return RestResponse
+   */
+  @Operation(summary = "保存数据字典分组", description = "保存数据字典分组")
+  @SysLog("保存数据字典分组")
+  @PostMapping("/save")
+  @RequiresPermissions("sys:dictgroup:save")
+  public RestResponse<String> save(@RequestBody SysDictGroupEntity sysDictGroup) {
+    ValidatorUtils.validateEntity(sysDictGroup, AddGroup.class);
+    sysDictGroupService.add(sysDictGroup);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改数据字典分组
-     *
-     * @param sysDictGroup sysDictGroup
-     * @return RestResponse
-     */
-    @Operation(summary = "修改数据字典分组", description = "修改数据字典分组")
-    @SysLog("修改数据字典分组")
-    @PostMapping("/update")
-    @RequiresPermissions("sys:dictgroup:update")
-    public RestResponse<String> update(@RequestBody SysDictGroupEntity sysDictGroup) {
-        ValidatorUtils.validateEntity(sysDictGroup, UpdateGroup.class);
-        sysDictGroupService.update(sysDictGroup);
+  /**
+   * 修改数据字典分组
+   *
+   * @param sysDictGroup sysDictGroup
+   * @return RestResponse
+   */
+  @Operation(summary = "修改数据字典分组", description = "修改数据字典分组")
+  @SysLog("修改数据字典分组")
+  @PostMapping("/update")
+  @RequiresPermissions("sys:dictgroup:update")
+  public RestResponse<String> update(@RequestBody SysDictGroupEntity sysDictGroup) {
+    ValidatorUtils.validateEntity(sysDictGroup, UpdateGroup.class);
+    sysDictGroupService.update(sysDictGroup);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 删除数据字典分组
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除数据字典分组", description = "删除数据字典分组")
-    @SysLog("删除数据字典分组")
-    @PostMapping("/delete")
-    @RequiresPermissions("sys:dictgroup:delete")
-    public RestResponse<String> delete(@RequestBody String[] ids) {
-        sysDictGroupService.deleteBatch(ids);
+  /**
+   * 删除数据字典分组
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除数据字典分组", description = "删除数据字典分组")
+  @SysLog("删除数据字典分组")
+  @PostMapping("/delete")
+  @RequiresPermissions("sys:dictgroup:delete")
+  public RestResponse<String> delete(@RequestBody String[] ids) {
+    sysDictGroupService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

@@ -24,10 +24,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.platform.common.utils.JsonDateSerializer;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
+import lombok.Data;
 
 /**
  * 实体
@@ -38,44 +37,42 @@ import java.math.BigDecimal;
 @Data
 @TableName("mall_footprint")
 public class MallFootprintEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 会员Id
-     */
-    private Long userId;
-    /**
-     * 商品id
-     */
-    private Integer goodsId;
-    /**
-     * 记录时间
-     */
-    @JsonSerialize(using = JsonDateSerializer.class)
-    private Long addTime;
-    /**
-     * 转发人
-     */
-    private Long referrer;
-    /**
-     * 微信昵称
-     */
-    @TableField(exist = false)
-    private String nickname;
-    @TableField(exist = false)
-    private String name;
-    @TableField(exist = false)
-    private String listPicUrl;
-    @TableField(exist = false)
-    private String goodsBrief;
-    //
-    @TableField(exist = false)
-    private BigDecimal retailPrice;
-    @TableField(exist = false)
-    private String avatar;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 会员Id */
+  private Long userId;
+
+  /** 商品id */
+  private Integer goodsId;
+
+  /** 记录时间 */
+  @JsonSerialize(using = JsonDateSerializer.class)
+  private Long addTime;
+
+  /** 转发人 */
+  private Long referrer;
+
+  /** 微信昵称 */
+  @TableField(exist = false)
+  private String nickname;
+
+  @TableField(exist = false)
+  private String name;
+
+  @TableField(exist = false)
+  private String listPicUrl;
+
+  @TableField(exist = false)
+  private String goodsBrief;
+
+  //
+  @TableField(exist = false)
+  private BigDecimal retailPrice;
+
+  @TableField(exist = false)
+  private String avatar;
 }

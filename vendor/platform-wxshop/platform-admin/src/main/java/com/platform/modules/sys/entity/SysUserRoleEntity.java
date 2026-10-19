@@ -20,9 +20,8 @@ package com.platform.modules.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 用户与角色对应关系
@@ -32,18 +31,13 @@ import java.io.Serializable;
 @Data
 @TableName("SYS_USER_ROLE")
 public class SysUserRoleEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @TableId
-    private String id;
+  @TableId private String id;
 
-    /**
-     * 用户ID
-     */
-    private String userId;
+  /** 用户ID */
+  private String userId;
 
-    /**
-     * 角色ID
-     */
-    private String roleId;
+  /** 角色ID */
+  private String roleId;
 }

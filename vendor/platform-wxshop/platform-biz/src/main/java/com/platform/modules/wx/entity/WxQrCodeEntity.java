@@ -21,10 +21,9 @@ package com.platform.modules.wx.entity;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.platform.modules.wx.form.WxQrCodeForm;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 公众号带参二维码
@@ -35,44 +34,34 @@ import java.util.Date;
 @Data
 @TableName("WX_QR_CODE")
 public class WxQrCodeEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * ID
-     */
-    @TableId
-    private String id;
-    /**
-     * 二维码类型
-     */
-    private Boolean isTemp;
-    /**
-     * 场景值ID
-     */
-    private String sceneStr;
-    /**
-     * 二维码ticket
-     */
-    private String ticket;
-    /**
-     * 二维码图片解析后的地址
-     */
-    private String url;
-    /**
-     * 该二维码失效时间
-     */
-    private Date expireTime;
-    /**
-     * 该二维码创建时间
-     */
-    private Date createTime;
+  /** ID */
+  @TableId private String id;
 
-    public WxQrCodeEntity() {
-    }
+  /** 二维码类型 */
+  private Boolean isTemp;
 
-    public WxQrCodeEntity(WxQrCodeForm form) {
-        this.isTemp = form.getIsTemp();
-        this.sceneStr = form.getSceneStr();
-        this.createTime = new Date();
-    }
+  /** 场景值ID */
+  private String sceneStr;
+
+  /** 二维码ticket */
+  private String ticket;
+
+  /** 二维码图片解析后的地址 */
+  private String url;
+
+  /** 该二维码失效时间 */
+  private Date expireTime;
+
+  /** 该二维码创建时间 */
+  private Date createTime;
+
+  public WxQrCodeEntity() {}
+
+  public WxQrCodeEntity(WxQrCodeForm form) {
+    this.isTemp = form.getIsTemp();
+    this.sceneStr = form.getSceneStr();
+    this.createTime = new Date();
+  }
 }

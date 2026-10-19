@@ -2,137 +2,135 @@
  * 邮箱
  * @param {*} s
  */
-export function isEmail (s) {
-  return /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$/.test(s)
+export function isEmail(s) {
+  return /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((.[a-zA-Z0-9_-]{2,3}){1,2})$/.test(s);
 }
 
 /**
  * 手机号码
  * @param {*} s
  */
-export function isMobile (s) {
-  return /^1[0-9]{10}$/.test(s)
+export function isMobile(s) {
+  return /^1[0-9]{10}$/.test(s);
 }
 
 /**
  * 电话号码
  * @param {*} s
  */
-export function isPhone (s) {
-  return /^([0-9]{3,4}-)?[0-9]{7,8}$/.test(s)
+export function isPhone(s) {
+  return /^([0-9]{3,4}-)?[0-9]{7,8}$/.test(s);
 }
 
 /**
  * URL地址
  * @param {*} s
  */
-export function isURL (s) {
-  return /^http[s]?:\/\/.*/.test(s)
+export function isURL(s) {
+  return /^http[s]?:\/\/.*/.test(s);
 }
 
 /* 小写字母 */
-export function isLowerCase (str) {
-  const reg = /^[a-z]+$/
-  return reg.test(str)
+export function isLowerCase(str) {
+  const reg = /^[a-z]+$/;
+  return reg.test(str);
 }
 
 /* 大写字母 */
-export function isUpperCase (str) {
-  const reg = /^[A-Z]+$/
-  return reg.test(str)
+export function isUpperCase(str) {
+  const reg = /^[A-Z]+$/;
+  return reg.test(str);
 }
 
 /* 大小写字母 */
-export function isAlphabets (str) {
-  const reg = /^[A-Za-z]+$/
-  return reg.test(str)
+export function isAlphabets(str) {
+  const reg = /^[A-Za-z]+$/;
+  return reg.test(str);
 }
 
 /* 验证pad还是pc */
 export const isPc = function () {
-  const userAgentInfo = navigator.userAgent
-  const Agents = ['Android', 'iPhone',
-    'SymbianOS', 'Windows Phone',
-    'iPad', 'iPod']
-  let flag = true
+  const userAgentInfo = navigator.userAgent;
+  const Agents = ['Android', 'iPhone', 'SymbianOS', 'Windows Phone', 'iPad', 'iPod'];
+  let flag = true;
   for (let v = 0; v < Agents.length; v++) {
     if (userAgentInfo.indexOf(Agents[v]) > 0) {
-      flag = false
-      break
+      flag = false;
+      break;
     }
   }
-  return flag
-}
+  return flag;
+};
 
 /**
  * 判断姓名是否正确
  */
-export function isName (name) {
-  const regName = /^[\u4e00-\u9fa5]{2,4}$/
+export function isName(name) {
+  const regName = /^[\u4e00-\u9fa5]{2,4}$/;
   if (!regName.test(name)) {
-    return false
+    return false;
   }
-  return true
+  return true;
 }
 
 /**
  * 判断是否为整数
  */
-export function isNum (num, type) {
-  let regName = /[^\d.]/g
+export function isNum(num, type) {
+  let regName = /[^\d.]/g;
   if (type === 1) {
     if (!regName.test(num)) {
-      return false
+      return false;
     }
   } else if (type === 2) {
-    regName = /[^\d]/g
+    regName = /[^\d]/g;
     if (!regName.test(num)) {
-      return false
+      return false;
     }
   }
-  return true
+  return true;
 }
 
 /**
  * 判断是否为小数
  */
-export function isNumOrd (num, type) {
-  let regName = /[^\d.]/g
+export function isNumOrd(num, type) {
+  let regName = /[^\d.]/g;
   if (type === 1) {
     if (!regName.test(num)) {
-      return false
+      return false;
     }
   } else if (type === 2) {
-    regName = /[^\d.]/g
+    regName = /[^\d.]/g;
     if (!regName.test(num)) {
-      return false
+      return false;
     }
   }
-  return true
+  return true;
 }
 
 /**
  * 判断是否为空
  */
-export function isNull (val) {
+export function isNull(val) {
   if (val instanceof Array) {
     if (val.length === 0) {
-      return true
+      return true;
     }
   } else if (val instanceof Object) {
     if (JSON.stringify(val) === '{}') {
-      return true
+      return true;
     }
   } else {
-    return val === 'null' || val == null || val === 'undefined' || val === undefined || val === ''
+    return val === 'null' || val == null || val === 'undefined' || val === undefined || val === '';
   }
-  return false
+  return false;
 }
 
 /**
  * 判断身份证号码
  */
-export function isCardId (code) {
+export function isCardId(code) {
   const city = {
     11: '北京',
     12: '天津',
@@ -168,41 +166,36 @@ export function isCardId (code) {
     71: '台湾',
     81: '香港',
     82: '澳门',
-    91: '国外 '
-  }
+    91: '国外 ',
+  };
   if (!isNull(code)) {
     if (code.length === 18) {
       if (!code || !/(^\d{18}$)|(^\d{17}(\d|X|x)$)/.test(code)) {
-
-        return false
+        return false;
       } else if (!city[code.substr(0, 2)]) {
-
-        return false
+        return false;
       } else {
         // 18位身份证需要验证最后一位校验位
-        code = code.split('')
+        code = code.split('');
         // ∑(ai×Wi)(mod 11)
         // 加权因子
-        const factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+        const factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
         // 校验位
-        const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2, 'x']
-        let sum = 0
+        const parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2, 'x'];
+        let sum = 0;
         for (let i = 0; i < 17; i++) {
-          sum += code[i] * factor[i]
+          sum += code[i] * factor[i];
         }
-        const last = parity[sum % 11]
+        const last = parity[sum % 11];
         if (String(last) !== String(code[17]).toUpperCase()) {
-
-          return false
+          return false;
         }
       }
     } else {
-
-      return false
+      return false;
     }
   } else {
-
-    return false
+    return false;
   }
-  return true
+  return true;
 }

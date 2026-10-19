@@ -41,28 +41,32 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Component
 @RequiredArgsConstructor
 public class LoginUserHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
-    private final WxUserService userService;
+  private final WxUserService userService;
 
-    @Override
-    public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.getParameterType().isAssignableFrom(WxUserEntity.class) && parameter.hasParameterAnnotation(LoginUser.class);
+  @Override
+  public boolean supportsParameter(MethodParameter parameter) {
+    return parameter.getParameterType().isAssignableFrom(WxUserEntity.class)
+        && parameter.hasParameterAnnotation(LoginUser.class);
+  }
+
+  @Override
+  public Object resolveArgument(
+      MethodParameter parameter,
+      ModelAndViewContainer container,
+      NativeWebRequest request,
+      WebDataBinderFactory factory) {
+    // 获取用户ID
+    Object object = request.getAttribute(Constant.USER_KEY, RequestAttributes.SCOPE_REQUEST);
+    if (object == null) {
+      return null;
     }
 
-    @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
-                                  NativeWebRequest request, WebDataBinderFactory factory) {
-        //获取用户ID
-        Object object = request.getAttribute(Constant.USER_KEY, RequestAttributes.SCOPE_REQUEST);
-        if (object == null) {
-            return null;
-        }
+    // 获取用户信息
 
-        //获取用户信息
-
-        WxUserEntity user = userService.getById((String) object);
-        if (null == user) {
-            throw new BusinessException("token失效，请重新登录", HttpStatus.UNAUTHORIZED.value());
-        }
-        return user;
+    WxUserEntity user = userService.getById((String) object);
+    if (null == user) {
+      throw new BusinessException("token失效，请重新登录", HttpStatus.UNAUTHORIZED.value());
     }
+    return user;
+  }
 }

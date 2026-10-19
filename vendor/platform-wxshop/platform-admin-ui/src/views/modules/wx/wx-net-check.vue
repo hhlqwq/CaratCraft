@@ -1,20 +1,19 @@
 <template>
-  <el-dialog
-    title="网络检测"
-    :close-on-click-modal="false"
-    :lock-scroll="false"
-    v-model="visible">
+  <el-dialog title="网络检测" :close-on-click-modal="false" :lock-scroll="false" v-model="visible">
     <el-alert
       style="margin: 0 0 30px 0"
       title="为了帮助开发者排查回调连接失败的问题，提供这个网络检测的API。它可以对开发者URL做域名解析，然后对所有IP进行一次ping操作，得到丢包率和耗时。(请勿重复调用)"
       type="warning"
       :closable="false"
-      show-icon>
+      show-icon
+    >
     </el-alert>
     <el-card class="box-card">
-      <template #header><div  class="clearfix">
-        <span>DNS</span>
-      </div></template>
+      <template #header
+        ><div class="clearfix">
+          <span>DNS</span>
+        </div></template
+      >
       <el-table :data="dataForm.dnsInfos">
         <el-table-column property="realOperator" label="运营商">
           <template #default="scope">
@@ -26,9 +25,11 @@
     </el-card>
     <el-divider></el-divider>
     <el-card class="box-card">
-      <template #header><div  class="clearfix">
-        <span>PING</span>
-      </div></template>
+      <template #header
+        ><div class="clearfix">
+          <span>PING</span>
+        </div></template
+      >
       <el-table :data="dataForm.pingInfos">
         <el-table-column property="fromOperator" label="运营商">
           <template #default="scope">
@@ -46,41 +47,41 @@
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
-      dataForm: {dnsInfos: [], pingInfos: []}
-    }
+      dataForm: {dnsInfos: [], pingInfos: []},
+    };
   },
   methods: {
-    init () {
-      this.visible = true
+    init() {
+      this.visible = true;
       this.$nextTick(() => {
         this.$http({
           url: `/manage/wxMenu/netCheck`,
           method: 'get',
           params: {
-            'action': 'all'
-          }
+            action: 'all',
+          },
         }).then(({data}) => {
           if (data && data.code === 0) {
-            this.dataForm = data.data
+            this.dataForm = data.data;
           }
-        })
-      })
+        });
+      });
     },
-    getOperator (operator) {
+    getOperator(operator) {
       switch (operator) {
         case 'CHINANET':
-          return '电信'
+          return '电信';
         case 'UNICOM':
-          return '联通'
+          return '联通';
         case 'CAP':
-          return '腾讯自建'
+          return '腾讯自建';
         default:
-          return ''
+          return '';
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>

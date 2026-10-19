@@ -26,85 +26,84 @@ import com.platform.common.utils.TokenGenerator;
 import com.platform.modules.sys.dao.SysUserTokenDao;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
 import com.platform.modules.sys.service.SysUserTokenService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author 何海龙
  */
 @Service("sysUserTokenService")
-public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenEntity> implements SysUserTokenService {
+public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenEntity>
+    implements SysUserTokenService {
 
+  @Override
+  public String createToken(String userId) {
+    // 生成一个token
+    String token = TokenGenerator.generateValue();
 
-    @Override
-    public String createToken(String userId) {
-        //生成一个token
-        String token = TokenGenerator.generateValue();
+    // 当前时间
+    Date now = new Date();
+    // 过期时间
+    Date expireTime = new Date(now.getTime() + Constant.EXPIRE * 1000);
 
-        //当前时间
-        Date now = new Date();
-        //过期时间
-        Date expireTime = new Date(now.getTime() + Constant.EXPIRE * 1000);
+    // 判断是否生成过token
+    SysUserTokenEntity tokenEntity = this.getById(userId);
+    if (tokenEntity == null) {
+      tokenEntity = new SysUserTokenEntity();
+      tokenEntity.setUserId(userId);
+      tokenEntity.setToken(token);
+      tokenEntity.setUpdateTime(now);
+      tokenEntity.setExpireTime(expireTime);
 
-        //判断是否生成过token
-        SysUserTokenEntity tokenEntity = this.getById(userId);
-        if (tokenEntity == null) {
-            tokenEntity = new SysUserTokenEntity();
-            tokenEntity.setUserId(userId);
-            tokenEntity.setToken(token);
-            tokenEntity.setUpdateTime(now);
-            tokenEntity.setExpireTime(expireTime);
+      // 保存token
+      this.save(tokenEntity);
+    } else {
+      tokenEntity.setToken(token);
+      tokenEntity.setUpdateTime(now);
+      tokenEntity.setExpireTime(expireTime);
 
-            //保存token
-            this.save(tokenEntity);
-        } else {
-            tokenEntity.setToken(token);
-            tokenEntity.setUpdateTime(now);
-            tokenEntity.setExpireTime(expireTime);
-
-            //更新token
-            this.updateById(tokenEntity);
-        }
-
-        return token;
+      // 更新token
+      this.updateById(tokenEntity);
     }
 
-    @Override
-    public void logout(String userId) {
-        //生成一个token
-        String token = TokenGenerator.generateValue();
+    return token;
+  }
 
-        //修改token
-        SysUserTokenEntity tokenEntity = new SysUserTokenEntity();
-        tokenEntity.setUserId(userId);
-        tokenEntity.setToken(token);
-        this.updateById(tokenEntity);
-    }
+  @Override
+  public void logout(String userId) {
+    // 生成一个token
+    String token = TokenGenerator.generateValue();
 
-    @Override
-    public Page<SysUserTokenEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.UPDATE_TIME");
-        params.put("asc", false);
-        Page<SysUserTokenEntity> page = new Query<SysUserTokenEntity>(params).getPage();
+    // 修改token
+    SysUserTokenEntity tokenEntity = new SysUserTokenEntity();
+    tokenEntity.setUserId(userId);
+    tokenEntity.setToken(token);
+    this.updateById(tokenEntity);
+  }
 
-        params.put("nowDate", new Date());
-        return page.setRecords(baseMapper.selectSysUserTokenPage(page, params));
-    }
+  @Override
+  public Page<SysUserTokenEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.UPDATE_TIME");
+    params.put("asc", false);
+    Page<SysUserTokenEntity> page = new Query<SysUserTokenEntity>(params).getPage();
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void delete(String userId) {
-        this.removeById(userId);
-    }
+    params.put("nowDate", new Date());
+    return page.setRecords(baseMapper.selectSysUserTokenPage(page, params));
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void offlineBatch(String[] userIds) {
-        this.removeByIds(Arrays.asList(userIds));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public void delete(String userId) {
+    this.removeById(userId);
+  }
+
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public void offlineBatch(String[] userIds) {
+    this.removeByIds(Arrays.asList(userIds));
+  }
 }

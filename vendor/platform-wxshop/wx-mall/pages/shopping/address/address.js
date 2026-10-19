@@ -1,54 +1,44 @@
-var util = require('../../../utils/util.js');
-var api = require('../../../config/api.js');
-var app = getApp();
+const util = require('../../../utils/util.js');
+const api = require('../../../config/api.js');
 
 Page({
   data: {
     addressList: [],
   },
-  onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
-    
-  },
-  onReady: function () {
-    // 页面渲染完成
-  },
+
+  /** 页面再次展示时刷新结算收货地址状态. */
   onShow: function () {
-    // 页面显示
     this.getAddressList();
   },
-  getAddressList (){
-    let that = this;
+  /** 读取本人保存的收货地址列表. */
+  getAddressList() {
+    const that = this;
     util.request(api.AddressList).then(function (res) {
       if (res.code === 0) {
         that.setData({
-          addressList: res.data
+          addressList: res.data,
         });
       }
     });
   },
-  addressAddOrUpdate (event) {
+  /** 携带地址标识进入新增或编辑页面. */
+  addressAddOrUpdate(event) {
     wx.navigateTo({
-      url: '/pages/shopping/addressAdd/addressAdd?id=' + event.currentTarget.dataset.addressId
+      url: '/pages/shopping/addressAdd/addressAdd?id=' + event.currentTarget.dataset.addressId,
     });
   },
-  selectAddress(event){
-
+  /** 记录当前选择的收货地址并返回结算流程. */
+  selectAddress(event) {
     try {
       wx.setStorageSync('addressId', event.currentTarget.dataset.addressId);
     } catch (e) {
-
+      util.showErrorToast('无法保存收货地址, 请重试');
+      return;
     }
 
     //选择该收货地址
     wx.navigateBack({
-      url: '/pages/shopping/checkout/checkout'
+      url: '/pages/shopping/checkout/checkout',
     });
   },
-  onHide: function () {
-    // 页面隐藏
-  },
-  onUnload: function () {
-    // 页面关闭
-  }
-})
+});

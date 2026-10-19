@@ -24,12 +24,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.sys.dao.SysDictGroupDao;
 import com.platform.modules.sys.entity.SysDictGroupEntity;
 import com.platform.modules.sys.service.SysDictGroupService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 数据字典分组Service实现类
@@ -38,41 +37,42 @@ import java.util.Map;
  * @since 2019-01-15 11:42:20
  */
 @Service("sysDictGroupService")
-public class SysDictGroupServiceImpl extends ServiceImpl<SysDictGroupDao, SysDictGroupEntity> implements SysDictGroupService {
+public class SysDictGroupServiceImpl extends ServiceImpl<SysDictGroupDao, SysDictGroupEntity>
+    implements SysDictGroupService {
 
-    @Override
-    public List<SysDictGroupEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<SysDictGroupEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public Page<SysDictGroupEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.CREATE_TIME");
-        params.put("asc", false);
-        Page<SysDictGroupEntity> page = new Query<SysDictGroupEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectSysDictGroupPage(page, params));
-    }
+  @Override
+  public Page<SysDictGroupEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.CREATE_TIME");
+    params.put("asc", false);
+    Page<SysDictGroupEntity> page = new Query<SysDictGroupEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectSysDictGroupPage(page, params));
+  }
 
-    @Override
-    public void add(SysDictGroupEntity sysDictGroup) {
-        this.save(sysDictGroup);
-    }
+  @Override
+  public void add(SysDictGroupEntity sysDictGroup) {
+    this.save(sysDictGroup);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void update(SysDictGroupEntity sysDictGroup) {
-        this.updateById(sysDictGroup);
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public void update(SysDictGroupEntity sysDictGroup) {
+    this.updateById(sysDictGroup);
+  }
 
-    @Override
-    public void delete(String id) {
-        this.removeById(id);
-    }
+  @Override
+  public void delete(String id) {
+    this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void deleteBatch(String[] ids) {
-        this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public void deleteBatch(String[] ids) {
+    this.removeByIds(Arrays.asList(ids));
+  }
 }

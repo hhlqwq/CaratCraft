@@ -30,5 +30,5 @@ import java.lang.annotation.*;
 @Documented
 public @interface SysLog {
 
-    String value() default "操作日志";
+  String value() default "操作日志";
 }

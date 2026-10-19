@@ -21,10 +21,9 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
+import lombok.Data;
 
 /**
  * 实体
@@ -35,55 +34,42 @@ import java.math.BigDecimal;
 @Data
 @TableName("mall_brand")
 public class MallBrandEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 品牌名称
-     */
-    private String name;
-    /**
-     * 图片
-     */
-    private String listPicUrl;
-    /**
-     * 描述
-     */
-    private String simpleDesc;
-    /**
-     * 图片
-     */
-    private String picUrl;
-    /**
-     * 排序
-     */
-    private Integer sortOrder;
-    /**
-     * 显示
-     */
-    private Integer isShow;
-    /**
-     *
-     */
-    private BigDecimal floorPrice;
-    /**
-     * app显示图片
-     */
-    private String appListPicUrl;
-    /**
-     * 新品牌
-     */
-    private Integer isNew;
-    /**
-     * 图片
-     */
-    private String newPicUrl;
-    /**
-     * 排序
-     */
-    private Integer newSortOrder;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 品牌名称 */
+  private String name;
+
+  /** 图片 */
+  private String listPicUrl;
+
+  /** 描述 */
+  private String simpleDesc;
+
+  /** 图片 */
+  private String picUrl;
+
+  /** 排序 */
+  private Integer sortOrder;
+
+  /** 显示 */
+  private Integer isShow;
+
+  /** */
+  private BigDecimal floorPrice;
+
+  /** app显示图片 */
+  private String appListPicUrl;
+
+  /** 新品牌 */
+  private Integer isNew;
+
+  /** 图片 */
+  private String newPicUrl;
+
+  /** 排序 */
+  private Integer newSortOrder;
 }

@@ -22,49 +22,49 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.modules.sys.dao.SysUserRoleDao;
 import com.platform.modules.sys.entity.SysUserRoleEntity;
 import com.platform.modules.sys.service.SysUserRoleService;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 /**
  * @author 何海龙
  */
 @Service("sysUserRoleService")
-public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleDao, SysUserRoleEntity> implements SysUserRoleService {
+public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleDao, SysUserRoleEntity>
+    implements SysUserRoleService {
 
-    @Override
-    public void saveOrUpdate(String userId, List<String> roleIdList) {
-        Map<String, Object> map = new HashMap<>(2);
-        map.put("USER_ID", userId);
-        //先删除用户与角色关系
-        this.removeByMap(map);
+  @Override
+  public void saveOrUpdate(String userId, List<String> roleIdList) {
+    Map<String, Object> map = new HashMap<>(2);
+    map.put("USER_ID", userId);
+    // 先删除用户与角色关系
+    this.removeByMap(map);
 
-        if (roleIdList == null || roleIdList.size() == 0) {
-            return;
-        }
-
-        //保存用户与角色关系
-        List<SysUserRoleEntity> list = new ArrayList<>(roleIdList.size());
-        for (String roleId : roleIdList) {
-            SysUserRoleEntity sysUserRoleEntity = new SysUserRoleEntity();
-            sysUserRoleEntity.setUserId(userId);
-            sysUserRoleEntity.setRoleId(roleId);
-
-            list.add(sysUserRoleEntity);
-        }
-        this.saveBatch(list);
+    if (roleIdList == null || roleIdList.size() == 0) {
+      return;
     }
 
-    @Override
-    public List<String> queryRoleIdList(String userId) {
-        return baseMapper.queryRoleIdList(userId);
-    }
+    // 保存用户与角色关系
+    List<SysUserRoleEntity> list = new ArrayList<>(roleIdList.size());
+    for (String roleId : roleIdList) {
+      SysUserRoleEntity sysUserRoleEntity = new SysUserRoleEntity();
+      sysUserRoleEntity.setUserId(userId);
+      sysUserRoleEntity.setRoleId(roleId);
 
-    @Override
-    public int deleteBatch(String[] roleIds) {
-        return baseMapper.deleteBatch(roleIds);
+      list.add(sysUserRoleEntity);
     }
+    this.saveBatch(list);
+  }
+
+  @Override
+  public List<String> queryRoleIdList(String userId) {
+    return baseMapper.queryRoleIdList(userId);
+  }
+
+  @Override
+  public int deleteBatch(String[] roleIds) {
+    return baseMapper.deleteBatch(roleIds);
+  }
 }

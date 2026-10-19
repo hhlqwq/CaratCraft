@@ -26,11 +26,10 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
 import com.platform.handler.JsonArrayTypeHandler;
-import lombok.Data;
-import me.chanjar.weixin.mp.bean.template.WxMpTemplate;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
+import me.chanjar.weixin.mp.bean.template.WxMpTemplate;
 
 /**
  * 模板消息模板
@@ -40,38 +39,41 @@ import java.util.Date;
 @Data
 @TableName(value = "WX_MSG_TEMPLATE", autoResultMap = true)
 public class MsgTemplateEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
-    @TableId
-    private String id;
-    private String templateId;
-    @TableField(value = "`name`")
-    private String name;
-    private String title;
-    private String content;
-    @TableField(typeHandler = JsonArrayTypeHandler.class)
-    private JSONArray data;
-    private String url;
-    @TableField(typeHandler = FastjsonTypeHandler.class)
-    private JSONObject miniprogram;
-    @TableField(value = "`status`")
-    private boolean status;
-    private Date updateTime;
+  private static final long serialVersionUID = 1L;
+  @TableId private String id;
+  private String templateId;
 
-    public MsgTemplateEntity() {
+  @TableField(value = "`name`")
+  private String name;
 
-    }
+  private String title;
+  private String content;
 
-    public MsgTemplateEntity(WxMpTemplate mpTemplate) {
-        this.templateId = mpTemplate.getTemplateId();
-        this.title = mpTemplate.getTitle();
-        this.name = mpTemplate.getTemplateId();
-        this.content = mpTemplate.getContent();
-        this.status = true;
-    }
+  @TableField(typeHandler = JsonArrayTypeHandler.class)
+  private JSONArray data;
 
-    @Override
-    public String toString() {
-        return JSON.toJSONString(this);
-    }
+  private String url;
 
+  @TableField(typeHandler = FastjsonTypeHandler.class)
+  private JSONObject miniprogram;
+
+  @TableField(value = "`status`")
+  private boolean status;
+
+  private Date updateTime;
+
+  public MsgTemplateEntity() {}
+
+  public MsgTemplateEntity(WxMpTemplate mpTemplate) {
+    this.templateId = mpTemplate.getTemplateId();
+    this.title = mpTemplate.getTitle();
+    this.name = mpTemplate.getTemplateId();
+    this.content = mpTemplate.getContent();
+    this.status = true;
+  }
+
+  @Override
+  public String toString() {
+    return JSON.toJSONString(this);
+  }
 }

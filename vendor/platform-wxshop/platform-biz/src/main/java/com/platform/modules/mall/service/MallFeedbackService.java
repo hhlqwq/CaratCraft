@@ -22,7 +22,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallFeedbackEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,59 +33,59 @@ import java.util.Map;
  */
 public interface MallFeedbackService extends IService<MallFeedbackEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallFeedbackEntity> queryAll(Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallFeedbackEntity> queryAll(Map<String, Object> params);
 
-    /**
-     * 查询所有列表
-     *
-     * @param queryWrapper 查询参数
-     * @return List
-     */
-    List<MallFeedbackEntity> queryAllByWrapper(QueryWrapper<MallFeedbackEntity> queryWrapper);
+  /**
+   * 查询所有列表
+   *
+   * @param queryWrapper 查询参数
+   * @return List
+   */
+  List<MallFeedbackEntity> queryAllByWrapper(QueryWrapper<MallFeedbackEntity> queryWrapper);
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return Page
-     */
-    Page<MallFeedbackEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return Page
+   */
+  Page<MallFeedbackEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 新增
-     *
-     * @param mallFeedback
-     * @return 新增结果
-     */
-    boolean add(MallFeedbackEntity mallFeedback);
+  /**
+   * 新增
+   *
+   * @param mallFeedback
+   * @return 新增结果
+   */
+  boolean add(MallFeedbackEntity mallFeedback);
 
-    /**
-     * 根据主键更新
-     *
-     * @param mallFeedback
-     * @return 更新结果
-     */
-    boolean update(MallFeedbackEntity mallFeedback);
+  /**
+   * 根据主键更新
+   *
+   * @param mallFeedback
+   * @return 更新结果
+   */
+  boolean update(MallFeedbackEntity mallFeedback);
 
-    /**
-     * 根据主键删除
-     *
-     * @param msgId msgId
-     * @return 删除结果
-     */
-    boolean delete(Integer msgId);
+  /**
+   * 根据主键删除
+   *
+   * @param msgId msgId
+   * @return 删除结果
+   */
+  boolean delete(Integer msgId);
 
-    /**
-     * 根据主键批量删除
-     *
-     * @param msgIds msgIds
-     * @return 删除结果
-     */
-    boolean deleteBatch(Integer[] msgIds);
+  /**
+   * 根据主键批量删除
+   *
+   * @param msgIds msgIds
+   * @return 删除结果
+   */
+  boolean deleteBatch(Integer[] msgIds);
 }

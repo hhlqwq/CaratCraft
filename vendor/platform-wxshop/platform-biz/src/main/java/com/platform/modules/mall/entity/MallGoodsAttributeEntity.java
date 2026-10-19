@@ -21,9 +21,8 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -34,23 +33,18 @@ import java.io.Serializable;
 @Data
 @TableName("mall_goods_attribute")
 public class MallGoodsAttributeEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 商品Id
-     */
-    private Integer goodsId;
-    /**
-     * 属性Id
-     */
-    private Integer attributeId;
-    /**
-     * 属性值
-     */
-    private String value;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 商品Id */
+  private Integer goodsId;
+
+  /** 属性Id */
+  private Integer attributeId;
+
+  /** 属性值 */
+  private String value;
 }

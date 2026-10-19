@@ -12,7 +12,7 @@
 }
 
 .home-hero::after {
-  border: 1rpx solid rgba(214, 181, 119, .35);
+  border: 1rpx solid rgba(214, 181, 119, 0.35);
   border-radius: 50%;
   content: '';
   height: 280rpx;
@@ -50,7 +50,7 @@
 }
 
 .hero-copy {
-  color: rgba(255, 255, 255, .66);
+  color: rgba(255, 255, 255, 0.66);
   font-size: 24rpx;
   line-height: 1.7;
   margin-top: 20rpx;
@@ -117,8 +117,8 @@
 }
 
 .keyword-chip {
-  border: 1rpx solid rgba(255, 255, 255, .28);
-  color: rgba(255, 255, 255, .72);
+  border: 1rpx solid rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.72);
   display: inline-block;
   font-size: 22rpx;
   margin-right: 14rpx;
@@ -178,8 +178,8 @@
   width: 72rpx;
 }
 
-.function-item:nth-child(4n+2) .function-mark,
-.function-item:nth-child(4n+3) .function-mark {
+.function-item:nth-child(4n + 2) .function-mark,
+.function-item:nth-child(4n + 3) .function-mark {
   background: #f2e9dd;
   color: #9a6f3b;
 }
@@ -209,7 +209,7 @@
 }
 
 .atelier-number {
-  color: rgba(24, 36, 33, .14);
+  color: rgba(24, 36, 33, 0.14);
   font-family: serif;
   font-size: 150rpx;
   font-weight: 700;
@@ -239,7 +239,7 @@
 }
 
 .atelier-copy {
-  color: rgba(23, 35, 31, .68);
+  color: rgba(23, 35, 31, 0.68);
   font-size: 22rpx;
   line-height: 1.55;
   margin-top: 10rpx;
@@ -248,7 +248,7 @@
 
 .atelier-arrow {
   align-items: center;
-  border: 1rpx solid rgba(23, 35, 31, .4);
+  border: 1rpx solid rgba(23, 35, 31, 0.4);
   border-radius: 50%;
   color: #17231f;
   display: flex;

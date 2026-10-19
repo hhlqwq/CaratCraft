@@ -9,8 +9,12 @@ export async function Encrypt(word, keyStr = '_aes_secret_key_', ivStr = '_aes_s
   const bytes = encoder.encode(word);
   const padded = new Uint8Array(Math.ceil(bytes.length / 16) * 16);
   padded.set(bytes);
-  const key = await crypto.subtle.importKey('raw', encoder.encode(keyStr), 'AES-CBC', false, ['encrypt']);
+  const key = await crypto.subtle.importKey('raw', encoder.encode(keyStr), 'AES-CBC', false, [
+    'encrypt',
+  ]);
   // Web Crypto会追加一个完整PKCS7块, 去掉该块可保持既有零填充密文协议.
-  const encrypted = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-CBC', iv: encoder.encode(ivStr)}, key, padded));
+  const encrypted = new Uint8Array(
+    await crypto.subtle.encrypt({name: 'AES-CBC', iv: encoder.encode(ivStr)}, key, padded)
+  );
   return btoa(String.fromCharCode(...encrypted.subarray(0, encrypted.length - 16)));
 }

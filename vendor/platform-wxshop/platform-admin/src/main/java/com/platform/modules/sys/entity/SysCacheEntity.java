@@ -18,9 +18,8 @@
  */
 package com.platform.modules.sys.entity;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * redis缓存信息
@@ -29,18 +28,14 @@ import java.io.Serializable;
  */
 @Data
 public class SysCacheEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * key
-     */
-    private String cacheKey;
-    /**
-     * value
-     */
-    private String value;
-    /**
-     * 剩余过期时间，单位秒
-     */
-    private Long seconds;
+  /** key */
+  private String cacheKey;
+
+  /** value */
+  private String value;
+
+  /** 剩余过期时间，单位秒 */
+  private Long seconds;
 }

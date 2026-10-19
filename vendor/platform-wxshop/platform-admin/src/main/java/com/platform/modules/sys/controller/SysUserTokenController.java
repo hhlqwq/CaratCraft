@@ -25,11 +25,10 @@ import com.platform.modules.sys.entity.SysUserTokenEntity;
 import com.platform.modules.sys.service.SysUserTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 /**
  * 系统用户TokenController
@@ -42,35 +41,35 @@ import java.util.Map;
 @RestController
 @RequestMapping("sys/usertoken")
 public class SysUserTokenController {
-    private final SysUserTokenService sysUserTokenService;
+  private final SysUserTokenService sysUserTokenService;
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("sys:usertoken:list")
-    public RestResponse<Page<SysUserTokenEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<SysUserTokenEntity> page = sysUserTokenService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("sys:usertoken:list")
+  public RestResponse<Page<SysUserTokenEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<SysUserTokenEntity> page = sysUserTokenService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 批量下线用户(删除用户token记录)
-     *
-     * @param userIds userIds
-     * @return RestResponse
-     */
-    @Operation(summary = "批量下线用户", description = "批量下线用户")
-    @SysLog("批量下线用户")
-    @PostMapping("/offline")
-    @RequiresPermissions("sys:usertoken:offline")
-    public RestResponse<String> offline(@RequestBody String[] userIds) {
-        sysUserTokenService.offlineBatch(userIds);
-        return RestResponse.ok();
-    }
+  /**
+   * 批量下线用户(删除用户token记录)
+   *
+   * @param userIds userIds
+   * @return RestResponse
+   */
+  @Operation(summary = "批量下线用户", description = "批量下线用户")
+  @SysLog("批量下线用户")
+  @PostMapping("/offline")
+  @RequiresPermissions("sys:usertoken:offline")
+  public RestResponse<String> offline(@RequestBody String[] userIds) {
+    sysUserTokenService.offlineBatch(userIds);
+    return RestResponse.ok();
+  }
 }

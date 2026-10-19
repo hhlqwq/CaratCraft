@@ -27,32 +27,32 @@ import java.util.Base64;
  * 描述: Base64 <br>
  */
 public class Base64Util {
-    /**
-     * 加密
-     *
-     * @param s s
-     * @return String
-     */
-    public static String encode(String s) {
-        if (StringUtils.isBlank(s)) {
-            return "";
-        }
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] b = s.getBytes(StandardCharsets.UTF_8);
-        return encoder.encodeToString(b);
+  /**
+   * 加密
+   *
+   * @param s s
+   * @return String
+   */
+  public static String encode(String s) {
+    if (StringUtils.isBlank(s)) {
+      return "";
     }
+    Base64.Encoder encoder = Base64.getEncoder();
+    byte[] b = s.getBytes(StandardCharsets.UTF_8);
+    return encoder.encodeToString(b);
+  }
 
-    /**
-     * 解密
-     *
-     * @param s s
-     * @return String
-     */
-    public static String decode(String s) {
-        if (StringUtils.isBlank(s)) {
-            return "";
-        }
-        Base64.Decoder decoder = Base64.getDecoder();
-        return new String(decoder.decode(s), StandardCharsets.UTF_8);
+  /**
+   * 解密
+   *
+   * @param s s
+   * @return String
+   */
+  public static String decode(String s) {
+    if (StringUtils.isBlank(s)) {
+      return "";
     }
+    Base64.Decoder decoder = Base64.getDecoder();
+    return new String(decoder.decode(s), StandardCharsets.UTF_8);
+  }
 }

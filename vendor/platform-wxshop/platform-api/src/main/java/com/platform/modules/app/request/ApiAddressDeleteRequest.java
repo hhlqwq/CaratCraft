@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ApiAddressDeleteRequest {
-    private Integer id;
+  private Integer id;
 }

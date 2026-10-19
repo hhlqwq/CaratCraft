@@ -22,8 +22,11 @@ public class OrderLifecycleService {
   private final OrderPriceLogDao priceLogs;
 
   /** 注入订单、定制绑定、工单和改价审计访问接口. */
-  public OrderLifecycleService(MallOrderService orders, CustomOrderCustomizationDao customizations,
-      ProductionWorkOrderDao workOrders, OrderPriceLogDao priceLogs) {
+  public OrderLifecycleService(
+      MallOrderService orders,
+      CustomOrderCustomizationDao customizations,
+      ProductionWorkOrderDao workOrders,
+      OrderPriceLogDao priceLogs) {
     this.orders = orders;
     this.customizations = customizations;
     this.workOrders = workOrders;
@@ -47,16 +50,26 @@ public class OrderLifecycleService {
         || !Integer.valueOf(1).equals(order.getShippingStatus())) {
       throw new IllegalArgumentException("仅已支付并已发货订单可确认收货");
     }
-    requireUpdate(new UpdateWrapper<MallOrderEntity>().eq("id", orderId)
-        .eq("order_status", 300).eq("pay_status", 2).eq("shipping_status", 1)
-        .set("order_status", 301).set("shipping_status", 2).set("confirm_time", new Date()));
+    requireUpdate(
+        new UpdateWrapper<MallOrderEntity>()
+            .eq("id", orderId)
+            .eq("order_status", 300)
+            .eq("pay_status", 2)
+            .eq("shipping_status", 1)
+            .set("order_status", 301)
+            .set("shipping_status", 2)
+            .set("confirm_time", new Date()));
   }
 
   /** 定制工单完成后才允许发货, 普通商品同样须处于待发货状态. */
   @Transactional(rollbackFor = Exception.class)
   public void ship(Integer orderId, String company, String tracking) {
-    if (company == null || company.isBlank() || company.length() > 100
-        || tracking == null || tracking.isBlank() || tracking.length() > 32) {
+    if (company == null
+        || company.isBlank()
+        || company.length() > 100
+        || tracking == null
+        || tracking.isBlank()
+        || tracking.length() > 32) {
       throw new IllegalArgumentException("请填写有效的快递公司和物流单号");
     }
     MallOrderEntity order = requireOrder(orderId);
@@ -65,40 +78,60 @@ public class OrderLifecycleService {
         || !Integer.valueOf(0).equals(order.getShippingStatus())) {
       throw new IllegalArgumentException("仅已支付且待发货订单可发货");
     }
-    Long customCount = customizations.selectCount(new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
-        .eq(CustomOrderCustomizationEntity::getOrderId, orderId));
+    Long customCount =
+        customizations.selectCount(
+            new LambdaQueryWrapper<CustomOrderCustomizationEntity>()
+                .eq(CustomOrderCustomizationEntity::getOrderId, orderId));
     if (customCount > 0) {
-      ProductionWorkOrderEntity work = workOrders.selectOne(
-          new LambdaQueryWrapper<ProductionWorkOrderEntity>()
-              .eq(ProductionWorkOrderEntity::getOrderId, orderId).last("FOR UPDATE"));
+      ProductionWorkOrderEntity work =
+          workOrders.selectOne(
+              new LambdaQueryWrapper<ProductionWorkOrderEntity>()
+                  .eq(ProductionWorkOrderEntity::getOrderId, orderId)
+                  .last("FOR UPDATE"));
       if (work == null || !"COMPLETED".equals(work.getStatus())) {
         throw new IllegalArgumentException("定制工单完成质检后才可发货");
       }
     }
-    requireUpdate(new UpdateWrapper<MallOrderEntity>().eq("id", orderId)
-        .eq("order_status", 201).eq("pay_status", 2).eq("shipping_status", 0)
-        .set("shipping_status", 1).set("order_status", 300)
-        .set("shipping_name", company.trim()).set("shipping_no", tracking.trim()));
+    requireUpdate(
+        new UpdateWrapper<MallOrderEntity>()
+            .eq("id", orderId)
+            .eq("order_status", 201)
+            .eq("pay_status", 2)
+            .eq("shipping_status", 0)
+            .set("shipping_status", 1)
+            .set("order_status", 300)
+            .set("shipping_name", company.trim())
+            .set("shipping_no", tracking.trim()));
   }
 
   /** 修改待付款实付金额并记录差额, 原商品价和优惠券账面金额保持可追溯. */
   @Transactional(rollbackFor = Exception.class)
   public void adjustPrice(Integer orderId, BigDecimal price, String operator, String reason) {
-    if (price == null || price.scale() > 2 || price.compareTo(new BigDecimal("0.01")) < 0
+    if (price == null
+        || price.scale() > 2
+        || price.compareTo(new BigDecimal("0.01")) < 0
         || price.compareTo(new BigDecimal("9999999.99")) > 0
-        || reason == null || reason.isBlank() || reason.length() > 200) {
+        || reason == null
+        || reason.isBlank()
+        || reason.length() > 200) {
       throw new IllegalArgumentException("金额须为0.01到9999999.99且最多两位小数, 请填写改价理由");
     }
     MallOrderEntity order = requireOrder(orderId);
     if (!Integer.valueOf(0).equals(order.getOrderStatus())
         || !Integer.valueOf(0).equals(order.getPayStatus())
-        || (order.getPayId() != null && !order.getPayId().isBlank() && !"0".equals(order.getPayId()))) {
+        || (order.getPayId() != null
+            && !order.getPayId().isBlank()
+            && !"0".equals(order.getPayId()))) {
       throw new IllegalArgumentException("仅尚未预支付的待付款订单可改价");
     }
     BigDecimal old = order.getActualPrice();
-    requireUpdate(new UpdateWrapper<MallOrderEntity>().eq("id", orderId)
-        .eq("order_status", 0).eq("pay_status", 0).eq("actual_price", old)
-        .set("actual_price", price));
+    requireUpdate(
+        new UpdateWrapper<MallOrderEntity>()
+            .eq("id", orderId)
+            .eq("order_status", 0)
+            .eq("pay_status", 0)
+            .eq("actual_price", old)
+            .set("actual_price", price));
     if (priceLogs.insert(orderId, old, price, price.subtract(old), operator, reason.trim()) != 1) {
       throw new IllegalStateException("改价流水保存失败, 本次改价回滚");
     }

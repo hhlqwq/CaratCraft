@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ApiFeedbackSaveRequest {
-    private String mobile;
-    private Integer index;
-    private String content;
+  private String mobile;
+  private Integer index;
+  private String content;
 }

@@ -29,12 +29,11 @@ import com.platform.modules.sys.service.SysConfigService;
 import com.platform.modules.sys.service.SysSmsLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 短信发送日志Controller
@@ -48,130 +47,130 @@ import java.util.Map;
 @RequestMapping("sys/smslog")
 public class SysSmsLogController extends AbstractController {
 
-    private final SysSmsLogService sysSmsLogService;
-    private final SysConfigService sysConfigService;
+  private final SysSmsLogService sysSmsLogService;
+  private final SysConfigService sysConfigService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("sys:smslog:list")
-    public RestResponse<List<SysSmsLogEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<SysSmsLogEntity> list = sysSmsLogService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("sys:smslog:list")
+  public RestResponse<List<SysSmsLogEntity>> queryAll(@RequestParam Map<String, Object> params) {
+    List<SysSmsLogEntity> list = sysSmsLogService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("sys:smslog:list")
-    public RestResponse<Page<SysSmsLogEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<SysSmsLogEntity> page = sysSmsLogService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("sys:smslog:list")
+  public RestResponse<Page<SysSmsLogEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<SysSmsLogEntity> page = sysSmsLogService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("sys:smslog:info")
-    public RestResponse<SysSmsLogEntity> info(@PathVariable("id") String id) {
-        SysSmsLogEntity sysSmsLog = sysSmsLogService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("sys:smslog:info")
+  public RestResponse<SysSmsLogEntity> info(@PathVariable("id") String id) {
+    SysSmsLogEntity sysSmsLog = sysSmsLogService.getById(id);
 
-        return RestResponse.ok(sysSmsLog);
-    }
+    return RestResponse.ok(sysSmsLog);
+  }
 
-    /**
-     * 保存
-     *
-     * @param sysSmsLog sysSmsLog
-     * @return RestResponse
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("保存短信发送记录")
-    @PostMapping("/save")
-    @RequiresPermissions("sys:smslog:save")
-    public RestResponse<String> save(@RequestBody SysSmsLogEntity sysSmsLog) {
+  /**
+   * 保存
+   *
+   * @param sysSmsLog sysSmsLog
+   * @return RestResponse
+   */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("保存短信发送记录")
+  @PostMapping("/save")
+  @RequiresPermissions("sys:smslog:save")
+  public RestResponse<String> save(@RequestBody SysSmsLogEntity sysSmsLog) {
 
-        sysSmsLogService.add(sysSmsLog);
+    sysSmsLogService.add(sysSmsLog);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     *
-     * @param sysSmsLog sysSmsLog
-     * @return RestResponse
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改短信发送记录")
-    @PostMapping("/update")
-    @RequiresPermissions("sys:smslog:update")
-    public RestResponse<String> update(@RequestBody SysSmsLogEntity sysSmsLog) {
+  /**
+   * 修改
+   *
+   * @param sysSmsLog sysSmsLog
+   * @return RestResponse
+   */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改短信发送记录")
+  @PostMapping("/update")
+  @RequiresPermissions("sys:smslog:update")
+  public RestResponse<String> update(@RequestBody SysSmsLogEntity sysSmsLog) {
 
-        sysSmsLogService.update(sysSmsLog);
+    sysSmsLogService.update(sysSmsLog);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 删除
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除短信发送记录")
-    @PostMapping("/delete")
-    @RequiresPermissions("sys:smslog:delete")
-    public RestResponse<String> delete(@RequestBody String[] ids) {
-        sysSmsLogService.deleteBatch(ids);
+  /**
+   * 删除
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除短信发送记录")
+  @PostMapping("/delete")
+  @RequiresPermissions("sys:smslog:delete")
+  public RestResponse<String> delete(@RequestBody String[] ids) {
+    sysSmsLogService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 短信配置信息
-     *
-     * @return RestResponse
-     */
-    @Operation(summary = "短信配置信息", description = "短信配置信息")
-    @GetMapping("/config")
-    @RequiresPermissions("sys:smslog:config")
-    public RestResponse<SmsConfig> config() {
-        SmsConfig config = sysConfigService.getConfigObject(Constant.SMS_CONFIG_KEY, SmsConfig.class);
+  /**
+   * 短信配置信息
+   *
+   * @return RestResponse
+   */
+  @Operation(summary = "短信配置信息", description = "短信配置信息")
+  @GetMapping("/config")
+  @RequiresPermissions("sys:smslog:config")
+  public RestResponse<SmsConfig> config() {
+    SmsConfig config = sysConfigService.getConfigObject(Constant.SMS_CONFIG_KEY, SmsConfig.class);
 
-        return RestResponse.ok(config);
-    }
+    return RestResponse.ok(config);
+  }
 
-    /**
-     * 保存短信配置信息
-     *
-     * @param config config
-     * @return RestResponse
-     */
-    @Operation(summary = "保存短信配置信息", description = "保存短信配置信息")
-    @SysLog("保存短信配置信息")
-    @RequiresPermissions("sys:smslog:config")
-    @PostMapping("/saveConfig")
-    public RestResponse<String> saveConfig(@RequestBody SmsConfig config) {
-        sysConfigService.updateValueByKey(Constant.SMS_CONFIG_KEY, JSON.toJSONString(config));
-        return RestResponse.ok();
-    }
+  /**
+   * 保存短信配置信息
+   *
+   * @param config config
+   * @return RestResponse
+   */
+  @Operation(summary = "保存短信配置信息", description = "保存短信配置信息")
+  @SysLog("保存短信配置信息")
+  @RequiresPermissions("sys:smslog:config")
+  @PostMapping("/saveConfig")
+  public RestResponse<String> saveConfig(@RequestBody SmsConfig config) {
+    sysConfigService.updateValueByKey(Constant.SMS_CONFIG_KEY, JSON.toJSONString(config));
+    return RestResponse.ok();
+  }
 }

@@ -141,7 +141,8 @@
   border-color: #d0d0d0 transparent transparent;
 }
 
-.weixin-preview .menu-item .menu-item-title, .weixin-preview .menu-sub-item .menu-item-title {
+.weixin-preview .menu-item .menu-item-title,
+.weixin-preview .menu-sub-item .menu-item-title {
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
@@ -149,8 +150,8 @@
   box-sizing: border-box;
 }
 
-
-.weixin-preview .menu-item.current, .weixin-preview .menu-sub-item.current {
+.weixin-preview .menu-item.current,
+.weixin-preview .menu-sub-item.current {
   border: 1px solid #44b549;
   background: #fff;
   color: #44b549;

@@ -21,7 +21,6 @@ package com.platform.modules.sys.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
-
 import java.util.Set;
 
 /**
@@ -30,27 +29,27 @@ import java.util.Set;
  * @author 何海龙
  */
 public interface ShiroService extends IService<SysUserTokenEntity> {
-    /**
-     * 获取用户权限列表
-     *
-     * @param userId 用户ID
-     * @return Set
-     */
-    Set<String> getUserPermissions(String userId);
+  /**
+   * 获取用户权限列表
+   *
+   * @param userId 用户ID
+   * @return Set
+   */
+  Set<String> getUserPermissions(String userId);
 
-    /**
-     * 根据token获取用户
-     *
-     * @param token token
-     * @return SysUserEntity
-     */
-    SysUserTokenEntity queryByToken(String token);
+  /**
+   * 根据token获取用户
+   *
+   * @param token token
+   * @return SysUserEntity
+   */
+  SysUserTokenEntity queryByToken(String token);
 
-    /**
-     * 根据用户ID，查询用户
-     *
-     * @param userId 用户ID
-     * @return SysUserEntity
-     */
-    SysUserEntity queryUser(String userId);
+  /**
+   * 根据用户ID，查询用户
+   *
+   * @param userId 用户ID
+   * @return SysUserEntity
+   */
+  SysUserEntity queryUser(String userId);
 }

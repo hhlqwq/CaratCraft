@@ -23,9 +23,8 @@ package com.platform.modules.wx.dto;
  * @date 2021-05-06 18:30:15
  */
 public class PageSizeConstant {
-    /**
-     * 默认分页大小
-     */
-    public static final int PAGE_SIZE_SMALL = 20;
-    public static final int PAGE_SIZE_MEDIUM = 50;
+  /** 默认分页大小 */
+  public static final int PAGE_SIZE_SMALL = 20;
+
+  public static final int PAGE_SIZE_MEDIUM = 50;
 }

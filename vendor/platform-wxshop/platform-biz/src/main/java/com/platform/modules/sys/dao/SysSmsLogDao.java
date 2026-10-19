@@ -21,11 +21,10 @@ package com.platform.modules.sys.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.platform.modules.sys.entity.SysSmsLogEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 短信发送日志Dao
@@ -36,20 +35,21 @@ import java.util.Map;
 @Mapper
 public interface SysSmsLogDao extends BaseMapper<SysSmsLogEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<SysSmsLogEntity> queryAll(@Param("params") Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<SysSmsLogEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    /**
-     * 自定义分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<SysSmsLogEntity> selectSysSmsLogPage(IPage page, @Param("params") Map<String, Object> params);
+  /**
+   * 自定义分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<SysSmsLogEntity> selectSysSmsLogPage(
+      IPage page, @Param("params") Map<String, Object> params);
 }

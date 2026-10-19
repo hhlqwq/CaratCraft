@@ -28,12 +28,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller
@@ -47,102 +46,110 @@ import java.util.Map;
 @Tag(name = "MallTopicController|")
 public class MallTopicController extends AbstractController {
 
-    private final MallTopicService mallTopicService;
+  private final MallTopicService mallTopicService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("mall:topic:list")
-    public RestResponse<List<MallTopicEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<MallTopicEntity> list = mallTopicService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("mall:topic:list")
+  public RestResponse<List<MallTopicEntity>> queryAll(@RequestParam Map<String, Object> params) {
+    List<MallTopicEntity> list = mallTopicService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("mall:topic:list")
-    public RestResponse<Page<MallTopicEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<MallTopicEntity> page = mallTopicService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("mall:topic:list")
+  public RestResponse<Page<MallTopicEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<MallTopicEntity> page = mallTopicService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情",
-            parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "主键", example = "1", required = true)}
-    )
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("mall:topic:info")
-    public RestResponse<MallTopicEntity> info(@PathVariable("id") Integer id) {
-        MallTopicEntity mallTopic = mallTopicService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(
+      summary = "根据主键查询详情",
+      description = "根据主键查询详情",
+      parameters = {
+        @Parameter(
+            in = ParameterIn.PATH,
+            name = "id",
+            description = "主键",
+            example = "1",
+            required = true)
+      })
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("mall:topic:info")
+  public RestResponse<MallTopicEntity> info(@PathVariable("id") Integer id) {
+    MallTopicEntity mallTopic = mallTopicService.getById(id);
 
-        return RestResponse.ok(mallTopic);
-    }
+    return RestResponse.ok(mallTopic);
+  }
 
-    /**
-     * 新增
-     *
-     * @param mallTopic mallTopic
-     * @return RestResponse
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增")
-    @PostMapping("/save")
-    @RequiresPermissions("mall:topic:save")
-    public RestResponse<String> save(@RequestBody MallTopicEntity mallTopic) {
+  /**
+   * 新增
+   *
+   * @param mallTopic mallTopic
+   * @return RestResponse
+   */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增")
+  @PostMapping("/save")
+  @RequiresPermissions("mall:topic:save")
+  public RestResponse<String> save(@RequestBody MallTopicEntity mallTopic) {
 
-        mallTopicService.add(mallTopic);
+    mallTopicService.add(mallTopic);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     *
-     * @param mallTopic mallTopic
-     * @return RestResponse
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改")
-    @PostMapping("/update")
-    @RequiresPermissions("mall:topic:update")
-    public RestResponse<String> update(@RequestBody MallTopicEntity mallTopic) {
+  /**
+   * 修改
+   *
+   * @param mallTopic mallTopic
+   * @return RestResponse
+   */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改")
+  @PostMapping("/update")
+  @RequiresPermissions("mall:topic:update")
+  public RestResponse<String> update(@RequestBody MallTopicEntity mallTopic) {
 
-        mallTopicService.update(mallTopic);
+    mallTopicService.update(mallTopic);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 根据主键删除
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除")
-    @PostMapping("/delete")
-    @RequiresPermissions("mall:topic:delete")
-    public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallTopicService.deleteBatch(ids);
+  /**
+   * 根据主键删除
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除")
+  @PostMapping("/delete")
+  @RequiresPermissions("mall:topic:delete")
+  public RestResponse<String> delete(@RequestBody Integer[] ids) {
+    mallTopicService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

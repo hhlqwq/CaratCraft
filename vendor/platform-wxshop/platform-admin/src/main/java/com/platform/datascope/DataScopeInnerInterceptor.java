@@ -24,6 +24,8 @@ import com.platform.common.utils.Constant;
 import com.platform.common.utils.ShiroUtils;
 import com.platform.common.utils.StringUtils;
 import com.platform.modules.sys.entity.SysUserEntity;
+import java.util.List;
+import java.util.Map;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.ibatis.executor.Executor;
@@ -33,9 +35,6 @@ import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * 数据权限
@@ -47,67 +46,83 @@ import java.util.Map;
 @NoArgsConstructor
 public class DataScopeInnerInterceptor implements InnerInterceptor {
 
-    @Override
-    public void beforeQuery(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
-        // 不是SELECT操作直接返回
-        if (!SqlCommandType.SELECT.equals(ms.getSqlCommandType())) {
-            return;
-        }
-        StringBuilder filterSql = new StringBuilder(boundSql.getSql());
-        //参数中DataScope类型的参数
-        DataScope dataScope = findDataScopeObject(parameter);
-        if (dataScope != null) {
-            SysUserEntity user = ShiroUtils.getUserEntity();
-            if (null != user) {
-                //系统管理员，拥有最高权限，不进行权限过滤
-                if (!Constant.SUPER_ADMIN.equals(user.getUserId())) {
-                    String userAlias = dataScope.getUserAlias();
-                    String orgAlias = dataScope.getOrgAlias();
-                    String alias = dataScope.getOrgNos();
-                    boolean self = dataScope.getSelf();
-
-                    if (StringUtils.isNotBlank(alias)) {
-                        filterSql.append(" and (").append(orgAlias).append(" in (").append(alias).append(")");
-                        if (self) {
-                            filterSql.append(" or ").append(userAlias).append("='").append(user.getUserId()).append("' ");
-                        }
-                        filterSql.append(" ) ");
-                    } else if (self) {
-                        filterSql.append(" and ").append(userAlias).append("='").append(user.getUserId()).append("' ");
-                    }
-                }
-                PluginUtils.MPBoundSql mpBoundSql = PluginUtils.mpBoundSql(boundSql);
-                List<ParameterMapping> mappings = mpBoundSql.parameterMappings();
-                mpBoundSql.sql(filterSql.toString());
-                mpBoundSql.parameterMappings(mappings);
-            }
-        }
+  @Override
+  public void beforeQuery(
+      Executor executor,
+      MappedStatement ms,
+      Object parameter,
+      RowBounds rowBounds,
+      ResultHandler resultHandler,
+      BoundSql boundSql) {
+    // 不是SELECT操作直接返回
+    if (!SqlCommandType.SELECT.equals(ms.getSqlCommandType())) {
+      return;
     }
+    StringBuilder filterSql = new StringBuilder(boundSql.getSql());
+    // 参数中DataScope类型的参数
+    DataScope dataScope = findDataScopeObject(parameter);
+    if (dataScope != null) {
+      SysUserEntity user = ShiroUtils.getUserEntity();
+      if (null != user) {
+        // 系统管理员，拥有最高权限，不进行权限过滤
+        if (!Constant.SUPER_ADMIN.equals(user.getUserId())) {
+          String userAlias = dataScope.getUserAlias();
+          String orgAlias = dataScope.getOrgAlias();
+          String alias = dataScope.getOrgNos();
+          boolean self = dataScope.getSelf();
 
-    /**
-     * 查找参数是否包括DataScope对象
-     *
-     * @param parameterObj 参数列表
-     * @return DataScope
-     */
-    private DataScope findDataScopeObject(Object parameterObj) {
-        if (parameterObj instanceof DataScope) {
-            return (DataScope) parameterObj;
-        } else if (parameterObj instanceof Map) {
-            for (Object val : ((Map<?, ?>) parameterObj).values()) {
-                if (val instanceof DataScope) {
-                    return (DataScope) val;
-                } else {
-                    if (val instanceof Map) {
-                        for (Object v : ((Map<?, ?>) val).values()) {
-                            if (v instanceof DataScope) {
-                                return (DataScope) v;
-                            }
-                        }
-                    }
-                }
+          if (StringUtils.isNotBlank(alias)) {
+            filterSql.append(" and (").append(orgAlias).append(" in (").append(alias).append(")");
+            if (self) {
+              filterSql
+                  .append(" or ")
+                  .append(userAlias)
+                  .append("='")
+                  .append(user.getUserId())
+                  .append("' ");
             }
+            filterSql.append(" ) ");
+          } else if (self) {
+            filterSql
+                .append(" and ")
+                .append(userAlias)
+                .append("='")
+                .append(user.getUserId())
+                .append("' ");
+          }
         }
-        return null;
+        PluginUtils.MPBoundSql mpBoundSql = PluginUtils.mpBoundSql(boundSql);
+        List<ParameterMapping> mappings = mpBoundSql.parameterMappings();
+        mpBoundSql.sql(filterSql.toString());
+        mpBoundSql.parameterMappings(mappings);
+      }
     }
+  }
+
+  /**
+   * 查找参数是否包括DataScope对象
+   *
+   * @param parameterObj 参数列表
+   * @return DataScope
+   */
+  private DataScope findDataScopeObject(Object parameterObj) {
+    if (parameterObj instanceof DataScope) {
+      return (DataScope) parameterObj;
+    } else if (parameterObj instanceof Map) {
+      for (Object val : ((Map<?, ?>) parameterObj).values()) {
+        if (val instanceof DataScope) {
+          return (DataScope) val;
+        } else {
+          if (val instanceof Map) {
+            for (Object v : ((Map<?, ?>) val).values()) {
+              if (v instanceof DataScope) {
+                return (DataScope) v;
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 }

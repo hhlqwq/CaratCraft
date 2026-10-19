@@ -19,9 +19,8 @@
 package com.platform.modules.app.entity;
 
 import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * @author hehailong
@@ -29,34 +28,26 @@ import java.io.Serializable;
  */
 @Data
 public class FullUserInfo implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * errMsg
-     */
-    private String errMsg;
-    /**
-     * rawData
-     */
-    private String rawData;
-    /**
-     * data(QQ)
-     */
-    private String data;
-    /**
-     * userInfo
-     */
-    private WxMaUserInfo userInfo;
-    /**
-     * encryptedData
-     */
-    private String encryptedData;
-    /**
-     * iv
-     */
-    private String iv;
-    /**
-     * signature
-     */
-    private String signature;
+  /** errMsg */
+  private String errMsg;
+
+  /** rawData */
+  private String rawData;
+
+  /** data(QQ) */
+  private String data;
+
+  /** userInfo */
+  private WxMaUserInfo userInfo;
+
+  /** encryptedData */
+  private String encryptedData;
+
+  /** iv */
+  private String iv;
+
+  /** signature */
+  private String signature;
 }

@@ -28,77 +28,69 @@ import java.util.List;
  * @since 2016年12月20日 上午12:02:55
  */
 public class TableEntity {
-    /**
-     * 表的名称
-     */
-    private String tableName;
-    /**
-     * 表的备注
-     */
-    private String comments;
-    /**
-     * 表的主键
-     */
-    private ColumnEntity pk;
-    /**
-     * 表的列名(不包含主键)
-     */
-    private List<ColumnEntity> columns;
+  /** 表的名称 */
+  private String tableName;
 
-    /**
-     * 类名(第一个字母大写)，如：sys_user => SysUser
-     */
-    private String className;
-    /**
-     * 类名(第一个字母小写)，如：sys_user => sysUser
-     */
-    private String classname;
+  /** 表的备注 */
+  private String comments;
 
-    public String getTableName() {
-        return tableName;
-    }
+  /** 表的主键 */
+  private ColumnEntity pk;
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
+  /** 表的列名(不包含主键) */
+  private List<ColumnEntity> columns;
 
-    public String getComments() {
-        return comments;
-    }
+  /** 类名(第一个字母大写)，如：sys_user => SysUser */
+  private String className;
 
-    public void setComments(String comments) {
-        this.comments = comments;
-    }
+  /** 类名(第一个字母小写)，如：sys_user => sysUser */
+  private String classname;
 
-    public ColumnEntity getPk() {
-        return pk;
-    }
+  public String getTableName() {
+    return tableName;
+  }
 
-    public void setPk(ColumnEntity pk) {
-        this.pk = pk;
-    }
+  public void setTableName(String tableName) {
+    this.tableName = tableName;
+  }
 
-    public List<ColumnEntity> getColumns() {
-        return columns;
-    }
+  public String getComments() {
+    return comments;
+  }
 
-    public void setColumns(List<ColumnEntity> columns) {
-        this.columns = columns;
-    }
+  public void setComments(String comments) {
+    this.comments = comments;
+  }
 
-    public String getClassName() {
-        return className;
-    }
+  public ColumnEntity getPk() {
+    return pk;
+  }
 
-    public void setClassName(String className) {
-        this.className = className;
-    }
+  public void setPk(ColumnEntity pk) {
+    this.pk = pk;
+  }
 
-    public String getClassname() {
-        return classname;
-    }
+  public List<ColumnEntity> getColumns() {
+    return columns;
+  }
 
-    public void setClassname(String classname) {
-        this.classname = classname;
-    }
+  public void setColumns(List<ColumnEntity> columns) {
+    this.columns = columns;
+  }
+
+  public String getClassName() {
+    return className;
+  }
+
+  public void setClassName(String className) {
+    this.className = className;
+  }
+
+  public String getClassname() {
+    return classname;
+  }
+
+  public void setClassname(String classname) {
+    this.classname = classname;
+  }
 }

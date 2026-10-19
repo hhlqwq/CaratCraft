@@ -23,11 +23,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 实体
@@ -38,63 +37,50 @@ import java.util.Date;
 @Data
 @TableName("mall_coupon")
 public class MallCouponEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     *
-     */
-    private String name;
-    /**
-     *
-     */
-    private BigDecimal typeMoney;
-    /**
-     *
-     */
-    private Integer sendType;
-    /**
-     *
-     */
-    private BigDecimal minAmount;
-    /**
-     *
-     */
-    private BigDecimal maxAmount;
-    /**
-     *
-     */
-    @JsonFormat(pattern = "yyyy.MM.dd")
-    private Date sendStartDate;
-    /**
-     *
-     */
-    @JsonFormat(pattern = "yyyy.MM.dd")
-    private Date sendEndDate;
-    /**
-     *
-     */
-    @JsonFormat(pattern = "yyyy.MM.dd")
-    private Date useStartDate;
-    /**
-     *
-     */
-    @JsonFormat(pattern = "yyyy年MM月dd日")
-    private Date useEndDate;
-    /**
-     *
-     */
-    private BigDecimal minGoodsAmount;
-    /**
-     * 转发次数
-     */
-    private Integer minTransmitNum;
+  /** */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
 
-    //优惠券状态 1 可用 2 已用 3 过期
-    @TableField(exist = false)
-    private Integer couponStatus = 1;
+  /** */
+  private String name;
+
+  /** */
+  private BigDecimal typeMoney;
+
+  /** */
+  private Integer sendType;
+
+  /** */
+  private BigDecimal minAmount;
+
+  /** */
+  private BigDecimal maxAmount;
+
+  /** */
+  @JsonFormat(pattern = "yyyy.MM.dd")
+  private Date sendStartDate;
+
+  /** */
+  @JsonFormat(pattern = "yyyy.MM.dd")
+  private Date sendEndDate;
+
+  /** */
+  @JsonFormat(pattern = "yyyy.MM.dd")
+  private Date useStartDate;
+
+  /** */
+  @JsonFormat(pattern = "yyyy年MM月dd日")
+  private Date useEndDate;
+
+  /** */
+  private BigDecimal minGoodsAmount;
+
+  /** 转发次数 */
+  private Integer minTransmitNum;
+
+  // 优惠券状态 1 可用 2 已用 3 过期
+  @TableField(exist = false)
+  private Integer couponStatus = 1;
 }

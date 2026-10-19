@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ApiUserSmsCodeRequest {
-    private String phone;
+  private String phone;
 }

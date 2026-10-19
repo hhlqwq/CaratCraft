@@ -10,8 +10,9 @@ import lombok.Data;
 @Data
 @Schema(description = "微信小程序手机号授权")
 public class LoginWxRequest {
-    @Schema(description = "code", example = "oxaA11ulr9134oBL9Xscon5at_Gc")
-    private String code;
-    @Schema(description = "用户信息")
-    private FullUserInfo userInfo;
+  @Schema(description = "code", example = "oxaA11ulr9134oBL9Xscon5at_Gc")
+  private String code;
+
+  @Schema(description = "用户信息")
+  private FullUserInfo userInfo;
 }

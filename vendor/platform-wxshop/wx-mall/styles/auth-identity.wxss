@@ -8,7 +8,8 @@ page .container {
   min-height: 100vh;
   padding: 110rpx 42rpx 60rpx;
   box-sizing: border-box;
-  background: radial-gradient(circle at 82% 12%, rgba(197, 151, 85, 0.26), transparent 34%), #102f2a;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(197, 151, 85, 0.26), transparent 34%), #102f2a;
 }
 
 page .form-box {

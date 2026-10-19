@@ -1,12 +1,28 @@
 <template>
-  <div class="panel  flex flex-wrap">
-    <el-tag v-for="tag in dynamicTags" :closable="!disabled" @close="handleClose(tag)" :disable-transitions="false" :key="tag">
-      {{tag}}
+  <div class="panel flex flex-wrap">
+    <el-tag
+      v-for="tag in dynamicTags"
+      :closable="!disabled"
+      @close="handleClose(tag)"
+      :disable-transitions="false"
+      :key="tag"
+    >
+      {{ tag }}
     </el-tag>
-    <el-input class="input-new-tag" v-if="inputVisible" v-model="inputValue" ref="saveTagInput" size="small" :disabled="disabled"
-              @keyup.enter="handleInputConfirm" @blur="handleInputConfirm">
+    <el-input
+      class="input-new-tag"
+      v-if="inputVisible"
+      v-model="inputValue"
+      ref="saveTagInput"
+      size="small"
+      :disabled="disabled"
+      @keyup.enter="handleInputConfirm"
+      @blur="handleInputConfirm"
+    >
     </el-input>
-    <el-button v-else class="button-new-tag" size="small" @click="showInput" :disabled="disabled">+ 添加</el-button>
+    <el-button v-else class="button-new-tag" size="small" @click="showInput" :disabled="disabled"
+      >+ 添加</el-button
+    >
   </div>
 </template>
 <script>
@@ -20,64 +36,64 @@ export default {
     value: {
       type: String,
       required: true,
-      default: ''
+      default: '',
     },
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     size: {
       // 标签大小：[small:小,large:大]
       type: String,
-      default: 'small'
-    }
+      default: 'small',
+    },
   },
-  data () {
+  data() {
     return {
       inputVisible: false,
-      inputValue: ''
-    }
+      inputValue: '',
+    };
   },
   computed: {
-    dynamicTags () {
+    dynamicTags() {
       if (this.value !== '') {
-        return this.value.split(',')
+        return this.value.split(',');
       }
-      return []
-    }
+      return [];
+    },
   },
   methods: {
-    handleClose (tag) {
-      let newTags = this.dynamicTags
-      newTags.splice(newTags.indexOf(tag), 1)
-      this.$emit('input', newTags.join(','))
+    handleClose(tag) {
+      const newTags = this.dynamicTags;
+      newTags.splice(newTags.indexOf(tag), 1);
+      this.$emit('input', newTags.join(','));
     },
-    showInput () {
-      this.inputVisible = true
-      this.$nextTick(_ => {
-        this.$refs.saveTagInput.$refs.input.focus()
-      })
+    showInput() {
+      this.inputVisible = true;
+      this.$nextTick((_) => {
+        this.$refs.saveTagInput.$refs.input.focus();
+      });
     },
-    handleInputConfirm () {
-      let inputValue = this.inputValue
-      let newTags = this.dynamicTags
+    handleInputConfirm() {
+      const inputValue = this.inputValue;
+      const newTags = this.dynamicTags;
       if (inputValue && newTags.indexOf(inputValue) < 0) {
-        newTags.push(inputValue)
+        newTags.push(inputValue);
       }
-      this.inputVisible = false
-      this.inputValue = ''
-      this.$emit('input', newTags.join(','))
-    }
-
-  }
-}
+      this.inputVisible = false;
+      this.inputValue = '';
+      this.$emit('input', newTags.join(','));
+    },
+  },
+};
 </script>
 <style scoped>
 .panel {
   flex: 1;
 }
 
-.el-tag, .button-new-tag {
+.el-tag,
+.button-new-tag {
   margin: 5px;
 }
 

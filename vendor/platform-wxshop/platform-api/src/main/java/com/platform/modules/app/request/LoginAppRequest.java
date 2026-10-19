@@ -10,6 +10,6 @@ import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 @Data
 @Schema(description = "APP登录")
 public class LoginAppRequest {
-    @Schema(description = "用户信息")
-    private WxOAuth2AccessToken userInfo;
+  @Schema(description = "用户信息")
+  private WxOAuth2AccessToken userInfo;
 }

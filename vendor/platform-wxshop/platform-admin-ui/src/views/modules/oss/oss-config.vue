@@ -3,9 +3,15 @@
     title="云存储配置"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    v-model="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
-             label-width="140px">
+    v-model="visible"
+  >
+    <el-form
+      :model="dataForm"
+      :rules="dataRule"
+      ref="dataForm"
+      @keyup.enter="dataFormSubmit()"
+      label-width="140px"
+    >
       <el-form-item size="small" label="存储类型">
         <el-radio-group v-model="dataForm.type">
           <el-radio :label="1">七牛</el-radio>
@@ -57,7 +63,10 @@
           <el-input v-model="dataForm.aliyunAccessKeyId" placeholder="阿里云AccessKeyId"></el-input>
         </el-form-item>
         <el-form-item label="AccessKeySecret">
-          <el-input v-model="dataForm.aliyunAccessKeySecret" placeholder="阿里云AccessKeySecret"></el-input>
+          <el-input
+            v-model="dataForm.aliyunAccessKeySecret"
+            placeholder="阿里云AccessKeySecret"
+          ></el-input>
         </el-form-item>
         <el-form-item label="BucketName">
           <el-input v-model="dataForm.aliyunBucketName" placeholder="阿里云BucketName"></el-input>
@@ -83,7 +92,10 @@
           <el-input v-model="dataForm.qcloudBucketName" placeholder="腾讯云BucketName"></el-input>
         </el-form-item>
         <el-form-item label="Bucket所属地区">
-          <el-input v-model="dataForm.qcloudRegion" placeholder="如：sh（可选值 ，华南：gz 华北：tj 华东：sh）"></el-input>
+          <el-input
+            v-model="dataForm.qcloudRegion"
+            placeholder="如：sh（可选值 ，华南：gz 华北：tj 华东：sh）"
+          ></el-input>
         </el-form-item>
       </template>
       <template v-if="dataForm.type === 4">
@@ -126,55 +138,56 @@
         </el-form-item>
       </template>
     </el-form>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {},
-      dataRule: {}
-    }
+      dataRule: {},
+    };
   },
   methods: {
-    init (id) {
-      this.visible = true
+    init(id) {
+      this.visible = true;
       this.$http({
         url: '/sys/oss/config',
-        method: 'get'
+        method: 'get',
       }).then(({data}) => {
-        this.dataForm = data && data.code === 0 ? data.data : []
-      })
+        this.dataForm = data && data.code === 0 ? data.data : [];
+      });
     },
     // 表单提交
-    dataFormSubmit () {
+    dataFormSubmit() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({
             url: '/sys/oss/saveConfig',
             method: 'post',
-            data: this.dataForm
+            data: this.dataForm,
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({
                 message: '操作成功',
                 type: 'success',
-                duration: 1500
-              })
-              this.visible = false
+                duration: 1500,
+              });
+              this.visible = false;
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>
-

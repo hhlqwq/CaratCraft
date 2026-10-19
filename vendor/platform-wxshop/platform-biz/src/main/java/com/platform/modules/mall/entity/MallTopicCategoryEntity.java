@@ -21,9 +21,8 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -34,19 +33,15 @@ import java.io.Serializable;
 @Data
 @TableName("mall_topic_category")
 public class MallTopicCategoryEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 活动类别主题
-     */
-    private String title;
-    /**
-     * 活动类别图片链接
-     */
-    private String picUrl;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 活动类别主题 */
+  private String title;
+
+  /** 活动类别图片链接 */
+  private String picUrl;
 }

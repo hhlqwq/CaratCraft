@@ -27,6 +27,4 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2021-05-06 18:30:15
  */
 @Mapper
-public interface MsgReplyRuleDao extends BaseMapper<MsgReplyRuleEntity> {
-
-}
+public interface MsgReplyRuleDao extends BaseMapper<MsgReplyRuleEntity> {}

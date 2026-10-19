@@ -3,9 +3,15 @@
     :title="!dataForm.id ? '新增' : '修改'"
     :close-on-click-modal="false"
     :lock-scroll="false"
-    v-model="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
-             label-width="80px">
+    v-model="visible"
+  >
+    <el-form
+      :model="dataForm"
+      :rules="dataRule"
+      ref="dataForm"
+      @keyup.enter="dataFormSubmit()"
+      label-width="80px"
+    >
       <el-form-item label="分组编码" prop="code">
         <el-input v-model="dataForm.code" placeholder="分组编码"></el-input>
       </el-form-item>
@@ -16,83 +22,85 @@
         <el-input type="textarea" v-model="dataForm.remark" placeholder="备注"></el-input>
       </el-form-item>
     </el-form>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {
         id: '',
         code: '',
         name: '',
-        remark: ''
+        remark: '',
       },
       dataRule: {
         code: [
           {
             required: true,
             message: '分组编码不能为空',
-            trigger: 'blur'
-          }
+            trigger: 'blur',
+          },
         ],
         name: [
           {
             required: true,
             message: '分组名称不能为空',
-            trigger: 'blur'
-          }
-        ]
-      }
-    }
+            trigger: 'blur',
+          },
+        ],
+      },
+    };
   },
   methods: {
-    init (id) {
-      this.dataForm.id = id || ''
-      this.visible = true
+    init(id) {
+      this.dataForm.id = id || '';
+      this.visible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs['dataForm'].resetFields();
         if (this.dataForm.id) {
           this.$http({
             url: `/sys/dictgroup/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.dataForm = data.data
+              this.dataForm = data.data;
             }
-          })
+          });
         }
-      })
+      });
     },
     // 表单提交
-    dataFormSubmit () {
+    dataFormSubmit() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           this.$http({
             url: `/sys/dictgroup/${!this.dataForm.id ? 'save' : 'update'}`,
             method: 'post',
-            data: this.dataForm
+            data: this.dataForm,
           }).then(({data}) => {
             if (data && data.code === 0) {
               this.$message({
                 message: '操作成功',
                 type: 'success',
-                duration: 1500
-              })
-              this.visible = false
-              this.$emit('refreshDataList')
+                duration: 1500,
+              });
+              this.visible = false;
+              this.$emit('refreshDataList');
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>

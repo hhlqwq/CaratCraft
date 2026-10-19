@@ -34,8 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/sys/monitor")
 public class SysMonitorController {
-  @Resource
-  private HostMonitorService hostMonitorService;
+  @Resource private HostMonitorService hostMonitorService;
 
   /** 在原权限边界内返回兼容的服务器快照. */
   @Operation(summary = "服务器监控", description = "服务器监控")

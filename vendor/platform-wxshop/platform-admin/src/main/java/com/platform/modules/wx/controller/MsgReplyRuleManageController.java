@@ -26,12 +26,11 @@ import com.platform.modules.wx.entity.MsgReplyRuleEntity;
 import com.platform.modules.wx.service.MsgReplyRuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Arrays;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Arrays;
-import java.util.Map;
 
 /**
  * 自动回复规则
@@ -44,70 +43,60 @@ import java.util.Map;
 @RestController
 @RequestMapping("/manage/msgReplyRule")
 public class MsgReplyRuleManageController {
-    private final MsgReplyRuleService msgReplyRuleService;
+  private final MsgReplyRuleService msgReplyRuleService;
 
-    /**
-     * 列表
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("wx:msgreplyrule:list")
-    public RestResponse<Page<MsgReplyRuleEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<MsgReplyRuleEntity> page = msgReplyRuleService.queryPage(params);
+  /** 列表 */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("wx:msgreplyrule:list")
+  public RestResponse<Page<MsgReplyRuleEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<MsgReplyRuleEntity> page = msgReplyRuleService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 信息
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-    @GetMapping("/info/{ruleId}")
-    @RequiresPermissions("wx:msgreplyrule:info")
-    public RestResponse<MsgReplyRuleEntity> info(@PathVariable("ruleId") String ruleId) {
-        MsgReplyRuleEntity msgReplyRule = msgReplyRuleService.getById(ruleId);
+  /** 信息 */
+  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+  @GetMapping("/info/{ruleId}")
+  @RequiresPermissions("wx:msgreplyrule:info")
+  public RestResponse<MsgReplyRuleEntity> info(@PathVariable("ruleId") String ruleId) {
+    MsgReplyRuleEntity msgReplyRule = msgReplyRuleService.getById(ruleId);
 
-        return RestResponse.ok(msgReplyRule);
-    }
+    return RestResponse.ok(msgReplyRule);
+  }
 
-    /**
-     * 保存
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增公众号回复规则")
-    @PostMapping("/save")
-    @RequiresPermissions("wx:msgreplyrule:save")
-    public RestResponse<String> save(@RequestBody MsgReplyRuleEntity msgReplyRule) {
-        ValidatorUtils.validateEntity(msgReplyRule);
-        msgReplyRuleService.save(msgReplyRule);
+  /** 保存 */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增公众号回复规则")
+  @PostMapping("/save")
+  @RequiresPermissions("wx:msgreplyrule:save")
+  public RestResponse<String> save(@RequestBody MsgReplyRuleEntity msgReplyRule) {
+    ValidatorUtils.validateEntity(msgReplyRule);
+    msgReplyRuleService.save(msgReplyRule);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改公众号回复规则")
-    @PostMapping("/update")
-    @RequiresPermissions("wx:msgreplyrule:update")
-    public RestResponse<String> update(@RequestBody MsgReplyRuleEntity msgReplyRule) {
-        ValidatorUtils.validateEntity(msgReplyRule);
-        msgReplyRuleService.updateById(msgReplyRule);
+  /** 修改 */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改公众号回复规则")
+  @PostMapping("/update")
+  @RequiresPermissions("wx:msgreplyrule:update")
+  public RestResponse<String> update(@RequestBody MsgReplyRuleEntity msgReplyRule) {
+    ValidatorUtils.validateEntity(msgReplyRule);
+    msgReplyRuleService.updateById(msgReplyRule);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 删除
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除公众号回复规则")
-    @PostMapping("/delete")
-    @RequiresPermissions("wx:msgreplyrule:delete")
-    public RestResponse<String> delete(@RequestBody String[] ruleIds) {
-        msgReplyRuleService.removeByIds(Arrays.asList(ruleIds));
+  /** 删除 */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除公众号回复规则")
+  @PostMapping("/delete")
+  @RequiresPermissions("wx:msgreplyrule:delete")
+  public RestResponse<String> delete(@RequestBody String[] ruleIds) {
+    msgReplyRuleService.removeByIds(Arrays.asList(ruleIds));
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

@@ -35,8 +35,8 @@ public class AppAiRecommendationController {
 
   /** 从认证上下文取得用户ID, 使用真实HTTP状态返回可预期错误. */
   @PostMapping("prepare")
-  public ResponseEntity<RestResponse<Object>> prepare(@LoginUser WxUserEntity user,
-      @RequestBody AiRecommendationRequest request) {
+  public ResponseEntity<RestResponse<Object>> prepare(
+      @LoginUser WxUserEntity user, @RequestBody AiRecommendationRequest request) {
     try {
       return ResponseEntity.ok(RestResponse.ok(service.prepare(user.getId(), request)));
     } catch (IllegalArgumentException error) {
@@ -49,8 +49,8 @@ public class AppAiRecommendationController {
 
   /** 云模型建议通过独立校验后才能成为可采用的材料搭配. */
   @PostMapping("validate")
-  public ResponseEntity<RestResponse<Object>> validate(@LoginUser WxUserEntity user,
-      @RequestBody AiRecommendationValidation request) {
+  public ResponseEntity<RestResponse<Object>> validate(
+      @LoginUser WxUserEntity user, @RequestBody AiRecommendationValidation request) {
     try {
       return ResponseEntity.ok(RestResponse.ok(service.validateResult(user.getId(), request)));
     } catch (IllegalArgumentException error) {

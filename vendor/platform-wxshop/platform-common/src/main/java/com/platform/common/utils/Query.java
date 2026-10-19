@@ -20,7 +20,6 @@ package com.platform.common.utils;
 
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,69 +29,65 @@ import java.util.Map;
  * @author 何海龙
  */
 public class Query<T> extends LinkedHashMap<String, Object> {
-    private static final long serialVersionUID = 1L;
-    /**
-     * mybatis-plus分页参数
-     */
-    private Page<T> page;
-    /**
-     * 当前页码
-     */
-    private int currPage = 1;
-    /**
-     * 每页条数
-     */
-    private int limit = 10;
+  private static final long serialVersionUID = 1L;
 
-    private static final String ASC = "asc";
+  /** mybatis-plus分页参数 */
+  private Page<T> page;
 
-    public Query(Map<String, Object> params) {
+  /** 当前页码 */
+  private int currPage = 1;
 
-        String strPage = "page";
-        String strLimit = "limit";
-        this.putAll(params);
+  /** 每页条数 */
+  private int limit = 10;
 
-        //分页参数
-        if (params.get(strPage) != null) {
-            currPage = Integer.parseInt(params.get("page").toString());
-        }
-        if (params.get(strLimit) != null) {
-            limit = Integer.parseInt(params.get("limit").toString());
-        }
+  private static final String ASC = "asc";
 
-        this.put("offset", (currPage - 1) * limit);
-        this.put("page", currPage);
-        this.put("limit", limit);
+  public Query(Map<String, Object> params) {
 
-        String sidx = (String) params.get("sidx");
-        //默认升序
-        Boolean asc = true;
-        if (!StringUtils.isNullOrEmpty(params.get(ASC))) {
-            asc = (Boolean) params.get("asc");
-        }
-        //mybatis-plus分页
-        this.page = new Page<>(currPage, limit);
+    String strPage = "page";
+    String strLimit = "limit";
+    this.putAll(params);
 
-        //排序
-        if (StringUtils.isNotBlank(sidx)) {
-            if (asc) {
-                this.page.addOrder(OrderItem.asc(sidx));
-            } else {
-                this.page.addOrder(OrderItem.desc(sidx));
-            }
-        }
-
+    // 分页参数
+    if (params.get(strPage) != null) {
+      currPage = Integer.parseInt(params.get("page").toString());
+    }
+    if (params.get(strLimit) != null) {
+      limit = Integer.parseInt(params.get("limit").toString());
     }
 
-    public Page<T> getPage() {
-        return page;
-    }
+    this.put("offset", (currPage - 1) * limit);
+    this.put("page", currPage);
+    this.put("limit", limit);
 
-    public int getCurrPage() {
-        return currPage;
+    String sidx = (String) params.get("sidx");
+    // 默认升序
+    Boolean asc = true;
+    if (!StringUtils.isNullOrEmpty(params.get(ASC))) {
+      asc = (Boolean) params.get("asc");
     }
+    // mybatis-plus分页
+    this.page = new Page<>(currPage, limit);
 
-    public int getLimit() {
-        return limit;
+    // 排序
+    if (StringUtils.isNotBlank(sidx)) {
+      if (asc) {
+        this.page.addOrder(OrderItem.asc(sidx));
+      } else {
+        this.page.addOrder(OrderItem.desc(sidx));
+      }
     }
+  }
+
+  public Page<T> getPage() {
+    return page;
+  }
+
+  public int getCurrPage() {
+    return currPage;
+  }
+
+  public int getLimit() {
+    return limit;
+  }
 }

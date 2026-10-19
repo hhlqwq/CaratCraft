@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallAdDao;
 import com.platform.modules.mall.entity.MallAdEntity;
 import com.platform.modules.mall.service.MallAdService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,50 +38,51 @@ import java.util.Map;
  * @since 2025-06-20 11:02:14
  */
 @Service("mallAdService")
-public class MallAdServiceImpl extends ServiceImpl<MallAdDao, MallAdEntity> implements MallAdService {
+public class MallAdServiceImpl extends ServiceImpl<MallAdDao, MallAdEntity>
+    implements MallAdService {
 
-    @Override
-    public List<MallAdEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallAdEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallAdEntity> queryAllByWrapper(QueryWrapper<MallAdEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallAdEntity> queryAllByWrapper(QueryWrapper<MallAdEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallAdEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallAdEntity> page = new Query<MallAdEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallAdPage(page, params));
-    }
+  @Override
+  public Page<MallAdEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallAdEntity> page = new Query<MallAdEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallAdPage(page, params));
+  }
 
-    @Override
-    public boolean add(MallAdEntity mallAd) {
-        return this.save(mallAd);
-    }
+  @Override
+  public boolean add(MallAdEntity mallAd) {
+    return this.save(mallAd);
+  }
 
-    @Override
-    public boolean update(MallAdEntity mallAd) {
-        return this.updateById(mallAd);
-    }
+  @Override
+  public boolean update(MallAdEntity mallAd) {
+    return this.updateById(mallAd);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallAdEntity> queryList(Map<String, Object> param) {
-        return baseMapper.queryList(param);
-    }
+  @Override
+  public List<MallAdEntity> queryList(Map<String, Object> param) {
+    return baseMapper.queryList(param);
+  }
 }

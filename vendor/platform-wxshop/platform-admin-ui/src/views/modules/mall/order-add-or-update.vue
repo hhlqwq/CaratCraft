@@ -5,26 +5,33 @@
     :lock-scroll="false"
     v-model="visible"
     width="980px"
-    class="order-detail-dialog">
+    class="order-detail-dialog"
+  >
     <div class="order-hero">
       <div class="hero-main">
         <div class="hero-label">订单编号</div>
         <div class="hero-sn">{{ dataForm.orderSn || '-' }}</div>
       </div>
       <div class="hero-tags">
-        <el-tag size="small" :type="orderStatusType(dataForm.orderStatus)">{{
-            orderStatusText(dataForm.orderStatus)
-          }}
+        <el-tag size="small" :type="orderStatusType(dataForm.orderStatus)"
+          >{{ orderStatusText(dataForm.orderStatus) }}
         </el-tag>
-        <el-tag size="small" :type="payStatusType(dataForm.payStatus)">{{ payStatusText(dataForm.payStatus) }}</el-tag>
+        <el-tag size="small" :type="payStatusType(dataForm.payStatus)">{{
+          payStatusText(dataForm.payStatus)
+        }}</el-tag>
         <el-tag size="small" :type="shippingStatusType(dataForm.shippingStatus)">
           {{ shippingStatusText(dataForm.shippingStatus) }}
         </el-tag>
       </div>
     </div>
 
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
-             label-width="110px">
+    <el-form
+      :model="dataForm"
+      :rules="dataRule"
+      ref="dataForm"
+      @keyup.enter="dataFormSubmit()"
+      label-width="110px"
+    >
       <section class="section-card">
         <h3 class="section-title">基础信息</h3>
         <div class="form-grid">
@@ -65,7 +72,12 @@
             <el-input v-model="dataForm.address" :disabled="disabled"></el-input>
           </el-form-item>
           <el-form-item label="买家留言" class="full">
-            <el-input type="textarea" :rows="2" v-model="dataForm.postscript" :disabled="disabled"></el-input>
+            <el-input
+              type="textarea"
+              :rows="2"
+              v-model="dataForm.postscript"
+              :disabled="disabled"
+            ></el-input>
           </el-form-item>
         </div>
       </section>
@@ -83,12 +95,21 @@
             <el-input v-model="dataForm.payName" :disabled="disabled"></el-input>
           </el-form-item>
           <el-form-item label="运费">
-            <el-input-number v-model="dataForm.freightPrice" :disabled="disabled" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.freightPrice"
+              :disabled="disabled"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="物流费用">
-            <el-input-number v-model="dataForm.shippingFee" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.shippingFee"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
         </div>
       </section>
@@ -97,36 +118,74 @@
         <h3 class="section-title">金额信息</h3>
         <div class="form-grid">
           <el-form-item label="实付金额">
-            <el-input-number v-model="dataForm.actualPrice" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.actualPrice"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="订单总价">
-            <el-input-number v-model="dataForm.orderPrice" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.orderPrice"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="商品总价">
-            <el-input-number v-model="dataForm.goodsPrice" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.goodsPrice"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="优惠金额">
-            <el-input-number v-model="dataForm.couponPrice" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.couponPrice"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="满减金额">
-            <el-input-number v-model="dataForm.fullCutPrice" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.fullCutPrice"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="优惠券ID">
-            <el-input-number v-model="dataForm.couponId" :disabled="disabled" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.couponId"
+              :disabled="disabled"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="积分">
-            <el-input-number v-model="dataForm.integral" :disabled="disabled" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.integral"
+              :disabled="disabled"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
           <el-form-item label="积分抵扣">
-            <el-input-number v-model="dataForm.integralMoney" :disabled="disabled" :precision="2" :min="0"
-                             controls-position="right"></el-input-number>
+            <el-input-number
+              v-model="dataForm.integralMoney"
+              :disabled="disabled"
+              :precision="2"
+              :min="0"
+              controls-position="right"
+            ></el-input-number>
           </el-form-item>
         </div>
       </section>
@@ -135,50 +194,83 @@
         <h3 class="section-title">时间信息</h3>
         <div class="form-grid">
           <el-form-item label="下单时间">
-            <el-date-picker v-model="dataForm.addTime" type="datetime" :disabled="disabled"></el-date-picker>
+            <el-date-picker
+              v-model="dataForm.addTime"
+              type="datetime"
+              :disabled="disabled"
+            ></el-date-picker>
           </el-form-item>
           <el-form-item label="确认时间">
-            <el-date-picker v-model="dataForm.confirmTime" type="datetime" :disabled="disabled"></el-date-picker>
+            <el-date-picker
+              v-model="dataForm.confirmTime"
+              type="datetime"
+              :disabled="disabled"
+            ></el-date-picker>
           </el-form-item>
           <el-form-item label="支付时间">
-            <el-date-picker v-model="dataForm.payTime" type="datetime" :disabled="disabled"></el-date-picker>
+            <el-date-picker
+              v-model="dataForm.payTime"
+              type="datetime"
+              :disabled="disabled"
+            ></el-date-picker>
           </el-form-item>
         </div>
       </section>
     </el-form>
 
     <el-divider v-if="dataForm.id">订单商品明细</el-divider>
-    <el-table v-if="dataForm.id" :data="orderGoodsList" border size="small" style="width: 100%; margin-top: 12px;">
+    <el-table
+      v-if="dataForm.id"
+      :data="orderGoodsList"
+      border
+      size="small"
+      style="width: 100%; margin-top: 12px"
+    >
       <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
       <el-table-column prop="goodsId" label="商品ID" width="100" align="center"></el-table-column>
-      <el-table-column prop="goodsName" label="商品名称" min-width="220" show-overflow-tooltip></el-table-column>
+      <el-table-column
+        prop="goodsName"
+        label="商品名称"
+        min-width="220"
+        show-overflow-tooltip
+      ></el-table-column>
       <el-table-column prop="number" label="数量" width="80" align="center"></el-table-column>
-      <el-table-column prop="retailPrice" label="零售价" width="100" align="center"></el-table-column>
+      <el-table-column
+        prop="retailPrice"
+        label="零售价"
+        width="100"
+        align="center"
+      ></el-table-column>
       <el-table-column label="图片" width="100" align="center">
         <template #default="scope">
           <el-image
             v-if="scope.row.listPicUrl"
             :src="scope.row.listPicUrl"
-            :preview-src-list="orderGoodsList.map(item => item.listPicUrl).filter(Boolean)"
+            :preview-src-list="orderGoodsList.map((item) => item.listPicUrl).filter(Boolean)"
             fit="cover"
-            style="width: 40px; height: 40px; border-radius: 4px;">
+            style="width: 40px; height: 40px; border-radius: 4px"
+          >
           </el-image>
           <span v-else>无</span>
         </template>
       </el-table-column>
     </el-table>
 
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button v-if="!disabled && !dataForm.id" type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button v-if="!disabled && !dataForm.id" type="primary" @click="dataFormSubmit()"
+          >确定</el-button
+        >
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       disabled: false,
       visible: false,
@@ -219,47 +311,47 @@ export default {
         callbackStatus: 'true',
         shippingNo: '',
         fullCutPrice: 0,
-        orderType: ''
+        orderType: '',
       },
       dataRule: {
-        orderSn: [{required: true, message: '订单编号不能为空', trigger: 'blur'}]
-      }
-    }
+        orderSn: [{required: true, message: '订单编号不能为空', trigger: 'blur'}],
+      },
+    };
   },
   methods: {
-    init (id, disabled) {
-      this.disabled = !!id || disabled
-      this.dataForm.id = id || ''
-      this.visible = true
-      this.orderGoodsList = []
+    init(id, disabled) {
+      this.disabled = !!id || disabled;
+      this.dataForm.id = id || '';
+      this.visible = true;
+      this.orderGoodsList = [];
       this.$nextTick(() => {
-        this.$refs.dataForm.resetFields()
+        this.$refs.dataForm.resetFields();
         if (this.dataForm.id) {
           this.$http({
             url: `/mall/order/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.dataForm = data.data
-              this.loadOrderGoods(this.dataForm.id)
+              this.dataForm = data.data;
+              this.loadOrderGoods(this.dataForm.id);
             }
-          })
+          });
         }
-      })
+      });
     },
-    loadOrderGoods (orderId) {
+    loadOrderGoods(orderId) {
       this.$http({
         url: `/mall/order/goods/${orderId}`,
-        method: 'get'
+        method: 'get',
       }).then(({data}) => {
         if (data && data.code === 0) {
-          this.orderGoodsList = data.data || []
+          this.orderGoodsList = data.data || [];
         } else {
-          this.orderGoodsList = []
+          this.orderGoodsList = [];
         }
-      })
+      });
     },
-    orderStatusText (status) {
+    orderStatusText(status) {
       const map = {
         0: '待付款',
         1: '待发货',
@@ -273,11 +365,11 @@ export default {
         300: '待收货',
         301: '已完成',
         401: '已退款',
-        402: '已退货'
-      }
-      return map[status] || `状态${status}`
+        402: '已退货',
+      };
+      return map[status] || `状态${status}`;
     },
-    orderStatusType (status) {
+    orderStatusType(status) {
       const map = {
         0: 'warning',
         1: '',
@@ -291,45 +383,45 @@ export default {
         300: 'success',
         301: 'success',
         401: 'danger',
-        402: 'danger'
-      }
-      return map[status] || 'info'
+        402: 'danger',
+      };
+      return map[status] || 'info';
     },
-    payStatusText (status) {
-      const map = {0: '未支付', 1: '预支付已创建', 2: '已支付', 3: '退款中', 4: '已退款'}
-      return map[status] || `状态${status}`
+    payStatusText(status) {
+      const map = {0: '未支付', 1: '预支付已创建', 2: '已支付', 3: '退款中', 4: '已退款'};
+      return map[status] || `状态${status}`;
     },
-    payStatusType (status) {
-      const map = {0: 'warning', 1: 'warning', 2: 'success', 3: 'danger', 4: 'danger'}
-      return map[status] || 'info'
+    payStatusType(status) {
+      const map = {0: 'warning', 1: 'warning', 2: 'success', 3: 'danger', 4: 'danger'};
+      return map[status] || 'info';
     },
-    shippingStatusText (status) {
-      const map = {0: '未发货', 1: '已发货', 2: '已收货'}
-      return map[status] || `状态${status}`
+    shippingStatusText(status) {
+      const map = {0: '未发货', 1: '已发货', 2: '已收货'};
+      return map[status] || `状态${status}`;
     },
-    shippingStatusType (status) {
-      const map = {0: 'info', 1: 'success', 2: 'success'}
-      return map[status] || 'info'
+    shippingStatusType(status) {
+      const map = {0: 'info', 1: 'success', 2: 'success'};
+      return map[status] || 'info';
     },
-    dataFormSubmit () {
+    dataFormSubmit() {
       this.$refs.dataForm.validate((valid) => {
         if (valid) {
           this.$http({
             url: `/mall/order/${!this.dataForm.id ? 'save' : 'update'}`,
             method: 'post',
-            data: this.dataForm
+            data: this.dataForm,
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.$message({message: '操作成功', type: 'success', duration: 1500})
-              this.visible = false
-              this.$emit('refreshDataList')
+              this.$message({message: '操作成功', type: 'success', duration: 1500});
+              this.visible = false;
+              this.$emit('refreshDataList');
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>

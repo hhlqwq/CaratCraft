@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallAttributeDao;
 import com.platform.modules.mall.entity.MallAttributeEntity;
 import com.platform.modules.mall.service.MallAttributeService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,50 +38,52 @@ import java.util.Map;
  * @since 2025-06-29 18:07:36
  */
 @Service("mallAttributeService")
-public class MallAttributeServiceImpl extends ServiceImpl<MallAttributeDao, MallAttributeEntity> implements MallAttributeService {
+public class MallAttributeServiceImpl extends ServiceImpl<MallAttributeDao, MallAttributeEntity>
+    implements MallAttributeService {
 
-    @Override
-    public List<MallAttributeEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallAttributeEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallAttributeEntity> queryAllByWrapper(QueryWrapper<MallAttributeEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallAttributeEntity> queryAllByWrapper(
+      QueryWrapper<MallAttributeEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallAttributeEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallAttributeEntity> page = new Query<MallAttributeEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallAttributePage(page, params));
-    }
+  @Override
+  public Page<MallAttributeEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallAttributeEntity> page = new Query<MallAttributeEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallAttributePage(page, params));
+  }
 
-    @Override
-    public boolean add(MallAttributeEntity mallAttribute) {
-        return this.save(mallAttribute);
-    }
+  @Override
+  public boolean add(MallAttributeEntity mallAttribute) {
+    return this.save(mallAttribute);
+  }
 
-    @Override
-    public boolean update(MallAttributeEntity mallAttribute) {
-        return this.updateById(mallAttribute);
-    }
+  @Override
+  public boolean update(MallAttributeEntity mallAttribute) {
+    return this.updateById(mallAttribute);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallAttributeEntity> queryList(Map<String, Object> ngaParam) {
-        return baseMapper.queryList(ngaParam);
-    }
+  @Override
+  public List<MallAttributeEntity> queryList(Map<String, Object> ngaParam) {
+    return baseMapper.queryList(ngaParam);
+  }
 }

@@ -17,15 +17,18 @@ import org.springframework.stereotype.Service;
 public class MobileVerificationService {
   private final StringRedisTemplate redis;
   private final SecureRandom random = new SecureRandom();
-  private static final DefaultRedisScript<Long> VERIFY = new DefaultRedisScript<>(
-      "local v=redis.call('GET',KEYS[1]); if not v then return 0 end; "
-          + "local n=redis.call('INCR',KEYS[2]); redis.call('EXPIRE',KEYS[2],300); "
-          + "if n>5 then redis.call('DEL',KEYS[1]); return 0 end; "
-          + "if v~=ARGV[1] then return 0 end; redis.call('DEL',KEYS[1],KEYS[2]); return 1",
-      Long.class);
-  private static final DefaultRedisScript<Long> LIMIT = new DefaultRedisScript<>(
-      "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],3600) end; return n",
-      Long.class);
+  private static final DefaultRedisScript<Long> VERIFY =
+      new DefaultRedisScript<>(
+          "local v=redis.call('GET',KEYS[1]); if not v then return 0 end; "
+              + "local n=redis.call('INCR',KEYS[2]); redis.call('EXPIRE',KEYS[2],300); "
+              + "if n>5 then redis.call('DEL',KEYS[1]); return 0 end; "
+              + "if v~=ARGV[1] then return 0 end; redis.call('DEL',KEYS[1],KEYS[2]); return 1",
+          Long.class);
+  private static final DefaultRedisScript<Long> LIMIT =
+      new DefaultRedisScript<>(
+          "local n=redis.call('INCR',KEYS[1]); if n==1 then redis.call('EXPIRE',KEYS[1],3600) end;"
+              + " return n",
+          Long.class);
 
   /** 注入使用字符串序列化的Redis连接, 避免验证码依赖通用对象反序列化. */
   public MobileVerificationService(StringRedisTemplate redis) {
@@ -35,8 +38,10 @@ public class MobileVerificationService {
   /** 校验手机号并限制每用户每分钟一次、每手机号每小时五次. */
   public String begin(Long userId, String phone) {
     validatePhone(phone);
-    if (!Boolean.TRUE.equals(redis.opsForValue().setIfAbsent(
-        "verify:mobile:rate:user:" + userId, "1", Duration.ofSeconds(60)))) {
+    if (!Boolean.TRUE.equals(
+        redis
+            .opsForValue()
+            .setIfAbsent("verify:mobile:rate:user:" + userId, "1", Duration.ofSeconds(60)))) {
       throw new BusinessException("发送过于频繁, 请稍后重试");
     }
     Long count = redis.execute(LIMIT, List.of("verify:mobile:rate:phone:" + digest(phone)));
@@ -50,8 +55,9 @@ public class MobileVerificationService {
   public void issued(Long userId, String phone, String code) {
     String key = "verify:mobile:challenge:" + userId;
     redis.delete(key + ":attempts");
-    redis.opsForValue().set(key, digest(userId + ":mobile:" + phone + ":" + code),
-        Duration.ofMinutes(5));
+    redis
+        .opsForValue()
+        .set(key, digest(userId + ":mobile:" + phone + ":" + code), Duration.ofMinutes(5));
   }
 
   /** 匹配用户、用途、手机号和验证码后原子删除, 失败最多允许五次. */
@@ -61,8 +67,11 @@ public class MobileVerificationService {
       throw new BusinessException("验证码错误或已失效");
     }
     String key = "verify:mobile:challenge:" + userId;
-    Long result = redis.execute(VERIFY, List.of(key, key + ":attempts"),
-        digest(userId + ":mobile:" + phone + ":" + code));
+    Long result =
+        redis.execute(
+            VERIFY,
+            List.of(key, key + ":attempts"),
+            digest(userId + ":mobile:" + phone + ":" + code));
     if (!Long.valueOf(1).equals(result)) {
       throw new BusinessException("验证码错误或已失效");
     }
@@ -78,8 +87,9 @@ public class MobileVerificationService {
   /** 使用摘要构造验证上下文和限流键, 不在键名中暴露手机号. */
   private static String digest(String value) {
     try {
-      return HexFormat.of().formatHex(
-          MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
+      return HexFormat.of()
+          .formatHex(
+              MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
     } catch (NoSuchAlgorithmException error) {
       throw new IllegalStateException("运行环境缺少SHA-256", error);
     }

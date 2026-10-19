@@ -17,22 +17,21 @@ import lombok.EqualsAndHashCode;
 @TableName("SYS_REGION")
 public class SysRegionEntity extends Tree<SysRegionEntity> {
 
-    //主键
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    //父节点
-    private Integer parentId;
-    //区域名称
-    private String name;
-    //类型 0国家 1省份 2地市 3区县
-    private Integer type;
-    //区域代理Id
-    private Integer agencyId;
+  // 主键
+  @TableId(type = IdType.AUTO)
+  private Integer id;
 
-    /**
-     * 翻译用字段
-     */
-    //父级名称
-    @TableField(exist = false)
-    private String parentName;
+  // 父节点
+  private Integer parentId;
+  // 区域名称
+  private String name;
+  // 类型 0国家 1省份 2地市 3区县
+  private Integer type;
+  // 区域代理Id
+  private Integer agencyId;
+
+  /** 翻译用字段 */
+  // 父级名称
+  @TableField(exist = false)
+  private String parentName;
 }

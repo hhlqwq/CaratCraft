@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallGoodsGalleryDao;
 import com.platform.modules.mall.entity.MallGoodsGalleryEntity;
 import com.platform.modules.mall.service.MallGoodsGalleryService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,50 +38,53 @@ import java.util.Map;
  * @since 2026-02-24 13:15:28
  */
 @Service("mallGoodsGalleryService")
-public class MallGoodsGalleryServiceImpl extends ServiceImpl<MallGoodsGalleryDao, MallGoodsGalleryEntity> implements MallGoodsGalleryService {
+public class MallGoodsGalleryServiceImpl
+    extends ServiceImpl<MallGoodsGalleryDao, MallGoodsGalleryEntity>
+    implements MallGoodsGalleryService {
 
-    @Override
-    public List<MallGoodsGalleryEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallGoodsGalleryEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallGoodsGalleryEntity> queryAllByWrapper(QueryWrapper<MallGoodsGalleryEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallGoodsGalleryEntity> queryAllByWrapper(
+      QueryWrapper<MallGoodsGalleryEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallGoodsGalleryEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallGoodsGalleryEntity> page = new Query<MallGoodsGalleryEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallGoodsGalleryPage(page, params));
-    }
+  @Override
+  public Page<MallGoodsGalleryEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallGoodsGalleryEntity> page = new Query<MallGoodsGalleryEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallGoodsGalleryPage(page, params));
+  }
 
-    @Override
-    public boolean add(MallGoodsGalleryEntity mallGoodsGallery) {
-        return this.save(mallGoodsGallery);
-    }
+  @Override
+  public boolean add(MallGoodsGalleryEntity mallGoodsGallery) {
+    return this.save(mallGoodsGallery);
+  }
 
-    @Override
-    public boolean update(MallGoodsGalleryEntity mallGoodsGallery) {
-        return this.updateById(mallGoodsGallery);
-    }
+  @Override
+  public boolean update(MallGoodsGalleryEntity mallGoodsGallery) {
+    return this.updateById(mallGoodsGallery);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 
-    @Override
-    public List<MallGoodsGalleryEntity> queryList(Map<String, Object> param) {
-        return baseMapper.queryList(param);
-    }
+  @Override
+  public List<MallGoodsGalleryEntity> queryList(Map<String, Object> param) {
+    return baseMapper.queryList(param);
+  }
 }

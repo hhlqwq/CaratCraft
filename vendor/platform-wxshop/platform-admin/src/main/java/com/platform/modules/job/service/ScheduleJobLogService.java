@@ -21,7 +21,6 @@ package com.platform.modules.job.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.job.entity.ScheduleJobLogEntity;
-
 import java.util.Map;
 
 /**
@@ -31,12 +30,11 @@ import java.util.Map;
  */
 public interface ScheduleJobLogService extends IService<ScheduleJobLogEntity> {
 
-    /**
-     * 获取分页数据
-     *
-     * @param params 查询参数
-     * @return Page
-     */
-    Page<ScheduleJobLogEntity> queryPage(Map<String, Object> params);
-
+  /**
+   * 获取分页数据
+   *
+   * @param params 查询参数
+   * @return Page
+   */
+  Page<ScheduleJobLogEntity> queryPage(Map<String, Object> params);
 }

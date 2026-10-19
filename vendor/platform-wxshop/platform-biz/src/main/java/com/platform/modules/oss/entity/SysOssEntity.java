@@ -20,10 +20,9 @@ package com.platform.modules.oss.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
  * 文件上传
@@ -34,24 +33,19 @@ import java.util.Date;
 @Data
 @TableName("SYS_OSS")
 public class SysOssEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @TableId
-    private String id;
-    /**
-     * URL地址
-     */
-    private String url;
-    /**
-     * 创建人ID
-     */
-    private String createUserId;
-    /**
-     * 创建人所属部门
-     */
-    private String createUserOrgNo;
-    /**
-     * 创建时间
-     */
-    private Date createDate;
+  @TableId private String id;
+
+  /** URL地址 */
+  private String url;
+
+  /** 创建人ID */
+  private String createUserId;
+
+  /** 创建人所属部门 */
+  private String createUserOrgNo;
+
+  /** 创建时间 */
+  private Date createDate;
 }

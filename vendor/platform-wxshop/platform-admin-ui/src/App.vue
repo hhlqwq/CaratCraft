@@ -1,8 +1,9 @@
 <template>
-  <router-view v-slot="{ Component }"><transition name="fade"><component :is="Component" /></transition></router-view>
+  <router-view v-slot="{Component}"
+    ><transition name="fade"><component :is="Component" /></transition
+  ></router-view>
 </template>
-<script>
-</script>
+<script></script>
 
 <style>
 .table-expand {
@@ -20,4 +21,3 @@
   width: 48%;
 }
 </style>
-

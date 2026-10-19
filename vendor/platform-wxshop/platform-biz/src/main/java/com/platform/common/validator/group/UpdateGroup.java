@@ -23,7 +23,4 @@ package com.platform.common.validator.group;
  *
  * @author 何海龙
  */
-
-public interface UpdateGroup {
-
-}
+public interface UpdateGroup {}

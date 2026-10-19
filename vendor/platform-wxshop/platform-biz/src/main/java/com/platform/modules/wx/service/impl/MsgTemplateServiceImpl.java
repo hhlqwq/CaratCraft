@@ -25,6 +25,9 @@ import com.platform.common.utils.Query;
 import com.platform.modules.wx.dao.MsgTemplateDao;
 import com.platform.modules.wx.entity.MsgTemplateEntity;
 import com.platform.modules.wx.service.MsgTemplateService;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -33,45 +36,41 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * @author 何海龙
  */
 @RequiredArgsConstructor
 @Service("msgTemplateService")
-public class MsgTemplateServiceImpl extends ServiceImpl<MsgTemplateDao, MsgTemplateEntity> implements MsgTemplateService {
-    private final WxMpService wxService;
+public class MsgTemplateServiceImpl extends ServiceImpl<MsgTemplateDao, MsgTemplateEntity>
+    implements MsgTemplateService {
+  private final WxMpService wxService;
 
-    @Override
-    public Page<MsgTemplateEntity> queryPage(Map<String, Object> params) {
-        String title = (String) params.get("title");
-        String name = (String) params.get("name");
+  @Override
+  public Page<MsgTemplateEntity> queryPage(Map<String, Object> params) {
+    String title = (String) params.get("title");
+    String name = (String) params.get("name");
 
-        Page<MsgTemplateEntity> page = new Query<MsgTemplateEntity>(params).getPage();
-        return baseMapper.selectPage(page,
-                new QueryWrapper<MsgTemplateEntity>()
-                        .like(StringUtils.hasText(title), "TITLE", title)
-                        .like(StringUtils.hasText(name), "NAME", name)
-        );
-    }
+    Page<MsgTemplateEntity> page = new Query<MsgTemplateEntity>(params).getPage();
+    return baseMapper.selectPage(
+        page,
+        new QueryWrapper<MsgTemplateEntity>()
+            .like(StringUtils.hasText(title), "TITLE", title)
+            .like(StringUtils.hasText(name), "NAME", name));
+  }
 
-    @Override
-    public MsgTemplateEntity selectByName(String name) {
-        Assert.hasText(name, "模板名称不得为空");
-        return this.getOne(new QueryWrapper<MsgTemplateEntity>()
-                .eq("NAME", name)
-                .eq("STATUS", 1)
-                .last("LIMIT 1"));
-    }
+  @Override
+  public MsgTemplateEntity selectByName(String name) {
+    Assert.hasText(name, "模板名称不得为空");
+    return this.getOne(
+        new QueryWrapper<MsgTemplateEntity>().eq("NAME", name).eq("STATUS", 1).last("LIMIT 1"));
+  }
 
-    @Override
-    public void syncWxTemplate() throws WxErrorException {
-        baseMapper.delete(null);
-        List<WxMpTemplate> wxMpTemplateList = wxService.getTemplateMsgService().getAllPrivateTemplate();
-        List<MsgTemplateEntity> templates = wxMpTemplateList.stream().map(MsgTemplateEntity::new).collect(Collectors.toList());
-        this.saveBatch(templates);
-    }
+  @Override
+  public void syncWxTemplate() throws WxErrorException {
+    baseMapper.delete(null);
+    List<WxMpTemplate> wxMpTemplateList = wxService.getTemplateMsgService().getAllPrivateTemplate();
+    List<MsgTemplateEntity> templates =
+        wxMpTemplateList.stream().map(MsgTemplateEntity::new).collect(Collectors.toList());
+    this.saveBatch(templates);
+  }
 }

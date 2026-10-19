@@ -22,9 +22,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -35,24 +34,18 @@ import java.io.Serializable;
 @Data
 @TableName("mall_shipping")
 public class MallShippingEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     *
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     *
-     */
-    private String code;
-    /**
-     *
-     */
-    private String name;
-    /**
-     * 状态 0未删除 1已删除
-     */
-    @TableLogic
-    private Integer status;
+  /** */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** */
+  private String code;
+
+  /** */
+  private String name;
+
+  /** 状态 0未删除 1已删除 */
+  @TableLogic private Integer status;
 }

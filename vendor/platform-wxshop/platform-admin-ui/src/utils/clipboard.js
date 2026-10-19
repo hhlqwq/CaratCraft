@@ -4,12 +4,19 @@ const states = new WeakMap();
 async function copy(event) {
   const state = states.get(event.currentTarget);
   try {
-    if (!navigator.clipboard || !window.isSecureContext) throw new Error('请使用HTTPS连接后复制');
+    if (!navigator.clipboard || !window.isSecureContext) {
+      throw new Error('请使用HTTPS连接后复制');
+    }
     await navigator.clipboard.writeText(String(state.copy || ''));
-    if (state.success) state.success({text: state.copy});
+    if (state.success) {
+      state.success({text: state.copy});
+    }
   } catch (error) {
-    if (state.error) state.error(error);
-    else state.instance.$message.error(error.message || '复制失败');
+    if (state.error) {
+      state.error(error);
+    } else {
+      state.instance.$message.error(error.message || '复制失败');
+    }
   }
 }
 

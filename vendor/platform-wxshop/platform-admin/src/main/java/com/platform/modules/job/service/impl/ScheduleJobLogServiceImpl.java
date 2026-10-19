@@ -24,23 +24,22 @@ import com.platform.common.utils.Query;
 import com.platform.modules.job.dao.ScheduleJobLogDao;
 import com.platform.modules.job.entity.ScheduleJobLogEntity;
 import com.platform.modules.job.service.ScheduleJobLogService;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
+import org.springframework.stereotype.Service;
 
 /**
  * @author 何海龙
  */
 @Service("scheduleJobLogService")
-public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogDao, ScheduleJobLogEntity> implements ScheduleJobLogService {
+public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogDao, ScheduleJobLogEntity>
+    implements ScheduleJobLogService {
 
-    @Override
-    public Page<ScheduleJobLogEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.CREATE_TIME");
-        params.put("asc", false);
-        Page<ScheduleJobLogEntity> page = new Query<ScheduleJobLogEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectScheduleJobLogPage(page, params));
-    }
-
+  @Override
+  public Page<ScheduleJobLogEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.CREATE_TIME");
+    params.put("asc", false);
+    Page<ScheduleJobLogEntity> page = new Query<ScheduleJobLogEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectScheduleJobLogPage(page, params));
+  }
 }

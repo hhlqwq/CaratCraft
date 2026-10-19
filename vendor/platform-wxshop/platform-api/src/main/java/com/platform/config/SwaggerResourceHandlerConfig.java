@@ -18,12 +18,11 @@
  */
 package com.platform.config;
 
+import java.util.concurrent.TimeUnit;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 资源配置
@@ -33,13 +32,17 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class SwaggerResourceHandlerConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        //swagger
-        registry.addResourceHandler("/swagger-ui/**").addResourceLocations("classpath:/static/swagger-ui/");
-        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/");
-        registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
-        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/")
-                .setCacheControl(CacheControl.maxAge(5, TimeUnit.HOURS).cachePublic());
-    }
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    // swagger
+    registry
+        .addResourceHandler("/swagger-ui/**")
+        .addResourceLocations("classpath:/static/swagger-ui/");
+    registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/");
+    registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+    registry
+        .addResourceHandler("/webjars/**")
+        .addResourceLocations("classpath:/META-INF/resources/webjars/")
+        .setCacheControl(CacheControl.maxAge(5, TimeUnit.HOURS).cachePublic());
+  }
 }

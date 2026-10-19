@@ -1,8 +1,8 @@
-var util = require('../../../utils/util.js');
-var user = require('../../../services/user.js');
-var api = require('../../../config/api.js');
-var app = getApp();
-var DEFAULT_AVATAR = '/static/images/logo.png';
+const util = require('../../../utils/util.js');
+const user = require('../../../services/user.js');
+const api = require('../../../config/api.js');
+const app = getApp();
+const DEFAULT_AVATAR = '/static/images/logo.png';
 
 Page({
   data: {
@@ -13,90 +13,85 @@ Page({
     profileVisible: false,
     profileForm: {
       nickname: '',
-      avatarUrl: ''
+      avatarUrl: '',
     },
     profileSaving: false,
     menuItems: [
-      { title: '购物车', url: '/pages/cart/cart', badge: '购' },
-      { title: '我的订单', url: '/pages/ucenter/order/order', badge: '单' },
-      { title: '我的设计', url: '/pages/ucenter/design/design', badge: '设' },
-      { title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券' },
-      { title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏' },
-      { title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹' },
-      { title: '地址管理', url: '/pages/ucenter/address/address', badge: '址' },
-      { title: '帮助中心', url: '/pages/ucenter/help/help', badge: '助' },
-      { title: '意见反馈', url: '/pages/ucenter/feedback/feedback', badge: '评' }
-    ]
+      {title: '购物车', url: '/pages/cart/cart', badge: '购'},
+      {title: '我的订单', url: '/pages/ucenter/order/order', badge: '单'},
+      {title: '我的设计', url: '/pages/ucenter/design/design', badge: '设'},
+      {title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券'},
+      {title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏'},
+      {title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹'},
+      {title: '地址管理', url: '/pages/ucenter/address/address', badge: '址'},
+      {title: '帮助中心', url: '/pages/ucenter/help/help', badge: '助'},
+      {title: '意见反馈', url: '/pages/ucenter/feedback/feedback', badge: '评'},
+    ],
   },
-  onLoad: function (options) {
-    // 页面初始化 options为页面跳转所带来的参数
 
-  },
-  onReady: function () {
-
-  },
+  /** 页面再次展示时恢复有效会话并刷新个人中心资料. */
   onShow: function () {
+    const userInfo = wx.getStorageSync('userInfo');
+    const token = wx.getStorageSync('token');
 
-    let userInfo = wx.getStorageSync('userInfo');
-    let token = wx.getStorageSync('token');
-
-    // 页面显示
     if (userInfo && token) {
       app.globalData.userInfo = this.normalizeUserInfo(userInfo);
       app.globalData.token = token;
     }
 
     this.refreshUserInfo();
+  },
 
-  },
-  onHide: function () {
-    // 页面隐藏
-
-  },
-  onUnload: function () {
-    // 页面关闭
-  },
+  /** 请求用户主动授权的资料并交给登录流程处理. */
   getUserProfile() {
-    let userInfo = wx.getStorageSync('userInfo');
-    let token = wx.getStorageSync('token');
+    const userInfo = wx.getStorageSync('userInfo');
+    const token = wx.getStorageSync('token');
     if (userInfo && token) {
       app.globalData.userInfo = this.normalizeUserInfo(userInfo);
       app.globalData.token = token;
       this.openProfileEditor();
       return;
     }
-    // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认
+    // 用户主动触发资料授权; 登录会话仍由后端验证微信临时凭证.
     wx.getUserProfile({
       desc: '用于完善会员资料', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
       success: (resp) => {
         //登录远程服务器
-        user.loginByWeixin(resp).then(res => {
-          const userInfo = this.normalizeUserInfo(res.data.userInfo);
-          this.applyUserInfo(userInfo);
-          app.globalData.userInfo = userInfo;
-          app.globalData.token = res.data.token;
-        }).catch((err) => {
-          console.log(err)
-        });
-      }
-    })
+        user
+          .loginByWeixin(resp)
+          .then((res) => {
+            const userInfo = this.normalizeUserInfo(res.data.userInfo);
+            this.applyUserInfo(userInfo);
+            app.globalData.userInfo = userInfo;
+            app.globalData.token = res.data.token;
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      },
+    });
   },
+  /** 处理资料授权回调, 拒绝授权时不继续提交资料. */
   bindGetUserInfo(e) {
-    let userInfo = wx.getStorageSync('userInfo');
-    let token = wx.getStorageSync('token');
+    const userInfo = wx.getStorageSync('userInfo');
+    const token = wx.getStorageSync('token');
     if (userInfo && token) {
       return;
     }
     //用户按了允许授权按钮
-    user.loginByWeixin(e.detail).then(res => {
-      const userInfo = this.normalizeUserInfo(res.data.userInfo);
-      this.applyUserInfo(userInfo);
-      app.globalData.userInfo = userInfo;
-      app.globalData.token = res.data.token;
-    }).catch((err) => {
-      console.log(err)
-    });
+    user
+      .loginByWeixin(e.detail)
+      .then((res) => {
+        const userInfo = this.normalizeUserInfo(res.data.userInfo);
+        this.applyUserInfo(userInfo);
+        app.globalData.userInfo = userInfo;
+        app.globalData.token = res.data.token;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   },
+  /** 确认后清除本机会话并恢复游客展示. */
   exitLogin: function () {
     wx.showModal({
       title: '',
@@ -109,29 +104,33 @@ Page({
           app.globalData.userInfo = {
             nickname: 'Hi, 游客',
             userName: '点击去登录',
-            avatar: DEFAULT_AVATAR
+            avatar: DEFAULT_AVATAR,
           };
           util.showSuccessToast('退出成功');
           wx.switchTab({
-            url: '/pages/index/index'
+            url: '/pages/index/index',
           });
         }
-      }
-    })
+      },
+    });
   },
+  /** 按当前会话刷新个人资料, 无有效会话时显示游客状态. */
   refreshUserInfo: function () {
-    var userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
+    const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
     this.setData({
       userInfo: userInfo,
       avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
-      nicknameText: userInfo.nickname || 'Hi, 游客'
+      nicknameText: userInfo.nickname || 'Hi, 游客',
     });
     if (app.globalData.token || wx.getStorageSync('token')) {
-      util.request(api.UserProfile).then((res) => {
-        if (res.code === 0 && res.data) {
-          this.applyUserInfo(this.normalizeUserInfo(res.data));
-        }
-      }).catch(() => {});
+      util
+        .request(api.UserProfile)
+        .then((res) => {
+          if (res.code === 0 && res.data) {
+            this.applyUserInfo(this.normalizeUserInfo(res.data));
+          }
+        })
+        .catch(() => {});
     }
   },
   // 统一服务端与小程序头像字段 / Normalizes server and mini-program avatar fields.
@@ -149,7 +148,7 @@ Page({
     this.setData({
       userInfo: normalized,
       avatarUrl: normalized.avatar,
-      nicknameText: normalized.nickname || 'Hi, 游客'
+      nicknameText: normalized.nickname || 'Hi, 游客',
     });
   },
   // 打开资料编辑层 / Opens the profile editor.
@@ -159,8 +158,8 @@ Page({
       profileVisible: true,
       profileForm: {
         nickname: userInfo.nickname || '',
-        avatarUrl: userInfo.avatar || DEFAULT_AVATAR
-      }
+        avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
+      },
     });
   },
   // 关闭资料编辑层 / Closes the profile editor.
@@ -183,23 +182,27 @@ Page({
       desc: '用于设置商城昵称和头像',
       success: (profile) => {
         this.setData({profileSaving: true});
-        user.loginByWeixin(profile).then((res) => {
-          const userInfo = this.normalizeUserInfo(res.data.userInfo);
-          app.globalData.token = res.data.token;
-          this.applyUserInfo(userInfo);
-          this.setData({
-            profileForm: {
-              nickname: userInfo.nickname || '',
-              avatarUrl: userInfo.avatar || DEFAULT_AVATAR
-            }
+        user
+          .loginByWeixin(profile)
+          .then((res) => {
+            const userInfo = this.normalizeUserInfo(res.data.userInfo);
+            app.globalData.token = res.data.token;
+            this.applyUserInfo(userInfo);
+            this.setData({
+              profileForm: {
+                nickname: userInfo.nickname || '',
+                avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
+              },
+            });
+            wx.showToast({title: '已同步微信资料', icon: 'success'});
+          })
+          .catch(() => {
+            wx.showToast({title: '微信资料同步失败', icon: 'none'});
+          })
+          .finally(() => {
+            this.setData({profileSaving: false});
           });
-          wx.showToast({title: '已同步微信资料', icon: 'success'});
-        }).catch(() => {
-          wx.showToast({title: '微信资料同步失败', icon: 'none'});
-        }).finally(() => {
-          this.setData({profileSaving: false});
-        });
-      }
+      },
     });
   },
   // 保存昵称和头像 / Saves nickname and avatar.
@@ -211,10 +214,17 @@ Page({
     }
     this.setData({profileSaving: true});
     this.uploadAvatarIfNeeded(this.data.profileForm.avatarUrl)
-      .then((avatarUrl) => util.request(api.UpdateUserProfile, {
-        nickname: nickname,
-        avatarUrl: avatarUrl
-      }, 'POST', 'application/json'))
+      .then((avatarUrl) =>
+        util.request(
+          api.UpdateUserProfile,
+          {
+            nickname: nickname,
+            avatarUrl: avatarUrl,
+          },
+          'POST',
+          'application/json'
+        )
+      )
       .then((res) => {
         if (res.code !== 0) {
           throw new Error(res.msg || '保存失败');
@@ -222,15 +232,22 @@ Page({
         this.applyUserInfo(this.normalizeUserInfo(res.data));
         this.setData({profileVisible: false});
         wx.showToast({title: '资料已保存', icon: 'success'});
-      }).catch((error) => {
+      })
+      .catch((error) => {
         wx.showToast({title: error.message || '资料保存失败', icon: 'none'});
-      }).finally(() => {
+      })
+      .finally(() => {
         this.setData({profileSaving: false});
       });
   },
   // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
   uploadAvatarIfNeeded: function (avatarUrl) {
-    if (!avatarUrl || /^https?:\/\//.test(avatarUrl) || avatarUrl.indexOf('/static/') === 0 || avatarUrl.indexOf('/upload/') === 0) {
+    if (
+      !avatarUrl ||
+      /^https?:\/\//.test(avatarUrl) ||
+      avatarUrl.indexOf('/static/') === 0 ||
+      avatarUrl.indexOf('/upload/') === 0
+    ) {
       return Promise.resolve(avatarUrl);
     }
     return new Promise((resolve, reject) => {
@@ -238,7 +255,7 @@ Page({
         url: api.UploadFile,
         filePath: avatarUrl,
         name: 'file',
-        header: {'token': wx.getStorageSync('token')},
+        header: {token: wx.getStorageSync('token')},
         success: (response) => {
           try {
             const result = JSON.parse(response.data);
@@ -251,8 +268,8 @@ Page({
             reject(new Error('头像上传响应异常'));
           }
         },
-        fail: () => reject(new Error('头像上传失败'))
+        fail: () => reject(new Error('头像上传失败')),
       });
     });
-  }
-})
+  },
+});

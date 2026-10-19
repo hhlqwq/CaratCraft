@@ -28,10 +28,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WxUserDao extends BaseMapper<WxUserEntity> {
 
-    /**
-     * 取消关注，更新关注状态
-     *
-     * @param openid
-     */
-    void unsubscribe(String openid);
+  /**
+   * 取消关注，更新关注状态
+   *
+   * @param openid
+   */
+  void unsubscribe(String openid);
 }

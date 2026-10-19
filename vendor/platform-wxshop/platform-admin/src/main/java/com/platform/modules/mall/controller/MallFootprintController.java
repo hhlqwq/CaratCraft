@@ -28,12 +28,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller
@@ -47,102 +46,111 @@ import java.util.Map;
 @Tag(name = "MallFootprintController|")
 public class MallFootprintController extends AbstractController {
 
-    private final MallFootprintService mallFootprintService;
+  private final MallFootprintService mallFootprintService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("mall:footprint:list")
-    public RestResponse<List<MallFootprintEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<MallFootprintEntity> list = mallFootprintService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("mall:footprint:list")
+  public RestResponse<List<MallFootprintEntity>> queryAll(
+      @RequestParam Map<String, Object> params) {
+    List<MallFootprintEntity> list = mallFootprintService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("mall:footprint:list")
-    public RestResponse<Page<MallFootprintEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<MallFootprintEntity> page = mallFootprintService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("mall:footprint:list")
+  public RestResponse<Page<MallFootprintEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<MallFootprintEntity> page = mallFootprintService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情",
-            parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "主键", example = "1", required = true)}
-    )
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("mall:footprint:info")
-    public RestResponse<MallFootprintEntity> info(@PathVariable("id") Integer id) {
-        MallFootprintEntity mallFootprint = mallFootprintService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(
+      summary = "根据主键查询详情",
+      description = "根据主键查询详情",
+      parameters = {
+        @Parameter(
+            in = ParameterIn.PATH,
+            name = "id",
+            description = "主键",
+            example = "1",
+            required = true)
+      })
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("mall:footprint:info")
+  public RestResponse<MallFootprintEntity> info(@PathVariable("id") Integer id) {
+    MallFootprintEntity mallFootprint = mallFootprintService.getById(id);
 
-        return RestResponse.ok(mallFootprint);
-    }
+    return RestResponse.ok(mallFootprint);
+  }
 
-    /**
-     * 新增
-     *
-     * @param mallFootprint mallFootprint
-     * @return RestResponse
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增")
-    @PostMapping("/save")
-    @RequiresPermissions("mall:footprint:save")
-    public RestResponse<String> save(@RequestBody MallFootprintEntity mallFootprint) {
+  /**
+   * 新增
+   *
+   * @param mallFootprint mallFootprint
+   * @return RestResponse
+   */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增")
+  @PostMapping("/save")
+  @RequiresPermissions("mall:footprint:save")
+  public RestResponse<String> save(@RequestBody MallFootprintEntity mallFootprint) {
 
-        mallFootprintService.add(mallFootprint);
+    mallFootprintService.add(mallFootprint);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     *
-     * @param mallFootprint mallFootprint
-     * @return RestResponse
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改")
-    @PostMapping("/update")
-    @RequiresPermissions("mall:footprint:update")
-    public RestResponse<String> update(@RequestBody MallFootprintEntity mallFootprint) {
+  /**
+   * 修改
+   *
+   * @param mallFootprint mallFootprint
+   * @return RestResponse
+   */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改")
+  @PostMapping("/update")
+  @RequiresPermissions("mall:footprint:update")
+  public RestResponse<String> update(@RequestBody MallFootprintEntity mallFootprint) {
 
-        mallFootprintService.update(mallFootprint);
+    mallFootprintService.update(mallFootprint);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 根据主键删除
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除")
-    @PostMapping("/delete")
-    @RequiresPermissions("mall:footprint:delete")
-    public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallFootprintService.deleteBatch(ids);
+  /**
+   * 根据主键删除
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除")
+  @PostMapping("/delete")
+  @RequiresPermissions("mall:footprint:delete")
+  public RestResponse<String> delete(@RequestBody Integer[] ids) {
+    mallFootprintService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

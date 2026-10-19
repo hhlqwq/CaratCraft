@@ -28,73 +28,75 @@ import java.util.List;
  */
 public class LatLgtUtils {
 
-    private static final double EARTH_RADIUS = 6378137;
+  private static final double EARTH_RADIUS = 6378137;
 
-    /**
-     * 获取四个顶点的list
-     *
-     * @param lgt      经度
-     * @param lat      纬度
-     * @param distance 距离
-     * @return List
-     */
-    public static List<Double[]> getPointsList(double lgt, double lat, double distance) {
+  /**
+   * 获取四个顶点的list
+   *
+   * @param lgt 经度
+   * @param lat 纬度
+   * @param distance 距离
+   * @return List
+   */
+  public static List<Double[]> getPointsList(double lgt, double lat, double distance) {
 
-        List<Double[]> pointsList = new ArrayList<>(4);
+    List<Double[]> pointsList = new ArrayList<>(4);
 
-        double dlng = 2 * Math.asin(Math.sin(distance / (2 * EARTH_RADIUS)) / Math.cos(rad(lat)));
-        dlng = degrees(dlng);
+    double dlng = 2 * Math.asin(Math.sin(distance / (2 * EARTH_RADIUS)) / Math.cos(rad(lat)));
+    dlng = degrees(dlng);
 
-        double dlat = distance / EARTH_RADIUS;
-        dlat = degrees(dlat);
+    double dlat = distance / EARTH_RADIUS;
+    dlat = degrees(dlat);
 
-        // key:纬度  value:经度
-        Double[] points = new Double[]{lat + dlat, lgt - dlng};
-        // 左上角的顶点
-        pointsList.add(points);
+    // key:纬度  value:经度
+    Double[] points = new Double[] {lat + dlat, lgt - dlng};
+    // 左上角的顶点
+    pointsList.add(points);
 
-        // 右上角的顶点
-        points = new Double[]{lat + dlat, lgt + dlng};
-        pointsList.add(points);
+    // 右上角的顶点
+    points = new Double[] {lat + dlat, lgt + dlng};
+    pointsList.add(points);
 
-        // 右下角的顶点
-        points = new Double[]{lat - dlat, lgt + dlng};
-        pointsList.add(points);
+    // 右下角的顶点
+    points = new Double[] {lat - dlat, lgt + dlng};
+    pointsList.add(points);
 
-        // 左下角的顶点
-        points = new Double[]{lat - dlat, lgt - dlng};
-        pointsList.add(points);
+    // 左下角的顶点
+    points = new Double[] {lat - dlat, lgt - dlng};
+    pointsList.add(points);
 
-        return pointsList;
+    return pointsList;
+  }
 
-    }
+  private static double rad(double d) {
+    return d * Math.PI / 180.0;
+  }
 
-    private static double rad(double d) {
-        return d * Math.PI / 180.0;
-    }
+  private static double degrees(double d) {
+    return d * (180 / Math.PI);
+  }
 
-    private static double degrees(double d) {
-        return d * (180 / Math.PI);
-    }
-
-    /**
-     * 传入经纬度计算距离，单位为km,保留2位小数
-     *
-     * @param lng1 lng1
-     * @param lat1 lat1
-     * @param lng2 lng2
-     * @param lat2 lat2
-     * @return String
-     */
-    public static String calDistance(float lng1, float lat1, float lng2, float lat2) {
-        double radLat1 = rad(lat1);
-        double radLat2 = rad(lat2);
-        double a = radLat1 - radLat2;
-        double b = rad(lng1) - rad(lng2);
-        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2)
-                + Math.cos(radLat1) * Math.cos(radLat2)
-                * Math.pow(Math.sin(b / 2), 2)));
-        s = s * EARTH_RADIUS / 1000;
-        return String.format("%.2f", s);
-    }
+  /**
+   * 传入经纬度计算距离，单位为km,保留2位小数
+   *
+   * @param lng1 lng1
+   * @param lat1 lat1
+   * @param lng2 lng2
+   * @param lat2 lat2
+   * @return String
+   */
+  public static String calDistance(float lng1, float lat1, float lng2, float lat2) {
+    double radLat1 = rad(lat1);
+    double radLat2 = rad(lat2);
+    double a = radLat1 - radLat2;
+    double b = rad(lng1) - rad(lng2);
+    double s =
+        2
+            * Math.asin(
+                Math.sqrt(
+                    Math.pow(Math.sin(a / 2), 2)
+                        + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+    s = s * EARTH_RADIUS / 1000;
+    return String.format("%.2f", s);
+  }
 }

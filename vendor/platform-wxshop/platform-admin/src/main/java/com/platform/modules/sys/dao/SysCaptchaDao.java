@@ -28,6 +28,4 @@ import org.apache.ibatis.annotations.Mapper;
  * @author 何海龙
  */
 @Mapper
-public interface SysCaptchaDao extends BaseMapper<SysCaptchaEntity> {
-
-}
+public interface SysCaptchaDao extends BaseMapper<SysCaptchaEntity> {}

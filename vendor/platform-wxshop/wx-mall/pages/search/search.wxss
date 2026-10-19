@@ -77,7 +77,7 @@ page,
 
 .serach-keywords .icon {
   height: 44rpx;
-  opacity: .62;
+  opacity: 0.62;
   width: 44rpx;
 }
 
@@ -216,7 +216,7 @@ page,
 
 .search-result-empty .icon {
   height: 190rpx;
-  opacity: .58;
+  opacity: 0.58;
   width: 190rpx;
 }
 

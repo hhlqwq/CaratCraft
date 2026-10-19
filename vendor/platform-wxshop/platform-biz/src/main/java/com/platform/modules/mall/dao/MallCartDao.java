@@ -20,13 +20,11 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallCartEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * Dao
@@ -37,29 +35,36 @@ import java.util.Map;
 @Mapper
 public interface MallCartDao extends BaseMapper<MallCartEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallCartEntity> queryAll(@Param("params") Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallCartEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    /**
-     * 自定义分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallCartEntity> selectMallCartPage(Page<MallCartEntity> page, @Param("params") Map<String, Object> params);
+  /**
+   * 自定义分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallCartEntity> selectMallCartPage(
+      Page<MallCartEntity> page, @Param("params") Map<String, Object> params);
 
-    void updateCheck(@Param("productIds") String[] productIds,
-                     @Param("isChecked") Integer isChecked, @Param("userId") Long userId);
+  void updateCheck(
+      @Param("productIds") String[] productIds,
+      @Param("isChecked") Integer isChecked,
+      @Param("userId") Long userId);
 
-    void deleteByUserAndProductIds(@Param("userId") Long userId,@Param("productIds") String[] productIds);
+  void deleteByUserAndProductIds(
+      @Param("userId") Long userId, @Param("productIds") String[] productIds);
 
-    void deleteByCart(@Param("userId") Long userId, @Param("sessionId") Integer sessionId, @Param("checked") Integer checked);
+  void deleteByCart(
+      @Param("userId") Long userId,
+      @Param("sessionId") Integer sessionId,
+      @Param("checked") Integer checked);
 
-    List<MallCartEntity> queryList(Map<String, Object> param);
+  List<MallCartEntity> queryList(Map<String, Object> param);
 }

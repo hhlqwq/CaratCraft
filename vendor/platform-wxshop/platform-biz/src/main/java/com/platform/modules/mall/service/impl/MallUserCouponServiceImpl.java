@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallUserCouponDao;
 import com.platform.modules.mall.entity.MallUserCouponEntity;
 import com.platform.modules.mall.service.MallUserCouponService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,45 +38,47 @@ import java.util.Map;
  * @since 2024-07-19 21:02:38
  */
 @Service("mallUserCouponService")
-public class MallUserCouponServiceImpl extends ServiceImpl<MallUserCouponDao, MallUserCouponEntity> implements MallUserCouponService {
+public class MallUserCouponServiceImpl extends ServiceImpl<MallUserCouponDao, MallUserCouponEntity>
+    implements MallUserCouponService {
 
-    @Override
-    public List<MallUserCouponEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallUserCouponEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallUserCouponEntity> queryAllByWrapper(QueryWrapper<MallUserCouponEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallUserCouponEntity> queryAllByWrapper(
+      QueryWrapper<MallUserCouponEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallUserCouponEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallUserCouponEntity> page = new Query<MallUserCouponEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallUserCouponPage(page, params));
-    }
+  @Override
+  public Page<MallUserCouponEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallUserCouponEntity> page = new Query<MallUserCouponEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallUserCouponPage(page, params));
+  }
 
-    @Override
-    public boolean add(MallUserCouponEntity mallUserCoupon) {
-        return this.save(mallUserCoupon);
-    }
+  @Override
+  public boolean add(MallUserCouponEntity mallUserCoupon) {
+    return this.save(mallUserCoupon);
+  }
 
-    @Override
-    public boolean update(MallUserCouponEntity mallUserCoupon) {
-        return this.updateById(mallUserCoupon);
-    }
+  @Override
+  public boolean update(MallUserCouponEntity mallUserCoupon) {
+    return this.updateById(mallUserCoupon);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 }

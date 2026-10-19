@@ -22,10 +22,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.wx.entity.WxQrCodeEntity;
 import com.platform.modules.wx.form.WxQrCodeForm;
+import java.util.Map;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.bean.result.WxMpQrCodeTicket;
-
-import java.util.Map;
 
 /**
  * 公众号带参二维码
@@ -34,21 +33,20 @@ import java.util.Map;
  * @date 2021-05-06 18:30:15
  */
 public interface WxQrCodeService extends IService<WxQrCodeEntity> {
-    /**
-     * 分页查询用户数据
-     *
-     * @param params 查询参数
-     * @return PageUtils 分页结果
-     */
-    Page<WxQrCodeEntity> queryPage(Map<String, Object> params);
+  /**
+   * 分页查询用户数据
+   *
+   * @param params 查询参数
+   * @return PageUtils 分页结果
+   */
+  Page<WxQrCodeEntity> queryPage(Map<String, Object> params);
 
-    /**
-     * 创建公众号带参二维码
-     *
-     * @param form
-     * @return
-     * @throws WxErrorException
-     */
-    WxMpQrCodeTicket createQrCode(WxQrCodeForm form) throws WxErrorException;
+  /**
+   * 创建公众号带参二维码
+   *
+   * @param form
+   * @return
+   * @throws WxErrorException
+   */
+  WxMpQrCodeTicket createQrCode(WxQrCodeForm form) throws WxErrorException;
 }
-

@@ -1,44 +1,48 @@
-var util = require('../../../utils/util.js');
-var api = require('../../../config/api.js');
-
-
-
-var app = getApp();
+const util = require('../../../utils/util.js');
+const api = require('../../../config/api.js');
 
 Page({
   data: {
-    array: ['请选择反馈类型', '商品相关', '物流状况', '客户服务', '优惠活动', '功能异常', '产品建议', '其他'],
+    array: [
+      '请选择反馈类型',
+      '商品相关',
+      '物流状况',
+      '客户服务',
+      '优惠活动',
+      '功能异常',
+      '产品建议',
+      '其他',
+    ],
     index: 0,
-    content:'',
-    contentLength:0,
-    mobile:''
+    content: '',
+    contentLength: 0,
+    mobile: '',
   },
+  /** 同步当前选择的反馈类型. */
   bindPickerChange: function (e) {
     this.setData({
-      index: e.detail.value
+      index: e.detail.value,
     });
   },
+  /** 同步反馈联系手机号输入. */
   mobileInput: function (e) {
-    let that = this;
     this.setData({
       mobile: e.detail.value,
     });
   },
+  /** 同步反馈正文输入. */
   contentInput: function (e) {
-
-    let that = this;
     this.setData({
       contentLength: e.detail.cursor,
       content: e.detail.value,
     });
   },
-  cleanMobile:function(){
-    let that = this;
-
-  },
-  sbmitFeedback : function(e){
-    let that = this;
-    if (that.data.index == 0){
+  /** 清空反馈联系手机号. */
+  cleanMobile: function () {},
+  /** 校验反馈内容和联系方式后提交反馈. */
+  sbmitFeedback: function (e) {
+    const that = this;
+    if (that.data.index == 0) {
       util.showErrorToast('请选择反馈类型');
       return false;
     }
@@ -54,49 +58,37 @@ Page({
     }
     wx.showLoading({
       title: '提交中...',
-      mask:true,
-      success: function () {
-
-      }
+      mask: true,
+      success: function () {},
     });
 
-    util.request(api.FeedbackAdd, { mobile: that.data.mobile, index: that.data.index, content: that.data.content}, 'POST', 'application/json').then(function (res) {
-      if (res.code === 0) {
+    util
+      .request(
+        api.FeedbackAdd,
+        {mobile: that.data.mobile, index: that.data.index, content: that.data.content},
+        'POST',
+        'application/json'
+      )
+      .then(function (res) {
+        if (res.code === 0) {
+          wx.hideLoading();
 
-        wx.hideLoading();
-
-        wx.showToast({
-          title: res.data,
-          icon: 'success',
-          duration: 2000,
-          complete: function () {
-            that.setData({
-              index: 0,
-              content: '',
-              contentLength: 0,
-              mobile: ''
-            });
-          }
-        });
-      } else {
-        util.showErrorToast(res.msg);
-      }
-
-    });
+          wx.showToast({
+            title: res.data,
+            icon: 'success',
+            duration: 2000,
+            complete: function () {
+              that.setData({
+                index: 0,
+                content: '',
+                contentLength: 0,
+                mobile: '',
+              });
+            },
+          });
+        } else {
+          util.showErrorToast(res.msg);
+        }
+      });
   },
-  onLoad: function (options) {
-  },
-  onReady: function () {
-
-  },
-  onShow: function () {
-
-  },
-  onHide: function () {
-    // 页面隐藏
-
-  },
-  onUnload: function () {
-    // 页面关闭
-  }
-})
+});

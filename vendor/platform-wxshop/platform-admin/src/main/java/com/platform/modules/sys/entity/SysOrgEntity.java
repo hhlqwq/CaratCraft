@@ -24,16 +24,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.platform.common.validator.group.AddGroup;
 import com.platform.common.validator.group.UpdateGroup;
-import lombok.Data;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
 /**
- * 组织机构实体
- * 表名 sys_org
+ * 组织机构实体 表名 sys_org
  *
  * @author 何海龙
  * @since 2019-01-21 11:29:22
@@ -41,50 +39,45 @@ import java.util.Date;
 @Data
 @TableName("SYS_ORG")
 public class SysOrgEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 机构编码
-     */
-    @TableId
-    private String orgNo;
-    /**
-     * 机构名称
-     */
-    @NotBlank(message = "机构名称不能为空", groups = {AddGroup.class, UpdateGroup.class})
-    private String orgName;
-    /**
-     * 上级机构ID，一级机构为0
-     */
-    @NotBlank(message = "上级机构不能为空", groups = {AddGroup.class, UpdateGroup.class})
-    private String parentNo;
-    /**
-     * 级别
-     */
-    @NotNull(message = "机构级别不能为空", groups = {AddGroup.class, UpdateGroup.class})
-    private Integer orgType;
-    /**
-     * 状态  0：无效   1：有效
-     */
-    private Integer status;
-    /**
-     * 排序
-     */
-    private Integer sort;
-    /**
-     * 创建者ID
-     */
-    private String createUserId;
-    /**
-     * 创建人所属部门
-     */
-    private String createUserOrgNo;
-    /**
-     * 创建时间
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private Date createTime;
+  /** 机构编码 */
+  @TableId private String orgNo;
 
-    @TableField(exist = false)
-    private String parentName;
+  /** 机构名称 */
+  @NotBlank(
+      message = "机构名称不能为空",
+      groups = {AddGroup.class, UpdateGroup.class})
+  private String orgName;
+
+  /** 上级机构ID，一级机构为0 */
+  @NotBlank(
+      message = "上级机构不能为空",
+      groups = {AddGroup.class, UpdateGroup.class})
+  private String parentNo;
+
+  /** 级别 */
+  @NotNull(
+      message = "机构级别不能为空",
+      groups = {AddGroup.class, UpdateGroup.class})
+  private Integer orgType;
+
+  /** 状态 0：无效 1：有效 */
+  private Integer status;
+
+  /** 排序 */
+  private Integer sort;
+
+  /** 创建者ID */
+  private String createUserId;
+
+  /** 创建人所属部门 */
+  private String createUserOrgNo;
+
+  /** 创建时间 */
+  @TableField(fill = FieldFill.INSERT)
+  private Date createTime;
+
+  @TableField(exist = false)
+  private String parentName;
 }

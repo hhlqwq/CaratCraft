@@ -29,5 +29,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ServiceLock {
-    String description() default "";
+  String description() default "";
 }

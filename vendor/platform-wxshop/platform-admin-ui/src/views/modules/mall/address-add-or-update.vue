@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    title="查看"
-    :close-on-click-modal="false"
-    :lock-scroll="false"
-    v-model="visible">
+  <el-dialog title="查看" :close-on-click-modal="false" :lock-scroll="false" v-model="visible">
     <el-descriptions :column="2" border>
       <el-descriptions-item>
         <template #label>
@@ -20,27 +16,19 @@
         {{ dataForm.mobile }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template #label>
-          邮编
-        </template>
+        <template #label> 邮编 </template>
         {{ dataForm.postalCode }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template #label>
-          省
-        </template>
+        <template #label> 省 </template>
         {{ dataForm.provinceName }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template #label>
-          市
-        </template>
+        <template #label> 市 </template>
         {{ dataForm.cityName }}
       </el-descriptions-item>
       <el-descriptions-item>
-        <template #label>
-          区
-        </template>
+        <template #label> 区 </template>
         {{ dataForm.countyName }}
       </el-descriptions-item>
       <el-descriptions-item>
@@ -59,16 +47,18 @@
         <el-tag v-else-if="dataForm.isDefault === 1" size="small" type="success">是</el-tag>
       </el-descriptions-item>
     </el-descriptions>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {
@@ -82,27 +72,27 @@ export default {
         cityName: '',
         countyName: '',
         detailInfo: '',
-        isDefault: ''
-      }
-    }
+        isDefault: '',
+      },
+    };
   },
   methods: {
-    init (id) {
-      this.dataForm.id = id || ''
-      this.visible = true
+    init(id) {
+      this.dataForm.id = id || '';
+      this.visible = true;
       this.$nextTick(() => {
         if (this.dataForm.id) {
           this.$http({
             url: `/mall/address/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.dataForm = data.data
+              this.dataForm = data.data;
             }
-          })
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>

@@ -1,11 +1,11 @@
 export default {
   namespaced: true,
   state: {
-    tags: []
+    tags: [],
   },
   mutations: {
-    updateTags (state, tags) {
-      state.tags = tags
-    }
-  }
-}
+    updateTags(state, tags) {
+      state.tags = tags;
+    },
+  },
+};

@@ -25,10 +25,8 @@ import com.google.gson.GsonBuilder;
  * @author 何海龙
  */
 public class JsonUtils {
-    public static String toJson(Object obj) {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-        return gson.toJson(obj);
-    }
+  public static String toJson(Object obj) {
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    return gson.toJson(obj);
+  }
 }

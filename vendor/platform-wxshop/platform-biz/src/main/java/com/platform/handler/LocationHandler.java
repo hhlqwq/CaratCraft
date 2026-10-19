@@ -19,13 +19,12 @@
 package com.platform.handler;
 
 import com.platform.builder.TextBuilder;
+import java.util.Map;
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * 微信公众号消息处理（地理位置）
@@ -35,16 +34,26 @@ import java.util.Map;
 @Component
 public class LocationHandler extends AbstractHandler {
 
-    @Override
-    public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage,
-                                    Map<String, Object> context, WxMpService wxMpService,
-                                    WxSessionManager sessionManager) {
-        //上报地理位置事件
-        this.logger.info("上报地理位置，msgType:" + wxMessage.getMsgType() + "，纬度 : {}，经度 : {}，精度 : {}",
-                wxMessage.getLatitude(), wxMessage.getLongitude(), wxMessage.getPrecision());
+  @Override
+  public WxMpXmlOutMessage handle(
+      WxMpXmlMessage wxMessage,
+      Map<String, Object> context,
+      WxMpService wxMpService,
+      WxSessionManager sessionManager) {
+    // 上报地理位置事件
+    this.logger.info(
+        "上报地理位置，msgType:" + wxMessage.getMsgType() + "，纬度 : {}，经度 : {}，精度 : {}",
+        wxMessage.getLatitude(),
+        wxMessage.getLongitude(),
+        wxMessage.getPrecision());
 
-        String content = "感谢反馈，您的的地理位置已收到！纬度 : " + wxMessage.getLatitude() + "，经度 : " + wxMessage.getLongitude() + "，精度 : " + wxMessage.getPrecision();
-        return new TextBuilder().build(content, wxMessage, wxMpService);
-    }
-
+    String content =
+        "感谢反馈，您的的地理位置已收到！纬度 : "
+            + wxMessage.getLatitude()
+            + "，经度 : "
+            + wxMessage.getLongitude()
+            + "，精度 : "
+            + wxMessage.getPrecision();
+    return new TextBuilder().build(content, wxMessage, wxMpService);
+  }
 }

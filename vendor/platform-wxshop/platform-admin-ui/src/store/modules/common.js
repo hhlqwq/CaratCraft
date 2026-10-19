@@ -1,4 +1,4 @@
-import router from '@/router'
+import router from '@/router';
 
 export default {
   namespaced: true,
@@ -18,53 +18,53 @@ export default {
     contentIsNeedRefresh: false,
     // 主入口标签页
     mainTabs: [],
-    mainTabsActiveName: ''
+    mainTabsActiveName: '',
   },
   mutations: {
-    updateDocumentClientHeight (state, height) {
-      state.documentClientHeight = height
+    updateDocumentClientHeight(state, height) {
+      state.documentClientHeight = height;
     },
-    updateNavbarLayoutType (state, type) {
-      state.navbarLayoutType = type
+    updateNavbarLayoutType(state, type) {
+      state.navbarLayoutType = type;
     },
-    updateSidebarLayoutSkin (state, skin) {
-      state.sidebarLayoutSkin = skin
+    updateSidebarLayoutSkin(state, skin) {
+      state.sidebarLayoutSkin = skin;
     },
-    updateSidebarFold (state, fold) {
-      state.sidebarFold = fold
+    updateSidebarFold(state, fold) {
+      state.sidebarFold = fold;
     },
-    updateMenuList (state, list) {
-      state.menuList = list
+    updateMenuList(state, list) {
+      state.menuList = list;
     },
-    updateMenuActiveName (state, name) {
-      state.menuActiveName = name
+    updateMenuActiveName(state, name) {
+      state.menuActiveName = name;
     },
-    updateContentIsNeedRefresh (state, status) {
-      state.contentIsNeedRefresh = status
+    updateContentIsNeedRefresh(state, status) {
+      state.contentIsNeedRefresh = status;
     },
-    updateMainTabs (state, tabs) {
-      state.mainTabs = tabs
+    updateMainTabs(state, tabs) {
+      state.mainTabs = tabs;
     },
-    updateMainTabsActiveName (state, name) {
-      state.mainTabsActiveName = name
+    updateMainTabsActiveName(state, name) {
+      state.mainTabsActiveName = name;
     },
-    removeTab (state, tabName) {
-      state.mainTabs = state.mainTabs.filter(item => item.name !== tabName)
+    removeTab(state, tabName) {
+      state.mainTabs = state.mainTabs.filter((item) => item.name !== tabName);
       if (state.mainTabs.length >= 1) {
         // 当前选中tab被删除
         if (tabName === state.mainTabsActiveName) {
-          var tab = state.mainTabs[state.mainTabs.length - 1]
+          const tab = state.mainTabs[state.mainTabs.length - 1];
           router.push({name: tab.name, query: tab.query, params: tab.params}, () => {
-            state.mainTabsActiveName = tab.name
-          })
+            state.mainTabsActiveName = tab.name;
+          });
         }
       } else {
-        state.menuActiveName = ''
-        router.push({name: 'home'})
+        state.menuActiveName = '';
+        router.push({name: 'home'});
       }
     },
-    closeCurrentTab (state) {
-      this.commit('common/removeTab', state.mainTabsActiveName)
-    }
-  }
-}
+    closeCurrentTab(state) {
+      this.commit('common/removeTab', state.mainTabsActiveName);
+    },
+  },
+};

@@ -9,26 +9,29 @@
     "dev": "vite --host 127.0.0.1",
     "start": "pnpm run dev",
     "lint": "eslint src",
+    "format:check": "node ../../../tools/format-business-source.cjs",
+    "format": "node ../../../tools/format-business-source.cjs --write",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "@vue/compat": "3.5.44",
     "axios": "1.20.0",
     "element-plus": "2.14.7",
     "lodash": "4.18.1",
     "vue": "3.5.44",
-    "@vue/compat": "3.5.44",
     "vue-router": "4.6.4",
     "vuex": "4.1.0"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "3.5.44",
-    "@vitejs/plugin-vue": "6.0.10",
-    "vite": "8.3.4",
-    "sass": "1.103.1",
-    "eslint": "10.12.0",
     "@eslint/js": "10.0.1",
-    "eslint-plugin-vue": "10.11.1"
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/compiler-sfc": "3.5.44",
+    "eslint": "10.12.0",
+    "eslint-plugin-vue": "10.11.1",
+    "prettier": "3.6.2",
+    "sass": "1.103.1",
+    "vite": "8.3.4"
   },
   "engines": {
     "node": ">=22.13 <25",

@@ -28,12 +28,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Controller
@@ -47,102 +46,110 @@ import java.util.Map;
 @Tag(name = "MallCategoryController|")
 public class MallCategoryController extends AbstractController {
 
-    private final MallCategoryService mallCategoryService;
+  private final MallCategoryService mallCategoryService;
 
-    /**
-     * 查看所有列表
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "查看所有列表", description = "查看所有列表")
-    @GetMapping("/queryAll")
-    @RequiresPermissions("mall:category:list")
-    public RestResponse<List<MallCategoryEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        List<MallCategoryEntity> list = mallCategoryService.queryAll(params);
+  /**
+   * 查看所有列表
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "查看所有列表", description = "查看所有列表")
+  @GetMapping("/queryAll")
+  @RequiresPermissions("mall:category:list")
+  public RestResponse<List<MallCategoryEntity>> queryAll(@RequestParam Map<String, Object> params) {
+    List<MallCategoryEntity> list = mallCategoryService.queryAll(params);
 
-        return RestResponse.ok(list);
-    }
+    return RestResponse.ok(list);
+  }
 
-    /**
-     * 分页查询
-     *
-     * @param params 查询参数
-     * @return RestResponse
-     */
-    @Operation(summary = "分页查询", description = "分页查询")
-    @GetMapping("/list")
-    @RequiresPermissions("mall:category:list")
-    public RestResponse<Page<MallCategoryEntity>> list(@RequestParam Map<String, Object> params) {
-        Page<MallCategoryEntity> page = mallCategoryService.queryPage(params);
+  /**
+   * 分页查询
+   *
+   * @param params 查询参数
+   * @return RestResponse
+   */
+  @Operation(summary = "分页查询", description = "分页查询")
+  @GetMapping("/list")
+  @RequiresPermissions("mall:category:list")
+  public RestResponse<Page<MallCategoryEntity>> list(@RequestParam Map<String, Object> params) {
+    Page<MallCategoryEntity> page = mallCategoryService.queryPage(params);
 
-        return RestResponse.ok(page);
-    }
+    return RestResponse.ok(page);
+  }
 
-    /**
-     * 根据主键查询详情
-     *
-     * @param id 主键
-     * @return RestResponse
-     */
-    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情",
-            parameters = {@Parameter(in = ParameterIn.PATH, name = "id", description = "主键", example = "1", required = true)}
-    )
-    @GetMapping("/info/{id}")
-    @RequiresPermissions("mall:category:info")
-    public RestResponse<MallCategoryEntity> info(@PathVariable("id") Integer id) {
-        MallCategoryEntity mallCategory = mallCategoryService.getById(id);
+  /**
+   * 根据主键查询详情
+   *
+   * @param id 主键
+   * @return RestResponse
+   */
+  @Operation(
+      summary = "根据主键查询详情",
+      description = "根据主键查询详情",
+      parameters = {
+        @Parameter(
+            in = ParameterIn.PATH,
+            name = "id",
+            description = "主键",
+            example = "1",
+            required = true)
+      })
+  @GetMapping("/info/{id}")
+  @RequiresPermissions("mall:category:info")
+  public RestResponse<MallCategoryEntity> info(@PathVariable("id") Integer id) {
+    MallCategoryEntity mallCategory = mallCategoryService.getById(id);
 
-        return RestResponse.ok(mallCategory);
-    }
+    return RestResponse.ok(mallCategory);
+  }
 
-    /**
-     * 新增
-     *
-     * @param mallCategory mallCategory
-     * @return RestResponse
-     */
-    @Operation(summary = "新增", description = "新增")
-    @SysLog("新增")
-    @PostMapping("/save")
-    @RequiresPermissions("mall:category:save")
-    public RestResponse<String> save(@RequestBody MallCategoryEntity mallCategory) {
+  /**
+   * 新增
+   *
+   * @param mallCategory mallCategory
+   * @return RestResponse
+   */
+  @Operation(summary = "新增", description = "新增")
+  @SysLog("新增")
+  @PostMapping("/save")
+  @RequiresPermissions("mall:category:save")
+  public RestResponse<String> save(@RequestBody MallCategoryEntity mallCategory) {
 
-        mallCategoryService.add(mallCategory);
+    mallCategoryService.add(mallCategory);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 修改
-     *
-     * @param mallCategory mallCategory
-     * @return RestResponse
-     */
-    @Operation(summary = "修改", description = "修改")
-    @SysLog("修改")
-    @PostMapping("/update")
-    @RequiresPermissions("mall:category:update")
-    public RestResponse<String> update(@RequestBody MallCategoryEntity mallCategory) {
+  /**
+   * 修改
+   *
+   * @param mallCategory mallCategory
+   * @return RestResponse
+   */
+  @Operation(summary = "修改", description = "修改")
+  @SysLog("修改")
+  @PostMapping("/update")
+  @RequiresPermissions("mall:category:update")
+  public RestResponse<String> update(@RequestBody MallCategoryEntity mallCategory) {
 
-        mallCategoryService.update(mallCategory);
+    mallCategoryService.update(mallCategory);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 
-    /**
-     * 根据主键删除
-     *
-     * @param ids ids
-     * @return RestResponse
-     */
-    @Operation(summary = "删除", description = "删除")
-    @SysLog("删除")
-    @PostMapping("/delete")
-    @RequiresPermissions("mall:category:delete")
-    public RestResponse<String> delete(@RequestBody Integer[] ids) {
-        mallCategoryService.deleteBatch(ids);
+  /**
+   * 根据主键删除
+   *
+   * @param ids ids
+   * @return RestResponse
+   */
+  @Operation(summary = "删除", description = "删除")
+  @SysLog("删除")
+  @PostMapping("/delete")
+  @RequiresPermissions("mall:category:delete")
+  public RestResponse<String> delete(@RequestBody Integer[] ids) {
+    mallCategoryService.deleteBatch(ids);
 
-        return RestResponse.ok();
-    }
+    return RestResponse.ok();
+  }
 }

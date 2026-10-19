@@ -20,13 +20,11 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.entity.MallKeywordsEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 关键词热搜表Dao
@@ -37,22 +35,23 @@ import java.util.Map;
 @Mapper
 public interface MallKeywordsDao extends BaseMapper<MallKeywordsEntity> {
 
-    /**
-     * 查询所有列表
-     *
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallKeywordsEntity> queryAll(@Param("params") Map<String, Object> params);
+  /**
+   * 查询所有列表
+   *
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallKeywordsEntity> queryAll(@Param("params") Map<String, Object> params);
 
-    /**
-     * 自定义分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<MallKeywordsEntity> selectMallKeywordsPage(Page<MallKeywordsEntity> page, @Param("params") Map<String, Object> params);
+  /**
+   * 自定义分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<MallKeywordsEntity> selectMallKeywordsPage(
+      Page<MallKeywordsEntity> page, @Param("params") Map<String, Object> params);
 
-    List<MallKeywordsEntity> queryList(Map<String, Object> param);
+  List<MallKeywordsEntity> queryList(Map<String, Object> param);
 }

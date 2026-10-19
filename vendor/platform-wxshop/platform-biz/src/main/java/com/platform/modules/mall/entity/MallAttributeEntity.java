@@ -22,9 +22,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 实体
@@ -35,36 +34,28 @@ import java.io.Serializable;
 @Data
 @TableName("mall_attribute")
 public class MallAttributeEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 商品类型
-     */
-    private Integer attributeCategoryId;
-    /**
-     * 属性名称
-     */
-    private String name;
-    /**
-     * 当添加商品时,该属性的添加类别; 0为手功输入;1为选择输入;2为多行文本输入
-     */
-    private Integer inputType;
-    /**
-     * 即选择输入,则attr_name对应的值的取值就是该这字段值
-     */
-    private String value;
-    /**
-     *
-     */
-    private Integer sortOrder;
-    /**
-     * 即选择输入,则attr_name对应的值的取值就是该这字段值
-     */
-    @TableField(exist = false)
-    private String categoryName;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 商品类型 */
+  private Integer attributeCategoryId;
+
+  /** 属性名称 */
+  private String name;
+
+  /** 当添加商品时,该属性的添加类别; 0为手功输入;1为选择输入;2为多行文本输入 */
+  private Integer inputType;
+
+  /** 即选择输入,则attr_name对应的值的取值就是该这字段值 */
+  private String value;
+
+  /** */
+  private Integer sortOrder;
+
+  /** 即选择输入,则attr_name对应的值的取值就是该这字段值 */
+  @TableField(exist = false)
+  private String categoryName;
 }

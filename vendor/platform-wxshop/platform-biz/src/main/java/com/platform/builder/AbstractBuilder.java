@@ -30,16 +30,16 @@ import org.slf4j.LoggerFactory;
  * @author Binary Wang(https://github.com/binarywang)
  */
 public abstract class AbstractBuilder {
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    /**
-     * 回复
-     *
-     * @param content
-     * @param wxMessage
-     * @param service
-     * @return
-     */
-    public abstract WxMpXmlOutMessage build(String content,
-                                            WxMpXmlMessage wxMessage, WxMpService service);
+  /**
+   * 回复
+   *
+   * @param content
+   * @param wxMessage
+   * @param service
+   * @return
+   */
+  public abstract WxMpXmlOutMessage build(
+      String content, WxMpXmlMessage wxMessage, WxMpService service);
 }

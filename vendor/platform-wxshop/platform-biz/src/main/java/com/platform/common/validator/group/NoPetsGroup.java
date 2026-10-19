@@ -5,6 +5,5 @@ package com.platform.common.validator.group;
  *
  * @author liliudong
  * @create 2022-01-15 14:57
- **/
-public interface NoPetsGroup {
-}
+ */
+public interface NoPetsGroup {}

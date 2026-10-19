@@ -22,10 +22,9 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.io.Serializable;
 import lombok.Data;
 import org.apache.ibatis.type.BlobTypeHandler;
-
-import java.io.Serializable;
 
 /**
  * 实体
@@ -36,28 +35,22 @@ import java.io.Serializable;
 @Data
 @TableName("mall_goods_gallery")
 public class MallGoodsGalleryEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    /**
-     * 主键
-     */
-    @TableId(type = IdType.AUTO)
-    private Integer id;
-    /**
-     * 商品id
-     */
-    private Integer goodsId;
-    /**
-     * 图片
-     */
-    @TableField(typeHandler = BlobTypeHandler.class)
-    private byte[] imgUrl;
-    /**
-     * 描述
-     */
-    private String imgDesc;
-    /**
-     * 排序
-     */
-    private Integer sortOrder;
+  /** 主键 */
+  @TableId(type = IdType.AUTO)
+  private Integer id;
+
+  /** 商品id */
+  private Integer goodsId;
+
+  /** 图片 */
+  @TableField(typeHandler = BlobTypeHandler.class)
+  private byte[] imgUrl;
+
+  /** 描述 */
+  private String imgDesc;
+
+  /** 排序 */
+  private Integer sortOrder;
 }

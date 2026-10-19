@@ -1,6 +1,7 @@
-@import "../../../styles/account-archive.wxss";
+@import '../../../styles/account-archive.wxss';
 
-page, .container {
+page,
+.container {
   width: 750rpx;
   height: 100%;
   overflow-x: hidden;
@@ -19,7 +20,7 @@ page, .container {
 }
 
 .help-box::after {
-  content: " ";
+  content: ' ';
   position: absolute;
   left: 0;
   bottom: 0;
@@ -33,11 +34,11 @@ page, .container {
   transform: scaleY(0.5);
 }
 
-.help-box .help-title{
+.help-box .help-title {
   padding-top: 30rpx;
   font-weight: bold;
 }
 
-.help-box .help-content{
+.help-box .help-content {
   padding: 30rpx 0;
 }

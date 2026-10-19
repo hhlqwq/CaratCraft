@@ -1,10 +1,5 @@
 <template>
-  <el-dialog
-    append-to-body
-    :lock-scroll="false"
-    width="30%"
-    center
-    v-model="visible">
+  <el-dialog append-to-body :lock-scroll="false" width="30%" center v-model="visible">
     <el-form>
       <h2>布局设置</h2>
       <el-form-item label="导航条类型">
@@ -25,34 +20,33 @@
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
-      visible: false
-    }
+      visible: false,
+    };
   },
   methods: {
-    init () {
-      this.visible = true
-    }
+    init() {
+      this.visible = true;
+    },
   },
   computed: {
     navbarLayoutType: {
-      get () {
-        return this.$store.state.common.navbarLayoutType
+      get() {
+        return this.$store.state.common.navbarLayoutType;
       },
-      set (val) {
-        this.$store.commit('common/updateNavbarLayoutType', val)
-      }
+      set(val) {
+        this.$store.commit('common/updateNavbarLayoutType', val);
+      },
     },
     sidebarLayoutSkin: {
-      get () {
-        return this.$store.state.common.sidebarLayoutSkin
+      get() {
+        return this.$store.state.common.sidebarLayoutSkin;
       },
-      set (val) {
-        this.$store.commit('common/updateSidebarLayoutSkin', val)
-      }
-    }
-  }
-}
+      set(val) {
+        this.$store.commit('common/updateSidebarLayoutSkin', val);
+      },
+    },
+  },
+};
 </script>
-

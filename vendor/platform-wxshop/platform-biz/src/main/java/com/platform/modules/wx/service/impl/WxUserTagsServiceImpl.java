@@ -18,9 +18,11 @@
  */
 package com.platform.modules.wx.service.impl;
 
+import com.platform.config.WxMpProperties;
 import com.platform.modules.wx.service.WxUserService;
 import com.platform.modules.wx.service.WxUserTagsService;
-import com.platform.config.WxMpProperties;
+import java.util.Collections;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -31,9 +33,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Collections;
-
 /**
  * @author 何海龙
  */
@@ -43,75 +42,76 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class WxUserTagsServiceImpl implements WxUserTagsService {
 
-    private final WxMpService wxMpService;
-    private final WxUserService wxUserService;
-    private final WxMpProperties wxMpProperties;
+  private final WxMpService wxMpService;
+  private final WxUserService wxUserService;
+  private final WxMpProperties wxMpProperties;
 
-    public static final String CACHE_KEY = "'WX_USER_TAGS'";
+  public static final String CACHE_KEY = "'WX_USER_TAGS'";
 
-    @Override
-    @Cacheable(key = CACHE_KEY)
-    public List<WxUserTag> getWxTags() throws WxErrorException {
-        if (!isMpConfigured()) {
-            // 未启用公众号时保持后台可登录 / Keep admin login available without MP settings.
-            return Collections.emptyList();
-        }
-        log.info("拉取公众号用户标签");
-        return wxMpService.getUserTagService().tagGet();
+  @Override
+  @Cacheable(key = CACHE_KEY)
+  public List<WxUserTag> getWxTags() throws WxErrorException {
+    if (!isMpConfigured()) {
+      // 未启用公众号时保持后台可登录 / Keep admin login available without MP settings.
+      return Collections.emptyList();
     }
+    log.info("拉取公众号用户标签");
+    return wxMpService.getUserTagService().tagGet();
+  }
 
-    /**
-     * 判断公众号 AppId 与密钥是否已配置。
-     *
-     * @return 已配置返回 true
-     */
-    private boolean isMpConfigured() {
-        return wxMpProperties.getAppId() != null && !wxMpProperties.getAppId().trim().isEmpty()
-                && wxMpProperties.getSecret() != null && !wxMpProperties.getSecret().trim().isEmpty();
-    }
+  /**
+   * 判断公众号 AppId 与密钥是否已配置。
+   *
+   * @return 已配置返回 true
+   */
+  private boolean isMpConfigured() {
+    return wxMpProperties.getAppId() != null
+        && !wxMpProperties.getAppId().trim().isEmpty()
+        && wxMpProperties.getSecret() != null
+        && !wxMpProperties.getSecret().trim().isEmpty();
+  }
 
-    @Override
-    @CacheEvict(key = CACHE_KEY)
-    public void creatTag(String name) throws WxErrorException {
-        wxMpService.getUserTagService().tagCreate(name);
-    }
+  @Override
+  @CacheEvict(key = CACHE_KEY)
+  public void creatTag(String name) throws WxErrorException {
+    wxMpService.getUserTagService().tagCreate(name);
+  }
 
-    @Override
-    @CacheEvict(key = CACHE_KEY)
-    public void updateTag(Long tagid, String name) throws WxErrorException {
-        wxMpService.getUserTagService().tagUpdate(tagid, name);
-    }
+  @Override
+  @CacheEvict(key = CACHE_KEY)
+  public void updateTag(Long tagid, String name) throws WxErrorException {
+    wxMpService.getUserTagService().tagUpdate(tagid, name);
+  }
 
-    @Override
-    @CacheEvict(key = CACHE_KEY)
-    public void deleteTag(Long tagid) throws WxErrorException {
-        wxMpService.getUserTagService().tagDelete(tagid);
-    }
+  @Override
+  @CacheEvict(key = CACHE_KEY)
+  public void deleteTag(Long tagid) throws WxErrorException {
+    wxMpService.getUserTagService().tagDelete(tagid);
+  }
 
-    @Override
-    public void batchTagging(Long tagid, String[] openidList) throws WxErrorException {
-        wxMpService.getUserTagService().batchTagging(tagid, openidList);
-        //标签更新后更新对应用户信息
-        wxUserService.refreshUserInfoAsync(openidList);
-    }
+  @Override
+  public void batchTagging(Long tagid, String[] openidList) throws WxErrorException {
+    wxMpService.getUserTagService().batchTagging(tagid, openidList);
+    // 标签更新后更新对应用户信息
+    wxUserService.refreshUserInfoAsync(openidList);
+  }
 
-    @Override
-    public void batchUnTagging(Long tagid, String[] openidList) throws WxErrorException {
-        wxMpService.getUserTagService().batchUntagging(tagid, openidList);
-        //标签更新后更新对应用户信息
-        wxUserService.refreshUserInfoAsync(openidList);
-    }
+  @Override
+  public void batchUnTagging(Long tagid, String[] openidList) throws WxErrorException {
+    wxMpService.getUserTagService().batchUntagging(tagid, openidList);
+    // 标签更新后更新对应用户信息
+    wxUserService.refreshUserInfoAsync(openidList);
+  }
 
-    @Override
-    public void tagging(Long tagid, String openid) throws WxErrorException {
-        wxMpService.getUserTagService().batchTagging(tagid, new String[]{openid});
-        wxUserService.refreshUserInfo(openid);
-    }
+  @Override
+  public void tagging(Long tagid, String openid) throws WxErrorException {
+    wxMpService.getUserTagService().batchTagging(tagid, new String[] {openid});
+    wxUserService.refreshUserInfo(openid);
+  }
 
-    @Override
-    public void untagging(Long tagid, String openid) throws WxErrorException {
-        wxMpService.getUserTagService().batchUntagging(tagid, new String[]{openid});
-        wxUserService.refreshUserInfo(openid);
-    }
-
+  @Override
+  public void untagging(Long tagid, String openid) throws WxErrorException {
+    wxMpService.getUserTagService().batchUntagging(tagid, new String[] {openid});
+    wxUserService.refreshUserInfo(openid);
+  }
 }

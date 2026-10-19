@@ -22,7 +22,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallCommentEntity;
-
 import java.util.List;
 import java.util.Map;
 
@@ -34,23 +33,23 @@ import java.util.Map;
  * @date 2026-03-15 13:46:21
  */
 public interface MallCommentService extends IService<MallCommentEntity> {
-    List<MallCommentEntity> queryAll(Map<String, Object> params);
+  List<MallCommentEntity> queryAll(Map<String, Object> params);
 
-    List<MallCommentEntity> queryAllByWrapper(QueryWrapper<MallCommentEntity> queryWrapper);
+  List<MallCommentEntity> queryAllByWrapper(QueryWrapper<MallCommentEntity> queryWrapper);
 
-    Page<MallCommentEntity> queryPage(Map<String, Object> params);
+  Page<MallCommentEntity> queryPage(Map<String, Object> params);
 
-    boolean add(MallCommentEntity mallComment);
+  boolean add(MallCommentEntity mallComment);
 
-    boolean update(MallCommentEntity mallComment);
+  boolean update(MallCommentEntity mallComment);
 
-    boolean delete(Integer id);
+  boolean delete(Integer id);
 
-    boolean deleteBatch(Integer[] ids);
+  boolean deleteBatch(Integer[] ids);
 
-    Integer queryTotal(Map<String, Object> param);
+  Integer queryTotal(Map<String, Object> param);
 
-    Integer queryhasPicTotal(Map<String, Object> param);
+  Integer queryhasPicTotal(Map<String, Object> param);
 
-    List<MallCommentEntity> queryList(Map<String, Object> param);
+  List<MallCommentEntity> queryList(Map<String, Object> param);
 }

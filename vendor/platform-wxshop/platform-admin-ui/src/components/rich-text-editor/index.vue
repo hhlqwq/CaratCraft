@@ -1,55 +1,79 @@
 <template>
   <div class="rich-text-editor">
     <div v-if="!disabled" class="editor-toolbar" role="toolbar" aria-label="内容排版">
-      <button v-for="item in commands" :key="item.command" type="button"
-              :disabled="sourceMode" @mousedown.prevent="runCommand(item.command)">
+      <button
+        v-for="item in commands"
+        :key="item.command"
+        type="button"
+        :disabled="sourceMode"
+        @mousedown.prevent="runCommand(item.command)"
+      >
         {{ item.label }}
       </button>
       <button type="button" :disabled="sourceMode" @mousedown.prevent="insertLink">链接</button>
       <button type="button" :disabled="sourceMode" @mousedown.prevent="insertTable">表格</button>
-      <button type="button" :disabled="sourceMode" @mousedown.prevent="openImagePicker">图片</button>
+      <button type="button" :disabled="sourceMode" @mousedown.prevent="openImagePicker">
+        图片
+      </button>
       <button type="button" :aria-pressed="String(sourceMode)" @click="toggleSource">
         {{ sourceMode ? '可视编辑' : 'HTML源码' }}
       </button>
     </div>
-    <textarea v-if="sourceMode" v-model="sourceHtml" class="editor-source"
-              :readonly="disabled" aria-label="HTML源码" @input="emitSource"></textarea>
-    <div v-show="!sourceMode" ref="content" class="editor-content"
-         :class="{'is-readonly': disabled}" :contenteditable="String(!disabled)"
-         role="textbox" aria-multiline="true" :aria-readonly="String(disabled)"
-         :aria-label="placeholder" :data-placeholder="placeholder"
-         @input="emitContent" @paste="handlePaste" @blur="rememberSelection"></div>
+    <textarea
+      v-if="sourceMode"
+      v-model="sourceHtml"
+      class="editor-source"
+      :readonly="disabled"
+      aria-label="HTML源码"
+      @input="emitSource"
+    ></textarea>
+    <div
+      v-show="!sourceMode"
+      ref="content"
+      class="editor-content"
+      :class="{'is-readonly': disabled}"
+      :contenteditable="String(!disabled)"
+      role="textbox"
+      aria-multiline="true"
+      :aria-readonly="String(disabled)"
+      :aria-label="placeholder"
+      :data-placeholder="placeholder"
+      @input="emitContent"
+      @paste="handlePaste"
+      @blur="rememberSelection"
+    ></div>
     <el-dialog title="插入图片" v-model="imageDialog" width="440px" append-to-body>
       <el-img v-if="imageDialog" v-model="imageUrl"></el-img>
       <p class="editor-tip">请使用你有权发布的图片, 商品演示图应明确标注用途.</p>
-      <template #footer><span >
-        <el-button @click="imageDialog = false">取消</el-button>
-        <el-button type="primary" :disabled="!imageUrl" @click="insertImage">插入</el-button>
-      </span></template>
+      <template #footer
+        ><span>
+          <el-button @click="imageDialog = false">取消</el-button>
+          <el-button type="primary" :disabled="!imageUrl" @click="insertImage">插入</el-button>
+        </span></template
+      >
     </el-dialog>
   </div>
 </template>
 
 <script>
-/* eslint semi: ["error", "always"], comma-dangle: ["error", "always-multiline"], space-before-function-paren: ["error", "never"], object-curly-spacing: ["error", "always"] */
 import DOMPurify from '../../third-party/dompurify/purify.es.mjs';
 
 /** 过滤HTML中的执行内容, 保留商品详情的排版和表格. */
 export function sanitizeHtml(html) {
   return DOMPurify.sanitize(String(html || ''), {
-    USE_PROFILES: { html: true },
+    USE_PROFILES: {html: true},
     FORBID_TAGS: ['iframe', 'object', 'embed', 'form', 'input', 'button', 'textarea'],
     FORBID_ATTR: ['srcset'],
   });
 }
 
 export default {
-  compatConfig: { MODE: 2 },
+  compatConfig: {MODE: 2},
   name: 'RichTextEditor',
   props: {
-    value: { type: String, default: '' },
-    disabled: { type: Boolean, default: false },
-    placeholder: { type: String, default: '输入内容' },
+    value: {type: String, default: ''},
+    disabled: {type: Boolean, default: false},
+    placeholder: {type: String, default: '输入内容'},
   },
   /** 创建独立编辑状态, 不加载旧编辑器脚本或插件. */
   data() {
@@ -61,17 +85,17 @@ export default {
       imageDialog: false,
       imageUrl: '',
       commands: [
-        { command: 'bold', label: '加粗' },
-        { command: 'italic', label: '斜体' },
-        { command: 'underline', label: '下划线' },
-        { command: 'insertOrderedList', label: '有序列表' },
-        { command: 'insertUnorderedList', label: '无序列表' },
-        { command: 'justifyLeft', label: '左对齐' },
-        { command: 'justifyCenter', label: '居中' },
-        { command: 'justifyRight', label: '右对齐' },
-        { command: 'removeFormat', label: '清除格式' },
-        { command: 'undo', label: '撤销' },
-        { command: 'redo', label: '重做' },
+        {command: 'bold', label: '加粗'},
+        {command: 'italic', label: '斜体'},
+        {command: 'underline', label: '下划线'},
+        {command: 'insertOrderedList', label: '有序列表'},
+        {command: 'insertUnorderedList', label: '无序列表'},
+        {command: 'justifyLeft', label: '左对齐'},
+        {command: 'justifyCenter', label: '居中'},
+        {command: 'justifyRight', label: '右对齐'},
+        {command: 'removeFormat', label: '清除格式'},
+        {command: 'undo', label: '撤销'},
+        {command: 'redo', label: '重做'},
       ],
     };
   },
@@ -144,8 +168,7 @@ export default {
     /** 保存当前编辑选区, 弹窗关闭后恢复插入位置. */
     rememberSelection() {
       const selection = window.getSelection();
-      if (selection && selection.rangeCount &&
-          this.$refs.content.contains(selection.anchorNode)) {
+      if (selection && selection.rangeCount && this.$refs.content.contains(selection.anchorNode)) {
         this.savedRange = selection.getRangeAt(0).cloneRange();
       }
     },
@@ -181,18 +204,23 @@ export default {
       this.$prompt('请输入完整的HTTP或HTTPS链接', '插入链接', {
         inputPattern: /^https?:\/\//i,
         inputErrorMessage: '链接必须以http://或https://开头',
-      }).then(({ value }) => {
-        // 弹窗返回后重新检查只读状态.
-        this.runCommand('createLink', value);
-      }).catch(() => {
-        // 用户取消时保留原内容.
-      });
+      })
+        .then(({value}) => {
+          // 弹窗返回后重新检查只读状态.
+          this.runCommand('createLink', value);
+        })
+        .catch(() => {
+          // 用户取消时保留原内容.
+        });
     },
     /** 插入可继续编辑的两行两列表格. */
     insertTable() {
-      this.runCommand('insertHTML', '<table border="1"><tbody>' +
+      this.runCommand(
+        'insertHTML',
+        '<table border="1"><tbody>' +
           '<tr><td>内容</td><td>内容</td></tr>' +
-          '<tr><td>内容</td><td>内容</td></tr></tbody></table><p><br></p>');
+          '<tr><td>内容</td><td>内容</td></tr></tbody></table><p><br></p>'
+      );
     },
     /** 打开既有图片库, 复用管理端上传和选择能力. */
     openImagePicker() {
@@ -230,16 +258,67 @@ export default {
 </script>
 
 <style scoped>
-.rich-text-editor { border: 1px solid #dcdfe6; border-radius: 4px; overflow: hidden; }
-.editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; background: #f5f7fa; }
-.editor-toolbar button { padding: 6px 9px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff; cursor: pointer; }
-.editor-toolbar button:disabled { opacity: .5; cursor: default; }
-.editor-content, .editor-source { min-height: 240px; max-height: 600px; overflow: auto; padding: 14px; line-height: 1.7; outline: none; text-align: left; }
-.editor-content:empty::before { content: attr(data-placeholder); color: #909399; }
-.editor-source { display: block; width: 100%; border: 0; resize: vertical; font-family: monospace; }
-.is-readonly { background: #fafafa; }
-.editor-tip { color: #606266; line-height: 1.6; }
-.editor-content :deep(img) { max-width: 100%; }
-.editor-content :deep(table) { border-collapse: collapse; max-width: 100%; }
-.editor-content :deep(td), .editor-content :deep(th) { border: 1px solid #dcdfe6; padding: 6px; }
+.rich-text-editor {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px;
+  background: #f5f7fa;
+}
+.editor-toolbar button {
+  padding: 6px 9px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.editor-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.editor-content,
+.editor-source {
+  min-height: 240px;
+  max-height: 600px;
+  overflow: auto;
+  padding: 14px;
+  line-height: 1.7;
+  outline: none;
+  text-align: left;
+}
+.editor-content:empty::before {
+  content: attr(data-placeholder);
+  color: #909399;
+}
+.editor-source {
+  display: block;
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  font-family: monospace;
+}
+.is-readonly {
+  background: #fafafa;
+}
+.editor-tip {
+  color: #606266;
+  line-height: 1.6;
+}
+.editor-content :deep(img) {
+  max-width: 100%;
+}
+.editor-content :deep(table) {
+  border-collapse: collapse;
+  max-width: 100%;
+}
+.editor-content :deep(td),
+.editor-content :deep(th) {
+  border: 1px solid #dcdfe6;
+  padding: 6px;
+}
 </style>

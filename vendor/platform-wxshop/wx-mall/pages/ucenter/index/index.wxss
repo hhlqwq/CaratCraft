@@ -16,7 +16,7 @@ page {
 }
 
 .header::after {
-  color: rgba(205, 176, 118, .1);
+  color: rgba(205, 176, 118, 0.1);
   content: 'CC';
   font-family: serif;
   font-size: 190rpx;
@@ -116,8 +116,8 @@ page {
   width: 58rpx;
 }
 
-.menu-item:nth-child(4n+2) .icon-badge,
-.menu-item:nth-child(4n+3) .icon-badge {
+.menu-item:nth-child(4n + 2) .icon-badge,
+.menu-item:nth-child(4n + 3) .icon-badge {
   background: #f1e8da;
   color: #926a39;
 }
@@ -147,7 +147,7 @@ page {
 }
 
 .profile-mask {
-  background: rgba(12, 20, 17, .68);
+  background: rgba(12, 20, 17, 0.68);
   bottom: 0;
   left: 0;
   position: fixed;

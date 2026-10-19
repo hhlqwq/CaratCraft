@@ -26,6 +26,4 @@ import jakarta.validation.GroupSequence;
  * @author 何海龙
  */
 @GroupSequence({AddGroup.class, UpdateGroup.class})
-public interface Group {
-
-}
+public interface Group {}

@@ -1,11 +1,12 @@
 <template>
-  <el-dialog
-    title="短信配置"
-    :lock-scroll="false"
-    :close-on-click-modal="false"
-    v-model="visible">
-    <el-form :model="dataForm" :rules="dataRule" ref="dataForm" @keyup.enter="dataFormSubmit()"
-             label-width="140px">
+  <el-dialog title="短信配置" :lock-scroll="false" :close-on-click-modal="false" v-model="visible">
+    <el-form
+      :model="dataForm"
+      :rules="dataRule"
+      ref="dataForm"
+      @keyup.enter="dataFormSubmit()"
+      label-width="140px"
+    >
       <el-form-item label="短信类型" prop="type">
         <el-radio-group v-model="dataForm.type">
           <el-radio-button :label="1">腾讯云SMS</el-radio-button>
@@ -34,17 +35,19 @@
         <el-input v-model="dataForm.sign" placeholder="公司简称"></el-input>
       </el-form-item>
     </el-form>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">取消</el-button>
+        <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       visible: false,
       dataForm: {
@@ -55,110 +58,109 @@ export default {
         accessKeyId: '',
         accessSecret: '',
         templateCode: '',
-        sign: ''
+        sign: '',
       },
       dataRule: {
         sign: [
           {
             required: true,
             message: '签名不能为空',
-            trigger: 'blur'
-          }
-        ]
-      }
-    }
+            trigger: 'blur',
+          },
+        ],
+      },
+    };
   },
   methods: {
-    init () {
-      this.visible = true
+    init() {
+      this.visible = true;
       this.$nextTick(() => {
         this.$http({
           url: `/sys/smslog/config`,
-          method: 'get'
+          method: 'get',
         }).then(({data}) => {
           if (data && data.code === 0) {
-            this.dataForm = data.data
+            this.dataForm = data.data;
           }
-        })
-      })
+        });
+      });
     },
     // 表单提交
-    dataFormSubmit () {
-      this.$refs['dataForm']
-        .validate((valid) => {
-          if (valid) {
-            let flag = true
-            if (this.dataForm.type === 1) {
-              if (!this.dataForm.appid) {
-                flag = false
-                this.$message({
-                  message: 'appid不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
-              if (!this.dataForm.appkey) {
-                flag = false
-                this.$message({
-                  message: 'appkey不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
-              if (!this.dataForm.templateId) {
-                flag = false
-                this.$message({
-                  message: 'templateId不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
+    dataFormSubmit() {
+      this.$refs['dataForm'].validate((valid) => {
+        if (valid) {
+          let flag = true;
+          if (this.dataForm.type === 1) {
+            if (!this.dataForm.appid) {
+              flag = false;
+              this.$message({
+                message: 'appid不能为空',
+                type: 'error',
+                duration: 1500,
+              });
             }
-            if (this.dataForm.type === 2) {
-              if (!this.dataForm.accessKeyId) {
-                flag = false
-                this.$message({
-                  message: 'accessKeyId不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
-              if (!this.dataForm.accessSecret) {
-                flag = false
-                this.$message({
-                  message: 'accessSecret不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
-              if (!this.dataForm.templateCode) {
-                flag = false
-                this.$message({
-                  message: 'templateCode不能为空',
-                  type: 'error',
-                  duration: 1500
-                })
-              }
+            if (!this.dataForm.appkey) {
+              flag = false;
+              this.$message({
+                message: 'appkey不能为空',
+                type: 'error',
+                duration: 1500,
+              });
             }
-            if (flag) {
-              this.$http({
-                url: `/sys/smslog/saveConfig`,
-                method: 'post',
-                data: this.dataForm
-              }).then(({data}) => {
-                if (data && data.code === 0) {
-                  this.$message({
-                    message: '操作成功',
-                    type: 'success',
-                    duration: 1500
-                  })
-                  this.visible = false
-                }
-              })
+            if (!this.dataForm.templateId) {
+              flag = false;
+              this.$message({
+                message: 'templateId不能为空',
+                type: 'error',
+                duration: 1500,
+              });
             }
           }
-        })
-    }
-  }
-}
+          if (this.dataForm.type === 2) {
+            if (!this.dataForm.accessKeyId) {
+              flag = false;
+              this.$message({
+                message: 'accessKeyId不能为空',
+                type: 'error',
+                duration: 1500,
+              });
+            }
+            if (!this.dataForm.accessSecret) {
+              flag = false;
+              this.$message({
+                message: 'accessSecret不能为空',
+                type: 'error',
+                duration: 1500,
+              });
+            }
+            if (!this.dataForm.templateCode) {
+              flag = false;
+              this.$message({
+                message: 'templateCode不能为空',
+                type: 'error',
+                duration: 1500,
+              });
+            }
+          }
+          if (flag) {
+            this.$http({
+              url: `/sys/smslog/saveConfig`,
+              method: 'post',
+              data: this.dataForm,
+            }).then(({data}) => {
+              if (data && data.code === 0) {
+                this.$message({
+                  message: '操作成功',
+                  type: 'success',
+                  duration: 1500,
+                });
+                this.visible = false;
+              }
+            });
+          }
+        }
+      });
+    },
+  },
+};
 </script>

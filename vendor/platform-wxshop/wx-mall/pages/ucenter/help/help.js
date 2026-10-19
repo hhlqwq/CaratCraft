@@ -1,36 +1,24 @@
-var util = require('../../../utils/util.js');
-var api = require('../../../config/api.js');
-var app = getApp()
+const util = require('../../../utils/util.js');
+const api = require('../../../config/api.js');
+
 // pages/ucenter/help/help.js
 Page({
-  data:{
-    helpList: []
+  data: {
+    helpList: [],
   },
+  /** 读取当前帮助页面所需的帮助信息. */
   getHelpList() {
-    let that = this;
+    const that = this;
     util.request(api.HelpTypeList, {}).then(function (res) {
       if (res.code === 0) {
         that.setData({
-          helpList: res.data
-        })
+          helpList: res.data,
+        });
       }
     });
   },
-  onLoad:function(options){
-    // 页面初始化 options为页面跳转所带来的参数
-    this.getHelpList()
-
+  /** 初始化帮助列表状态并读取页面所需数据. */
+  onLoad: function (options) {
+    this.getHelpList();
   },
-  onReady:function(){
-    // 页面渲染完成
-  },
-  onShow:function(){
-    // 页面显示
-  },
-  onHide:function(){
-    // 页面隐藏
-  },
-  onUnload:function(){
-    // 页面关闭
-  }
-})
+});

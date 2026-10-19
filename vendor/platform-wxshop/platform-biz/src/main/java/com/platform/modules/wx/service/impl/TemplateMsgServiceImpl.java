@@ -26,6 +26,8 @@ import com.platform.modules.wx.form.TemplateMsgBatchForm;
 import com.platform.modules.wx.service.TemplateMsgLogService;
 import com.platform.modules.wx.service.TemplateMsgService;
 import com.platform.modules.wx.service.WxUserService;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -35,67 +37,67 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author 何海龙
  */
 @Service
 @RequiredArgsConstructor
 public class TemplateMsgServiceImpl implements TemplateMsgService {
-    Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final TemplateMsgLogService templateMsgLogService;
-    private final WxMpService wxService;
-    private final WxUserService wxUserService;
+  Logger logger = LoggerFactory.getLogger(this.getClass());
+  private final TemplateMsgLogService templateMsgLogService;
+  private final WxMpService wxService;
+  private final WxUserService wxUserService;
 
-    /**
-     * 发送微信模版消息,使用固定线程的线程池
-     */
-    @Override
-    @Async
-    public void sendTemplateMsg(WxMpTemplateMessage msg) {
-        TaskExcutor.submit(() -> {
-            String result;
-            try {
-                result = wxService.getTemplateMsgService().sendTemplateMsg(msg);
-            } catch (WxErrorException e) {
-                result = e.getMessage();
-            }
+  /** 发送微信模版消息,使用固定线程的线程池 */
+  @Override
+  @Async
+  public void sendTemplateMsg(WxMpTemplateMessage msg) {
+    TaskExcutor.submit(
+        () -> {
+          String result;
+          try {
+            result = wxService.getTemplateMsgService().sendTemplateMsg(msg);
+          } catch (WxErrorException e) {
+            result = e.getMessage();
+          }
 
-            //保存发送日志
-            TemplateMsgLogEntity log = new TemplateMsgLogEntity(msg, result);
-            templateMsgLogService.addLog(log);
+          // 保存发送日志
+          TemplateMsgLogEntity log = new TemplateMsgLogEntity(msg, result);
+          templateMsgLogService.addLog(log);
         });
-    }
+  }
 
-    @Override
-    @Async
-    public void sendMsgBatch(TemplateMsgBatchForm form) {
-        logger.info("批量发送模板消息任务开始,参数：{}", form.toString());
-        WxMpTemplateMessage.WxMpTemplateMessageBuilder builder = WxMpTemplateMessage.builder()
-                .templateId(form.getTemplateId())
-                .url(form.getUrl())
-                .miniProgram(form.getMiniprogram())
-                .data(form.getData());
-        Map<String, Object> filterParams = form.getWxUserFilterParams();
-        if (filterParams == null) {
-            filterParams = new HashMap<>(8);
-        }
-        long currentPage = 1L, totalPages = Long.MAX_VALUE;
-        filterParams.put("limit", "500");
-        while (currentPage <= totalPages) {
-            filterParams.put("page", String.valueOf(currentPage));
-            //按条件查询用户
-            Page<WxUserEntity> wxUsers = wxUserService.queryPage(filterParams);
-            logger.info("批量发送模板消息任务,使用查询条件，处理第{}页，总用户数：{}", currentPage, wxUsers.getTotal());
-            wxUsers.getRecords().forEach(user -> {
+  @Override
+  @Async
+  public void sendMsgBatch(TemplateMsgBatchForm form) {
+    logger.info("批量发送模板消息任务开始,参数：{}", form.toString());
+    WxMpTemplateMessage.WxMpTemplateMessageBuilder builder =
+        WxMpTemplateMessage.builder()
+            .templateId(form.getTemplateId())
+            .url(form.getUrl())
+            .miniProgram(form.getMiniprogram())
+            .data(form.getData());
+    Map<String, Object> filterParams = form.getWxUserFilterParams();
+    if (filterParams == null) {
+      filterParams = new HashMap<>(8);
+    }
+    long currentPage = 1L, totalPages = Long.MAX_VALUE;
+    filterParams.put("limit", "500");
+    while (currentPage <= totalPages) {
+      filterParams.put("page", String.valueOf(currentPage));
+      // 按条件查询用户
+      Page<WxUserEntity> wxUsers = wxUserService.queryPage(filterParams);
+      logger.info("批量发送模板消息任务,使用查询条件，处理第{}页，总用户数：{}", currentPage, wxUsers.getTotal());
+      wxUsers
+          .getRecords()
+          .forEach(
+              user -> {
                 WxMpTemplateMessage msg = builder.toUser(user.getOpenid()).build();
                 this.sendTemplateMsg(msg);
-            });
-            currentPage = wxUsers.getCurrent() + 1L;
-            totalPages = wxUsers.getPages();
-        }
-        logger.info("批量发送模板消息任务结束");
+              });
+      currentPage = wxUsers.getCurrent() + 1L;
+      totalPages = wxUsers.getPages();
     }
+    logger.info("批量发送模板消息任务结束");
+  }
 }

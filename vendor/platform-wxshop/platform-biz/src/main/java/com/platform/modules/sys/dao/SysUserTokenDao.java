@@ -21,11 +21,10 @@ package com.platform.modules.sys.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 系统用户Token
@@ -35,20 +34,21 @@ import java.util.Map;
 @Mapper
 public interface SysUserTokenDao extends BaseMapper<SysUserTokenEntity> {
 
-    /**
-     * 根据token获取用户
-     *
-     * @param token token
-     * @return SysUserTokenEntity
-     */
-    SysUserTokenEntity queryByToken(String token);
+  /**
+   * 根据token获取用户
+   *
+   * @param token token
+   * @return SysUserTokenEntity
+   */
+  SysUserTokenEntity queryByToken(String token);
 
-    /**
-     * 分页查询
-     *
-     * @param page   分页参数
-     * @param params 查询参数
-     * @return List
-     */
-    List<SysUserTokenEntity> selectSysUserTokenPage(IPage page, @Param("params") Map<String, Object> params);
+  /**
+   * 分页查询
+   *
+   * @param page 分页参数
+   * @param params 查询参数
+   * @return List
+   */
+  List<SysUserTokenEntity> selectSysUserTokenPage(
+      IPage page, @Param("params") Map<String, Object> params);
 }

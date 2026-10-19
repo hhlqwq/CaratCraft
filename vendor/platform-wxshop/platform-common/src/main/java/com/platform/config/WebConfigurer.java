@@ -20,16 +20,15 @@ package com.platform.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 时间处理
@@ -39,23 +38,23 @@ import java.util.List;
 @Configuration
 public class WebConfigurer implements WebMvcConfigurer {
 
-    @Override
-    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (HttpMessageConverter<?> messageConverter : converters) {
-            if (messageConverter instanceof MappingJackson2HttpMessageConverter) {
-                //设置日期格式
-                ObjectMapper objectMapper = new ObjectMapper();
-                //反序列化忽略实体中不存在的参数
-                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                //jackson时间格式化
-                objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-                ((MappingJackson2HttpMessageConverter) messageConverter).setObjectMapper(objectMapper);
+  @Override
+  public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    for (HttpMessageConverter<?> messageConverter : converters) {
+      if (messageConverter instanceof MappingJackson2HttpMessageConverter) {
+        // 设置日期格式
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 反序列化忽略实体中不存在的参数
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        // jackson时间格式化
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        ((MappingJackson2HttpMessageConverter) messageConverter).setObjectMapper(objectMapper);
 
-                //设置中文编码格式
-                List<MediaType> list = new ArrayList<>();
-                list.add(new MediaType("application", "json", StandardCharsets.UTF_8));
-                ((MappingJackson2HttpMessageConverter) messageConverter).setSupportedMediaTypes(list);
-            }
-        }
+        // 设置中文编码格式
+        List<MediaType> list = new ArrayList<>();
+        list.add(new MediaType("application", "json", StandardCharsets.UTF_8));
+        ((MappingJackson2HttpMessageConverter) messageConverter).setSupportedMediaTypes(list);
+      }
     }
+  }
 }

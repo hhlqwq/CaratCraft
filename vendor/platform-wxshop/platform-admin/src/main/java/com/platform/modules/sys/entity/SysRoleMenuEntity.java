@@ -20,9 +20,8 @@ package com.platform.modules.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 /**
  * 角色与菜单对应关系
@@ -32,19 +31,13 @@ import java.io.Serializable;
 @Data
 @TableName("SYS_ROLE_MENU")
 public class SysRoleMenuEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    @TableId
-    private String id;
+  @TableId private String id;
 
-    /**
-     * 角色ID
-     */
-    private String roleId;
+  /** 角色ID */
+  private String roleId;
 
-    /**
-     * 菜单ID
-     */
-    private String menuId;
-
+  /** 菜单ID */
+  private String menuId;
 }

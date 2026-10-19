@@ -38,25 +38,19 @@ import org.springframework.stereotype.Component;
 @Scope
 @Aspect
 public class LimitAspect {
-    /**
-     * 每秒只发出5个令牌，此处是单进程服务的限流,内部采用令牌捅算法实现
-     */
-    private static RateLimiter rateLimiter = RateLimiter.create(5.0);
+  /** 每秒只发出5个令牌，此处是单进程服务的限流,内部采用令牌捅算法实现 */
+  private static RateLimiter rateLimiter = RateLimiter.create(5.0);
 
-    /**
-     * Service层切点  限流
-     */
-    @Pointcut("@annotation(com.platform.common.annotation.ServiceLimit)")
-    public void serviceAspect() {
+  /** Service层切点 限流 */
+  @Pointcut("@annotation(com.platform.common.annotation.ServiceLimit)")
+  public void serviceAspect() {}
 
+  @Around("serviceAspect()")
+  public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
+    if (!rateLimiter.tryAcquire()) {
+      log.warn("请求被限流, 方法: {}", joinPoint.getSignature().toShortString());
+      throw new BusinessException("请求过于频繁，请稍后再试", 429);
     }
-
-    @Around("serviceAspect()")
-    public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
-        if (!rateLimiter.tryAcquire()) {
-            log.warn("请求被限流, 方法: {}", joinPoint.getSignature().toShortString());
-            throw new BusinessException("请求过于频繁，请稍后再试", 429);
-        }
-        return joinPoint.proceed();
-    }
+    return joinPoint.proceed();
+  }
 }

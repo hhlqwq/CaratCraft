@@ -1,5 +1,5 @@
-var util = require('../../utils/util.js');
-var api = require('../../config/api.js');
+const util = require('../../utils/util.js');
+const api = require('../../config/api.js');
 
 Page({
   data: {
@@ -9,68 +9,56 @@ Page({
     scrollLeft: 0,
     scrollTop: 0,
     goodsCount: 0,
-    scrollHeight: 0
+    scrollHeight: 0,
   },
+  /** 初始化商城目录状态并读取页面所需数据. */
   onLoad: function (options) {
     this.getCatalog();
   },
+  /** 读取分类导航及商品数量供目录页面展示. */
   getCatalog: function () {
-    //CatalogList
-    let that = this;
+    const that = this;
     wx.showLoading({
       title: '加载中...',
     });
     util.request(api.CatalogList).then(function (res) {
-        that.setData({
-          navList: res.data.categoryList,
-          currentCategory: res.data.currentCategory
-        });
-        wx.hideLoading();
+      that.setData({
+        navList: res.data.categoryList,
+        currentCategory: res.data.currentCategory,
       });
+      wx.hideLoading();
+    });
     util.request(api.GoodsCount).then(function (res) {
       that.setData({
-        goodsCount: res.data.goodsCount
+        goodsCount: res.data.goodsCount,
       });
     });
-
   },
+  /** 读取指定分类的子分类信息并更新当前选择. */
   getCurrentCategory: function (id) {
-    let that = this;
-    util.request(api.CatalogCurrent, { id: id })
-      .then(function (res) {
-        that.setData({
-          currentCategory: res.data.currentCategory
-        });
+    const that = this;
+    util.request(api.CatalogCurrent, {id: id}).then(function (res) {
+      that.setData({
+        currentCategory: res.data.currentCategory,
       });
+    });
   },
-  onReady: function () {
-    // 页面渲染完成
-  },
-  onShow: function () {
-    // 页面显示
-  },
-  onHide: function () {
-    // 页面隐藏
-  },
-  onUnload: function () {
-    // 页面关闭
-  },
+
+  /** 读取当前分类下的商品展示列表. */
   getList: function () {
-    var that = this;
-    util.request(api.Catalog + that.data.currentCategory.id)
-      .then(function (res) {
-        that.setData({
-          categoryList: res.data,
-        });
+    const that = this;
+    util.request(api.Catalog + that.data.currentCategory.id).then(function (res) {
+      that.setData({
+        categoryList: res.data,
       });
+    });
   },
+  /** 根据点击的分类标识切换商品展示范围. */
   switchCate: function (event) {
-    var that = this;
-    var currentTarget = event.currentTarget;
     if (this.data.currentCategory.id == event.currentTarget.dataset.id) {
       return false;
     }
 
     this.getCurrentCategory(event.currentTarget.dataset.id);
-  }
-})
+  },
+});

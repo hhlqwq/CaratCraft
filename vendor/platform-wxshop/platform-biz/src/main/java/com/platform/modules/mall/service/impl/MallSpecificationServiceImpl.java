@@ -25,12 +25,11 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallSpecificationDao;
 import com.platform.modules.mall.entity.MallSpecificationEntity;
 import com.platform.modules.mall.service.MallSpecificationService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 规格表Service实现类
@@ -39,45 +38,48 @@ import java.util.Map;
  * @since 2026-02-24 10:10:05
  */
 @Service("mallSpecificationService")
-public class MallSpecificationServiceImpl extends ServiceImpl<MallSpecificationDao, MallSpecificationEntity> implements MallSpecificationService {
+public class MallSpecificationServiceImpl
+    extends ServiceImpl<MallSpecificationDao, MallSpecificationEntity>
+    implements MallSpecificationService {
 
-    @Override
-    public List<MallSpecificationEntity> queryAll(Map<String, Object> params) {
-        return baseMapper.queryAll(params);
-    }
+  @Override
+  public List<MallSpecificationEntity> queryAll(Map<String, Object> params) {
+    return baseMapper.queryAll(params);
+  }
 
-    @Override
-    public List<MallSpecificationEntity> queryAllByWrapper(QueryWrapper<MallSpecificationEntity> queryWrapper) {
-        return this.list(queryWrapper);
-    }
+  @Override
+  public List<MallSpecificationEntity> queryAllByWrapper(
+      QueryWrapper<MallSpecificationEntity> queryWrapper) {
+    return this.list(queryWrapper);
+  }
 
-    @Override
-    public Page<MallSpecificationEntity> queryPage(Map<String, Object> params) {
-        //排序
-        params.put("sidx", "T.id");
-        params.put("asc", false);
-        Page<MallSpecificationEntity> page = new Query<MallSpecificationEntity>(params).getPage();
-        return page.setRecords(baseMapper.selectMallSpecificationPage(page, params));
-    }
+  @Override
+  public Page<MallSpecificationEntity> queryPage(Map<String, Object> params) {
+    // 排序
+    params.put("sidx", "T.id");
+    params.put("asc", false);
+    Page<MallSpecificationEntity> page = new Query<MallSpecificationEntity>(params).getPage();
+    return page.setRecords(baseMapper.selectMallSpecificationPage(page, params));
+  }
 
-    @Override
-    public boolean add(MallSpecificationEntity mallSpecification) {
-        return this.save(mallSpecification);
-    }
+  @Override
+  public boolean add(MallSpecificationEntity mallSpecification) {
+    return this.save(mallSpecification);
+  }
 
-    @Override
-    public boolean update(MallSpecificationEntity mallSpecification) {
-        return this.updateById(mallSpecification);
-    }
+  @Override
+  public boolean update(MallSpecificationEntity mallSpecification) {
+    return this.updateById(mallSpecification);
+  }
 
-    @Override
-    public boolean delete(Integer id) {
-        return this.removeById(id);
-    }
+  @Override
+  public boolean delete(Integer id) {
+    return this.removeById(id);
+  }
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public boolean deleteBatch(Integer[] ids) {
-        return this.removeByIds(Arrays.asList(ids));
-    }
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public boolean deleteBatch(Integer[] ids) {
+    return this.removeByIds(Arrays.asList(ids));
+  }
 }

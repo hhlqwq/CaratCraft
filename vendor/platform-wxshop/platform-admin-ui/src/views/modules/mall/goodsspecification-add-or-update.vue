@@ -1,9 +1,5 @@
 <template>
-  <el-dialog
-    title="查看"
-    :close-on-click-modal="false"
-    :lock-scroll="false"
-    v-model="visible">
+  <el-dialog title="查看" :close-on-click-modal="false" :lock-scroll="false" v-model="visible">
     <el-form :model="dataForm" ref="dataForm" label-width="80px">
       <el-form-item label="" prop="goodsId">
         <el-input v-model="dataForm.goodsId" :disabled="disabled" placeholder=""></el-input>
@@ -18,16 +14,18 @@
         <el-input v-model="dataForm.picUrl" :disabled="disabled" placeholder=""></el-input>
       </el-form-item>
     </el-form>
-    <template #footer><span  class="dialog-footer">
-      <el-button @click="visible = false">关闭</el-button>
-    </span></template>
+    <template #footer
+      ><span class="dialog-footer">
+        <el-button @click="visible = false">关闭</el-button>
+      </span></template
+    >
   </el-dialog>
 </template>
 
 <script>
 export default {
   compatConfig: {MODE: 2},
-  data () {
+  data() {
     return {
       disabled: false,
       visible: false,
@@ -36,36 +34,33 @@ export default {
         goodsId: '',
         specificationId: '',
         value: '',
-        picUrl: ''
+        picUrl: '',
       },
       dataRule: {
-        name: [
-          {required: true, message: '名称不能为空', trigger: 'blur'}
-        ]
-      }
-    }
+        name: [{required: true, message: '名称不能为空', trigger: 'blur'}],
+      },
+    };
   },
   methods: {
-    init (id, disabled) {
-      this.disabled = true
-      this.dataForm.id = id || ''
-      this.visible = true
+    init(id, disabled) {
+      this.disabled = true;
+      this.dataForm.id = id || '';
+      this.visible = true;
       this.$nextTick(() => {
-        this.$refs['dataForm'].resetFields()
+        this.$refs['dataForm'].resetFields();
         if (this.dataForm.id) {
           this.$http({
             url: `/mall/goodsspecification/info/${this.dataForm.id}`,
-            method: 'get'
+            method: 'get',
           }).then(({data}) => {
             if (data && data.code === 0) {
-              this.dataForm = data.data
+              this.dataForm = data.data;
             }
-          })
+          });
         }
-      })
+      });
     },
-    dataFormSubmit () {
-    }
-  }
-}
+    dataFormSubmit() {},
+  },
+};
 </script>

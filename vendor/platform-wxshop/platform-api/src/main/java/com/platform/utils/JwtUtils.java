@@ -22,15 +22,13 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
  * jwt工具类
@@ -41,96 +39,94 @@ import java.util.Date;
 @ConfigurationProperties(prefix = "platform-api.jwt")
 @Component
 public class JwtUtils {
-    private String secret;
-    private long expire;
-    private String header;
+  private String secret;
+  private long expire;
+  private String header;
 
-    /** 启动时拒绝空值、非法Base64和不足256位的JWT密钥, 不输出密钥本身. */
-    @PostConstruct
-    public void validateConfiguration() {
-        generateKey(secret);
-        if (expire <= 0 || header == null || header.isBlank()) {
-            throw new IllegalStateException("JWT有效期和请求头必须配置");
-        }
+  /** 启动时拒绝空值、非法Base64和不足256位的JWT密钥, 不输出密钥本身. */
+  @PostConstruct
+  public void validateConfiguration() {
+    generateKey(secret);
+    if (expire <= 0 || header == null || header.isBlank()) {
+      throw new IllegalStateException("JWT有效期和请求头必须配置");
     }
+  }
 
-    /**
-     * 生成jwt token
-     */
-    public String generateToken(Long userId) {
-        Date nowDate = new Date();
-        //过期时间
-        Date expireDate = new Date(nowDate.getTime() + expire * 1000);
+  /** 生成jwt token */
+  public String generateToken(Long userId) {
+    Date nowDate = new Date();
+    // 过期时间
+    Date expireDate = new Date(nowDate.getTime() + expire * 1000);
 
-        return Jwts.builder()
-                .setHeaderParam("typ", "JWT")
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(nowDate)
-                .setExpiration(expireDate)
-                .signWith(generateKey(secret), SignatureAlgorithm.HS256)
-                .compact();
+    return Jwts.builder()
+        .setHeaderParam("typ", "JWT")
+        .setSubject(String.valueOf(userId))
+        .setIssuedAt(nowDate)
+        .setExpiration(expireDate)
+        .signWith(generateKey(secret), SignatureAlgorithm.HS256)
+        .compact();
+  }
+
+  public Claims getClaimByToken(String token) {
+    try {
+      return Jwts.parserBuilder()
+          .setSigningKey(generateKey(secret))
+          .build()
+          .parseClaimsJws(token)
+          .getBody();
+    } catch (ExpiredJwtException e) {
+      log.debug("JWT已过期");
+      return e.getClaims();
+    } catch (Exception e) {
+      log.debug("JWT验证失败: {}", e.getClass().getSimpleName());
+      return null;
     }
+  }
 
-    public Claims getClaimByToken(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(generateKey(secret))
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (ExpiredJwtException e) {
-            log.debug("JWT已过期");
-            return e.getClaims();
-        } catch (Exception e) {
-            log.debug("JWT验证失败: {}", e.getClass().getSimpleName());
-            return null;
-        }
+  /** 严格解码部署者提供的Base64随机密钥. */
+  private static SecretKey generateKey(String secret) {
+    byte[] encodedKey;
+    try {
+      encodedKey = java.util.Base64.getDecoder().decode(secret == null ? "" : secret);
+    } catch (IllegalArgumentException error) {
+      throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
     }
+    if (encodedKey.length < 32) {
+      throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
+    }
+    return new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA256");
+  }
 
-    /** 严格解码部署者提供的Base64随机密钥. */
-    private static SecretKey generateKey(String secret) {
-        byte[] encodedKey;
-        try {
-            encodedKey = java.util.Base64.getDecoder().decode(secret == null ? "" : secret);
-        } catch (IllegalArgumentException error) {
-            throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
-        }
-        if (encodedKey.length < 32) {
-            throw new IllegalStateException("JWT_SECRET必须为至少32字节随机值的Base64编码");
-        }
-        return new SecretKeySpec(encodedKey, 0, encodedKey.length, "HmacSHA256");
-    }
+  /**
+   * token是否过期
+   *
+   * @return true：过期
+   */
+  public boolean isTokenExpired(Date expiration) {
+    return expiration.before(new Date());
+  }
 
-    /**
-     * token是否过期
-     *
-     * @return true：过期
-     */
-    public boolean isTokenExpired(Date expiration) {
-        return expiration.before(new Date());
-    }
+  public String getSecret() {
+    return secret;
+  }
 
-    public String getSecret() {
-        return secret;
-    }
+  public void setSecret(String secret) {
+    this.secret = secret;
+  }
 
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
+  public long getExpire() {
+    return expire;
+  }
 
-    public long getExpire() {
-        return expire;
-    }
+  public void setExpire(long expire) {
+    this.expire = expire;
+  }
 
-    public void setExpire(long expire) {
-        this.expire = expire;
-    }
+  public String getHeader() {
+    return header;
+  }
 
-    public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
-    }
+  public void setHeader(String header) {
+    this.header = header;
+  }
 }

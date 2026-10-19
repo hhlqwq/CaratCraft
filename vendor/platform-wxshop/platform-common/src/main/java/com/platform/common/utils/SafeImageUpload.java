@@ -34,7 +34,8 @@ public final class SafeImageUpload {
       ImageReader reader = readers.next();
       try {
         String format = reader.getFormatName();
-        if (!format.equalsIgnoreCase("jpeg") && !format.equalsIgnoreCase("png")
+        if (!format.equalsIgnoreCase("jpeg")
+            && !format.equalsIgnoreCase("png")
             && !format.equalsIgnoreCase("gif")) {
           throw new BusinessException("图片格式不支持");
         }
@@ -46,8 +47,7 @@ public final class SafeImageUpload {
         }
         BufferedImage image = reader.read(0);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        if (image == null || !ImageIO.write(image, "png", output)
-            || output.size() > MAX_BYTES) {
+        if (image == null || !ImageIO.write(image, "png", output) || output.size() > MAX_BYTES) {
           throw new BusinessException("图片转换失败或转换后超过5MB");
         }
         return output.toByteArray();
