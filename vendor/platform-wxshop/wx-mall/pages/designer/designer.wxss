@@ -591,3 +591,18 @@
   background: #f5f2eb;
   border-radius: 8rpx;
 }
+
+.sizing-section input {
+  height: 88rpx;
+  line-height: 88rpx;
+  margin: 16rpx 0;
+  padding: 0 20rpx;
+  background: #f5f2eb;
+  border-radius: 12rpx;
+}
+
+.sizing-section,
+.ai-configuration {
+  margin: 24rpx;
+  overflow-wrap: anywhere;
+}

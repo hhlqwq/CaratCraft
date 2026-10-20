@@ -153,7 +153,6 @@ import WxUserTagging from './wx-user-tagging';
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       showWxUserTagsEditor: false,

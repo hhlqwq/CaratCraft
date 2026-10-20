@@ -1,74 +1,37 @@
-/**
- * 用户相关服务
- */
-
 const util = require('../utils/util.js');
 const api = require('../config/api.js');
 
-/**
- * 调用微信登录
- */
-function loginByWeixin(userInfo) {
-  let code = null;
-  return new Promise(function (resolve, reject) {
-    return util
-      .login()
-      .then((res) => {
-        code = res.code;
-        return userInfo;
-      })
-      .then((userInfo) => {
-        //登录远程服务器
-        util
-          .request(
-            api.AuthLoginByWeixin,
-            {code: code, userInfo: userInfo},
-            'POST',
-            'application/json'
-          )
-          .then((res) => {
-            if (res.code === 0) {
-              //存储用户信息
-              wx.setStorageSync('userInfo', res.data.userInfo);
-              wx.setStorageSync('token', res.data.token);
-
-              resolve(res);
-            } else {
-              util.showErrorToast(res.msg);
-              reject(res);
-            }
-          })
-          .catch((err) => {
-            reject(err);
-          });
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
+/** 用户主动确认协议后交换登录会话, 仅在完整成功响应后保存会话. */
+async function loginByWeixin(userInfo, legalAcceptance) {
+  if (!legalAcceptance || !legalAcceptance.termsVersion || !legalAcceptance.privacyVersion) {
+    throw new Error('请先阅读并主动同意用户协议及隐私政策');
+  }
+  const login = await util.login();
+  if (!login.code) {
+    throw new Error('微信登录凭证为空');
+  }
+  const response = await util.request(
+    api.AuthLoginByWeixin,
+    {code: login.code, userInfo, legalAcceptance},
+    'POST',
+    'application/json'
+  );
+  if (response.code !== 0 || !response.data || !response.data.token) {
+    throw new Error(response.msg || '登录失败');
+  }
+  wx.setStorageSync('userInfo', response.data.userInfo);
+  wx.setStorageSync('token', response.data.token);
+  wx.setStorageSync('userId', response.data.userId);
+  return response;
 }
 
-/**
- * 判断用户是否登录
- */
-function checkLogin() {
-  return new Promise(function (resolve, reject) {
-    if (wx.getStorageSync('userInfo') && wx.getStorageSync('token')) {
-      util
-        .checkSession()
-        .then(() => {
-          resolve(true);
-        })
-        .catch(() => {
-          reject(false);
-        });
-    } else {
-      reject(false);
-    }
-  });
+/** 只有本地资料和令牌均存在时才核对微信会话有效性. */
+async function checkLogin() {
+  if (!wx.getStorageSync('userInfo') || !wx.getStorageSync('token')) {
+    throw new Error('请先登录');
+  }
+  await util.checkSession();
+  return true;
 }
 
-module.exports = {
-  loginByWeixin,
-  checkLogin,
-};
+module.exports = {loginByWeixin, checkLogin};

@@ -119,7 +119,6 @@
 import PublishDetail from './wx-free-publish-detail';
 
 export default {
-  compatConfig: {MODE: 2},
   components: {
     PublishDetail,
   },

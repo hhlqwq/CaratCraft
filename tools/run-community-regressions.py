@@ -16,6 +16,8 @@ def main():
     parser.add_argument("--database", required=True)
     parser.add_argument("--package", action="store_true", help="定向测试通过后同时打包后端")
     parser.add_argument("--date", help="客户端日期, YYYY-MM-DD, 用于临时目录")
+    parser.add_argument("--docker", action="store_true", help="使用已有Maven/JDK镜像, 无需宿主机Java")
+    parser.add_argument("--all", action="store_true", help="运行全部后端用例, 未配置的外部服务用例保留跳过状态")
     args = parser.parse_args()
     if not re.fullmatch(r"caratcraft_init_audit_[0-9]{8}_[a-f0-9]{6}", args.database):
         raise ValueError("只允许使用独立初始化测试库")
@@ -51,6 +53,8 @@ def main():
         "MerchantServicesDatabaseTest",
         "CartApplicationServiceTest",
         "CheckoutIntegrityTest",
+        "FinishedLengthRulesTest",
+        "LegalDocumentDatabaseTest",
     ])
     command = [str(ROOT / ".tools/maven/apache-maven-3.9.11/bin/mvn.cmd"), "-o",
                "-s", str(ROOT / ".tools/copyright/maven-central.xml"),
@@ -58,6 +62,26 @@ def main():
                "-Dmaven.repo.local=" + str(ROOT / ".tools/m2"), "-DforkCount=0",
                "-Dsurefire.failIfNoSpecifiedTests=false", "-Dtest=" + tests,
                "package" if args.package else "test"]
+    if args.docker:
+        cache = ROOT / ".tools/m2"
+        container_agent = "/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.13/byte-buddy-agent-1.14.13.jar"
+        env["MAVEN_OPTS"] = "-javaagent:" + container_agent + " -Djava.io.tmpdir=/test-temp -Djansi.tmpdir=/test-temp -Dfile.encoding=UTF-8"
+        command = ["docker", "run", "--rm", "--network", "container:platform-mysql",
+                   "--mount", f"type=bind,source={ROOT},target=/workspace",
+                   "--mount", f"type=bind,source={cache},target=/root/.m2",
+                   "--mount", f"type=bind,source={temporary},target=/test-temp",
+                   "--workdir", "/workspace/vendor/platform-wxshop"]
+        for key in ("CARATCRAFT_DATABASE_TEST", "CARATCRAFT_DATABASE_TEST_URL",
+                    "CARATCRAFT_DATABASE_TEST_PASSWORD", "MAVEN_OPTS"):
+            command.extend(["--env", key])
+        command.extend(["maven:3.9.11-eclipse-temurin-21", "mvn", "-o", "-B",
+                        "-s", "deploy/maven-settings.xml", "-DforkCount=0",
+                        "-Dsurefire.failIfNoSpecifiedTests=false"])
+        if not args.all:
+            command.append("-Dtest=" + tests)
+        command.append("package" if args.package else "test")
+    elif args.all:
+        command = [value for value in command if not value.startswith("-Dtest=")]
     log = ROOT / ".tools/copyright/community-java-tests.log"
     print("[1/2] 执行社区、排列、旧设计及交易回归: " + args.database, flush=True)
     with log.open("w", encoding="utf-8") as output:

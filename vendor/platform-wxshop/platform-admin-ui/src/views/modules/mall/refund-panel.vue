@@ -40,7 +40,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   /** 初始化分页及请求状态. */
   data() {
     return {visible: false, rows: [], page: 1, total: 0, busy: false};

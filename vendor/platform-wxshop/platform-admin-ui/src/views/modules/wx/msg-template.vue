@@ -121,7 +121,6 @@ import AddOrUpdate from './msg-template-add-or-update';
 import TemplateMsgTask from '@/components/template-msg-task';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       dataForm: {

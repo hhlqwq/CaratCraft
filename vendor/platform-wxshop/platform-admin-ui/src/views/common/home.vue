@@ -45,7 +45,6 @@
 import ServerMonitor from '../modules/sys/server-monitor';
 
 export default {
-  compatConfig: {MODE: 2},
   components: {ServerMonitor},
   /** 初始化只读业务统计, 不填充虚构经营数据. */
   data() {

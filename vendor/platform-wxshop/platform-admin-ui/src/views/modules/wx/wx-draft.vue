@@ -118,7 +118,6 @@ import DraftAdd from './wx-draft-add';
 import DraftUpdate from './wx-draft-update';
 
 export default {
-  compatConfig: {MODE: 2},
   components: {
     DraftAdd,
     DraftUpdate,

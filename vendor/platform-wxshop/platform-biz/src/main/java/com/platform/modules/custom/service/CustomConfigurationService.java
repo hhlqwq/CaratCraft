@@ -44,6 +44,7 @@ public class CustomConfigurationService {
       throw new IllegalArgumentException("模板代码不能为空");
     }
     product.setPreviewWidth(dimension(product.getPreviewWidth()));
+    FinishedLengthRules.parse(product.getLengthRules());
     product.setPreviewHeight(dimension(product.getPreviewHeight()));
     product.setEnabled(Integer.valueOf(1).equals(product.getEnabled()) ? 1 : 0);
     if (product.getEnabled() == 1) validatePublished(product);

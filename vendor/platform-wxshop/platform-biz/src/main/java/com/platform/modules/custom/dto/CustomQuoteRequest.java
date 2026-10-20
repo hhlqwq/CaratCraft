@@ -14,4 +14,6 @@ public class CustomQuoteRequest {
   private String previewUrl;
   private Long draftId;
   private Long version;
+  private java.math.BigDecimal neckCircumferenceMm;
+  private java.math.BigDecimal targetLengthMm;
 }

@@ -111,9 +111,13 @@ Page({
       engraving: engraving || '未填写',
       arrangement: quote.arrangement || [],
       components: quote.components || [],
-      lengthText: quote.lengthComplete
-        ? quote.estimatedLengthMm + 'mm (估算, 成品以商家确认为准)'
-        : '尺寸未配置完整',
+      sizing: quote.sizing || null,
+      lengthText:
+        quote.sizing && quote.sizing.estimatedFinishedLengthMm != null
+          ? quote.sizing.estimatedFinishedLengthMm + 'mm (下单冻结工艺估算)'
+          : quote.lengthComplete
+            ? quote.estimatedLengthMm + 'mm (历史材料估算, 成品以商家确认为准)'
+            : '历史尺寸未配置完整',
     };
   },
   /** 更新待支付剩余时间, 超时后停止倒计时并刷新状态. */

@@ -474,7 +474,6 @@
 import DOMPurify from '@/third-party/dompurify/purify.es.mjs';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       disabled: false,

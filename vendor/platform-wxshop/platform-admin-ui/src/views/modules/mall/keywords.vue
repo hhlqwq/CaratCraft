@@ -104,7 +104,6 @@
 import AddOrUpdate from './keywords-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

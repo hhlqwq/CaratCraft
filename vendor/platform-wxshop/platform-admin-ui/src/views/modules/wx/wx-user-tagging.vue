@@ -30,7 +30,6 @@
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'wx-user-tagging',
   props: {
     wxUsers: Array,

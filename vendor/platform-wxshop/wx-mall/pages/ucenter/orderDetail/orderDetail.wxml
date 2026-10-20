@@ -48,6 +48,7 @@
         <view wx:if="{{customization.arrangement.length}}" class="customization-text">下单材料排列 / {{customization.lengthText}}</view>
         <view wx:for="{{customization.arrangement}}" wx:key="position" class="customization-text">{{index + 1}}. {{item.name}} · {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸未配置'}}</view>
         <view wx:for="{{customization.components}}" wx:key="optionId" class="customization-text">{{item.name}}: {{item.instances || 1}}个实例 / 耗用{{item.quantity}}{{item.unit}}</view>
+        <view wx:if="{{customization.sizing}}" class="customization-text">下单冻结尺寸: 实测颈围 {{customization.sizing.neckCircumferenceMm}}mm / 目标成品 {{customization.sizing.targetLengthMm}}mm / 工艺估算 {{customization.sizing.estimatedFinishedLengthMm}}mm</view>
         <view class="customization-text">设计状态：{{customization.status}}</view>
         <view class="customization-text">刻字内容：{{customization.engraving}}</view>
     </view>

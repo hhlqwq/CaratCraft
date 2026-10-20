@@ -71,7 +71,6 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
     Set<String> selectedTypes = new HashSet<>();
     boolean arranged = request.getArrangementOptionIds() != null;
     List<Long> instanceIds = arranged ? request.getArrangementOptionIds() : request.getOptionIds();
-    if (arranged && instanceIds.isEmpty()) throw new IllegalArgumentException("请先添加设计材料");
     if (arranged && request.getOptionIds() != null && !request.getOptionIds().isEmpty()) {
       throw new IllegalArgumentException("不能同时提交排列和旧版选项");
     }
@@ -140,7 +139,7 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
             new LambdaQueryWrapper<CustomProductEntity>()
                 .eq(CustomProductEntity::getGoodsId, request.getGoodsId())
                 .eq(CustomProductEntity::getEnabled, 1));
-    validateRequiredTypes(customProduct, selectedTypes);
+    boolean requiredComplete = hasRequiredTypes(customProduct, selectedTypes);
     com.platform.modules.custom.service.ComponentRules.validate(selectedOptions);
     BigDecimal totalPrice = basePrice.add(optionTotal);
     if (totalPrice.compareTo(new BigDecimal("0.01")) < 0) {
@@ -153,11 +152,19 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
     result.put("totalPrice", totalPrice);
     result.put("selectedOptionIds", request.getOptionIds());
     result.put("components", components);
-    if (arranged) {
-      result.putAll(
-          com.platform.modules.custom.service.NecklaceArrangement.describe(
-              instanceIds, selectedOptions));
+    Map<String, Object> arrangement =
+        com.platform.modules.custom.service.NecklaceArrangement.describe(
+            instanceIds == null ? List.of() : instanceIds, selectedOptions);
+    if (arranged) result.putAll(arrangement);
+    Map<String, Object> sizing =
+        com.platform.modules.custom.service.FinishedLengthRules.evaluate(
+            customProduct.getLengthRules(), request, arrangement);
+    if (!requiredComplete) {
+      sizing.put("ready", false);
+      sizing.put("notice", "必选材料尚未补齐, 可以保存草稿后继续编辑");
     }
+    result.put("sizing", sizing);
+    result.put("checkoutReady", sizing.get("ready"));
     result.put("previewWidth", customProduct.getPreviewWidth());
     result.put("previewHeight", customProduct.getPreviewHeight());
     result.put("engraving", request.getEngraving());
@@ -165,18 +172,19 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
   }
 
   /** 校验商品配置的必选组件组 / Validates required component groups. */
-  private void validateRequiredTypes(CustomProductEntity product, Set<String> selectedTypes) {
+  private boolean hasRequiredTypes(CustomProductEntity product, Set<String> selectedTypes) {
     if (product == null) {
       throw new IllegalArgumentException("该商品未开放定制");
     }
     if (product.getRequiredComponentTypes() == null
         || product.getRequiredComponentTypes().isBlank()) {
-      return;
+      return true;
     }
     for (String requiredType : product.getRequiredComponentTypes().split(",")) {
       if (!requiredType.isBlank() && !selectedTypes.contains(requiredType.trim())) {
-        throw new IllegalArgumentException("请选择必选组件：" + requiredType.trim());
+        return false;
       }
     }
+    return true;
   }
 }

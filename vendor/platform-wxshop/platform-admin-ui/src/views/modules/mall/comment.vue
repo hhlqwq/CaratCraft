@@ -113,7 +113,6 @@ import AddOrUpdate from './comment-add-or-update';
 import GoodsDetail from './goods-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

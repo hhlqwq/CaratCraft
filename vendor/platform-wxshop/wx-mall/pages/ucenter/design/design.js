@@ -30,15 +30,17 @@ Page({
           return;
         }
         const designList = (res.data.records || []).map(function (item) {
+          const sizing = that.getFrozenSizing(item.priceBreakdownJson);
           return {
             id: item.id,
             goodsId: item.goodsId,
             version: item.version,
             layers: that.getFrozenLayers(item.priceBreakdownJson),
             arrangement: that.getFrozenArrangement(item.priceBreakdownJson),
+            sizing: sizing,
             previewUrl: item.previewUrl || '/static/images/logo.png',
             canContinue: item.status === 'DRAFT',
-            canPay: item.status === 'DRAFT',
+            canPay: item.status === 'DRAFT' && Boolean(sizing && sizing.ready === true),
             canViewOrder: item.status === 'ORDERED' && Boolean(item.orderId),
             orderId: Number(item.orderId || 0),
             statusText: that.getStatusText(item.status),
@@ -96,6 +98,15 @@ Page({
       return JSON.parse(json || '{}').arrangement || [];
     } catch (error) {
       return [];
+    }
+  },
+
+  /** 展示保存时的尺寸与工艺校验状态, 不依据当前材料重新推算历史草稿. */
+  getFrozenSizing(json) {
+    try {
+      return JSON.parse(json || '{}').sizing || null;
+    } catch (error) {
+      return null;
     }
   },
 

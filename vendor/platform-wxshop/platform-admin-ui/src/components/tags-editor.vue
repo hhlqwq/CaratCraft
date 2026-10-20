@@ -30,10 +30,10 @@
  * 标签编辑器
  */
 export default {
-  compatConfig: {MODE: 2},
+  emits: ['update:modelValue', 'change'],
   name: 'tags-editor',
   props: {
-    value: {
+    modelValue: {
       type: String,
       required: true,
       default: '',
@@ -55,18 +55,20 @@ export default {
     };
   },
   computed: {
+    /** 从父表单当前模型派生标签, 不维护独立且可能过期的标签副本. */
     dynamicTags() {
-      if (this.value !== '') {
-        return this.value.split(',');
+      if (this.modelValue !== '') {
+        return this.modelValue.split(',');
       }
       return [];
     },
   },
   methods: {
+    /** 移除指定标签并通过Vue3模型事件同步父表单. */
     handleClose(tag) {
       const newTags = this.dynamicTags;
       newTags.splice(newTags.indexOf(tag), 1);
-      this.$emit('input', newTags.join(','));
+      this.$emit('update:modelValue', newTags.join(','));
     },
     showInput() {
       this.inputVisible = true;
@@ -74,6 +76,7 @@ export default {
         this.$refs.saveTagInput.$refs.input.focus();
       });
     },
+    /** 新标签去重后同步父表单, 失焦和回车共用同一提交入口. */
     handleInputConfirm() {
       const inputValue = this.inputValue;
       const newTags = this.dynamicTags;
@@ -82,7 +85,7 @@ export default {
       }
       this.inputVisible = false;
       this.inputValue = '';
-      this.$emit('input', newTags.join(','));
+      this.$emit('update:modelValue', newTags.join(','));
     },
   },
 };

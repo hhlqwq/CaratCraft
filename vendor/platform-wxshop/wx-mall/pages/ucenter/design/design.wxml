@@ -8,6 +8,8 @@
     <view class="content">
       <view class="title">设计 #{{item.id}}</view>
       <view class="meta">{{item.statusText}} · {{item.createTime}}</view>
+      <view wx:if="{{item.sizing}}" class="meta">实测颈围: {{item.sizing.neckCircumferenceMm || '未填写'}}mm / 目标成品: {{item.sizing.targetLengthMm || '未填写'}}mm</view>
+      <view wx:if="{{item.sizing}}" class="meta">{{item.sizing.notice}}</view>
       <view class="price">{{item.priceText}}</view>
       <view class="actions">
         <button wx:if="{{item.canContinue}}" size="mini" data-id="{{item.id}}" data-version="{{item.version}}" bindtap="archiveDesign">移除草稿</button>

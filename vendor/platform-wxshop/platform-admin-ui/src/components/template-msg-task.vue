@@ -76,7 +76,6 @@
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'template-msg-task',
   props: {
     wxUserTagName: {

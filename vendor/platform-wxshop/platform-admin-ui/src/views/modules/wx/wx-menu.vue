@@ -81,7 +81,6 @@
 </template>
 <script>
 export default {
-  compatConfig: {MODE: 2},
   components: {
     wxMenuButtonEditor: () => import('./wx-menu-button-editor'),
   },

@@ -105,7 +105,6 @@
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   components: {
     AssetsSelector: () => import('./assets/assets-selector'),
     tagsEditor: () => import('@/components/tags-editor'),

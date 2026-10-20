@@ -33,7 +33,6 @@
 import {clearLoginInfo} from '@/utils';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     const validateConfirmPassword = (rule, value, callback) => {
       if (this.dataForm.newPassword !== value) {

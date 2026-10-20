@@ -31,7 +31,6 @@
 import SubMenu from './main-sidebar-sub-menu';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'sub-menu',
   props: {
     menu: {

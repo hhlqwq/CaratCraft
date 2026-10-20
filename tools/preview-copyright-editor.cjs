@@ -4,10 +4,10 @@ const http = require('http');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const ui = path.join(root, 'vendor/platform-wxshop/platform-admin-ui');
-const parser = require(path.join(ui, 'node_modules/vue-template-compiler'));
-const vue = fs.readFileSync(path.join(ui, 'node_modules/vue/dist/vue.js'));
-const component = parser.parseComponent(fs.readFileSync(
-    path.join(ui, 'src/components/rich-text-editor/index.vue'), 'utf8'));
+const parser = require(path.join(ui, 'node_modules/@vue/compiler-sfc'));
+const vue = fs.readFileSync(path.join(ui, 'node_modules/vue/dist/vue.global.js'));
+const component = parser.parse(fs.readFileSync(
+    path.join(ui, 'src/components/rich-text-editor/index.vue'), 'utf8')).descriptor;
 const script = component.script.content
     .replace(/import DOMPurify[^;]+;/, "import DOMPurify from '/purify.mjs';")
     .replace('export function sanitizeHtml', 'function sanitizeHtml')
@@ -28,11 +28,12 @@ ${component.styles.map((style) => style.content.replace(/ >>> /g, ' ')).join('\n
 </div><script src="/vue.js"></script><script type="module">
 ${script}
 Editor.template=${JSON.stringify(component.template.content)};
-Vue.component('rich-text-editor',Editor);
-Vue.component('el-button',{props:['disabled','type'],template:${JSON.stringify('<button :disabled="disabled" @click="$emit(\'click\')"><slot></slot></button>')}});
-Vue.component('el-dialog',{props:['visible','title'],template:${JSON.stringify('<div v-if="visible" role="dialog"><h2>{{title}}</h2><slot></slot><slot name="footer"></slot></div>')}});
-Vue.component('el-img',{props:['value'],template:${JSON.stringify('<button @click="$emit(\'input\',\'/demo.webp\')">选择演示图片</button>')}});
-new Vue({el:'#app',data:{readonly:false,html:'<h2>演示商品详情</h2><p>示意内容, 不是真实商品摄影.</p><table border="1"><tr><td>材质</td><td>演示珍珠</td></tr></table>'}});
+const app = Vue.createApp({data: () => ({readonly:false,html:'<h2>演示商品详情</h2><p>仅用于隔离编辑器回归.</p>'})});
+app.component('rich-text-editor',Editor);
+app.component('el-button',{props:['disabled','type'],template:${JSON.stringify('<button :disabled="disabled" @click="$emit(\'click\')"><slot></slot></button>')}});
+app.component('el-dialog',{props:['modelValue','title'],template:${JSON.stringify('<div v-if="modelValue" role="dialog"><h2>{{title}}</h2><slot></slot><slot name="footer"></slot></div>')}});
+app.component('el-img',{props:['modelValue'],template:${JSON.stringify('<button @click="$emit(\'update:modelValue\',\'/demo.webp\')">选择演示图片</button>')}});
+app.mount('#app');
 </script></html>`;
 
 /** 返回内存测试页面和明确允许的资源, 不暴露工作区目录. */

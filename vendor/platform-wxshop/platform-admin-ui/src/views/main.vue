@@ -21,7 +21,6 @@ import MainSidebar from './main-sidebar';
 import MainContent from './main-content';
 
 export default {
-  compatConfig: {MODE: 2},
   provide() {
     return {
       // 刷新

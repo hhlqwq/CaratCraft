@@ -1,6 +1,7 @@
 """导出当前工作区的应用交付包, 不包含Git历史、私有配置或第三方基础镜像."""
 
 import hashlib
+import argparse
 import json
 import subprocess
 import zipfile
@@ -27,8 +28,7 @@ def source_files():
             if path.name.lower() == "agents.md":
                 continue
             selected.append(path)
-        elif relative.startswith(("tools/", "legal/", "data/", "docs/copyright-", "docs/remediation-",
-                                  "docs/client-requirements-", "docs/wechat-ai-", "docs/source-style")):
+        elif relative.startswith(("tools/", "legal/", "data/")) or (relative.startswith("docs/") and path.suffix == ".md"):
             selected.append(path)
         elif relative in {"README.md", ".gitignore", ".gitattributes", "dev.ps1", "dev.sh"}:
             selected.append(path)
@@ -40,6 +40,11 @@ def source_files():
 def main():
     """准入检查通过后打包应用和可重新构建的源码, 输出校验清单."""
     import sys
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--date", required=True, help="交付日期, YYYYMMDD, 使用客户端日期")
+    args = parser.parse_args()
+    from datetime import datetime
+    day = datetime.strptime(args.date, "%Y%m%d").strftime("%Y%m%d")
     subprocess.run([sys.executable, str(ROOT / "tools/check-copyright-distribution.py")],
                    cwd=ROOT, check=True)
     revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip()
@@ -53,11 +58,11 @@ def main():
             if index % 50 == 0 or index == len(assets):
                 print(f"Git素材校验进度: {index}/{len(assets)}", flush=True)
     DESTINATION.mkdir(parents=True, exist_ok=True)
-    source = DESTINATION / "caratcraft-source-20261016.zip"
+    source = DESTINATION / f"caratcraft-source-{day}.zip"
     with zipfile.ZipFile(source, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in source_files():
             archive.write(path, path.relative_to(ROOT).as_posix())
-    application = DESTINATION / "caratcraft-application-20261016.zip"
+    application = DESTINATION / f"caratcraft-application-{day}.zip"
     with zipfile.ZipFile(application, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for module in ["platform-admin", "platform-api"]:
             jar = VENDOR / module / "target" / (module + ".jar")
@@ -73,7 +78,7 @@ def main():
                 "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
                for path in [source, application]]
     for record in records:
-        record.update(revision=revision, sourceTreeDirty=dirty)
+        record.update(revision=revision, sourceTreeDirty=dirty, date=day)
     manifest = DESTINATION / "manifest.json"
     manifest.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(records, ensure_ascii=False))

@@ -10,7 +10,7 @@ import http from '@/utils/httpRequest';
 import {isURL} from '@/utils/validate';
 import {clearLoginInfo} from '@/utils';
 
-const pages = import.meta.glob('../views/**/*.vue');
+const pages = import.meta.glob(['../views/**/*.vue', '!../views/modules/oss/oss-upload.vue']);
 /** 只允许加载构建时存在的页面, 不执行服务端提供的任意路径. */
 function _import(name) {
   const page = pages['../views/' + name + '.vue'];

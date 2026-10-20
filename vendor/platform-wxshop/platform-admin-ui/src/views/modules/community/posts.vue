@@ -141,7 +141,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   /** 社区列表只保存当前页和显式审核状态. */
   data() {
     return {

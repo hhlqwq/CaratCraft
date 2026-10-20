@@ -57,7 +57,6 @@ import UpdatePassword from './main-navbar-update-password';
 import {clearLoginInfo} from '@/utils';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       updatePassowrdVisible: false,

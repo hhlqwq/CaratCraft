@@ -1,5 +1,4 @@
 const util = require('../../../utils/util.js');
-const user = require('../../../services/user.js');
 const api = require('../../../config/api.js');
 const app = getApp();
 const DEFAULT_AVATAR = '/static/images/logo.png';
@@ -25,6 +24,7 @@ Page({
       {title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏'},
       {title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹'},
       {title: '地址管理', url: '/pages/ucenter/address/address', badge: '址'},
+      {title: '协议与隐私', url: '/pages/ucenter/legal/index', badge: '协'},
       {title: '帮助中心', url: '/pages/ucenter/help/help', badge: '助'},
       {title: '意见反馈', url: '/pages/ucenter/feedback/feedback', badge: '评'},
     ],
@@ -53,44 +53,12 @@ Page({
       this.openProfileEditor();
       return;
     }
-    // 用户主动触发资料授权; 登录会话仍由后端验证微信临时凭证.
-    wx.getUserProfile({
-      desc: '用于完善会员资料', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-      success: (resp) => {
-        //登录远程服务器
-        user
-          .loginByWeixin(resp)
-          .then((res) => {
-            const userInfo = this.normalizeUserInfo(res.data.userInfo);
-            this.applyUserInfo(userInfo);
-            app.globalData.userInfo = userInfo;
-            app.globalData.token = res.data.token;
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      },
-    });
+    wx.setStorageSync('navUrl', '/pages/ucenter/index/index');
+    wx.navigateTo({url: '/pages/auth/btnAuth/btnAuth'});
   },
-  /** 处理资料授权回调, 拒绝授权时不继续提交资料. */
-  bindGetUserInfo(e) {
-    const userInfo = wx.getStorageSync('userInfo');
-    const token = wx.getStorageSync('token');
-    if (userInfo && token) {
-      return;
-    }
-    //用户按了允许授权按钮
-    user
-      .loginByWeixin(e.detail)
-      .then((res) => {
-        const userInfo = this.normalizeUserInfo(res.data.userInfo);
-        this.applyUserInfo(userInfo);
-        app.globalData.userInfo = userInfo;
-        app.globalData.token = res.data.token;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  /** 旧版资料授权入口统一转到包含协议确认的登录页. */
+  bindGetUserInfo() {
+    this.getUserProfile();
   },
   /** 确认后清除本机会话并恢复游客展示. */
   exitLogin() {
@@ -183,11 +151,21 @@ Page({
       desc: '用于设置商城昵称和头像',
       success: (profile) => {
         this.setData({profileSaving: true});
-        user
-          .loginByWeixin(profile)
+        util
+          .request(
+            api.UpdateUserProfile,
+            {
+              nickname: profile.userInfo.nickName,
+              avatarUrl: profile.userInfo.avatarUrl,
+            },
+            'POST',
+            'application/json'
+          )
           .then((res) => {
-            const userInfo = this.normalizeUserInfo(res.data.userInfo);
-            app.globalData.token = res.data.token;
+            if (res.code !== 0) {
+              throw new Error(res.msg || '资料同步失败');
+            }
+            const userInfo = this.normalizeUserInfo(res.data);
             this.applyUserInfo(userInfo);
             this.setData({
               profileForm: {

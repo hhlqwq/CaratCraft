@@ -47,7 +47,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   /** 初始化监控状态. */
   data() {
     return {data: null, loading: false, error: ''};

@@ -58,7 +58,6 @@
 import {isURL} from '@/utils/validate';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {};
   },

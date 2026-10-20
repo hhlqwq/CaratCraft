@@ -89,7 +89,6 @@ import TableTreeColumn from '@/components/table-tree-column';
 import AddOrUpdate from './org-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

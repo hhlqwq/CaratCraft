@@ -23,6 +23,8 @@ Page({
     canUndo: false,
     dimensionNotice: '',
     engraving: '',
+    neckCircumferenceMm: '',
+    targetLengthMm: '',
     quote: {},
     quoting: false,
     quoteError: '',
@@ -33,6 +35,7 @@ Page({
     configError: '',
     showOptional: false,
     aiStatus: {},
+    aiDiagnostics: {},
     aiStatusError: '',
     aiHeight: '',
     aiWeight: '',
@@ -58,9 +61,12 @@ Page({
           throw new Error('AI功能状态加载失败');
         }
         const unavailable = aiRecommendation.availability();
+        const diagnostics =
+          typeof aiRecommendation.diagnostics === 'function' ? aiRecommendation.diagnostics() : {};
+        that.setData({aiDiagnostics: diagnostics});
         that.setData({
           aiStatus: Object.assign({}, res.data, {
-            enabled: !unavailable,
+            enabled: res.data.enabled === true && !unavailable,
             unavailableReason: unavailable,
           }),
           aiStatusError: '',
@@ -349,6 +355,14 @@ Page({
             restoredConfiguration && restoredConfiguration.engraving
               ? restoredConfiguration.engraving
               : '',
+          neckCircumferenceMm:
+            restoredConfiguration && restoredConfiguration.neckCircumferenceMm != null
+              ? String(restoredConfiguration.neckCircumferenceMm)
+              : '',
+          targetLengthMm:
+            restoredConfiguration && restoredConfiguration.targetLengthMm != null
+              ? String(restoredConfiguration.targetLengthMm)
+              : '',
           primaryProductId: res.data.primaryProductId,
           productConfig: res.data.product,
           loadingConfig: false,
@@ -623,6 +637,19 @@ Page({
     }, 300);
   },
 
+  /** 实测输入和AI建议分开保存, 每次改动立即废弃旧报价. */
+  changeSizing(event) {
+    if (this.data.saving) {
+      return;
+    }
+    const field = event.currentTarget.dataset.field;
+    if (!['neckCircumferenceMm', 'targetLengthMm'].includes(field)) {
+      return;
+    }
+    this.setData({[field]: event.detail.value});
+    this.refreshQuote();
+  },
+
   /** 请求服务端报价 / Requests server-side quote. */
   refreshQuote() {
     const that = this;
@@ -637,6 +664,9 @@ Page({
           goodsId: that.data.goodsId,
           arrangementOptionIds: that.data.arrangementOptionIds,
           engraving: that.data.engraving,
+          neckCircumferenceMm:
+            that.data.neckCircumferenceMm === '' ? null : Number(that.data.neckCircumferenceMm),
+          targetLengthMm: that.data.targetLengthMm === '' ? null : Number(that.data.targetLengthMm),
         },
         'POST',
         'application/json'
@@ -679,6 +709,10 @@ Page({
     if (that.data.quoting || that.data.quoteError || !that.data.quote.totalPrice) {
       return Promise.reject(new Error('请等待有效报价后再保存或结算'));
     }
+    if (startCheckout && that.data.quote.checkoutReady !== true) {
+      wx.showToast({title: '请先完成成品长度校验', icon: 'none'});
+      return Promise.reject(new Error('成品长度尚未校验通过'));
+    }
     that.setData({saving: true});
     return util
       .request(
@@ -689,6 +723,9 @@ Page({
           version: that.data.draftVersion,
           arrangementOptionIds: that.data.arrangementOptionIds,
           engraving: that.data.engraving,
+          neckCircumferenceMm:
+            that.data.neckCircumferenceMm === '' ? null : Number(that.data.neckCircumferenceMm),
+          targetLengthMm: that.data.targetLengthMm === '' ? null : Number(that.data.targetLengthMm),
         },
         'POST',
         'application/json'

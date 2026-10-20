@@ -12,4 +12,6 @@ import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 public class LoginAppRequest {
   @Schema(description = "用户信息")
   private WxOAuth2AccessToken userInfo;
+
+  private com.platform.modules.mall.service.LegalDocumentService.Acceptance legalAcceptance;
 }

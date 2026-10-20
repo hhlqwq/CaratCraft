@@ -199,7 +199,9 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     CustomDesignSnapshotEntity snapshot = getOwned(snapshotId, userId);
     CustomQuoteRequest request =
         JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
-    return quoteService.quote(request);
+    Map<String, Object> quote = quoteService.quote(request);
+    requireFinishedLength(quote);
+    return quote;
   }
 
   /** 按最新商品和选项价格重新报价并锁定 / Requotes with current prices and locks the design. */
@@ -214,6 +216,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
     Map<String, Object> quote = quoteService.quote(request);
     BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
+    requireFinishedLength(quote);
     int updated =
         snapshotDao.update(
             null,
@@ -253,6 +256,13 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     snapshot.setStatus("ORDERED");
     snapshot.setUpdateTime(new Date());
     snapshotDao.updateById(snapshot);
+  }
+
+  /** 未具备完整商家长度规则和实测输入时只允许保存草稿, 不进入新订单. */
+  private static void requireFinishedLength(Map<String, Object> quote) {
+    if (!Boolean.TRUE.equals(quote.get("checkoutReady"))) {
+      throw new IllegalArgumentException("成品长度尚未校验通过, 请补齐实测颈围、目标长度及商家工艺规则");
+    }
   }
 
   /** 按报价冻结的稳定代码和实际用量扣减, 不依赖可变的选项配置. */

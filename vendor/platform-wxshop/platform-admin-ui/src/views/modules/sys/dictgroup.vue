@@ -105,7 +105,6 @@ import AddOrUpdate from './dictgroup-add-or-update';
 import Dict from './dict';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

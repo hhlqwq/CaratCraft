@@ -27,6 +27,7 @@ function resolveBaseUrl() {
 const API_BASE_URL = resolveBaseUrl();
 
 module.exports = {
+  LegalDocuments: API_BASE_URL + 'legal',
   ApiOrigin: API_BASE_URL.match(/^https?:\/\/[^/]+/)[0],
   IndexUrlNewGoods: API_BASE_URL + 'index/newGoods', //新品首发
   IndexUrlHotGoods: API_BASE_URL + 'index/hotGoods', //热卖商品

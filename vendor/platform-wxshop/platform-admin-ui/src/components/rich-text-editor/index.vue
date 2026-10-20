@@ -68,10 +68,10 @@ export function sanitizeHtml(html) {
 }
 
 export default {
-  compatConfig: {MODE: 2},
+  emits: ['update:modelValue', 'change'],
   name: 'RichTextEditor',
   props: {
-    value: {type: String, default: ''},
+    modelValue: {type: String, default: ''},
     disabled: {type: Boolean, default: false},
     placeholder: {type: String, default: '输入内容'},
   },
@@ -101,7 +101,7 @@ export default {
   },
   watch: {
     /** 回显外部HTML, 避免父组件同步时重置当前光标. */
-    value(value) {
+    modelValue(value) {
       const clean = sanitizeHtml(value);
       if (clean !== this.lastHtml) {
         this.setContent(clean);
@@ -117,7 +117,7 @@ export default {
   },
   /** 初次挂载时显示经过过滤的原HTML. */
   mounted() {
-    this.setContent(sanitizeHtml(this.value));
+    this.setContent(sanitizeHtml(this.modelValue));
   },
   methods: {
     /** 更新可视区域和源码区域, 不触发保存请求. */
@@ -135,7 +135,7 @@ export default {
       }
       const clean = sanitizeHtml(html);
       this.lastHtml = clean;
-      this.$emit('input', clean);
+      this.$emit('update:modelValue', clean);
       this.$emit('change', clean);
     },
     /** 同步可视输入, 过滤会执行的HTML并保留正常光标. */

@@ -76,11 +76,11 @@ class CustomQuoteServiceImplTest {
     assertThrows(IllegalArgumentException.class, () -> service.quote(request));
   }
 
-  /** 验证缺少必选组件时拒绝报价 / Verifies required component validation. */
+  /** 缺少必选材料允许展示草稿报价, 但服务端明确禁止结算. */
   @Test
-  void quoteRejectsMissingRequiredGroup() {
+  void quoteKeepsIncompleteDesignDraftOnly() {
     CustomQuoteRequest request = request(1L);
-    assertThrows(IllegalArgumentException.class, () -> service.quote(request));
+    assertEquals(false, service.quote(request).get("checkoutReady"));
   }
 
   /** 重复材料按累计实例收费并合并BOM, 同类多选只在新排列模型开放. */
@@ -114,12 +114,12 @@ class CustomQuoteServiceImplTest {
     assertThrows(IllegalArgumentException.class, () -> service.quote(request));
   }
 
-  /** 拒绝空排列、过大实例列表以及同时提交两种配置模型. */
+  /** 空排列允许保存草稿, 拒绝过大实例列表以及同时提交两种配置模型. */
   @Test
   void arrangementRejectsAmbiguousAndUnboundedRequests() {
     CustomQuoteRequest request = request();
     request.setArrangementOptionIds(java.util.List.of());
-    assertThrows(IllegalArgumentException.class, () -> service.quote(request));
+    assertEquals(false, service.quote(request).get("checkoutReady"));
     request.setArrangementOptionIds(java.util.Collections.nCopies(301, 1L));
     assertThrows(IllegalArgumentException.class, () -> service.quote(request));
     request.setArrangementOptionIds(Arrays.asList(1L, 2L));

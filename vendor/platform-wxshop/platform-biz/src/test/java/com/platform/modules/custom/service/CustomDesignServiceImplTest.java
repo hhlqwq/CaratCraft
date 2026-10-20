@@ -69,6 +69,7 @@ class CustomDesignServiceImplTest {
     request.setOptionIds(Collections.singletonList(1L));
     Map<String, Object> quote = new LinkedHashMap<>();
     quote.put("totalPrice", new BigDecimal("219.00"));
+    quote.put("checkoutReady", true);
     when(quoteService.quote(any())).thenReturn(quote);
     org.mockito.Mockito.doAnswer(
             invocation -> {
@@ -157,10 +158,16 @@ class CustomDesignServiceImplTest {
     product.setGoodsId(1999105);
     product.setEnabled(1);
     product.setRequiredComponentTypes("style,pearl");
+    product.setLengthRules(
+        "{\"mode\":\"SUM\",\"claspMm\":0,\"connectionMm\":0,\"lossMm\":0,"
+            + "\"toleranceMm\":1,\"minLengthMm\":300,\"maxLengthMm\":700}");
     when(productDao.selectOne(any())).thenReturn(product);
     CustomComponentOptionEntity style = workflowOption(1L, "style", "style-solitaire", "0.00");
     CustomComponentOptionEntity pearl = workflowOption(2L, "pearl", "pearl-akoya", "660.00");
-    when(optionDao.selectList(any())).thenReturn(Arrays.asList(style, pearl));
+    pearl.setMaterialParams("{\"diameterMm\":10}");
+    CustomComponentOptionEntity chain = workflowOption(3L, "chain", "chain-test", "0.00");
+    chain.setMaterialParams("{\"lengthMm\":440}");
+    when(optionDao.selectList(any())).thenReturn(Arrays.asList(style, pearl, chain));
     ComponentStockEntity stock = new ComponentStockEntity();
     stock.setStock(100);
     when(stockDao.selectOne(any())).thenReturn(stock);
@@ -172,7 +179,9 @@ class CustomDesignServiceImplTest {
 
     CustomQuoteRequest request = new CustomQuoteRequest();
     request.setGoodsId(1999105);
-    request.setOptionIds(Arrays.asList(1L, 2L));
+    request.setOptionIds(Arrays.asList(1L, 2L, 3L));
+    request.setNeckCircumferenceMm(new BigDecimal("350"));
+    request.setTargetLengthMm(new BigDecimal("450"));
     org.mockito.Mockito.doAnswer(
             invocation -> {
               CustomDesignSnapshotEntity savedSnapshot = invocation.getArgument(0);

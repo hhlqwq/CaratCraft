@@ -15,4 +15,7 @@ public class LoginWxRequest {
 
   @Schema(description = "用户信息")
   private FullUserInfo userInfo;
+
+  @Schema(description = "用户主动同意的当前协议版本")
+  private com.platform.modules.mall.service.LegalDocumentService.Acceptance legalAcceptance;
 }

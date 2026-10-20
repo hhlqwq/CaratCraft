@@ -11,8 +11,9 @@ COPY platform-common/src platform-common/src
 COPY platform-biz/src platform-biz/src
 COPY platform-admin/src platform-admin/src
 COPY platform-api/src platform-api/src
+COPY deploy/maven-settings.xml /workspace/maven-settings.xml
 
-RUN mvn -B -Pdev -pl platform-admin,platform-api -am package -DskipTests
+RUN mvn -B -s /workspace/maven-settings.xml -Pdev -pl platform-admin,platform-api -am package -DskipTests
 COPY deploy/HealthCheck.java /workspace/healthcheck/HealthCheck.java
 RUN javac -d /workspace/healthcheck /workspace/healthcheck/HealthCheck.java
 

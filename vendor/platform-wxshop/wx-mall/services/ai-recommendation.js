@@ -16,13 +16,33 @@ const PROMPT =
 
 /** 检查基础库AI对象及拥有者配置, 不安装SDK或要求外部API密钥. */
 function availability() {
-  if (!config.envId) {
-    return '商家尚未配置微信云开发AI环境, 可继续手动设计';
-  }
-  if (!wx.cloud || !wx.cloud.extend || !wx.cloud.extend.AI) {
-    return '当前微信版本不支持云开发AI, 请升级微信或继续手动设计';
-  }
-  return '';
+  return diagnostics().reason;
+}
+
+/** 仅检查环境ID和客户端能力, 不消耗赠送额度, 不把配置齐全误报为真实调用已验收. */
+function diagnostics() {
+  const envId = typeof config.envId === 'string' ? config.envId.trim() : '';
+  const configured = /^[a-zA-Z0-9_-]{1,100}$/.test(envId);
+  const supported = !!(
+    wx.cloud &&
+    typeof wx.cloud.init === 'function' &&
+    wx.cloud.extend &&
+    wx.cloud.extend.AI &&
+    typeof wx.cloud.extend.AI.createModel === 'function'
+  );
+  const reason = !configured
+    ? '商家尚未配置有效的微信云开发AI环境, 可继续手动设计'
+    : !supported
+      ? '当前微信版本不支持云开发AI, 请升级微信或继续手动设计'
+      : '';
+  return {
+    configured,
+    supported,
+    ready: configured && supported,
+    reason,
+    quotaNotice:
+      '仅使用赠送额度通道. 配置检查不查询剩余额度, 实际调用以微信返回为准; 失败后可手动设计.',
+  };
 }
 
 /** 使用微信云身份和仅赠送额度通道, 不自动重试或回退到套餐计费通道. */
@@ -53,7 +73,7 @@ async function recommend(input, isCurrent) {
       throw new Error('推荐参数已变化');
     }
     if (!initialized) {
-      wx.cloud.init({env: config.envId});
+      wx.cloud.init({env: config.envId.trim()});
       initialized = true;
     }
     const model = wx.cloud.extend.AI.createModel(FREE_PROVIDER);
@@ -140,4 +160,4 @@ async function recommend(input, isCurrent) {
   }
 }
 
-module.exports = {availability: availability, recommend: recommend};
+module.exports = {availability, diagnostics, recommend};

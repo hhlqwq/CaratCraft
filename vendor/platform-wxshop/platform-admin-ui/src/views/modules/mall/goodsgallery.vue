@@ -68,7 +68,6 @@
 import AddOrUpdate from './goodsgallery-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

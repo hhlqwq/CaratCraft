@@ -13,7 +13,6 @@
 import isArray from 'lodash/isArray';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'table-tree-column',
   props: {
     prop: {

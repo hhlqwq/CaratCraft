@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-16",
+  "date": "2026-10-21",
   "backend": [
     {
       "file": "quartz-2.3.2.jar",
@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "0af245752f3519a9f754b07372118648c2fae7311ca89e44c9a94652ddc3b2f8",
+      "sha256": "979ec6782349814dd3d9c8b5898401539516f000d277e976b90b68cbfb4d2259",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -143,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "1e2b20b6f9663726b0c02e7b160c460800849ee3c28ef27bf05edc96830b673f",
+      "sha256": "69d29138920332bea555960f887ae1806b120e2db7e64fb73c508df77d66545a",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -5959,20 +5959,6 @@
       "selectedLicense": "MIT"
     },
     {
-      "name": "@vue/compat",
-      "version": "3.5.44",
-      "license": "MIT",
-      "evidence": [
-        "vendor/platform-wxshop/legal/generated/evidence/_vue_compat-3.5.44/package.json",
-        "vendor/platform-wxshop/legal/generated/evidence/_vue_compat-3.5.44/LICENSE"
-      ],
-      "source": {
-        "type": "git",
-        "url": "git+https://github.com/vuejs/core.git"
-      },
-      "selectedLicense": "MIT"
-    },
-    {
       "name": "@vue/devtools-api",
       "version": "6.6.4",
       "license": "MIT",
@@ -5993,6 +5979,54 @@
         }
       ],
       "selectedLicense": "MIT"
+    },
+    {
+      "name": "@vue/reactivity",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_reactivity-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_reactivity-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git",
+        "directory": "packages/reactivity"
+      },
+      "selectedLicense": "MIT",
+      "evidenceMethod": "锁定版本原始npm包内的元数据和完整LICENSE, 保留原权利人声明"
+    },
+    {
+      "name": "@vue/runtime-core",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_runtime-core-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_runtime-core-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git",
+        "directory": "packages/runtime-core"
+      },
+      "selectedLicense": "MIT",
+      "evidenceMethod": "锁定版本原始npm包内的元数据和完整LICENSE, 保留原权利人声明"
+    },
+    {
+      "name": "@vue/runtime-dom",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_runtime-dom-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/_vue_runtime-dom-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git",
+        "directory": "packages/runtime-dom"
+      },
+      "selectedLicense": "MIT",
+      "evidenceMethod": "锁定版本原始npm包内的元数据和完整LICENSE, 保留原权利人声明"
     },
     {
       "name": "@vue/shared",
@@ -6176,6 +6210,21 @@
         "url": "git+https://github.com/vuejs/router.git"
       },
       "selectedLicense": "MIT"
+    },
+    {
+      "name": "vue",
+      "version": "3.5.44",
+      "license": "MIT",
+      "evidence": [
+        "vendor/platform-wxshop/legal/generated/evidence/vue-3.5.44/package.json",
+        "vendor/platform-wxshop/legal/generated/evidence/vue-3.5.44/LICENSE"
+      ],
+      "source": {
+        "type": "git",
+        "url": "git+https://github.com/vuejs/core.git"
+      },
+      "selectedLicense": "MIT",
+      "evidenceMethod": "锁定版本原始npm包内的元数据和完整LICENSE, 保留原权利人声明"
     },
     {
       "name": "vuex",

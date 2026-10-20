@@ -140,7 +140,6 @@ import AddOrUpdate from './schedule-add-or-update';
 import Log from './schedule-log';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

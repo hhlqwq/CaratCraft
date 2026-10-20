@@ -73,7 +73,6 @@
 import AddOrUpdate from './material-file-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'material-file',
   props: {
     fileType: {

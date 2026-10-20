@@ -38,7 +38,8 @@
     "pages/community/index",
     "pages/community/detail",
     "pages/community/publish",
-    "pages/ucenter/aftersales/index"
+    "pages/ucenter/aftersales/index",
+    "pages/ucenter/legal/index"
   ],
   "window": {
     "backgroundTextStyle": "dark",

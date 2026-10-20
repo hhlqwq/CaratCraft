@@ -83,7 +83,6 @@ import {Encrypt} from '@/utils/AESUtils';
 import {isNavigationFailure} from 'vue-router';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       dataForm: {

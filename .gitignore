@@ -1,4 +1,5 @@
 .tools/
+.pnpm-store/
 vendor/platform-wxshop/deploy/data/
 vendor/platform-wxshop/deploy/packages/
 vendor/platform-wxshop/**/target/

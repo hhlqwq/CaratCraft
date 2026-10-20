@@ -1,123 +1,66 @@
-const util = require('../../../utils/util.js');
-const api = require('../../../config/api.js');
-
-//获取应用实例
+const user = require('../../../services/user.js');
 
 Page({
-  data: {
-    canIUseGetUserProfile: false,
-    navUrl: '',
-    code: '',
-  },
-
-  /** 初始化登录授权状态并读取页面所需数据. */
-  onLoad(options) {
-    const that = this;
-    if (wx.getUserProfile) {
-      this.setData({
-        canIUseGetUserProfile: true,
-      });
-    }
-    if (wx.getStorageSync('navUrl')) {
-      that.setData({
-        navUrl: wx.getStorageSync('navUrl'),
-      });
-    } else {
-      that.setData({
-        navUrl: '/pages/index/index',
-      });
-    }
-
-    wx.login({
-      success(res) {
-        if (res.code) {
-          that.setData({
-            code: res.code,
-          });
-        }
-      },
+  data: {canIUseGetUserProfile: false, navUrl: '', legalAcceptance: null, saving: false},
+  /** 只初始化能力和返回位置, 用户主动授权前不请求微信登录凭证. */
+  onLoad() {
+    this.setData({
+      canIUseGetUserProfile: typeof wx.getUserProfile === 'function',
+      navUrl: wx.getStorageSync('navUrl') || '/pages/index/index',
     });
   },
-  /** 请求用户主动授权的资料并交给登录流程处理. */
+  /** 接收本次主动勾选, 取消勾选立即撤销本次登录的协议参数. */
+  consentChanged(event) {
+    this.setData({legalAcceptance: event.detail});
+  },
+  /** 先确认协议, 再由用户手势请求微信资料. */
   getUserProfile() {
-    // 用户主动触发资料授权; 登录会话仍由后端验证微信临时凭证.
-    // 开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
+    if (!this.data.legalAcceptance || this.data.saving) {
+      return;
+    }
     wx.getUserProfile({
-      desc: '用于完善会员资料', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-      success: (resp) => {
-        //登录远程服务器
-        this.loginByWeixin(resp);
-      },
+      desc: '用于完善会员资料',
+      success: (profile) => this.loginByWeixin(profile),
     });
   },
-  /** 处理资料授权回调, 拒绝授权时不继续提交资料. */
-  bindGetUserInfo(e) {
-    //登录远程服务器
-    this.loginByWeixin(e.detail);
+  /** 旧版微信授权回调同样经过协议及重复提交校验. */
+  bindGetUserInfo(event) {
+    if (event.detail && event.detail.userInfo) {
+      this.loginByWeixin(event.detail);
+    }
   },
-  /** 使用微信临时登录凭证换取本项目会话并恢复用户信息. */
-  loginByWeixin(userInfo) {
-    const that = this;
-    util
-      .login()
-      .then((loginResult) => {
-        if (!loginResult.code) {
-          throw new Error('微信登录凭证为空');
-        }
-        util
-          .request(
-            api.AuthLoginByWeixin,
-            {
-              code: loginResult.code,
-              userInfo: userInfo,
-            },
-            'POST',
-            'application/json'
-          )
-          .then((res) => {
-            if (res.code === 0) {
-              // 登录成功后存储用户信息, Store user information after login succeeds.
-              wx.setStorageSync('userInfo', res.data.userInfo);
-              wx.setStorageSync('token', res.data.token);
-              wx.setStorageSync('userId', res.data.userId);
-              that.navigateAfterLogin();
-            } else {
-              wx.showModal({
-                title: '提示',
-                content: res.msg,
-                showCancel: false,
-              });
-            }
-          })
-          .catch(() => {
-            wx.showModal({
-              title: '提示',
-              content: '登录请求失败，请检查网络后重试',
-              showCancel: false,
-            });
-          });
-      })
-      .catch(() => {
-        wx.showModal({
-          title: '提示',
-          content: '获取微信登录凭证失败，请重试',
-          showCancel: false,
-        });
+  /** 共用登录服务, 失败只显示一条提示并保留协议查看入口. */
+  async loginByWeixin(profile) {
+    if (!this.data.legalAcceptance || this.data.saving) {
+      return;
+    }
+    this.setData({saving: true});
+    try {
+      await user.loginByWeixin(profile, this.data.legalAcceptance);
+      this.navigateAfterLogin();
+    } catch (error) {
+      wx.showModal({
+        title: '登录提示',
+        content: error.message || error.msg || '登录失败, 请重试',
+        showCancel: false,
       });
+    } finally {
+      this.setData({saving: false});
+    }
   },
-  /**
-   * 登录成功后返回用户原本要访问的页面, Navigate only after successful login.
-   */
+  /** 根据实际页签区分导航方式, 防止登录后跳转到旧购物车页签失败. */
   navigateAfterLogin() {
-    const navUrl = this.data.navUrl;
-    if (navUrl && navUrl == '/pages/index/index') {
-      wx.switchTab({
-        url: navUrl,
-      });
-    } else if (navUrl) {
-      wx.redirectTo({
-        url: navUrl,
-      });
+    const url = this.data.navUrl;
+    const tabs = [
+      '/pages/index/index',
+      '/pages/designer/designer',
+      '/pages/community/index',
+      '/pages/ucenter/index/index',
+    ];
+    if (tabs.includes(url)) {
+      wx.switchTab({url});
+    } else {
+      wx.redirectTo({url});
     }
   },
 });

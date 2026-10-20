@@ -43,7 +43,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Date;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
@@ -68,6 +67,7 @@ public class AppLoginController extends AppBaseController {
   private final JwtUtils jwtUtils;
   private final WxMaService wxMaService;
   private final WxMpService wxMpService;
+  private final com.platform.modules.mall.service.LegalDocumentService legalDocuments;
 
   /**
    * 微信小程序登录
@@ -79,6 +79,10 @@ public class AppLoginController extends AppBaseController {
   @PostMapping("LoginByMa")
   @Operation(summary = "微信小程序登录", description = "wx.login()每次返回的code只能使用一次")
   public RestResponse<LoginVo> loginByMa(@RequestBody LoginWxRequest request) {
+    legalDocuments.requireCurrent(request.getLegalAcceptance());
+    if (request.getLegalAcceptance() == null) {
+      return RestResponse.fail("请先阅读并主动同意用户协议及隐私政策");
+    }
     FullUserInfo fullUserInfo = request.getUserInfo();
     AbstractAssert.isNull(fullUserInfo, "登录失败：userInfo为空");
 
@@ -131,6 +135,7 @@ public class AppLoginController extends AppBaseController {
       user.setCity(wxMpUser.getCity());
       user.setProvince(wxMpUser.getProvince());
       userService.saveOrUpdate(user);
+      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
 
       String token = jwtUtils.generateToken(user.getId());
 
@@ -187,6 +192,7 @@ public class AppLoginController extends AppBaseController {
   @PostMapping("loginByMp")
   @Operation(summary = "微信公众号登录", description = "根据微信code登录，每一个code只能使用一次")
   public RestResponse<LoginVo> loginByMp(@RequestBody LoginWxMpRequest request) {
+    legalDocuments.requireCurrent(request.getLegalAcceptance());
     String code = request.getCode();
     AbstractAssert.isBlank(code, "登录失败：code为空");
 
@@ -234,6 +240,7 @@ public class AppLoginController extends AppBaseController {
       user.setSubscribe(subscribe);
 
       userService.saveOrUpdate(user);
+      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
 
       // 生成token
       String token = jwtUtils.generateToken(user.getId());
@@ -259,6 +266,7 @@ public class AppLoginController extends AppBaseController {
   @PostMapping("AppLoginByWx")
   @Operation(summary = "APP端微信登录", description = "APP端微信登录")
   public RestResponse<LoginVo> appLoginByWx(@RequestBody LoginAppRequest request) {
+    legalDocuments.requireCurrent(request.getLegalAcceptance());
     WxOAuth2AccessToken auth2AccessToken = request.getUserInfo();
 
     AbstractAssert.isNull(auth2AccessToken, "登录失败：userInfo为空");
@@ -285,6 +293,7 @@ public class AppLoginController extends AppBaseController {
       user.setNickname(wxMpUser.getNickname());
       user.setHeadImgUrl(wxMpUser.getHeadImgUrl());
       userService.saveOrUpdate(user);
+      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
 
       String token = jwtUtils.generateToken(user.getId());
 
@@ -335,7 +344,7 @@ public class AppLoginController extends AppBaseController {
   }
 
   /**
-   * code静默登录
+   * 保留旧路由的明确失败提示, 不再签发绕过协议确认的静默登录令牌.
    *
    * @param code code
    * @return RestResponse
@@ -343,8 +352,8 @@ public class AppLoginController extends AppBaseController {
   @IgnoreAuth
   @GetMapping("/{code}")
   @Operation(
-      summary = "静默登录",
-      description = "使用code静默登录",
+      summary = "旧静默登录入口已停用",
+      description = "请使用包含主动协议确认的授权登录入口",
       parameters = {
         @Parameter(
             in = ParameterIn.PATH,
@@ -354,46 +363,6 @@ public class AppLoginController extends AppBaseController {
             example = "oxaA11ulr9134oBL9Xscon5at_Gc")
       })
   public RestResponse<LoginVo> loginByCode(@PathVariable String code) {
-    try {
-      WxMaJscode2SessionResult session = wxMaService.getUserService().getSessionInfo(code);
-
-      String openid = session.getOpenid();
-      String unionid = session.getUnionid();
-      WxUserEntity user =
-          userService.getOne(new QueryWrapper<WxUserEntity>().eq("UNION_ID", session.getUnionid()));
-      if (user == null) {
-        user = userService.getOne(new QueryWrapper<WxUserEntity>().eq("MA_OPENID", openid));
-      }
-
-      if (Objects.isNull(user)) {
-        // 用户不存在，新增用户
-        user = new WxUserEntity();
-        user.setNickname(openid);
-        user.setAllIntegral(0);
-        user.setIntegral(0);
-        user.setRegisterTime(new Date());
-        user.setRegisterIp(getClientIp());
-        user.setLastLoginTime(new Date());
-        user.setLastLoginIp(getClientIp());
-        user.setUnionId(unionid);
-        user.setMaOpenid(openid);
-        userService.save(user);
-      }
-
-      String token = jwtUtils.generateToken(user.getId());
-
-      if (StringUtils.isNullOrEmpty(token)) {
-        log.error("登录失败：token生成异常");
-        return RestResponse.fail("登录失败");
-      }
-      LoginVo map = new LoginVo();
-      map.setToken(token);
-      map.setUserInfo(user);
-      map.setUserId(user.getId());
-      return RestResponse.ok(map);
-    } catch (WxErrorException e) {
-      log.error("登录失败", e);
-      return RestResponse.fail("登录失败：" + e.getError().getErrorMsg());
-    }
+    return RestResponse.fail("请通过授权登录页面阅读并主动确认用户协议及隐私政策");
   }
 }

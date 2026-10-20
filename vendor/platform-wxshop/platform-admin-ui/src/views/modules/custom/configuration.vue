@@ -84,6 +84,19 @@
               ></el-input></el-form-item
           ></el-col>
         </el-row>
+        <el-form-item label="成品长度规则">
+          <el-input
+            v-model="product.lengthRules"
+            type="textarea"
+            :rows="5"
+            placeholder='{"mode":"SUM","claspMm":0,"connectionMm":0,"lossMm":0,"toleranceMm":0,"minLengthMm":0,"maxLengthMm":0}'
+          />
+          <p>
+            单位均为mm, 请填写真实工艺参数. SUM为串珠与链段相加, OVERLAY_MAX为链材承载串珠取较长者.
+            扣件及连接统一计入规则, lossMm为加工缩短量; 吊坠等悬挂件不计周长.
+            空规则只能保存设计草稿.
+          </p>
+        </el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct"
           >保存商品配置</el-button
         >
@@ -326,6 +339,7 @@ const createProduct = () => ({
   previewHeight: 750,
   requiredComponentTypes: 'pearl,chain,clasp',
   enabled: 0,
+  lengthRules: '',
 });
 const createOption = () => ({
   id: null,
@@ -339,7 +353,6 @@ const createOption = () => ({
 });
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       goods: [],

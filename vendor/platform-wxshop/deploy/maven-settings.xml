@@ -1,0 +1,10 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+  <!-- 开发构建统一使用官方仓库, 不依赖旧第三方仓库地址. -->
+  <mirrors>
+    <mirror>
+      <id>central-only</id>
+      <mirrorOf>*</mirrorOf>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </mirror>
+  </mirrors>
+</settings>

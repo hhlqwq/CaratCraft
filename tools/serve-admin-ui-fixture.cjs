@@ -4,12 +4,19 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../.tools/copyright/admin-ui-dist');
 const port = Number(process.env.CARATCRAFT_FIXTURE_PORT || 18981);
-const modules = [['mall/order', '订单管理'], ['custom/configuration', '定制配置'],
-  ['custom/work-order', '制作工单'], ['custom/component-stock', '材料库存'], ['mall/goods', '商品管理'], ['community/posts', '社区管理']];
-const permissions = ['mall:order:list', 'mall:order:update', 'mall:goods:list', 'mall:goods:save',
+const modules = [['mall/address', '地址管理'], ['mall/order', '订单管理'], ['custom/configuration', '定制配置'],
+  ['custom/work-order', '制作工单'], ['custom/component-stock', '材料库存'], ['mall/goods', '商品管理'], ['community/posts', '社区管理'], ['merchant/legal', '协议与隐私'], ['merchant/contact', '商家服务']];
+const permissions = ['mall:address:list', 'mall:address:info', 'mall:order:list', 'mall:order:update', 'mall:goods:list', 'mall:goods:save',
   'custom:config:list', 'custom:config:update', 'custom:work:list', 'custom:work:update',
-  'custom:stock:list', 'custom:stock:update', 'sys:monitor:server', 'community:post:list', 'community:post:moderate'];
+  'custom:stock:list', 'custom:stock:update', 'sys:monitor:server', 'community:post:list', 'community:post:moderate', 'merchant:legal:read', 'merchant:legal:update', 'merchant:legal:publish', 'merchant:contact:read', 'merchant:contact:update', 'sys:oss:list'];
 const routes = {
+  '/mall/address/list': {records: [{id: 900001, nickname: '隔离测试会员', userName: '隔离收货人', mobile: '', detailInfo: '仅用于界面测试的地址', isDefault: 1}], total: 1},
+  '/mall/address/info/900001': {id: 900001, userName: '隔离收货人', mobile: '', detailInfo: '仅用于界面测试的地址', isDefault: 1},
+  '/merchant/legal/TERMS': {head: {revision: 1, published_version: 0}, versions: [{kind: 'TERMS', version: 1, title: '隔离测试用户协议', content: '仅用于界面回归的测试正文, 不作为真实经营协议.', status: 'DRAFT'}]},
+  '/merchant/legal/PRIVACY': {head: {revision: 1, published_version: 1}, versions: [{kind: 'PRIVACY', version: 1, title: '隔离测试隐私政策', content: '仅用于界面回归的隐私正文.', status: 'PUBLISHED'}]},
+  '/merchant/contact': {merchantName: '隔离测试商家', phone: '', wechatId: '', qrUrl: '', wxChatEnabled: false, version: 0},
+  '/merchant/contact/history': [],
+  '/sys/oss/list': {records: [{id: 'test-image', url: '/static/img/avatar.png'}], total: 1},
   '/sys/menu/nav': {menuList: modules.map(([url, name], index) => ({menuId: index + 1, name, url, list: []})),
     permissions, dictList: [], orgList: [], userList: []},
   '/sys/user/info': {userId: 1, userName: '界面测试账号'},
@@ -56,4 +63,13 @@ function serve(request, response) {
   fs.createReadStream(file).pipe(response);
 }
 
-http.createServer(serve).listen(port, '127.0.0.1', () => console.log('隔离界面回归: http://127.0.0.1:' + port + '/#/home'));
+/** 测试可在随机回环端口启动服务, 返回句柄以便只关闭本测试服务. */
+function start(selectedPort = port) {
+  const server = http.createServer(serve);
+  return new Promise(resolve => server.listen(selectedPort, '127.0.0.1', () => resolve(server)));
+}
+
+if (require.main === module) {
+  start().then(server => console.log('隔离界面回归: http://127.0.0.1:' + server.address().port + '/#/home'));
+}
+module.exports = {start};

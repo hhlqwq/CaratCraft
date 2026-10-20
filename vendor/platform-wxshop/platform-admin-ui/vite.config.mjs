@@ -32,13 +32,24 @@ function distribution() {
 export default defineConfig({
   base: './',
   publicDir: false,
-  plugins: [vue({template: {compilerOptions: {compatConfig: {MODE: 2}}}}), distribution()],
+  plugins: [vue(), distribution()],
   resolve: {
-    alias: [{find: /^vue$/, replacement: '@vue/compat'}, {find: '@', replacement: path.join(root, 'src')}],
+    alias: [{find: '@', replacement: path.join(root, 'src')}],
     extensions: ['.mjs', '.js', '.json', '.vue'],
   },
   define: {'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'), 'process.env.OPEN_PROXY': 'false'},
   css: {postcss: {plugins: []}},
-  build: {outDir: output, emptyOutDir: true},
+  build: {
+    outDir: output,
+    emptyOutDir: true,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{name: 'lodash', test: /node_modules[\\/]lodash(?:-es)?[\\/]/}],
+        },
+      },
+    },
+
+  },
   server: {host: '127.0.0.1', port: 8081, strictPort: true},
 });

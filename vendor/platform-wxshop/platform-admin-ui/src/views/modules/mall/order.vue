@@ -187,7 +187,6 @@ import AddOrUpdate from './order-add-or-update';
 import RefundPanel from './refund-panel';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

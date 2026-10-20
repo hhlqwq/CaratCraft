@@ -13,7 +13,6 @@
 </template>
 <script>
 export default {
-  compatConfig: {MODE: 2},
   name: 'assets-selector',
   data: function () {
     return {

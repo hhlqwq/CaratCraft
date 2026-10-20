@@ -14,9 +14,7 @@
 </template>
 
 <script>
-export default {
-  compatConfig: {MODE: 2},
-};
+export default {};
 </script>
 
 <style lang="scss">

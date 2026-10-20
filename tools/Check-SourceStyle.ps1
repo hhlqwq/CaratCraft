@@ -1,11 +1,11 @@
-﻿param([string]$Base = 'HEAD', [switch]$Incremental, [switch]$Format)
+﻿param([string]$Base = 'HEAD', [switch]$Incremental, [switch]$Format, [switch]$Docker)
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 $taskUi = Join-Path $taskRoot 'vendor/platform-wxshop/platform-admin-ui'
 $taskFormatter = Join-Path $taskRoot '.tools/copyright/google-java-format.jar'
 $taskJava = Join-Path $taskRoot '.tools/jdk21/jdk-21.0.8+9/bin/java.exe'
-if (-not (Test-Path -LiteralPath $taskJava)) { $taskJava = (Get-Command java -ErrorAction Stop).Source }
+if (-not $Docker -and -not (Test-Path -LiteralPath $taskJava)) { $taskJava = (Get-Command java -ErrorAction Stop).Source }
 
 # 默认检查全量Java及两端前端, 增量模式仅供开发时快速检查.
 Push-Location $taskRoot
@@ -25,7 +25,11 @@ try {
       $taskEnd = [Math]::Min($taskOffset + 39, $taskFiles.Count - 1)
       $taskBatch = @($taskFiles[$taskOffset..$taskEnd])
       $taskArguments = @(if ($Format) { '--replace' } else { '--dry-run'; '--set-exit-if-changed' })
-      & $taskJava -jar $taskFormatter @taskArguments @taskBatch
+      if ($Docker) {
+        & docker run --rm --mount "type=bind,source=$taskRoot,target=/workspace" --workdir /workspace maven:3.9.11-eclipse-temurin-21 java -jar /workspace/.tools/copyright/google-java-format.jar @taskArguments @taskBatch
+      } else {
+        & $taskJava -jar $taskFormatter @taskArguments @taskBatch
+      }
       if ($LASTEXITCODE -ne 0) { throw 'Java格式检查失败' }
       Write-Output ('Java格式进度: ' + ($taskEnd + 1) + '/' + $taskFiles.Count)
     }

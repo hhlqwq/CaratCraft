@@ -42,7 +42,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       disabled: false,

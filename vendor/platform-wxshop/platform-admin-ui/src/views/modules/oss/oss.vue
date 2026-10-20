@@ -79,7 +79,6 @@ import Config from './oss-config';
 import Upload from './oss-upload';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

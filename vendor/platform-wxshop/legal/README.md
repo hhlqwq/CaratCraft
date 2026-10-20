@@ -1,6 +1,8 @@
 # CaratCraft应用发布许可材料
 
-2026-10-16整体验证后的实际应用依赖见[运行组件索引](generated/runtime-components.json). 该索引记录256个不同的后端运行JAR、25个前端/复制样式组件, 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
+实际应用依赖见[运行组件索引](generated/runtime-components.json). 2026-10-21原生Vue3迁移已按构建图同步为28个前端/复制样式组件, 后端保留既有256个运行JAR的许可选择, 本轮重新打包后须核对项目模块哈希和完整分发门禁. 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
+
+本轮新增实际入包的`vue`、`@vue/reactivity`、`@vue/runtime-core`及`@vue/runtime-dom`均为锁定的3.5.44版本, 随附各原始npm包内的完整MIT文本及元数据. 兼容运行时不再入包, 旧许可证据不删除. `tools/sync-frontend-license-inventory.py --date 2026-10-21`仅为这四个已核对的固定版本同步原始文本, 其他新依赖仍会拒绝并要求单独核对.
 
 ## 保留、替换与义务
 

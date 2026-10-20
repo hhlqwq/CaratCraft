@@ -17,7 +17,7 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
+  emits: ['update:modelValue', 'change'],
   name: 'el-dict',
   componentName: 'ElDict',
   data() {
@@ -41,17 +41,18 @@ export default {
     code: {
       type: String,
     },
-    // 接受外部v-model传入的值，必须使用value
-    value: {},
+    // Vue3双向绑定使用modelValue及update:modelValue事件.
+    modelValue: {},
   },
   watch: {
     // 判断下拉框的值是否有改变
     selectValue(val, oldVal) {
       if (val !== oldVal) {
-        this.$emit('input', this.selectValue);
+        this.$emit('update:modelValue', this.selectValue);
       }
     },
-    value(val) {
+    /** 父组件修改或重置字典值时同步当前选择, 数字沿用字典字符串编码. */
+    modelValue(val) {
       if (typeof val === 'number') {
         this.selectValue = val.toString();
       } else {
@@ -59,7 +60,9 @@ export default {
       }
     },
   },
+  /** 首次显示立即回显父值, 字典选项随后按配置代码加载. */
   mounted() {
+    this.selectValue = this.modelValue == null ? '' : String(this.modelValue);
     // 远程请求回来的数据
     this.$http('/sys/dict/queryByCode?code=' + this.code).then((response) => {
       if (response.data.data.type) {

@@ -102,7 +102,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   components: {
     AssetsSelector: () => import('./assets/assets-selector'),
   },

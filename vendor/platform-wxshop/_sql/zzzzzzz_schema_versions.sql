@@ -186,3 +186,44 @@ VALUES (9400,0,'商家服务','merchant/contact','merchant:contact:read',1,'menu
        (940001,9400,'维护客服资料',NULL,'merchant:contact:update',2,NULL,1);
 INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
 VALUES ('V20261020_01_merchant_contact.sql', 'caa2bf9f916460db908f5e94c1b6feea35d4438dd7b93ba28f3feae94e0145ab');
+
+-- 版本: V20261020_02_legal_documents.sql
+-- 协议正文由经营者维护, 不预置或自动发布示例法律文本.
+CREATE TABLE CC_LEGAL_HEAD (
+  kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL PRIMARY KEY,
+  revision INT NOT NULL DEFAULT 0,
+  published_version INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO CC_LEGAL_HEAD(kind) VALUES('TERMS'),('PRIVACY');
+CREATE TABLE CC_LEGAL_DOCUMENT (
+  kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  version INT NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  content MEDIUMTEXT NOT NULL,
+  status VARCHAR(16) NOT NULL DEFAULT 'DRAFT',
+  operator_id VARCHAR(64) NOT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  published_at DATETIME NULL,
+  PRIMARY KEY(kind,version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE CC_LEGAL_ACCEPTANCE (
+  user_id BIGINT NOT NULL,
+  kind VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  version INT NOT NULL,
+  accepted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY(user_id,kind,version),
+  CONSTRAINT fk_acceptance_document FOREIGN KEY(kind,version)
+    REFERENCES CC_LEGAL_DOCUMENT(kind,version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO SYS_MENU(menu_id,parent_id,name,url,perms,type,icon,order_num)
+VALUES (9500,0,'协议与隐私','merchant/legal','merchant:legal:read',1,'menu',47),
+       (950001,9500,'编辑协议草稿',NULL,'merchant:legal:update',2,NULL,1),
+       (950002,9500,'发布协议版本',NULL,'merchant:legal:publish',2,NULL,2);
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261020_02_legal_documents.sql', '61a25daccbeb146478cb99d7563dd976a42e3b0805146065114739cb879e071a');
+
+-- 版本: V20261020_03_finished_length.sql
+-- 不猜测旧商品工艺参数, 空规则保留草稿能力, 完整校验前禁止新定制下单.
+ALTER TABLE CC_CUSTOM_PRODUCT ADD COLUMN length_rules TEXT NULL COMMENT '商家成品长度工艺规则JSON';
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261020_03_finished_length.sql', 'b7de9aa74b2b79403fb55f99d7f48d27492ece032a3d6f2d9f85eb13c8c01b6d');

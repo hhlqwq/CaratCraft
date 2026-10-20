@@ -69,7 +69,7 @@
 import Upload from '../../views/modules/oss/oss-upload';
 
 export default {
-  compatConfig: {MODE: 2},
+  emits: ['update:modelValue', 'change'],
   name: 'el-img',
   componentName: 'ElImg',
   data() {
@@ -91,22 +91,25 @@ export default {
       type: Boolean,
       default: false,
     },
-    // 接受外部v-model传入的值，必须使用value
-    value: {type: String, default: ''},
+    // Vue3双向绑定使用modelValue及update:modelValue事件.
+    modelValue: {type: String, default: ''},
   },
   watch: {
+    /** 图片实际改变后发送Vue3模型事件, 不发出旧版input事件. */
     imageUrl(val, oldVal) {
       if (val !== oldVal) {
-        this.$emit('input', this.imageUrl);
+        this.$emit('update:modelValue', this.imageUrl);
       }
     },
-    value(val) {
+    /** 父表单切换或重置记录时同步图片地址. */
+    modelValue(val) {
       this.imageUrl = val;
     },
   },
+  /** 加载可选图片并回显父表单的当前值. */
   mounted() {
     this.getDataList();
-    this.imageUrl = this.value;
+    this.imageUrl = this.modelValue;
   },
   methods: {
     // 上传文件

@@ -44,9 +44,8 @@
       <el-form-item label="客服二维码">
         <el-img
           v-if="canEdit && isAuth('sys:oss:list')"
-          :value="form.qrUrl"
+          v-model="form.qrUrl"
           :disabled="!canEdit || loading || saving"
-          @input="form.qrUrl = $event"
         />
         <el-image
           v-else-if="form.qrUrl"

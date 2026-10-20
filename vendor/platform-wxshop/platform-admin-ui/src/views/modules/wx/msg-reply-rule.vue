@@ -117,7 +117,6 @@ import AddOrUpdate from './msg-reply-rule-add-or-update';
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   components: {
     AddOrUpdate,
   },

@@ -14,4 +14,6 @@ public class LoginWxMpRequest {
 
   @Schema(description = "公众号appId", example = "wxeca4341756496160")
   private String mpAppId;
+
+  private com.platform.modules.mall.service.LegalDocumentService.Acceptance legalAcceptance;
 }

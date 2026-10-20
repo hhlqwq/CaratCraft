@@ -164,11 +164,26 @@
     </view>
   </view>
 
+  <view class="section sizing-section">
+    <view class="section-title">实测颈围与目标成品长度</view>
+    <view class="section-description">请使用毫米填写实测颈围, AI建议不作为实测数据. 尺寸未齐可先保存草稿.</view>
+    <input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="实测颈围(mm)" disabled="{{saving}}" />
+    <input type="digit" value="{{targetLengthMm}}" data-field="targetLengthMm" bindinput="changeSizing" placeholder="目标成品长度(mm)" disabled="{{saving}}" />
+    <view wx:if="{{quote.sizing}}">{{quote.sizing.notice}}</view>
+    <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}">商家工艺估算成品长度: {{quote.sizing.estimatedFinishedLengthMm}}mm</view>
+  </view>
+  <view class="section ai-configuration">
+    <view class="section-title">AI配置检查</view>
+    <view>云环境配置: {{aiDiagnostics.configured ? '已填写' : '待商家配置'}}</view>
+    <view>当前微信能力: {{aiDiagnostics.supported ? '支持' : '不可用'}}</view>
+    <view>{{aiDiagnostics.quotaNotice}}</view>
+    <button size="mini" bindtap="loadAiStatus">重新检查</button>
+  </view>
   <view class="bottom-bar">
     <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
             disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">保存</button>
     <button class="primary" bindtap="submitDesign" loading="{{saving}}"
-            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">下一步</button>
+            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
   </view>
 </view>
 

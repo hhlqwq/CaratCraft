@@ -115,7 +115,6 @@
 import AddOrUpdate from './ad-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       searchForm: {

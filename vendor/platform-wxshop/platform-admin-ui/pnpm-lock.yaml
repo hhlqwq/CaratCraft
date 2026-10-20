@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@vue/compat':
-        specifier: 3.5.44
-        version: 3.5.44(vue@3.5.44)
       axios:
         specifier: 1.20.0
         version: 1.20.0
@@ -384,11 +381,6 @@ packages:
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
       vue: ^3.2.25 || ^3.6.0-rc.10
-
-  '@vue/compat@3.5.44':
-    resolution: {integrity: sha512-K+dSND+hpy190CnGW4hRNta7o2HjoScXPEIRilLpnP8XMDmXIeGIUeIXlE2kUeo2fUlNjOsv458Me7+N7KxKUg==}
-    peerDependencies:
-      vue: 3.5.44
 
   '@vue/compiler-core@3.5.44':
     resolution: {integrity: sha512-k34nCytbK8PQ1gR2mGROYOw6Pnv/mumqIdrZ3x2tbyXZDWm7ViKGLTfdB+DRrWqEQsLgGJvn0WN9jBif5zCTLQ==}
@@ -1342,14 +1334,6 @@ snapshots:
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.3.4(@types/node@26.3.0)(sass@1.103.1)(terser@5.50.0)
-      vue: 3.5.44
-
-  '@vue/compat@3.5.44(vue@3.5.44)':
-    dependencies:
-      '@babel/parser': 7.29.9
-      entities: 7.0.1
-      estree-walker: 2.0.2
-      source-map-js: 1.2.2
       vue: 3.5.44
 
   '@vue/compiler-core@3.5.44':

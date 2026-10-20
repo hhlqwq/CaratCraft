@@ -1,4 +1,4 @@
-import {createApp, configureCompat} from 'vue';
+import {createApp} from 'vue';
 import App from '@/App';
 // api: https://github.com/vuejs/vue-router
 import router from '@/router';
@@ -7,8 +7,8 @@ import store from '@/store';
 // api: https://github.com/alfhen/vue-cookie
 import cookie from '@/utils/cookie';
 // api: https://github.com/ElemeFE/element
-import ElementPlus, * as ElementComponents from 'element-plus';
-import zhCn from 'element-plus/es/locale/lang/zh-cn';
+import {ElMessageBox} from 'element-plus';
+import {installElementComponents} from '@/utils/element-components';
 import 'element-plus/dist/index.css';
 // api: http://www.iconfont.cn/
 import icons from '@/icons';
@@ -35,18 +35,12 @@ import ElDict from './components/el-dict';
 import ElImg from './components/el-img';
 import RichTextEditor from './components/rich-text-editor';
 
-// 业务组件暂用公开兼容接口, Element Plus明确使用Vue3模式.
-configureCompat({MODE: 3});
-Object.values(ElementComponents).forEach((component) => {
-  if (component && typeof component === 'object' && component.name) {
-    component.compatConfig = {MODE: 3};
-  }
-});
+// 业务组件和Element Plus统一使用原生Vue3运行时.
 const app = createApp(App);
 app.use(router);
 app.use(store);
-app.use(ElementPlus, {locale: zhCn, size: 'default'});
-watchBuildUpdates(ElementComponents.ElMessageBox);
+installElementComponents(app);
+watchBuildUpdates(ElMessageBox);
 app.directive('clipboard', clipboard);
 app.component('icon-svg', IconSvg);
 icons.install();

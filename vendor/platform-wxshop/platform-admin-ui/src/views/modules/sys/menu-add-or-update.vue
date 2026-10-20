@@ -111,7 +111,6 @@
 import Icon from '@/icons';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     const validateUrl = (rule, value, callback) => {
       if (this.dataForm.type === 1 && !/\S/.test(value)) {

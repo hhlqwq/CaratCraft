@@ -97,7 +97,6 @@
 import AddOrUpdate from './wx-qrcode-add-or-update';
 
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       dataForm: {

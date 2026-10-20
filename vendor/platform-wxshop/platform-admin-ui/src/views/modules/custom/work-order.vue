@@ -116,7 +116,6 @@
 
 <script>
 export default {
-  compatConfig: {MODE: 2},
   data() {
     return {
       status: '',
@@ -179,6 +178,32 @@ export default {
               (item) => `${item.name || item.optionCode} × ${item.quantity} ${item.unit || '件'}`
             )
           : ['历史选项: ' + (craft.optionIds || []).join('、'), '历史参数需结合设计详情核验'];
+        if (craft.sizing) {
+          const sizing = craft.sizing;
+          lines.push('冻结实测颈围: ' + sizing.neckCircumferenceMm + 'mm');
+          lines.push(
+            '目标成品长度: ' +
+              sizing.targetLengthMm +
+              'mm / 工艺估算: ' +
+              sizing.estimatedFinishedLengthMm +
+              'mm'
+          );
+          if (sizing.rules) {
+            lines.push(
+              '冻结长度工艺: ' +
+                sizing.rules.mode +
+                ', 扣件 ' +
+                sizing.rules.claspMm +
+                'mm, 连接 ' +
+                sizing.rules.connectionMm +
+                'mm, 加工缩短 ' +
+                sizing.rules.lossMm +
+                'mm, 容差 ' +
+                sizing.rules.toleranceMm +
+                'mm'
+            );
+          }
+        }
         if (craft.engraving) {
           lines.push('刻字: ' + craft.engraving);
         }

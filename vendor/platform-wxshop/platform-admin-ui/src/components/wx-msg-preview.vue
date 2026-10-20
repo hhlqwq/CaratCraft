@@ -36,7 +36,6 @@
 import {mapState} from 'vuex';
 
 export default {
-  compatConfig: {MODE: 2},
   name: 'wx-msg-preview',
   props: {
     msg: Object,

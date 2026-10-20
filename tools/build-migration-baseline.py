@@ -21,7 +21,7 @@ def main():
         lines.extend([f"-- 版本: {path.name}", path.read_text("utf-8").replace("\r\n", "\n").strip(),
                       "INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)",
                       f"VALUES ('{path.name}', '{checksum}');", ""])
-    (ROOT / "zzzzzzz_schema_versions.sql").write_text("\n".join(lines).rstrip() + "\n", "utf-8")
+    (ROOT / "zzzzzzz_schema_versions.sql").write_text("\n".join(lines).rstrip() + "\n", "utf-8", newline="\n")
     print(f"新建库迁移入口已同步: {len(files)}个版本")
 
 
