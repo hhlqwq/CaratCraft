@@ -124,7 +124,7 @@ Page({
     this.setRegionDoneStatus();
   },
   /** 初始化收货地址编辑状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     if (options.id) {
       this.setData({
         addressId: options.id,

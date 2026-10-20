@@ -12,13 +12,13 @@ Page({
   },
 
   /** 页面显示时读取当前用户的设计快照 / Loads the current user's design snapshots. */
-  onShow: function () {
+  onShow() {
     this.setData({page: 1});
     this.loadDesigns();
   },
 
   /** 加载设计列表并转换为展示字段 / Loads designs and prepares display fields. */
-  loadDesigns: function (nextPage) {
+  loadDesigns(nextPage) {
     const that = this;
     const requestedPage = nextPage || that.data.page;
     that.setData({loading: true});
@@ -61,7 +61,7 @@ Page({
   },
 
   /** 加载下一页, 不重复请求已加载页. */
-  loadMore: function () {
+  loadMore() {
     if (this.data.loading || this.data.designList.length >= this.data.total) {
       return;
     }
@@ -69,7 +69,7 @@ Page({
   },
 
   /** 从历史报价读取冻结图层, 不依赖材料当前名称或配置. */
-  getFrozenLayers: function (json) {
+  getFrozenLayers(json) {
     try {
       return (JSON.parse(json || '{}').components || [])
         .filter(function (line) {
@@ -91,7 +91,7 @@ Page({
   },
 
   /** 使用保存时的排列顺序, 后续材料停用或改名不改变列表内容. */
-  getFrozenArrangement: function (json) {
+  getFrozenArrangement(json) {
     try {
       return JSON.parse(json || '{}').arrangement || [];
     } catch (error) {
@@ -100,12 +100,12 @@ Page({
   },
 
   /** 用户确认后归档本人版本, 下单设计不显示删除操作. */
-  archiveDesign: function (event) {
+  archiveDesign(event) {
     const that = this;
     wx.showModal({
       title: '移除草稿',
       content: '从我的设计中移除此草稿, 已下单设计不受影响。',
-      success: function (res) {
+      success(res) {
         if (!res.confirm) {
           return;
         }
@@ -129,12 +129,12 @@ Page({
   },
 
   /** 获取设计状态文案 / Gets design status text. */
-  getStatusText: function (status) {
+  getStatusText(status) {
     return {DRAFT: '可继续编辑', LOCKED: '已锁定', ORDERED: '已下单'}[status] || '已保存';
   },
 
   /** 从报价 JSON 提取总价 / Extracts total price from quote JSON. */
-  getPriceText: function (priceBreakdownJson) {
+  getPriceText(priceBreakdownJson) {
     try {
       const breakdown = JSON.parse(priceBreakdownJson || '{}');
       return breakdown.totalPrice === undefined ? '--' : '￥' + breakdown.totalPrice;
@@ -144,7 +144,7 @@ Page({
   },
 
   /** 跳转到设计器继续编辑 / Opens the designer for editing. */
-  continueDesign: function (event) {
+  continueDesign(event) {
     const goodsId = Number(event.currentTarget.dataset.goodsId || 0);
     const snapshotId = Number(event.currentTarget.dataset.snapshotId || 0);
     if (!goodsId || !snapshotId) {
@@ -157,7 +157,7 @@ Page({
   },
 
   /** 使用已保存设计创建购买上下文并进入结算 / Creates a buy context from a saved design and opens checkout. */
-  payDesign: function (event) {
+  payDesign(event) {
     const that = this;
     const goodsId = Number(event.currentTarget.dataset.goodsId || 0);
     const snapshotId = Number(event.currentTarget.dataset.snapshotId || 0);
@@ -204,7 +204,7 @@ Page({
   },
 
   /** 打开设计已经关联的订单 / Opens the order related to a submitted design. */
-  viewOrder: function (event) {
+  viewOrder(event) {
     const orderId = Number(event.currentTarget.dataset.orderId || 0);
     if (!orderId) {
       wx.showToast({title: '订单信息不存在', icon: 'none'});

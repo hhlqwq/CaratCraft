@@ -9,11 +9,11 @@ Page({
     totalPages: 1,
   },
   /** 初始化品牌列表状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getBrandList();
   },
   /** 分页读取品牌列表并追加到当前展示集合. */
-  getBrandList: function () {
+  getBrandList() {
     wx.showLoading({
       title: '加载中...',
     });

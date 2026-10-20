@@ -25,12 +25,14 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallCartDao;
 import com.platform.modules.mall.entity.MallCartEntity;
 import com.platform.modules.mall.service.MallCartService;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service实现类
+ * 购物车持久化适配, 批量勾选和删除始终携带所属用户条件.
  *
  * @author 何海龙
  * @since 2024-07-19 20:53:40
@@ -39,16 +41,19 @@ import org.springframework.transaction.annotation.Transactional;
 public class MallCartServiceImpl extends ServiceImpl<MallCartDao, MallCartEntity>
     implements MallCartService {
 
+  /** 按后台筛选条件查询购物车, 数据权限由后台入口控制. */
   @Override
   public List<MallCartEntity> queryAll(Map<String, Object> params) {
     return baseMapper.queryAll(params);
   }
 
+  /** 接受受信任调用方构造的查询条件, 不拼接客户端SQL. */
   @Override
   public List<MallCartEntity> queryAllByWrapper(QueryWrapper<MallCartEntity> queryWrapper) {
     return this.list(queryWrapper);
   }
 
+  /** 后台列表固定使用购物车主键倒序分页. */
   @Override
   public Page<MallCartEntity> queryPage(Map<String, Object> params) {
     // 排序
@@ -58,67 +63,44 @@ public class MallCartServiceImpl extends ServiceImpl<MallCartDao, MallCartEntity
     return page.setRecords(baseMapper.selectMallCartPage(page, params));
   }
 
+  /** 保存经过应用层身份、规格及库存校验的新购物车行. */
   @Override
   public boolean add(MallCartEntity mallCart) {
     return this.save(mallCart);
   }
 
+  /** 更新应用层已经校验归属的购物车行. */
   @Override
   public boolean update(MallCartEntity mallCart) {
     return this.updateById(mallCart);
   }
 
+  /** 删除应用层已经校验归属的单行记录. */
   @Override
   public boolean delete(Integer id) {
     return this.removeById(id);
   }
 
+  /** 后台批量删除在同一事务内完成, 权限由管理入口控制. */
   @Override
   @Transactional(rollbackFor = Exception.class)
   public boolean deleteBatch(Integer[] ids) {
     return this.removeByIds(Arrays.asList(ids));
   }
 
+  /** 一条带用户条件的SQL完成勾选, 不回写其他行的旧数量或价格快照. */
   @Override
   public void updateCheck(String[] productIds, Integer isChecked, Long userId) {
     baseMapper.updateCheck(productIds, isChecked, userId);
-
-    // 判断购物车中是否存在此规格商品
-    Map<String, Object> cartParam = new HashMap<>();
-    cartParam.put("userId", userId);
-    List<MallCartEntity> cartInfoList = baseMapper.queryAll(cartParam);
-    List<Integer> goodsIds = new ArrayList<>();
-    List<MallCartEntity> cartUpdateList = new ArrayList<>();
-    for (MallCartEntity cartItem : cartInfoList) {
-      if (null != cartItem.getChecked() && 1 == cartItem.getChecked()) {
-        goodsIds.add(cartItem.getGoodsId());
-      }
-    }
-    if (!goodsIds.isEmpty()) {
-      for (MallCartEntity cartItem : cartInfoList) {
-        // 存在原始的
-        if (null != cartItem.getChecked() && 1 == cartItem.getChecked()) {
-          for (MallCartEntity cartCrash : cartInfoList) {
-            if (!cartCrash.getId().equals(cartItem.getId())) {
-              cartUpdateList.add(cartCrash);
-              break;
-            }
-          }
-        }
-      }
-    }
-    if (!cartUpdateList.isEmpty()) {
-      for (MallCartEntity cartItem : cartUpdateList) {
-        this.updateById(cartItem);
-      }
-    }
   }
 
+  /** 用户和规格集合同时匹配才删除, 不允许跨账号操作. */
   @Override
   public void deleteByUserAndProductIds(Long userId, String[] productIdsArray) {
     baseMapper.deleteByUserAndProductIds(userId, productIdsArray);
   }
 
+  /** 按应用层传入的用户、商品和规格条件读取购物车行. */
   @Override
   public List<MallCartEntity> queryList(Map<String, Object> param) {
     return baseMapper.queryList(param);

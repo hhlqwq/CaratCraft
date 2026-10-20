@@ -13,7 +13,7 @@ Page({
     refundSubmitting: false,
   },
   /** 初始化订单详情状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.setData({
       orderId: options.id,
     });
@@ -57,11 +57,11 @@ Page({
       .catch(function () {});
   },
   /** 售后理由只随本人订单申请提交. */
-  changeRefundReason: function (event) {
+  changeRefundReason(event) {
     this.setData({refundReason: event.detail.value});
   },
   /** 申请审核不显示为资金已退回, 防止误导用户. */
-  requestRefund: function () {
+  requestRefund() {
     if (this.data.refundSubmitting) {
       return;
     }
@@ -93,7 +93,7 @@ Page({
       });
   },
   /** 将后端快照转换为订单展示字段 / Formats customization snapshot for display. */
-  formatCustomization: function (customization) {
+  formatCustomization(customization) {
     if (!customization) {
       return null;
     }
@@ -171,7 +171,7 @@ Page({
     wx.showModal({
       title: '',
       content: '确定要取消此订单？',
-      success: function (res) {
+      success(res) {
         if (res.confirm) {
           util
             .request(api.OrderCancel, {
@@ -184,7 +184,7 @@ Page({
                   content: res.data,
                   showCancel: false,
                   confirmText: '继续',
-                  success: function (res) {
+                  success(res) {
                     //  util.redirect('/pages/ucenter/order/order');
                     wx.navigateBack({
                       url: 'pages/ucenter/order/order',
@@ -213,10 +213,10 @@ Page({
             package: payParam.package,
             signType: payParam.signType,
             paySign: payParam.paySign,
-            success: function (res) {
+            success(res) {
               console.log(res);
             },
-            fail: function (res) {
+            fail(res) {
               console.log(res);
             },
           });
@@ -267,7 +267,7 @@ Page({
     wx.showModal({
       title: '',
       content: '确定已经收到商品？',
-      success: function (res) {
+      success(res) {
         if (res.confirm) {
           util
             .request(api.OrderConfirm, {
@@ -280,7 +280,7 @@ Page({
                   content: res.data,
                   showCancel: false,
                   confirmText: '继续',
-                  success: function (res) {
+                  success(res) {
                     //  util.redirect('/pages/ucenter/order/order');
                     wx.navigateBack({
                       url: 'pages/ucenter/order/order',

@@ -16,7 +16,7 @@ Page({
     size: 20,
   },
   /** 读取全部评价与图片评价的数量. */
-  getCommentCount: function () {
+  getCommentCount() {
     const that = this;
     util
       .request(api.CommentCount, {valueId: that.data.valueId, typeId: that.data.typeId})
@@ -30,7 +30,7 @@ Page({
       });
   },
   /** 按当前评价类型分页读取列表. */
-  getCommentList: function () {
+  getCommentList() {
     const that = this;
     util
       .request(api.CommentList, {
@@ -59,7 +59,7 @@ Page({
       });
   },
   /** 初始化商品评价状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.setData({
       typeId: options.typeId,
       valueId: options.valueId,
@@ -69,7 +69,7 @@ Page({
   },
 
   /** 切换评价类型并重新读取对应列表. */
-  switchTab: function () {
+  switchTab() {
     this.setData({
       showType: this.data.showType == 1 ? 0 : 1,
     });
@@ -77,7 +77,7 @@ Page({
     this.getCommentList();
   },
   /** 触底时继续加载商品评价的下一页内容. */
-  onReachBottom: function () {
+  onReachBottom() {
     if (this.data.showType == 0) {
       if (this.data.allCount / this.data.size < this.data.allPage) {
         return false;

@@ -12,10 +12,10 @@ Page({
     totalPages: 1,
   },
   /** 初始化个人订单状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     wx.showLoading({
       title: '加载中...',
-      success: function () {},
+      success() {},
     });
     this.getOrderList();
   },
@@ -23,7 +23,7 @@ Page({
   /**
    * 页面上拉触底事件的处理函数
    */
-  onReachBottom: function () {
+  onReachBottom() {
     this.getOrderList();
   },
 

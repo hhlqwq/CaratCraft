@@ -29,7 +29,7 @@ Page({
     styleKeywords: ['珍珠项链', '18K 金', '通勤款', '礼赠', '可定制'],
   },
   /** 提供当前页面的微信好友分享信息. */
-  onShareAppMessage: function () {
+  onShareAppMessage() {
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline'],
@@ -41,7 +41,7 @@ Page({
     };
   },
   /** 提供当前页面的朋友圈分享信息. */
-  onShareTimeline: function () {
+  onShareTimeline() {
     //用户点击右上角分享朋友圈
     return {
       title: '克拉匠造 | 手工克拉 · 珠宝匠心',
@@ -55,28 +55,28 @@ Page({
     this.getIndexData();
   },
   /** 更新首页搜索词 / Updates the home search keyword. */
-  onSearchInput: function (event) {
+  onSearchInput(event) {
     this.setData({searchKeyword: event.detail.value});
   },
   /** 提交首页商品搜索 / Submits a product search from home. */
-  submitSearch: function () {
+  submitSearch() {
     const keyword = (this.data.searchKeyword || '').trim();
     const query = keyword ? '?keyword=' + encodeURIComponent(keyword) : '';
     wx.navigateTo({url: '/pages/search/search' + query});
   },
   /** 使用快捷关键词检索 / Searches with a suggested keyword. */
-  searchByKeyword: function (event) {
+  searchByKeyword(event) {
     const keyword = event.currentTarget.dataset.keyword;
     this.setData({searchKeyword: keyword});
     this.submitSearch();
   },
   /** 演示标签只跟随服务端商品编码, 不将真实商品统一标为演示. */
-  markDemo: function (item) {
+  markDemo(item) {
     item.isDemo = /^DEMO-/.test(item.goodsSn || '');
     return item;
   },
   /** 读取商城首页区块并更新页面展示. */
-  getIndexData: function () {
+  getIndexData() {
     const that = this;
     const data = {};
     util.request(api.IndexUrlNewGoods).then(function (res) {
@@ -94,7 +94,7 @@ Page({
     wx.stopPullDownRefresh();
   },
   /** 初始化商城首页状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getIndexData();
     wx.login({
       success: (resp) => {

@@ -19,7 +19,7 @@ Page({
     totalPages: 1,
   },
   /** 初始化分类商品状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     const that = this;
     if (options.id) {
       that.setData({
@@ -28,7 +28,7 @@ Page({
     }
 
     wx.getSystemInfo({
-      success: function (res) {
+      success(res) {
         that.setData({
           scrollHeight: res.windowHeight,
         });
@@ -38,7 +38,7 @@ Page({
     this.getCategoryInfo();
   },
   /** 读取当前分类详情与可切换的同级分类. */
-  getCategoryInfo: function () {
+  getCategoryInfo() {
     const that = this;
     util.request(api.GoodsCategory, {id: this.data.id}).then(function (res) {
       if (res.code == 0) {
@@ -71,12 +71,12 @@ Page({
   /**
    * 页面上拉触底事件的处理函数
    */
-  onReachBottom: function () {
+  onReachBottom() {
     this.getGoodsList();
   },
 
   /** 按当前条件分页读取分类商品商品列表. */
-  getGoodsList: function () {
+  getGoodsList() {
     const that = this;
 
     if (that.data.totalPages <= that.data.page - 1) {
@@ -102,7 +102,7 @@ Page({
   },
 
   /** 根据点击的分类标识切换商品展示范围. */
-  switchCate: function (event) {
+  switchCate(event) {
     if (this.data.id == event.currentTarget.dataset.id) {
       return false;
     }

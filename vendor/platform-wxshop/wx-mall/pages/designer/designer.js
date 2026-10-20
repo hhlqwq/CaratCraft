@@ -46,7 +46,7 @@ Page({
   },
 
   /** 获取功能开关与数据用途, 配置缺失不影响手动设计. */
-  loadAiStatus: function () {
+  loadAiStatus() {
     const that = this;
     return util
       .request(api.AiRecommendationStatus, {}, 'GET')
@@ -74,7 +74,7 @@ Page({
   },
 
   /** 更新身体参数时立即废弃旧建议, 不将身体参数写入本地存储. */
-  changeAiInput: function (event) {
+  changeAiInput(event) {
     const field = event.currentTarget.dataset.field;
     if (['aiHeight', 'aiWeight', 'aiNeck'].indexOf(field) < 0) {
       return;
@@ -86,25 +86,25 @@ Page({
   },
 
   /** 使用固定偏好选项, 不向模型发送任意提示词. */
-  changeAiPreference: function (event) {
+  changeAiPreference(event) {
     this.invalidateAi();
     this.setData({aiPreferenceIndex: Number(event.detail.value)});
   },
 
   /** 同意状态变更时废弃在途结果, 不默认勾选数据提交同意. */
-  changeAiConsent: function (event) {
+  changeAiConsent(event) {
     this.invalidateAi();
     this.setData({aiConsent: event.detail.value.indexOf('agree') >= 0});
   },
 
   /** 递增请求序号, 阻止参数修改或切换商品后迟到的建议覆盖页面. */
-  invalidateAi: function () {
+  invalidateAi() {
     this._aiSeq = (this._aiSeq || 0) + 1;
     this.setData({aiResult: null, aiError: '', aiLoading: false});
   },
 
   /** 用户主动同意后请求AI建议, 失败保留手动设计能力. */
-  requestAiRecommendation: function () {
+  requestAiRecommendation() {
     if (this.data.aiLoading) {
       return Promise.resolve();
     }
@@ -163,7 +163,7 @@ Page({
   },
 
   /** 采用仍属于当前商品的材料建议, 成品长度由商家选项确认, 重新获取可信报价. */
-  applyAiRecommendation: function () {
+  applyAiRecommendation() {
     const result = this.data.aiResult;
     if (
       !result ||
@@ -199,10 +199,10 @@ Page({
       wx.showModal({
         title: '采用材料建议',
         content: '将用推荐材料替换当前排列, 之后可撤回。AI建议不会自动确定每种材料的颗数。',
-        success: function (res) {
+        success(res) {
           resolve(res.confirm ? that.updateArrangement(selected, true) : undefined);
         },
-        fail: function () {
+        fail() {
           resolve();
         },
       });
@@ -210,7 +210,7 @@ Page({
   },
 
   /** 加载定制商品配置 / Loads custom product configuration. */
-  loadConfig: function (restoredConfiguration) {
+  loadConfig(restoredConfiguration) {
     this._snapshotSeq = (this._snapshotSeq || 0) + 1;
     this.invalidateAi();
     const that = this;
@@ -373,7 +373,7 @@ Page({
   },
 
   /** 加载本人设计快照并恢复选项 / Loads an owned snapshot and restores its choices. */
-  loadDesignSnapshot: function (snapshotId) {
+  loadDesignSnapshot(snapshotId) {
     const that = this;
     const seq = (this._snapshotSeq = (this._snapshotSeq || 0) + 1);
     this._configSeq = (this._configSeq || 0) + 1;
@@ -426,7 +426,7 @@ Page({
   },
 
   /** 重新加载定制配置 / Reloads customizer configuration. */
-  retryLoadConfig: function () {
+  retryLoadConfig() {
     if (this.data.draftId) {
       this.loadDesignSnapshot(this.data.draftId);
     } else {
@@ -435,7 +435,7 @@ Page({
   },
 
   /** 点击材料库时在当前实例之后插入一项, 同类材料可以多次添加. */
-  selectOption: function (event) {
+  selectOption(event) {
     if (this.data.loadingConfig || this.data.saving) {
       return;
     }
@@ -458,17 +458,17 @@ Page({
   },
 
   /** 选中实例以插入、复制、删除或调序, 重复材料保持独立位置. */
-  selectInstance: function (event) {
+  selectInstance(event) {
     this.setData({activeIndex: Number(event.currentTarget.dataset.index)});
   },
 
   /** 批量复制数量仅影响当前选中材料, 超限时整次操作不执行. */
-  changeCopyCount: function (event) {
+  changeCopyCount(event) {
     this.setData({copyCount: event.detail.value});
   },
 
   /** 统一记录排列历史, 每次变更立即废弃旧报价. */
-  updateArrangement: function (ids, remember) {
+  updateArrangement(ids, remember) {
     if (remember) {
       this._history = this._history || [];
       this._history.push(this.data.arrangementOptionIds.slice());
@@ -508,7 +508,7 @@ Page({
   },
 
   /** 撤回最后一次排列操作, 不修改已下单快照. */
-  undoArrangement: function () {
+  undoArrangement() {
     if (!this._history || !this._history.length || this.data.saving) {
       return;
     }
@@ -516,7 +516,7 @@ Page({
   },
 
   /** 按实例索引操作, 清空经确认后仍可撤回. */
-  editInstance: function (event) {
+  editInstance(event) {
     if (this.data.saving) {
       return;
     }
@@ -526,7 +526,7 @@ Page({
       wx.showModal({
         title: '清空排列',
         content: '清空当前材料, 可通过撤回恢复。',
-        success: function (res) {
+        success(res) {
           if (res.confirm) {
             that.updateArrangement([], true);
           }
@@ -568,7 +568,7 @@ Page({
   },
 
   /** 清除可选升级项 / Clears an optional upgrade selection. */
-  clearOptional: function (event) {
+  clearOptional(event) {
     if (this.data.saving) {
       return;
     }
@@ -590,7 +590,7 @@ Page({
   },
 
   /** 获取当前已选组件名称 / Gets the names of selected component options. */
-  getSelectedOptionNames: function (groups, selectedOptionIds) {
+  getSelectedOptionNames(groups, selectedOptionIds) {
     const names = [];
     groups.forEach(function (group) {
       group.options.forEach(function (option) {
@@ -603,12 +603,12 @@ Page({
   },
 
   /** 展开或收起可选搭配 / Toggles optional customization groups. */
-  toggleOptional: function () {
+  toggleOptional() {
     this.setData({showOptional: !this.data.showOptional});
   },
 
   /** 更新刻字并刷新报价（防抖）/ Updates engraving and refreshes quote with debounce. */
-  changeEngraving: function (event) {
+  changeEngraving(event) {
     if (this.data.saving) {
       return;
     }
@@ -624,7 +624,7 @@ Page({
   },
 
   /** 请求服务端报价 / Requests server-side quote. */
-  refreshQuote: function () {
+  refreshQuote() {
     const that = this;
     // 递增序号丢弃过期响应, 避免快速切换选项时旧报价覆盖新报价 /
     // Bump a sequence to drop stale responses racing with newer selections.
@@ -663,12 +663,12 @@ Page({
   },
 
   /** 保存设计草稿 / Saves a design draft. */
-  saveDraft: function () {
+  saveDraft() {
     this.persistDesign(false).catch(function () {});
   },
 
   /** 保存设计，可选进入结算 / Saves a design and optionally starts checkout. */
-  persistDesign: function (startCheckout) {
+  persistDesign(startCheckout) {
     const that = this;
     if (that.data.saving) {
       return Promise.reject(new Error('正在保存'));
@@ -738,7 +738,7 @@ Page({
   },
 
   /** 确认设计并进入结算 / Confirms a design and starts checkout. */
-  submitDesign: function () {
+  submitDesign() {
     if (!this.data.primaryProductId) {
       wx.showToast({title: '商品规格未配置', icon: 'none'});
       return;
@@ -747,7 +747,7 @@ Page({
   },
 
   /** 初始化页面 / Initializes page state. */
-  onLoad: function (options) {
+  onLoad(options) {
     this._unloaded = false;
     this.loadAiStatus();
     let goodsId = Number((options && options.goodsId) || 0);
@@ -774,7 +774,7 @@ Page({
   },
 
   /** 每次 tab 展示时重载配置, 保证从商品页带入新 ID / Reloads config on each tab show. */
-  onShow: function () {
+  onShow() {
     const goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
     const snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
     if (snapshotId) {
@@ -798,7 +798,7 @@ Page({
   },
 
   /** 页面卸载时使未完成请求失效并清理防抖计时器. */
-  onUnload: function () {
+  onUnload() {
     this._unloaded = true;
     this.invalidateAi();
     this._configSeq = (this._configSeq || 0) + 1;

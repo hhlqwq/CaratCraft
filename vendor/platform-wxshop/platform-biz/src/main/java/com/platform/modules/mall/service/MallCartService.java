@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service接口
+ * 购物车持久化契约, 应用层先校验身份、商品及数量再调用写入方法.
  *
  * @author 何海龙
  * @since 2024-07-19 20:53:40
@@ -60,7 +60,7 @@ public interface MallCartService extends IService<MallCartEntity> {
   /**
    * 新增
    *
-   * @param mallCart
+   * @param mallCart 已通过业务校验的购物车行
    * @return 新增结果
    */
   boolean add(MallCartEntity mallCart);
@@ -68,7 +68,7 @@ public interface MallCartService extends IService<MallCartEntity> {
   /**
    * 根据主键更新
    *
-   * @param mallCart
+   * @param mallCart 已校验归属的购物车行
    * @return 更新结果
    */
   boolean update(MallCartEntity mallCart);
@@ -89,9 +89,12 @@ public interface MallCartService extends IService<MallCartEntity> {
    */
   boolean deleteBatch(Integer[] ids);
 
-  void updateCheck(String[] productIdArray, Integer isChecked, Long id);
+  /** 按用户和规格集合批量勾选, isChecked取0或1, 调用方保证集合非空. */
+  void updateCheck(String[] productIdArray, Integer isChecked, Long userId);
 
+  /** 删除指定用户的规格集合, 用户条件不能省略. */
   void deleteByUserAndProductIds(Long userId, String[] productIdsArray);
 
+  /** 查询用户、商品、规格及勾选条件, 原生客户端调用必须携带userId. */
   List<MallCartEntity> queryList(Map<String, Object> param);
 }

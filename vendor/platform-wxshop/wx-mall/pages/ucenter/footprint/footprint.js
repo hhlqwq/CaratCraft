@@ -48,7 +48,7 @@ Page({
       wx.showModal({
         title: '',
         content: '要删除所选足迹？',
-        success: function (res) {
+        success(res) {
           if (res.confirm) {
             util.request(api.FootprintDelete, {footprintId: footprint.id}).then(function (res) {
               if (res.code === 0) {
@@ -56,7 +56,7 @@ Page({
                   title: res.msg,
                   icon: 'success',
                   duration: 2000,
-                  complete: function () {
+                  complete() {
                     that.getFootprintList();
                   },
                 });
@@ -74,24 +74,24 @@ Page({
     }
   },
   /** 初始化浏览足迹状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getFootprintList();
   },
 
   /** 页面再次展示时刷新浏览足迹状态. */
-  onShow: function () {
+  onShow() {
     this.getFootprintList();
   },
 
   //按下事件开始
-  touchStart: function (e) {
+  touchStart(e) {
     const that = this;
     that.setData({
       touch_start: e.timeStamp,
     });
   },
   //按下事件结束
-  touchEnd: function (e) {
+  touchEnd(e) {
     const that = this;
     that.setData({
       touch_end: e.timeStamp,

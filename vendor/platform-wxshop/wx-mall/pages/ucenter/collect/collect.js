@@ -19,7 +19,7 @@ Page({
   },
 
   /** 页面再次展示时刷新商品收藏状态. */
-  onShow: function () {
+  onShow() {
     this.getCollectList();
   },
 
@@ -35,7 +35,7 @@ Page({
       wx.showModal({
         title: '',
         content: '确定删除收藏吗？',
-        success: function (res) {
+        success(res) {
           if (res.confirm) {
             util
               .request(
@@ -64,14 +64,14 @@ Page({
     }
   },
   //按下事件开始
-  touchStart: function (e) {
+  touchStart(e) {
     const that = this;
     that.setData({
       touch_start: e.timeStamp,
     });
   },
   //按下事件结束
-  touchEnd: function (e) {
+  touchEnd(e) {
     const that = this;
     that.setData({
       touch_end: e.timeStamp,

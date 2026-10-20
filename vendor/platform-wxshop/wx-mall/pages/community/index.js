@@ -19,18 +19,18 @@ Page({
   },
 
   /** 从详情返回后刷新审核状态和点赞数. */
-  onShow: function () {
+  onShow() {
     this.load(true);
   },
 
   /** 切换分类后从第一页重新读取. */
-  filter: function (event) {
+  filter(event) {
     this.setData({kind: event.currentTarget.dataset.kind, mine: false});
     this.load(true);
   },
 
   /** 本人列表需登录, 展示审核原因并允许删除自己的分享. */
-  toggleMine: function () {
+  toggleMine() {
     if (!community.loggedIn()) {
       return;
     }
@@ -39,7 +39,7 @@ Page({
   },
 
   /** 分页响应带请求序号, 分类切换时丢弃旧响应. */
-  load: function (reset) {
+  load(reset) {
     const that = this;
     if (!reset && (this.data.loading || this.data.records.length >= this.data.total)) {
       return Promise.resolve();
@@ -106,25 +106,25 @@ Page({
   },
 
   /** 页尾继续加载, 不跳过失败页. */
-  onReachBottom: function () {
+  onReachBottom() {
     this.load(false);
   },
   /** 下拉刷新同一信息流. */
-  onPullDownRefresh: function () {
+  onPullDownRefresh() {
     this.load(true);
   },
   /** 重试保持当前分类并重新读取第一页. */
-  retry: function () {
+  retry() {
     this.load(true);
   },
   /** 发布前要求登录, 登录完成后用户主动选择内容. */
-  compose: function () {
+  compose() {
     if (community.loggedIn()) {
       wx.navigateTo({url: '/pages/community/publish'});
     }
   },
   /** 详情仅打开公开内容, 私人审核反馈直接显示在本人列表. */
-  open: function (event) {
+  open(event) {
     const item = this.data.records.find(function (row) {
       return row.id === Number(event.currentTarget.dataset.id);
     });
@@ -133,7 +133,7 @@ Page({
     }
   },
   /** 目标点赞状态支持网络重试, 按帖子阻止在途重复点击. */
-  like: function (event) {
+  like(event) {
     if (!community.loggedIn()) {
       return;
     }
@@ -161,12 +161,12 @@ Page({
       });
   },
   /** 删除前确认, 失败时保留当前内容和操作入口. */
-  remove: function (event) {
+  remove(event) {
     const that = this;
     wx.showModal({
       title: '删除分享',
       content: '删除后不再公开, 此操作无法撤回。',
-      success: function (res) {
+      success(res) {
         if (res.confirm) {
           community
             .request('remove', {id: event.currentTarget.dataset.id}, 'POST')
@@ -181,7 +181,7 @@ Page({
     });
   },
   /** 离开页面废弃在途响应. */
-  onUnload: function () {
+  onUnload() {
     this._seq = (this._seq || 0) + 1;
   },
 });

@@ -18,7 +18,7 @@ Page({
     });
   },
   /** 初始化帮助列表状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getHelpList();
   },
 });

@@ -27,7 +27,7 @@ Page({
     designSnapshotId: null,
   },
   /** 初始化结算类型和定制快照 / Initializes checkout type and customization snapshot. */
-  onLoad: function (options) {
+  onLoad(options) {
     const isBuy = options.isBuy === true || options.isBuy === 'true';
     const querySnapshotId = Number(options.designSnapshotId || 0);
     this.setData({
@@ -43,7 +43,7 @@ Page({
   },
 
   /** 加载服务端购买上下文, 再按其中的快照获取最新报价 / Loads server buy context before requoting its snapshot. */
-  getCheckoutInfo: function () {
+  getCheckoutInfo() {
     const that = this;
     const url = api.CartCheckout;
     const buyType = this.data.isBuy ? 'buy' : 'cart';
@@ -107,7 +107,7 @@ Page({
             wx.showModal({
               title: '',
               content: '请添加默认收货地址!',
-              success: function (res) {
+              success(res) {
                 if (res.confirm) {
                   that.selectAddress();
                 }
@@ -134,7 +134,7 @@ Page({
   },
 
   /** 页面再次展示时刷新订单结算状态. */
-  onShow: function () {
+  onShow() {
     this.getCouponData();
 
     try {
@@ -153,7 +153,7 @@ Page({
   /**
    * 获取优惠券
    */
-  getCouponData: function () {
+  getCouponData() {
     if (app.globalData.userCoupon == 'USE_COUPON') {
       this.setData({
         couponDesc: app.globalData.selectedCoupon.name,
@@ -170,7 +170,7 @@ Page({
   /**
    * 选择可用优惠券
    */
-  tapCoupon: function () {
+  tapCoupon() {
     const that = this;
 
     wx.navigateTo({
@@ -179,7 +179,7 @@ Page({
   },
 
   /** 提交期间锁定按钮, 已创建订单仅继续支付而不重复下单. */
-  submitOrder: function () {
+  submitOrder() {
     if (this.data.submitting) {
       return;
     }

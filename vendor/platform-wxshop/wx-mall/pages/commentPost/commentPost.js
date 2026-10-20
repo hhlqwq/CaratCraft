@@ -7,7 +7,7 @@ Page({
     content: '',
   },
   /** 初始化评价发布状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     const that = this;
     that.setData({
       typeId: parseInt(options.typeId),
@@ -44,7 +44,7 @@ Page({
         if (res.code === 0) {
           wx.showToast({
             title: '已提交审核',
-            complete: function () {
+            complete() {
               wx.navigateBack({
                 delta: 1,
               });

@@ -31,7 +31,7 @@ Page({
   },
 
   /** 页面再次展示时恢复有效会话并刷新个人中心资料. */
-  onShow: function () {
+  onShow() {
     const userInfo = wx.getStorageSync('userInfo');
     const token = wx.getStorageSync('token');
 
@@ -93,12 +93,12 @@ Page({
       });
   },
   /** 确认后清除本机会话并恢复游客展示. */
-  exitLogin: function () {
+  exitLogin() {
     wx.showModal({
       title: '',
       confirmColor: '#b4282d',
       content: '退出登录？',
-      success: function (res) {
+      success(res) {
         if (res.confirm) {
           wx.removeStorageSync('token');
           wx.removeStorageSync('userInfo');
@@ -116,7 +116,7 @@ Page({
     });
   },
   /** 按当前会话刷新个人资料, 无有效会话时显示游客状态. */
-  refreshUserInfo: function () {
+  refreshUserInfo() {
     const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
     this.setData({
       userInfo: userInfo,
@@ -135,14 +135,14 @@ Page({
     }
   },
   // 统一服务端与小程序头像字段 / Normalizes server and mini-program avatar fields.
-  normalizeUserInfo: function (userInfo) {
+  normalizeUserInfo(userInfo) {
     const normalized = Object.assign({}, userInfo || {});
     normalized.avatar = normalized.headImgUrl || normalized.avatar || DEFAULT_AVATAR;
     normalized.headImgUrl = normalized.avatar;
     return normalized;
   },
   // 应用并持久化用户资料 / Applies and persists the user profile.
-  applyUserInfo: function (userInfo) {
+  applyUserInfo(userInfo) {
     const normalized = this.normalizeUserInfo(userInfo);
     app.globalData.userInfo = normalized;
     wx.setStorageSync('userInfo', normalized);
@@ -153,7 +153,7 @@ Page({
     });
   },
   // 打开资料编辑层 / Opens the profile editor.
-  openProfileEditor: function () {
+  openProfileEditor() {
     const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
     this.setData({
       profileVisible: true,
@@ -164,21 +164,21 @@ Page({
     });
   },
   // 关闭资料编辑层 / Closes the profile editor.
-  closeProfileEditor: function () {
+  closeProfileEditor() {
     if (!this.data.profileSaving) {
       this.setData({profileVisible: false});
     }
   },
   // 接收微信头像选择结果 / Receives the avatar selected from WeChat.
-  chooseAvatar: function (event) {
+  chooseAvatar(event) {
     this.setData({'profileForm.avatarUrl': event.detail.avatarUrl});
   },
   // 接收昵称输入 / Receives nickname input.
-  inputNickname: function (event) {
+  inputNickname(event) {
     this.setData({'profileForm.nickname': event.detail.value});
   },
   // 经用户确认后同步微信昵称和头像 / Syncs WeChat profile after explicit user consent.
-  syncWeChatProfile: function () {
+  syncWeChatProfile() {
     wx.getUserProfile({
       desc: '用于设置商城昵称和头像',
       success: (profile) => {
@@ -207,7 +207,7 @@ Page({
     });
   },
   // 保存昵称和头像 / Saves nickname and avatar.
-  saveProfile: function () {
+  saveProfile() {
     const nickname = (this.data.profileForm.nickname || '').trim();
     if (!nickname || nickname.length > 32) {
       wx.showToast({title: '昵称应为1到32个字符', icon: 'none'});
@@ -242,7 +242,7 @@ Page({
       });
   },
   // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
-  uploadAvatarIfNeeded: function (avatarUrl) {
+  uploadAvatarIfNeeded(avatarUrl) {
     if (
       !avatarUrl ||
       /^https?:\/\//.test(avatarUrl) ||

@@ -97,7 +97,7 @@ function upload(filePath) {
       filePath: filePath,
       name: 'file',
       header: {token: wx.getStorageSync('token') || ''},
-      success: function (res) {
+      success(res) {
         try {
           const body = JSON.parse(res.data);
           if (res.statusCode !== 200 || body.code !== 0) {
@@ -108,7 +108,7 @@ function upload(filePath) {
           reject(error);
         }
       },
-      fail: function () {
+      fail() {
         reject(new Error('图片上传失败, 请检查网络'));
       },
     });

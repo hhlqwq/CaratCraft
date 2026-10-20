@@ -19,18 +19,18 @@ Page({
     categoryId: 0,
   },
   //事件处理函数
-  closeSearch: function () {
+  closeSearch() {
     wx.navigateBack();
   },
   /** 清空关键词并恢复搜索建议状态. */
-  clearKeyword: function () {
+  clearKeyword() {
     this.setData({
       keyword: '',
       searchStatus: false,
     });
   },
   /** 初始化商品搜索状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getSearchKeyword();
     if (options && options.keyword) {
       this.getSearchResult(options.keyword);
@@ -52,7 +52,7 @@ Page({
   },
 
   /** 更新搜索词并按输入刷新联想建议. */
-  inputChange: function (e) {
+  inputChange(e) {
     this.setData({
       keyword: e.detail.value,
       searchStatus: false,
@@ -60,7 +60,7 @@ Page({
     this.getHelpKeyword();
   },
   /** 请求与当前输入匹配的搜索建议. */
-  getHelpKeyword: function () {
+  getHelpKeyword() {
     const that = this;
     util.request(api.SearchHelper, {keyword: that.data.keyword}).then(function (res) {
       if (res.code === 0) {
@@ -71,7 +71,7 @@ Page({
     });
   },
   /** 恢复搜索输入状态并显示搜索建议. */
-  inputFocus: function () {
+  inputFocus() {
     this.setData({
       searchStatus: false,
       goodsList: [],
@@ -82,7 +82,7 @@ Page({
     }
   },
   /** 清除当前用户搜索历史并刷新页面展示. */
-  clearHistory: function () {
+  clearHistory() {
     this.setData({
       historyKeyword: [],
     });
@@ -90,7 +90,7 @@ Page({
     util.request(api.SearchClearHistory, {}).then(function (res) {});
   },
   /** 按当前条件分页读取商品搜索商品列表. */
-  getGoodsList: function () {
+  getGoodsList() {
     const that = this;
     util
       .request(api.GoodsList, {
@@ -118,7 +118,7 @@ Page({
       });
   },
   /** 将点击的建议词设为当前搜索词并执行搜索. */
-  onKeywordTap: function (event) {
+  onKeywordTap(event) {
     this.getSearchResult(event.target.dataset.keyword);
   },
   /** 按当前关键词发起商品搜索并更新列表状态. */
@@ -133,7 +133,7 @@ Page({
     this.getGoodsList();
   },
   /** 切换排序或筛选条件并重新加载商品列表. */
-  openSortFilter: function (event) {
+  openSortFilter(event) {
     const currentId = event.currentTarget.id;
     switch (currentId) {
       case 'categoryFilter':
@@ -167,7 +167,7 @@ Page({
     }
   },
   /** 应用当前分类筛选并刷新商品列表. */
-  selectCategory: function (event) {
+  selectCategory(event) {
     const currentIndex = event.target.dataset.categoryIndex;
     const filterCategory = this.data.filterCategory;
     let currentCategory = null;

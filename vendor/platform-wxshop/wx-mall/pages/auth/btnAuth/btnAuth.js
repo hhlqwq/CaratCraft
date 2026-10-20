@@ -11,7 +11,7 @@ Page({
   },
 
   /** 初始化登录授权状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     const that = this;
     if (wx.getUserProfile) {
       this.setData({
@@ -29,7 +29,7 @@ Page({
     }
 
     wx.login({
-      success: function (res) {
+      success(res) {
         if (res.code) {
           that.setData({
             code: res.code,
@@ -51,12 +51,12 @@ Page({
     });
   },
   /** 处理资料授权回调, 拒绝授权时不继续提交资料. */
-  bindGetUserInfo: function (e) {
+  bindGetUserInfo(e) {
     //登录远程服务器
     this.loginByWeixin(e.detail);
   },
   /** 使用微信临时登录凭证换取本项目会话并恢复用户信息. */
-  loginByWeixin: function (userInfo) {
+  loginByWeixin(userInfo) {
     const that = this;
     util
       .login()
@@ -108,7 +108,7 @@ Page({
   /**
    * 登录成功后返回用户原本要访问的页面, Navigate only after successful login.
    */
-  navigateAfterLogin: function () {
+  navigateAfterLogin() {
     const navUrl = this.data.navUrl;
     if (navUrl && navUrl == '/pages/index/index') {
       wx.switchTab({

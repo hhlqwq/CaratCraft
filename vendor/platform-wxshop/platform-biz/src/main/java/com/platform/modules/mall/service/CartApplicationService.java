@@ -3,12 +3,20 @@ package com.platform.modules.mall.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.RestResponse;
-import com.platform.config.RedisTemplateUtil;
-import com.platform.modules.mall.dao.MallCouponDao;
-import com.platform.modules.mall.dto.*;
+import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.modules.mall.dto.ApiCartAddRequest;
+import com.platform.modules.mall.dto.ApiCartCheckedRequest;
+import com.platform.modules.mall.dto.ApiCartDeleteRequest;
+import com.platform.modules.mall.dto.ApiCartMinusRequest;
+import com.platform.modules.mall.dto.ApiCartUpdateRequest;
 import com.platform.modules.mall.dto.BuyGoodsRequest;
 import com.platform.modules.mall.dto.CouponInfoVo;
-import com.platform.modules.mall.entity.*;
+import com.platform.modules.mall.entity.MallAddressEntity;
+import com.platform.modules.mall.entity.MallCartEntity;
+import com.platform.modules.mall.entity.MallCouponEntity;
+import com.platform.modules.mall.entity.MallGoodsEntity;
+import com.platform.modules.mall.entity.MallGoodsSpecificationEntity;
+import com.platform.modules.mall.entity.MallProductEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
 import com.qiniu.util.StringUtils;
@@ -23,10 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 作者: @author Harmon <br>
- * 时间: 2017-08-11 08:32<br>
+ * 管理本人购物车的读写与结算预览, 写操作先锁定用户行以避免并发合并丢失数量.
  *
- * @gitee https://gitee.com/hehailong/platform 描述: AppController <br>
+ * <p>原始作者: Harmon, 原始时间: 2017-08-11 08:32. 原始项目: https://gitee.com/hehailong/platform.
  */
 @Service
 public class CartApplicationService {
@@ -37,49 +44,61 @@ public class CartApplicationService {
   @Autowired private MallGoodsSpecificationService goodsSpecificationService;
   @Autowired private MallAddressService addressService;
   @Autowired private MallCouponService apiCouponService;
-  @Autowired private MallCouponDao apiCouponMapper;
-  @Autowired private RedisTemplateUtil redisTemplateUtil;
-
-  @Autowired private com.platform.modules.mall.service.PurchaseContextService purchaseContexts;
-  @Autowired private com.platform.modules.mall.service.CheckoutPricingService checkoutPricing;
-  @Autowired private com.platform.modules.custom.service.CustomDesignService customDesignService;
+  @Autowired private PurchaseContextService purchaseContexts;
+  @Autowired private CheckoutPricingService checkoutPricing;
+  @Autowired private CustomDesignService customDesignService;
 
   /** 读取本人购物车和已选金额, 不将促销提示作为结算价格. */
   public Map<String, Object> getCart(WxUserEntity loginUser) {
     Map<String, Object> resultObj = new HashMap<>();
-    // 查询列表数据
+    // 用户条件必须保留, 不允许查询其他账号的购物车.
     Map<String, Object> param = new HashMap<>();
     param.put("userId", loginUser.getId());
     List<MallCartEntity> cartList = cartService.queryList(param);
-    // 获取购物车统计信息
-    Integer goodsCount = 0;
+    // 展示金额来自购物车快照, 正式结算另行读取当前规格价格.
+    int goodsCount = 0;
     BigDecimal goodsAmount = new BigDecimal("0.00");
-    Integer checkedGoodsCount = 0;
+    int checkedGoodsCount = 0;
     BigDecimal checkedGoodsAmount = new BigDecimal("0.00");
     for (MallCartEntity cartItem : cartList) {
       goodsCount += cartItem.getNumber();
       goodsAmount =
-          goodsAmount.add(cartItem.getRetailPrice().multiply(new BigDecimal(cartItem.getNumber())));
+          goodsAmount.add(
+              cartItem.getRetailPrice().multiply(BigDecimal.valueOf(cartItem.getNumber())));
       if (null != cartItem.getChecked() && 1 == cartItem.getChecked()) {
         checkedGoodsCount += cartItem.getNumber();
         checkedGoodsAmount =
             checkedGoodsAmount.add(
-                cartItem.getRetailPrice().multiply(new BigDecimal(cartItem.getNumber())));
+                cartItem.getRetailPrice().multiply(BigDecimal.valueOf(cartItem.getNumber())));
       }
     }
-    // 获取优惠信息提示
+    Map<String, Object> cartTotal = new HashMap<>();
+    cartTotal.put("goodsCount", goodsCount);
+    cartTotal.put("goodsAmount", goodsAmount);
+    cartTotal.put("checkedGoodsCount", checkedGoodsCount);
+    cartTotal.put("checkedGoodsAmount", checkedGoodsAmount);
+    resultObj.put("cartTotal", cartTotal);
+    resultObj.put("cartList", cartList);
+    resultObj.put("couponInfoList", couponHints(checkedGoodsAmount));
+    return resultObj;
+  }
+
+  /** 优惠提示只用于展示, 不作为优惠券适用性及最终扣款依据. */
+  private List<CouponInfoVo> couponHints(BigDecimal checkedGoodsAmount) {
     Map<String, Object> couponParam = new HashMap<>();
     couponParam.put("enabled", true);
     Integer[] sendTypes = new Integer[] {0, 7};
     couponParam.put("sendTypes", sendTypes);
     List<CouponInfoVo> couponInfoList = new ArrayList<>();
     List<MallCouponEntity> couponVos = apiCouponService.queryList(couponParam);
-    if (null != couponVos && couponVos.size() > 0) {
+    if (null != couponVos && !couponVos.isEmpty()) {
       CouponInfoVo fullCutVo = new CouponInfoVo();
       BigDecimal fullCutDec = new BigDecimal(0);
       BigDecimal minAmount = new BigDecimal(100000);
       for (MallCouponEntity couponVo : couponVos) {
-        if (couponVo.getMinGoodsAmount() == null || couponVo.getTypeMoney() == null) continue;
+        if (couponVo.getMinGoodsAmount() == null || couponVo.getTypeMoney() == null) {
+          continue;
+        }
         BigDecimal difDec =
             couponVo
                 .getMinGoodsAmount()
@@ -114,20 +133,10 @@ public class CartApplicationService {
         couponInfoList.add(fullCutVo);
       }
     }
-    resultObj.put("couponInfoList", couponInfoList);
-    resultObj.put("cartList", cartList);
-    //
-    Map<String, Object> cartTotal = new HashMap<>();
-    cartTotal.put("goodsCount", goodsCount);
-    cartTotal.put("goodsAmount", goodsAmount);
-    cartTotal.put("checkedGoodsCount", checkedGoodsCount);
-    cartTotal.put("checkedGoodsAmount", checkedGoodsAmount);
-    //
-    resultObj.put("cartTotal", cartTotal);
-    return resultObj;
+    return couponInfoList;
   }
 
-  /** 获取购物车信息，所有对购物车的增删改操作，都要重新返回购物车的信息 */
+  /** 将本人购物车和统计包装为统一响应, 供列表及修改后的刷新使用. */
   public RestResponse<Map<String, Object>> index(WxUserEntity loginUser) {
     return RestResponse.ok(getCart(loginUser));
   }
@@ -140,19 +149,34 @@ public class CartApplicationService {
     }
   }
 
-  /** 将已有规格ID拆分为查询参数. */
-  private String[] getSpecificationIdsArray(String ids) {
-    String[] idsArray = null;
-    if (org.apache.commons.lang.StringUtils.isNotEmpty(ids)) {
-      String[] tempArray = ids.split("_");
-      if (tempArray.length > 0) {
-        idsArray = tempArray;
-      }
+  /** 统一生成规格展示文本, 缺少规格时明确清空而不遗留上一规格的名称. */
+  private String specificationText(MallProductEntity product) {
+    String ids = product.getGoodsSpecificationIds();
+    if (ids == null || ids.isBlank()) {
+      return "";
     }
-    return idsArray;
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("ids", ids.split("_"));
+    parameters.put("goodsId", product.getGoodsId());
+    List<MallGoodsSpecificationEntity> specifications =
+        goodsSpecificationService.queryList(parameters);
+    return String.join(
+        ";", specifications.stream().map(MallGoodsSpecificationEntity::getValue).toList());
   }
 
-  /** 添加商品到购物车 */
+  /** 新增、换规格和合并使用同一份规格快照, 零售价与市场价分别保存. */
+  private void applyProduct(MallCartEntity cart, MallProductEntity product, int number) {
+    cart.setProductId(product.getId());
+    cart.setGoodsSn(product.getGoodsSn());
+    cart.setNumber(number);
+    cart.setRetailPrice(product.getRetailPrice());
+    cart.setMarketPrice(product.getMarketPrice());
+    cart.setGoodsSpecifitionIds(
+        product.getGoodsSpecificationIds() == null ? "" : product.getGoodsSpecificationIds());
+    cart.setGoodsSpecifitionNameValue(specificationText(product));
+  }
+
+  /** 添加指定规格, 同一用户已有规格合并数量前重新检查库存. */
   @Transactional(rollbackFor = Exception.class)
   public RestResponse<Map<String, Object>> add(WxUserEntity loginUser, ApiCartAddRequest request) {
     lockCart(loginUser.getId());
@@ -182,54 +206,34 @@ public class CartApplicationService {
     cartParam.put("userId", loginUser.getId());
     List<MallCartEntity> cartInfoList = cartService.queryList(cartParam);
     MallCartEntity cartInfo =
-        null != cartInfoList && cartInfoList.size() > 0 ? cartInfoList.get(0) : null;
+        null != cartInfoList && !cartInfoList.isEmpty() ? cartInfoList.get(0) : null;
     if (null == cartInfo) {
-      // 添加操作
-      // 添加规格名和值
-      String[] goodsSepcifitionValue = null;
-      if (null != productInfo.getGoodsSpecificationIds()
-          && productInfo.getGoodsSpecificationIds().length() > 0) {
-        Map<String, Object> specificationParam = new HashMap<>();
-        String[] idsArray = getSpecificationIdsArray(productInfo.getGoodsSpecificationIds());
-        specificationParam.put("ids", idsArray);
-        specificationParam.put("goodsId", goodsId);
-        List<MallGoodsSpecificationEntity> specificationEntities =
-            goodsSpecificationService.queryList(specificationParam);
-        goodsSepcifitionValue = new String[specificationEntities.size()];
-        for (int i = 0; i < specificationEntities.size(); i++) {
-          goodsSepcifitionValue[i] = specificationEntities.get(i).getValue();
-        }
-      }
       cartInfo = new MallCartEntity();
 
       cartInfo.setGoodsId(goodsId);
-      cartInfo.setProductId(productId);
-      cartInfo.setGoodsSn(productInfo.getGoodsSn());
+      applyProduct(cartInfo, productInfo, number);
       cartInfo.setGoodsName(goodsInfo.getName());
       cartInfo.setListPicUrl(goodsInfo.getListPicUrl());
-      cartInfo.setNumber(number);
       cartInfo.setSessionId("1");
       cartInfo.setUserId(loginUser.getId());
-      cartInfo.setRetailPrice(productInfo.getRetailPrice());
-      cartInfo.setMarketPrice(productInfo.getMarketPrice());
-      if (null != goodsSepcifitionValue) {
-        cartInfo.setGoodsSpecifitionNameValue(StringUtils.join(goodsSepcifitionValue, ";"));
-      }
-      cartInfo.setGoodsSpecifitionIds(productInfo.getGoodsSpecificationIds());
       cartInfo.setChecked(1);
       cartService.save(cartInfo);
     } else {
-      // 如果已经存在购物车中，则数量增加
-      if (productInfo.getGoodsNumber() < (number + cartInfo.getNumber())) {
+      // 合并后的总量也必须满足接口上限, 而非只限制本次新增数量.
+      int combinedNumber = number + cartInfo.getNumber();
+      if (combinedNumber > 9999) {
+        return RestResponse.fail(400, "合并后的购买数量不能超过9999");
+      }
+      if (productInfo.getGoodsNumber() < combinedNumber) {
         return RestResponse.fail(400, "库存不足");
       }
-      cartInfo.setNumber(cartInfo.getNumber() + number);
+      cartInfo.setNumber(combinedNumber);
       cartService.update(cartInfo);
     }
     return RestResponse.ok(getCart(loginUser));
   }
 
-  /** 减少商品到购物车 */
+  /** 减少本人指定规格的数量, 数量不足扣减时删除该购物车行. */
   @Transactional(rollbackFor = Exception.class)
   public RestResponse<Integer> minus(WxUserEntity loginUser, ApiCartMinusRequest request) {
     lockCart(loginUser.getId());
@@ -246,7 +250,7 @@ public class CartApplicationService {
     cartParam.put("userId", loginUser.getId());
     List<MallCartEntity> cartInfoList = cartService.queryList(cartParam);
     MallCartEntity cartInfo =
-        null != cartInfoList && cartInfoList.size() > 0 ? cartInfoList.get(0) : null;
+        null != cartInfoList && !cartInfoList.isEmpty() ? cartInfoList.get(0) : null;
     int cartNum = 0;
     if (null != cartInfo) {
       if (cartInfo.getNumber() > number) {
@@ -260,7 +264,7 @@ public class CartApplicationService {
     return RestResponse.ok(cartNum);
   }
 
-  /** 更新指定的购物车信息 */
+  /** 更新本人购物车的数量或规格, 换规格时合并已有行并重新检查库存. */
   @Transactional(rollbackFor = Exception.class)
   public RestResponse<Map<String, Object>> update(
       WxUserEntity loginUser, ApiCartUpdateRequest request) {
@@ -298,83 +302,42 @@ public class CartApplicationService {
     cartParam.put("productId", productId);
     cartParam.put("userId", loginUser.getId());
     List<MallCartEntity> cartInfoList = cartService.queryList(cartParam);
-    MallCartEntity newcartInfo =
-        null != cartInfoList && cartInfoList.size() > 0 ? cartInfoList.get(0) : null;
-    if (null == newcartInfo) {
-      // 添加操作
-      // 添加规格名和值
-      String[] goodsSepcifitionValue = null;
-      if (null != productInfo.getGoodsSpecificationIds()) {
-        Map<String, Object> specificationParam = new HashMap<>();
-        specificationParam.put("ids", productInfo.getGoodsSpecificationIds());
-        specificationParam.put("goodsId", goodsId);
-        List<MallGoodsSpecificationEntity> specificationEntities =
-            goodsSpecificationService.queryList(specificationParam);
-        goodsSepcifitionValue = new String[specificationEntities.size()];
-        for (int i = 0; i < specificationEntities.size(); i++) {
-          goodsSepcifitionValue[i] = specificationEntities.get(i).getValue();
-        }
+    MallCartEntity existingProductCart =
+        null != cartInfoList && !cartInfoList.isEmpty() ? cartInfoList.get(0) : null;
+    int updatedNumber = number;
+    if (existingProductCart != null) {
+      updatedNumber += existingProductCart.getNumber();
+      if (updatedNumber > 9999) {
+        return RestResponse.fail(400, "合并后的购买数量不能超过9999");
       }
-      cartInfo.setProductId(productId);
-      cartInfo.setGoodsSn(productInfo.getGoodsSn());
-      cartInfo.setNumber(number);
-      cartInfo.setRetailPrice(productInfo.getRetailPrice());
-      cartInfo.setMarketPrice(productInfo.getRetailPrice());
-      if (null != goodsSepcifitionValue) {
-        cartInfo.setGoodsSpecifitionNameValue(StringUtils.join(goodsSepcifitionValue, ";"));
-      }
-      cartInfo.setGoodsSpecifitionIds(productInfo.getGoodsSpecificationIds());
-      cartService.update(cartInfo);
-    } else {
-      // 合并购物车已有的product信息，删除已有的数据
-      Integer newNumber = number + newcartInfo.getNumber();
-      if (productInfo.getGoodsNumber() < newNumber) {
+      if (productInfo.getGoodsNumber() < updatedNumber) {
         return RestResponse.fail(400, "库存不足");
       }
-      cartService.delete(newcartInfo.getId());
-      // 添加规格名和值
-      String[] goodsSepcifitionValue = null;
-      if (null != productInfo.getGoodsSpecificationIds()) {
-        Map<String, Object> specificationParam = new HashMap<>();
-        specificationParam.put("ids", productInfo.getGoodsSpecificationIds());
-        specificationParam.put("goodsId", goodsId);
-        List<MallGoodsSpecificationEntity> specificationEntities =
-            goodsSpecificationService.queryList(specificationParam);
-        goodsSepcifitionValue = new String[specificationEntities.size()];
-        for (int i = 0; i < specificationEntities.size(); i++) {
-          goodsSepcifitionValue[i] = specificationEntities.get(i).getValue();
-        }
-      }
-      cartInfo.setProductId(productId);
-      cartInfo.setGoodsSn(productInfo.getGoodsSn());
-      cartInfo.setNumber(newNumber);
-      cartInfo.setRetailPrice(productInfo.getRetailPrice());
-      cartInfo.setMarketPrice(productInfo.getRetailPrice());
-      if (null != goodsSepcifitionValue) {
-        cartInfo.setGoodsSpecifitionNameValue(StringUtils.join(goodsSepcifitionValue, ";"));
-      }
-      cartInfo.setGoodsSpecifitionIds(productInfo.getGoodsSpecificationIds());
-      cartService.update(cartInfo);
+      cartService.delete(existingProductCart.getId());
     }
+    applyProduct(cartInfo, productInfo, updatedNumber);
+    cartService.update(cartInfo);
     return RestResponse.ok(getCart(loginUser));
   }
 
-  /** 是否选择商品，如果已经选择，则取消选择，批量操作 */
+  /** 仅批量更新本人规格的结算选择, 不修改商品数量或金额. */
   @Transactional(rollbackFor = Exception.class)
   public RestResponse<Map<String, Object>> checked(
       WxUserEntity loginUser, ApiCartCheckedRequest request) {
     lockCart(loginUser.getId());
     String productIds = request.getProductIds();
     Integer isChecked = request.getIsChecked();
-    if (StringUtils.isNullOrEmpty(productIds)) {
-      return RestResponse.fail("删除出错");
+    if (StringUtils.isNullOrEmpty(productIds)
+        || isChecked == null
+        || (isChecked != 0 && isChecked != 1)) {
+      return RestResponse.fail(400, "请选择商品并提供有效的勾选状态");
     }
     String[] productIdArray = productIds.split(",");
     cartService.updateCheck(productIdArray, isChecked, loginUser.getId());
     return RestResponse.ok(getCart(loginUser));
   }
 
-  // 删除选中的购物车商品，批量删除
+  /** 按本人身份及规格集合批量删除, 不使用客户端提供的其他用户标识. */
   @Transactional(rollbackFor = Exception.class)
   public RestResponse<Map<String, Object>> delete(
       WxUserEntity loginUser, ApiCartDeleteRequest request) {
@@ -391,7 +354,7 @@ public class CartApplicationService {
     return RestResponse.ok(getCart(loginUser));
   }
 
-  //  获取购物车商品的总件件数
+  /** 汇总本人购物车的总件数, 与商品种类数量区分. */
   public RestResponse<Map<String, Object>> goodscount(WxUserEntity loginUser) {
     if (null == loginUser || null == loginUser.getId()) {
       return RestResponse.fail("未登录");
@@ -402,44 +365,42 @@ public class CartApplicationService {
     param.put("userId", loginUser.getId());
     List<MallCartEntity> cartList = cartService.queryList(param);
     // 获取购物车统计信息
-    Integer goodsCount = 0;
+    int goodsCount = 0;
     for (MallCartEntity cartItem : cartList) {
       goodsCount += cartItem.getNumber();
     }
     resultObj.put("cartList", cartList);
-    //
     Map<String, Object> cartTotal = new HashMap<>();
     cartTotal.put("goodsCount", goodsCount);
-    //
     resultObj.put("cartTotal", cartTotal);
     return RestResponse.ok(resultObj);
   }
 
-  /** 订单提交前的检验和填写相关订单信息 */
+  /** 按当前规格价格、本人地址与优惠券计算结算预览, 定制单重新校验设计报价. */
   public RestResponse<Map<String, Object>> checkout(
       WxUserEntity loginUser, Integer couponId, String type, String checkoutId, Integer addressId) {
-    if (!"cart".equals(type) && !"buy".equals(type)) throw new IllegalArgumentException("购买方式无效");
+    if (!"cart".equals(type) && !"buy".equals(type)) {
+      throw new IllegalArgumentException("购买方式无效");
+    }
     Map<String, Object> resultObj = new HashMap<>();
-    // 根据收货地址计算运费
-
+    // 当前沿用现有零运费策略, 不在展示层伪造商家尚未配置的运费规则.
     BigDecimal freightPrice = new BigDecimal("0.00");
     // 默认收货地址
     Map<String, Object> param = new HashMap<>();
     param.put("userId", loginUser.getId());
-    List addressEntities = addressService.queryList(param);
+    List<MallAddressEntity> addressEntities = addressService.queryList(param);
 
     if (null == addressEntities || addressEntities.isEmpty()) {
       resultObj.put("checkedAddress", new MallAddressEntity());
     } else {
       resultObj.put("checkedAddress", addressEntities.get(0));
     }
-    // * 获取要购买的商品和总价
-    ArrayList<Object> checkedGoodsList = new ArrayList<>();
+    // 两种购买入口最终共用计价校验, 不信任购物车快照中的旧价格.
+    List<MallCartEntity> checkedGoodsList = new ArrayList<>();
     BigDecimal goodsTotalPrice;
     if ("cart".equals(type)) {
-      Map<String, Object> cartData = (Map<String, Object>) this.getCart(loginUser);
-
-      for (MallCartEntity cartEntity : (List<MallCartEntity>) cartData.get("cartList")) {
+      List<MallCartEntity> cartItems = cartService.queryList(Map.of("userId", loginUser.getId()));
+      for (MallCartEntity cartEntity : cartItems) {
         if (cartEntity.getChecked() == 1) {
           MallProductEntity current =
               checkoutPricing.requireProduct(
@@ -450,13 +411,9 @@ public class CartApplicationService {
       }
       goodsTotalPrice =
           checkedGoodsList.stream()
-              .map(
-                  value -> {
-                    MallCartEntity line = (MallCartEntity) value;
-                    return line.getRetailPrice().multiply(BigDecimal.valueOf(line.getNumber()));
-                  })
+              .map(line -> line.getRetailPrice().multiply(BigDecimal.valueOf(line.getNumber())))
               .reduce(BigDecimal.ZERO, BigDecimal::add);
-    } else { // 是直接购买的
+    } else {
       BuyGoodsRequest goodsVO = purchaseContexts.require(loginUser.getId(), checkoutId);
       if (goodsVO == null) {
         return RestResponse.fail("购买信息已失效，请重新选择商品");
@@ -464,9 +421,8 @@ public class CartApplicationService {
       MallProductEntity productInfo =
           checkoutPricing.requireProduct(
               goodsVO.getProductId(), goodsVO.getGoodsId(), goodsVO.getNumber());
-      // 计算订单的费用
-      // 商品总价
-      goodsTotalPrice = productInfo.getRetailPrice().multiply(new BigDecimal(goodsVO.getNumber()));
+      goodsTotalPrice =
+          productInfo.getRetailPrice().multiply(BigDecimal.valueOf(goodsVO.getNumber()));
 
       MallCartEntity cartVo = new MallCartEntity();
       cartVo.setGoodsId(goodsVO.getGoodsId());
@@ -487,7 +443,7 @@ public class CartApplicationService {
               ((Number) resultObj.get("designSnapshotId")).longValue(), loginUser.getId());
       goodsTotalPrice = new BigDecimal(quote.get("totalPrice").toString());
       if (!checkedGoodsList.isEmpty()) {
-        ((MallCartEntity) checkedGoodsList.get(0)).setRetailPrice(goodsTotalPrice);
+        checkedGoodsList.get(0).setRetailPrice(goodsTotalPrice);
       }
     }
     if (addressId != null && addressId > 0) {
@@ -504,23 +460,10 @@ public class CartApplicationService {
     return RestResponse.ok(resultObj);
   }
 
-  /** 选择优惠券列表 */
+  /** 返回本人持有的优惠券, 是否适用由结算计价服务重新校验. */
   public RestResponse<List<MallCouponEntity>> checkedCouponList(WxUserEntity loginUser) {
     Map<String, Object> param = new HashMap<>();
     param.put("userId", loginUser.getId());
-    List<MallCouponEntity> couponVos = apiCouponService.queryList(param);
-    if (null != couponVos && !couponVos.isEmpty()) {
-      // 获取要购买的商品
-      Map<String, Object> cartData = this.getCart(loginUser);
-      List<MallCartEntity> checkedGoodsList = new ArrayList<>();
-      List<Integer> checkedGoodsIds = new ArrayList<>();
-      for (MallCartEntity cartEntity : (List<MallCartEntity>) cartData.get("cartList")) {
-        if (cartEntity.getChecked() == 1) {
-          checkedGoodsList.add(cartEntity);
-          checkedGoodsIds.add(cartEntity.getId());
-        }
-      }
-    }
-    return RestResponse.ok(couponVos);
+    return RestResponse.ok(apiCouponService.queryList(param));
   }
 }

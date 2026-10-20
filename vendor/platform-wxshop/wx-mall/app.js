@@ -1,6 +1,6 @@
 App({
   /** 在支持更新机制的微信客户端提示升级, 用户确认后应用新版. */
-  onLaunch: function () {
+  onLaunch() {
     if (wx.canIUse('getUpdateManager')) {
       const updateManager = wx.getUpdateManager();
       updateManager.onCheckForUpdate(function (res) {
@@ -10,7 +10,7 @@ App({
             wx.showModal({
               title: '更新提示',
               content: '新版本已经准备好，是否重启应用？',
-              success: function (res) {
+              success(res) {
                 if (res.confirm) {
                   // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
                   updateManager.applyUpdate();
@@ -46,7 +46,7 @@ App({
     selectedCoupon: {}, // 当前结算选择的优惠券信息.
   },
   /** 结束应用级刷新提示, 页面数据加载由各页面负责. */
-  onPullDownRefresh: function () {
+  onPullDownRefresh() {
     // 显示顶部刷新图标
     wx.showNavigationBarLoading();
     // 隐藏导航栏加载框

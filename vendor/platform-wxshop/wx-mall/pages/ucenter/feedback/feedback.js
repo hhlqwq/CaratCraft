@@ -19,28 +19,28 @@ Page({
     mobile: '',
   },
   /** 同步当前选择的反馈类型. */
-  bindPickerChange: function (e) {
+  bindPickerChange(e) {
     this.setData({
       index: e.detail.value,
     });
   },
   /** 同步反馈联系手机号输入. */
-  mobileInput: function (e) {
+  mobileInput(e) {
     this.setData({
       mobile: e.detail.value,
     });
   },
   /** 同步反馈正文输入. */
-  contentInput: function (e) {
+  contentInput(e) {
     this.setData({
       contentLength: e.detail.cursor,
       content: e.detail.value,
     });
   },
   /** 清空反馈联系手机号. */
-  cleanMobile: function () {},
+  cleanMobile() {},
   /** 校验反馈内容和联系方式后提交反馈. */
-  sbmitFeedback: function (e) {
+  sbmitFeedback(e) {
     const that = this;
     if (that.data.index == 0) {
       util.showErrorToast('请选择反馈类型');
@@ -59,7 +59,7 @@ Page({
     wx.showLoading({
       title: '提交中...',
       mask: true,
-      success: function () {},
+      success() {},
     });
 
     util
@@ -77,7 +77,7 @@ Page({
             title: res.data,
             icon: 'success',
             duration: 2000,
-            complete: function () {
+            complete() {
               that.setData({
                 index: 0,
                 content: '',

@@ -8,7 +8,7 @@ Page({
     orderId: 0,
   },
   /** 初始化支付结果状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.setData({
       orderId: options.orderId || 24,
       status: options.status,
@@ -17,7 +17,7 @@ Page({
   },
 
   /** 查询服务端支付状态并更新支付结果展示. */
-  updateSuccess: function () {
+  updateSuccess() {
     util.request(api.OrderQuery, {orderId: this.data.orderId}).then(function (res) {});
   },
 

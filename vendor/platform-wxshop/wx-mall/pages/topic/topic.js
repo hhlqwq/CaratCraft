@@ -12,12 +12,12 @@ Page({
     showPage: false,
   },
   /** 初始化专题列表状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getTopic();
   },
 
   /** 在仍有后续内容时加载下一页专题. */
-  nextPage: function (event) {
+  nextPage(event) {
     const that = this;
     if (this.data.page + 1 > that.data.count / that.data.size) {
       return true;
@@ -30,7 +30,7 @@ Page({
     this.getTopic();
   },
   /** 按当前页码读取专题列表及分页信息. */
-  getTopic: function () {
+  getTopic() {
     const that = this;
     that.setData({
       scrollTop: 0,
@@ -62,7 +62,7 @@ Page({
       });
   },
   /** 在当前页大于首页时加载上一页专题. */
-  prevPage: function (event) {
+  prevPage(event) {
     if (this.data.page <= 1) {
       return false;
     }

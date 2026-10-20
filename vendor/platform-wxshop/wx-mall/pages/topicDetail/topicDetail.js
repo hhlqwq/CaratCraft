@@ -11,7 +11,7 @@ Page({
     commentList: [],
   },
   /** 提供当前页面的微信好友分享信息. */
-  onShareAppMessage: function () {
+  onShareAppMessage() {
     //自定义函数 用户点击右上角分享给好友,要先在分享好友这里设置menus的两个参数,才可以分享朋友圈
     wx.showShareMenu({
       withShareTicket: true,
@@ -25,7 +25,7 @@ Page({
     };
   },
   /** 提供当前页面的朋友圈分享信息. */
-  onShareTimeline: function () {
+  onShareTimeline() {
     //用户点击右上角分享朋友圈
     return {
       title: this.data.topic.title,
@@ -36,7 +36,7 @@ Page({
     };
   },
   /** 初始化专题详情状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     const that = this;
     that.setData({
       id: parseInt(options.id),

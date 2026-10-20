@@ -7,7 +7,7 @@ Page({
   },
 
   /** 页面再次展示时刷新结算收货地址状态. */
-  onShow: function () {
+  onShow() {
     this.getAddressList();
   },
   /** 读取本人保存的收货地址列表. */

@@ -23,7 +23,7 @@ Component({
     /**
      * 团转到首页
      */
-    gotoHome: function (event) {
+    gotoHome(event) {
       wx.reLaunch({
         url: '../index/index',
       });

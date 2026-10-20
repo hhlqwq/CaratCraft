@@ -64,6 +64,7 @@ export default [
       'no-unused-vars': ['error', {args: 'none', caughtErrors: 'none'}],
       'no-var': 'error',
       'prefer-const': 'error',
+      'object-shorthand': ['error', 'methods'],
       curly: ['error', 'all'],
       'project/function-description': 'error',
     },

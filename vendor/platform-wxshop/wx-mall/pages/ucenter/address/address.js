@@ -7,7 +7,7 @@ Page({
   },
 
   /** 页面再次展示时刷新收货地址管理状态. */
-  onShow: function () {
+  onShow() {
     this.getAddressList();
   },
   /** 读取本人保存的收货地址列表. */
@@ -33,7 +33,7 @@ Page({
     wx.showModal({
       title: '',
       content: '确定要删除地址？',
-      success: function (res) {
+      success(res) {
         if (res.confirm) {
           const addressId = event.target.dataset.addressId;
           util

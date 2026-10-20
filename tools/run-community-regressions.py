@@ -33,11 +33,25 @@ def main():
     temporary = Path("D:/tmp/hailongcodex") / day.strftime("%Y-%m-%d")
     temporary.mkdir(parents=True, exist_ok=True)
     env["MAVEN_OPTS"] = f'-javaagent:{agent} -Djava.io.tmpdir={temporary} -Djansi.tmpdir={temporary} -Dfile.encoding=UTF-8'
-    tests = ",".join(["CustomQuoteServiceImplTest", "CustomDesignServiceImplTest", "CustomConfigurationServiceTest",
-                      "CustomProductionWorkflowTest", "CommunityDatabaseTest", "OrderTransactionDatabaseTest",
-                      "AppCustomizationControllerTest", "AppCommunityControllerTest", "ReadinessControllerTest", "SafeImageUploadTest",
-                      "ProductVideoUploadTest", "PearlProductValidatorTest", "PearlCatalogServiceTest", "DiskCloudStorageServiceTest",
-                      "MerchantServicesDatabaseTest"])
+    tests = ",".join([
+        "CustomQuoteServiceImplTest",
+        "CustomDesignServiceImplTest",
+        "CustomConfigurationServiceTest",
+        "CustomProductionWorkflowTest",
+        "CommunityDatabaseTest",
+        "OrderTransactionDatabaseTest",
+        "AppCustomizationControllerTest",
+        "AppCommunityControllerTest",
+        "ReadinessControllerTest",
+        "SafeImageUploadTest",
+        "ProductVideoUploadTest",
+        "PearlProductValidatorTest",
+        "PearlCatalogServiceTest",
+        "DiskCloudStorageServiceTest",
+        "MerchantServicesDatabaseTest",
+        "CartApplicationServiceTest",
+        "CheckoutIntegrityTest",
+    ])
     command = [str(ROOT / ".tools/maven/apache-maven-3.9.11/bin/mvn.cmd"), "-o",
                "-s", str(ROOT / ".tools/copyright/maven-central.xml"),
                "-f", str(ROOT / "vendor/platform-wxshop/pom.xml"),

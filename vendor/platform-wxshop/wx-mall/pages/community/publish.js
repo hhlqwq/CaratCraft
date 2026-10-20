@@ -22,12 +22,12 @@ Page({
     loadingDesigns: false,
   },
   /** 加载本人可分享设计, 不获取其他人的草稿. */
-  onLoad: function () {
+  onLoad() {
     this._requestKey = community.requestKey();
     this.loadDesigns();
   },
   /** 获取本人设计供显式选择, 只分享已经保存的排列. */
-  loadDesigns: function () {
+  loadDesigns() {
     const that = this;
     this.setData({loadingDesigns: true, designError: ''});
     util
@@ -58,12 +58,12 @@ Page({
       });
   },
   /** 改动内容后使用新发布键, 未修改的网络重试沿用原键. */
-  changed: function () {
+  changed() {
     this._requestKey = community.requestKey();
     this.setData({error: ''});
   },
   /** 标题和正文始终按纯文本提交. */
-  input: function (event) {
+  input(event) {
     const field = event.currentTarget.dataset.field;
     if (['title', 'content'].indexOf(field) < 0 || this.data.saving) {
       return;
@@ -74,22 +74,22 @@ Page({
     this.changed();
   },
   /** 切换分享类型时不默认授权设计公开. */
-  kind: function (event) {
+  kind(event) {
     this.setData({kindIndex: Number(event.detail.value), consent: false});
     this.changed();
   },
   /** 明确选择本人草稿后再次确认公开. */
-  selectDesign: function (event) {
+  selectDesign(event) {
     this.setData({designIndex: Number(event.detail.value), consent: false});
     this.changed();
   },
   /** 公开设计只在用户主动勾选后发送. */
-  consent: function (event) {
+  consent(event) {
     this.setData({consent: event.detail.value.indexOf('yes') >= 0});
     this.changed();
   },
   /** 按顺序上传安全压缩图片, 每张显示进度, 失败保留已成功图片. */
-  chooseImages: function () {
+  chooseImages() {
     if (this.data.uploading || this.data.saving || this.data.images.length >= 6) {
       return;
     }
@@ -98,7 +98,7 @@ Page({
       count: 6 - this.data.images.length,
       mediaType: ['image'],
       sizeType: ['compressed'],
-      success: function (result) {
+      success(result) {
         that.setData({uploading: true, error: ''});
         let chain = Promise.resolve();
         result.tempFiles.forEach(function (file, index) {
@@ -129,7 +129,7 @@ Page({
     });
   },
   /** 删除尚未提交的图片不影响已发布分享. */
-  removeImage: function (event) {
+  removeImage(event) {
     if (this.data.uploading || this.data.saving) {
       return;
     }
@@ -141,7 +141,7 @@ Page({
     this.changed();
   },
   /** 提交期间冻结编辑, 失败保留正文、图片和幂等键. */
-  submit: function () {
+  submit() {
     if (this.data.saving || this.data.uploading || !community.loggedIn()) {
       return;
     }

@@ -7,7 +7,7 @@ Page({
     actualPrice: 0.0,
   },
   /** 初始化订单支付状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.setData({
       orderId: options.orderId,
       actualPrice: options.actualPrice,
@@ -26,12 +26,12 @@ Page({
           package: payParam.nonceStr,
           signType: payParam.signType,
           paySign: payParam.paySign,
-          success: function (res) {
+          success(res) {
             wx.redirectTo({
               url: '/pages/payResult/payResult?status=true',
             });
           },
-          fail: function (res) {
+          fail(res) {
             wx.redirectTo({
               url: '/pages/payResult/payResult?status=false',
             });

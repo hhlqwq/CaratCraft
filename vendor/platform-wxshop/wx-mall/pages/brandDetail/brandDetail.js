@@ -10,7 +10,7 @@ Page({
     size: 1000,
   },
   /** 初始化品牌详情状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     const that = this;
     that.setData({
       id: parseInt(options.id),
@@ -18,7 +18,7 @@ Page({
     this.getBrand();
   },
   /** 读取当前品牌介绍和展示信息. */
-  getBrand: function () {
+  getBrand() {
     const that = this;
     util.request(api.BrandDetail, {id: that.data.id}).then(function (res) {
       if (res.code === 0) {

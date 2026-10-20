@@ -28,7 +28,7 @@ Page({
     isCustom: false,
   },
   /** 读取商品详情、规格和购物车数量并更新展示状态. */
-  getGoodsInfo: function () {
+  getGoodsInfo() {
     const that = this;
     that.setData({goodsError: '', videoError: false});
     return util
@@ -76,7 +76,7 @@ Page({
     this.setData({videoError: true});
   },
   /** 图片加载失败时替换为本地占位图 / Replaces failed product images with a local placeholder. */
-  handleImageError: function (event) {
+  handleImageError(event) {
     const imageType = event.currentTarget.dataset.imageType;
     const index = Number(event.currentTarget.dataset.index || 0);
     let dataPath = '';
@@ -97,7 +97,7 @@ Page({
     this.setData(update);
   },
   /** 读取当前商品的关联推荐列表. */
-  getGoodsRelated: function () {
+  getGoodsRelated() {
     const that = this;
     util.request(api.GoodsRelated, {id: that.data.id}).then(function (res) {
       if (res.code === 0) {
@@ -108,7 +108,7 @@ Page({
     });
   },
   /** 更新当前点击的规格选项并重新匹配SKU. */
-  clickSkuValue: function (event) {
+  clickSkuValue(event) {
     const specNameId = event.currentTarget.dataset.nameId;
     const specValueId = event.currentTarget.dataset.valueId;
 
@@ -142,7 +142,7 @@ Page({
   },
 
   //获取选中的规格信息
-  getCheckedSpecValue: function () {
+  getCheckedSpecValue() {
     const checkedValues = [];
     const _specificationList = this.data.specificationList;
     for (let i = 0; i < _specificationList.length; i++) {
@@ -163,9 +163,9 @@ Page({
     return checkedValues;
   },
   //根据已选的值，计算其它值的状态
-  setSpecValueStatus: function () {},
+  setSpecValueStatus() {},
   //判断规格是否选择完整
-  isCheckedAllSpec: function () {
+  isCheckedAllSpec() {
     return !this.getCheckedSpecValue().some(function (v) {
       if (v.valueId == 0) {
         return true;
@@ -173,7 +173,7 @@ Page({
     });
   },
   /** 按规格顺序生成用于匹配SKU的选中标识. */
-  getCheckedSpecKey: function () {
+  getCheckedSpecKey() {
     const checkedValue = this.getCheckedSpecValue().map(function (v) {
       return v.valueId;
     });
@@ -181,7 +181,7 @@ Page({
     return checkedValue.join('_');
   },
   /** 根据当前规格选择更新价格、库存及说明. */
-  changeSpecInfo: function () {
+  changeSpecInfo() {
     const checkedNameValue = this.getCheckedSpecValue();
 
     //设置选择的信息
@@ -207,7 +207,7 @@ Page({
     }
   },
   /** 从商品SKU中查找与当前规格组合一致的记录. */
-  getCheckedProductItem: function (key) {
+  getCheckedProductItem(key) {
     return this.data.productList.filter(function (v) {
       if (v.goodsSpecificationIds.indexOf(key) > -1) {
         return true;
@@ -217,7 +217,7 @@ Page({
     });
   },
   /** 初始化商品详情状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.setData({
       id: parseInt(options.id),
       // id: 1181000
@@ -240,7 +240,7 @@ Page({
   },
 
   /** 跳转到 DIY 定制器 / Navigates to the DIY designer tab. */
-  openDesigner: function () {
+  openDesigner() {
     // tabBar 页不支持带参跳转, 通过 storage 传递商品 ID / Tab pages take no query; pass via storage.
     wx.setStorageSync('designerGoodsId', this.data.id);
     wx.switchTab({
@@ -249,7 +249,7 @@ Page({
   },
 
   /** 切换规格选择面板并保留当前购买意图. */
-  switchAttrPop: function () {
+  switchAttrPop() {
     if (this.data.openAttr == false) {
       this.setData({
         openAttr: !this.data.openAttr,
@@ -258,7 +258,7 @@ Page({
     }
   },
   /** 优先关闭规格面板, 无面板时切换商品收藏状态. */
-  closeAttrOrCollect: function () {
+  closeAttrOrCollect() {
     const that = this;
     if (this.data.openAttr) {
       this.setData({
@@ -305,7 +305,7 @@ Page({
     }
   },
   /** 通过独立购物车入口进入购物车页面. */
-  openCartPage: function () {
+  openCartPage() {
     wx.navigateTo({
       url: '/pages/cart/cart',
     });
@@ -314,7 +314,7 @@ Page({
   /**
    * 直接购买
    */
-  buyGoods: function () {
+  buyGoods() {
     const that = this;
     if (this.data.openAttr == false) {
       //打开规格选择窗口
@@ -374,7 +374,7 @@ Page({
   /**
    * 添加到购物车
    */
-  addToCart: function () {
+  addToCart() {
     const that = this;
     if (this.data.openAttr == false) {
       //打开规格选择窗口
@@ -442,19 +442,19 @@ Page({
     }
   },
   /** 减少当前购买数量, 保留最小购买数量限制. */
-  cutNumber: function () {
+  cutNumber() {
     this.setData({
       number: this.data.number - 1 > 1 ? this.data.number - 1 : 1,
     });
   },
   /** 增加当前购买数量, 由现有库存约束限制上限. */
-  addNumber: function () {
+  addNumber() {
     this.setData({
       number: this.data.number + 1,
     });
   },
   /** 初始化默认规格展示与可购买状态. */
-  setDefSpecInfo: function (specificationList) {
+  setDefSpecInfo(specificationList) {
     //未考虑规格联动情况
     const that = this;
     if (!specificationList) {

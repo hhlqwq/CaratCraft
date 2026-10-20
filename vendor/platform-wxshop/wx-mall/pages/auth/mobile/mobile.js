@@ -15,7 +15,7 @@ Page({
   },
 
   /** 初始化手机号绑定状态并读取页面所需数据. */
-  onLoad: function () {
+  onLoad() {
     const that = this;
     that.setData({userInfo: app.globalData.userInfo});
 
@@ -28,7 +28,7 @@ Page({
   },
 
   /** 校验国内手机号格式, 不合法时提示并阻止后续提交. */
-  bindCheckMobile: function (mobile) {
+  bindCheckMobile(mobile) {
     if (!mobile) {
       wx.showModal({
         title: '错误',
@@ -47,20 +47,20 @@ Page({
   },
 
   /** 暂时禁用验证码按钮, 避免重复点击. */
-  bindGetPassCode: function (e) {
+  bindGetPassCode(e) {
     const that = this;
     that.setData({disableGetMobileCode: true});
   },
 
   /** 将手机号输入同步到页面状态. */
-  bindInputMobile: function (e) {
+  bindInputMobile(e) {
     this.setData({
       mobile: e.detail.value,
     });
   },
 
   /** 请求短信验证码并更新重发倒计时. */
-  countDownPassCode: function () {
+  countDownPassCode() {
     if (!this.bindCheckMobile(this.data.mobile)) {
       return;
     }
@@ -103,7 +103,7 @@ Page({
   },
 
   /** 提交当前手机号和验证码完成绑定. */
-  bindLoginMobilecode: function (e) {
+  bindLoginMobilecode(e) {
     const mobile = this.data.mobile;
     if (!this.bindCheckMobile(mobile)) {
       return;

@@ -72,7 +72,7 @@ function expireSession(token) {
     if (!pages.length || pages[pages.length - 1].route !== 'pages/auth/btnAuth/btnAuth') {
       wx.navigateTo({
         url: '/pages/auth/btnAuth/btnAuth',
-        fail: function () {
+        fail() {
           authRedirecting = false;
         },
       });
@@ -108,7 +108,7 @@ function request(url, data = {}, method = 'POST', header = 'application/x-www-fo
         data: data,
         method: method,
         header: {'Content-Type': header, token: token},
-        success: function (res) {
+        success(res) {
           if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
             expireSession(token);
             reject(new Error('登录已失效, 请重新登录'));
@@ -120,7 +120,7 @@ function request(url, data = {}, method = 'POST', header = 'application/x-www-fo
             reject(new Error('请求失败, HTTP ' + res.statusCode));
           }
         },
-        fail: function (error) {
+        fail(error) {
           reject(new Error(error.errMsg || '网络连接失败'));
         },
         complete: finish,
@@ -138,10 +138,10 @@ function request(url, data = {}, method = 'POST', header = 'application/x-www-fo
 function checkSession() {
   return new Promise(function (resolve, reject) {
     wx.checkSession({
-      success: function () {
+      success() {
         resolve(true);
       },
-      fail: function () {
+      fail() {
         reject(false);
       },
     });
@@ -154,14 +154,14 @@ function checkSession() {
 function login() {
   return new Promise(function (resolve, reject) {
     wx.login({
-      success: function (res) {
+      success(res) {
         if (res.code) {
           resolve(res);
         } else {
           reject(res);
         }
       },
-      fail: function (err) {
+      fail(err) {
         reject(err);
       },
     });

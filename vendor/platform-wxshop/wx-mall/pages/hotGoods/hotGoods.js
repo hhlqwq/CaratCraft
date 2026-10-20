@@ -17,7 +17,7 @@ Page({
     size: 1000,
   },
   /** 读取热门商品的筛选条件和页面初始信息. */
-  getData: function () {
+  getData() {
     const that = this;
     util.request(api.GoodsHot).then(function (res) {
       if (res.code === 0) {
@@ -51,12 +51,12 @@ Page({
       });
   },
   /** 初始化热门商品状态并读取页面所需数据. */
-  onLoad: function (options) {
+  onLoad(options) {
     this.getData();
   },
 
   /** 切换排序或筛选条件并重新加载商品列表. */
-  openSortFilter: function (event) {
+  openSortFilter(event) {
     const currentId = event.currentTarget.id;
     switch (currentId) {
       case 'categoryFilter':
@@ -91,7 +91,7 @@ Page({
     }
   },
   /** 应用当前分类筛选并刷新商品列表. */
-  selectCategory: function (event) {
+  selectCategory(event) {
     const currentIndex = event.target.dataset.categoryIndex;
     this.setData({
       categoryFilter: false,

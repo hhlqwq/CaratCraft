@@ -4,6 +4,22 @@ page,
   min-height: 100%;
 }
 
+.cart-feedback {
+  color: #555f5a;
+  font-size: 25rpx;
+  padding: 24rpx;
+}
+
+.cart-error {
+  background: #fff8ed;
+  color: #845324;
+}
+
+.cart-error button {
+  display: block;
+  margin-top: 16rpx;
+}
+
 .container {
   overflow: hidden;
   padding-bottom: 128rpx;
