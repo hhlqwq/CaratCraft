@@ -14,3 +14,5 @@
   <button class="add-image" bindtap="chooseImages" disabled="{{uploading || saving || images.length >= 6}}">{{uploading ? uploadProgress : '添加图片 (' + images.length + '/6)'}} </button>
   <view wx:if="{{error}}" class="moderation-note">{{error}}</view><button class="submit-post" bindtap="submit" loading="{{saving}}" disabled="{{saving || uploading}}">提交审核</button></view>
 </view>
+
+<merchant-contact />

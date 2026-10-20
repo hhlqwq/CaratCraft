@@ -1,0 +1,90 @@
+page {
+  background: #f5f2ec;
+  color: #23332d;
+}
+.aftersales-page {
+  padding: 40rpx 28rpx calc(80rpx + env(safe-area-inset-bottom));
+}
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  margin-bottom: 30rpx;
+}
+.eyebrow {
+  font-size: 22rpx;
+  letter-spacing: 6rpx;
+  color: #8a754f;
+}
+.title {
+  font-size: 42rpx;
+  font-weight: 600;
+}
+.description {
+  font-size: 25rpx;
+  color: #777066;
+  line-height: 1.8;
+}
+.refund-card {
+  background: #fff;
+  padding: 30rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+  border-top: 4rpx solid #b49865;
+  overflow-wrap: anywhere;
+}
+.card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20rpx;
+}
+.status {
+  font-size: 29rpx;
+  font-weight: 600;
+}
+.amount {
+  font-size: 32rpx;
+  color: #8a754f;
+}
+.order-number,
+.reason {
+  font-size: 25rpx;
+  line-height: 1.8;
+}
+.hint {
+  font-size: 25rpx;
+  line-height: 1.8;
+  color: #777066;
+}
+.time {
+  font-size: 22rpx;
+  color: #999;
+}
+.order-link {
+  font-size: 25rpx;
+  color: #23332d;
+  text-align: center;
+  padding: 20rpx;
+  border: 1rpx solid #d7d4ca;
+}
+.notice {
+  padding: 50rpx 20rpx;
+  color: #777066;
+  font-size: 26rpx;
+  line-height: 1.8;
+  text-align: center;
+}
+.empty-hint {
+  display: block;
+  margin: 18rpx 0;
+}
+.load-more,
+.notice button {
+  background: #23332d;
+  color: #fff;
+  font-size: 25rpx;
+  margin-top: 24rpx;
+}

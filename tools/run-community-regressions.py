@@ -15,6 +15,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--database", required=True)
     parser.add_argument("--package", action="store_true", help="定向测试通过后同时打包后端")
+    parser.add_argument("--date", help="客户端日期, YYYY-MM-DD, 用于临时目录")
     args = parser.parse_args()
     if not re.fullmatch(r"caratcraft_init_audit_[0-9]{8}_[a-f0-9]{6}", args.database):
         raise ValueError("只允许使用独立初始化测试库")
@@ -28,13 +29,15 @@ def main():
     env["JAVA_HOME"] = str(ROOT / ".tools/jdk21/jdk-21.0.8+9")
     env["PATH"] = env["JAVA_HOME"] + "/bin;" + env["PATH"]
     agent = ROOT / ".tools/m2/net/bytebuddy/byte-buddy-agent/1.14.13/byte-buddy-agent-1.14.13.jar"
-    temporary = Path("D:/tmp/hailongcodex") / datetime.now().strftime("%Y-%m-%d")
+    day = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.now()
+    temporary = Path("D:/tmp/hailongcodex") / day.strftime("%Y-%m-%d")
     temporary.mkdir(parents=True, exist_ok=True)
     env["MAVEN_OPTS"] = f'-javaagent:{agent} -Djava.io.tmpdir={temporary} -Djansi.tmpdir={temporary} -Dfile.encoding=UTF-8'
     tests = ",".join(["CustomQuoteServiceImplTest", "CustomDesignServiceImplTest", "CustomConfigurationServiceTest",
                       "CustomProductionWorkflowTest", "CommunityDatabaseTest", "OrderTransactionDatabaseTest",
                       "AppCustomizationControllerTest", "AppCommunityControllerTest", "ReadinessControllerTest", "SafeImageUploadTest",
-                      "ProductVideoUploadTest", "PearlProductValidatorTest", "PearlCatalogServiceTest", "DiskCloudStorageServiceTest"])
+                      "ProductVideoUploadTest", "PearlProductValidatorTest", "PearlCatalogServiceTest", "DiskCloudStorageServiceTest",
+                      "MerchantServicesDatabaseTest"])
     command = [str(ROOT / ".tools/maven/apache-maven-3.9.11/bin/mvn.cmd"), "-o",
                "-s", str(ROOT / ".tools/copyright/maven-central.xml"),
                "-f", str(ROOT / "vendor/platform-wxshop/pom.xml"),

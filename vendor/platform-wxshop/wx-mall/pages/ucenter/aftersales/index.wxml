@@ -1,0 +1,17 @@
+<view class="aftersales-page">
+  <view class="intro"><text class="eyebrow">订单服务</text><text class="title">售后中心</text><text class="description">查看本人申请与退款核对进度. 如需退货, 请先联系商家确认寄回安排.</text></view>
+  <view wx:for="{{records}}" wx:key="orderId" class="refund-card">
+    <view class="card-heading"><text class="status">{{item.statusText}}</text><text class="amount">¥ {{item.amountText}}</text></view>
+    <text class="order-number" selectable="{{true}}">订单 {{item.orderSn}}</text>
+    <text class="reason">申请说明: {{item.reason}}</text>
+    <text class="hint">{{item.hint}}</text>
+    <text class="time">最近更新 {{item.updateTime}}</text>
+    <navigator class="order-link" url="/pages/ucenter/orderDetail/orderDetail?id={{item.orderId}}">查看订单详情</navigator>
+  </view>
+  <view wx:if="{{loading}}" class="notice">正在加载售后申请...</view>
+  <view wx:elif="{{error}}" class="notice"><text>{{error}}</text><button bindtap="loadMore">重试加载</button></view>
+  <view wx:elif="{{records.length === 0}}" class="notice"><text>暂时没有售后申请</text><text class="empty-hint">可在本人订单详情中查看是否符合申请条件</text><navigator class="order-link" url="/pages/ucenter/order/order">查看我的订单</navigator></view>
+  <button wx:elif="{{hasMore}}" class="load-more" bindtap="loadMore">加载更多</button>
+  <view wx:else class="notice">已展示全部售后申请</view>
+</view>
+<merchant-contact />

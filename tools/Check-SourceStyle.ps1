@@ -17,7 +17,7 @@ try {
     $taskFiles = @(git -c core.quotepath=false ls-files --cached --others --exclude-standard -- 'vendor/platform-wxshop/*/src/**/*.java')
   }
   if ($LASTEXITCODE -ne 0) { throw '无法读取Git文件范围' }
-  $taskFiles = @($taskFiles | Sort-Object -Unique)
+  $taskFiles = @($taskFiles | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
   if ($taskFiles.Count -gt 0) {
     if (-not (Test-Path -LiteralPath $taskFormatter)) { throw '请按docs/source-style.md准备官方Java格式化工具' }
     # 分批传参避免Windows命令行长度限制, 每批报告关键节点.

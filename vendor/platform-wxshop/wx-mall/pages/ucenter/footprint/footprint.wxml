@@ -21,3 +21,5 @@
     <navigator class="empty-action" url="/pages/index/index" open-type="switchTab">去逛逛</navigator>
   </view>
 </view>
+
+<merchant-contact />

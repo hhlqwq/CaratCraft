@@ -2,6 +2,10 @@
 
 业务代码统一采用Google风格的基本约定: 两空格缩进, 明确命名, JavaScript使用单引号和分号, 对象括号内不增加空格. 新代码优先使用`const`, 确实需要重新赋值时使用`let`, 小程序不再使用`var`. 统一规则覆盖存量业务源码, 不只覆盖新增文件. 第三方源码、原始许可证和版权头不按项目习惯改写.
 
+2026-10-20更新: C/C++采用Google风格并使用4空格缩进, 已在根目录EditorConfig为相关扩展名单独覆盖. Java及前端继续使用2空格.
+
+Git属性同时固定业务源码扩展名的LF换行, 避免Windows的`core.autocrlf`在检出时反复改变格式检查结果. 编码和编辑器缩进仍由EditorConfig约束, 不对原始许可证内容作风格改写.
+
 函数、构造函数及测试用例应有中文职责说明, 标点使用英文符号. 注释解释业务目的、输入边界、状态变化或异常处理, 不重复函数名称, 不保留空生命周期和模板提示语. 小程序静态检查要求具名工具函数和页面入口紧邻中文说明, 匿名回调由所属函数说明职责, 复杂回调仍应另作解释. Java重写方法优先参照接口契约, 改变边界或副作用时补充实现说明. 格式器不能证明注释内容准确或业务设计合理, 复杂逻辑仍须逐项审阅.
 
 Java使用Google Java Format 1.28.0. 工具从[Maven Central官方发布包](https://repo.maven.apache.org/maven2/com/google/googlejavaformat/google-java-format/1.28.0/google-java-format-1.28.0-all-deps.jar)取得, 放在工作区`.tools/copyright/google-java-format.jar`, 使用前对照同地址`.sha256`文件核验. 工具仅用于开发, 不作为应用组件分发.

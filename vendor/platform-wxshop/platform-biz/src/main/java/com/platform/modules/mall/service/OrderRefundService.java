@@ -14,6 +14,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** 持久化退款申请与对账, 外部受理不等于资金退款完成. */
@@ -115,6 +116,30 @@ public class OrderRefundService {
     List<Map<String, Object>> rows =
         jdbc.queryForList("SELECT * FROM CC_REFUND WHERE order_id=?", orderId);
     return rows.isEmpty() ? Map.of("status", "NONE") : publicStatus(rows.get(0));
+  }
+
+  /** 用户中心分页只返回本人的售后公开字段, 不泄露支付侧标识、内部重试或租约. */
+  @Transactional(readOnly = true)
+  public Map<String, Object> mine(Long userId, int page, int limit) {
+    if (userId == null || page < 1 || page > 100000 || limit < 1 || limit > 50) {
+      throw new IllegalArgumentException("售后分页参数无效");
+    }
+    List<Map<String, Object>> records =
+        jdbc.queryForList(
+            "SELECT r.order_id AS orderId,o.order_sn AS orderSn,r.status,r.amount_fen AS amountFen,"
+                + "r.reason,r.create_time AS createTime,r.update_time AS updateTime "
+                + "FROM CC_REFUND r JOIN mall_order o ON o.id=r.order_id WHERE o.user_id=? "
+                + "ORDER BY r.create_time DESC,r.order_id DESC LIMIT ? OFFSET ?",
+            userId,
+            limit,
+            (page - 1) * limit);
+    Long total =
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM CC_REFUND r JOIN mall_order o ON o.id=r.order_id WHERE"
+                + " o.user_id=?",
+            Long.class,
+            userId);
+    return Map.of("records", records, "total", total == null ? 0L : total);
   }
 
   /** 对有到期租约的退款每批最多处理50项, 异常保留重试信息供人工对账. */

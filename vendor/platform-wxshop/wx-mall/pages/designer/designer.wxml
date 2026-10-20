@@ -171,3 +171,5 @@
             disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">下一步</button>
   </view>
 </view>
+
+<merchant-contact />

@@ -11,11 +11,13 @@ import com.platform.common.utils.Constant;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 /** 本地存储边界回归, 只在测试运行器指定的独立临时目录写入. */
 class DiskCloudStorageServiceTest {
-  @TempDir Path directory;
+  @TempDir(cleanup = CleanupMode.NEVER)
+  Path directory;
 
   /** 视频多级目录必须可创建, 返回的公开地址与实际文件路径一致. */
   @Test

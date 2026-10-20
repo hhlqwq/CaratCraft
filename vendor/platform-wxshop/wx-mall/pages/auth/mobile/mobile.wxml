@@ -22,3 +22,5 @@
     </form>
   </view>
 </view>
+
+<merchant-contact />

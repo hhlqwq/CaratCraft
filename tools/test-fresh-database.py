@@ -1,6 +1,7 @@
 """在随机独立数据库验证完整新库SQL初始化, 不运行启动或权限变更脚本."""
 
 from datetime import datetime
+import argparse
 from pathlib import Path
 import re
 import subprocess
@@ -34,7 +35,11 @@ def expand_sql(file, parents=()):
 
 def main():
     """逐文件输出初始化进度, 检查迁移台账及来源不明的商品外链."""
-    database = "caratcraft_init_audit_" + datetime.now().strftime("%Y%m%d") + "_" + uuid.uuid4().hex[:6]
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--date", help="客户端日期, YYYY-MM-DD, 仅用于独立测试库命名")
+    args = parser.parse_args()
+    day = datetime.strptime(args.date, "%Y-%m-%d") if args.date else datetime.now()
+    database = "caratcraft_init_audit_" + day.strftime("%Y%m%d") + "_" + uuid.uuid4().hex[:6]
     if not re.fullmatch(r"caratcraft_init_audit_[0-9]{8}_[0-9a-f]{6}", database):
         raise ValueError("独立测试库名称不合法")
     files = sorted(ROOT.glob("*.sql"))

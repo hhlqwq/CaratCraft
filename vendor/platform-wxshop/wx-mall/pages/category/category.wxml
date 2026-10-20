@@ -34,3 +34,5 @@
 
     </scroll-view>
 </view>
+
+<merchant-contact />

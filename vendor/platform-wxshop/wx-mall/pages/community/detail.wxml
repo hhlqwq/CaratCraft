@@ -10,3 +10,5 @@
     <view class="post-footer"><button size="mini" bindtap="like" loading="{{busy}}" disabled="{{busy}}">{{liked ? '已赞' : '赞'}} {{post.likes}}</button><button wx:if="{{owned}}" size="mini" bindtap="remove">删除分享</button></view>
   </view>
 </view>
+
+<merchant-contact />

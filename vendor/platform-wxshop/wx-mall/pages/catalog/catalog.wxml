@@ -18,3 +18,5 @@
   <button wx:elif="{{hasMore}}" class="more" bindtap="loadMore">加载更多</button>
   <view wx:else class="status">已展示全部商品</view>
 </view>
+
+<merchant-contact />

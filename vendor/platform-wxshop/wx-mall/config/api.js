@@ -120,5 +120,7 @@ module.exports = {
 
   HelpTypeList: API_BASE_URL + 'helpissue/typeList', //查看帮助类型列表
   PearlCatalog: API_BASE_URL + 'pearl-catalog/list', //按珍珠来源及成品品类组合筛选
+  MerchantContact: API_BASE_URL + 'merchant/contact', //商家公开客服资料
+  RefundList: API_BASE_URL + 'refund/list', //本人售后中心列表
   HelpIssueList: API_BASE_URL + 'helpissue/issueList', //查看问题列表
 };

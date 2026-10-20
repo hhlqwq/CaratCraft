@@ -7,7 +7,7 @@ const prettier = require('../vendor/platform-wxshop/platform-admin-ui/node_modul
 const root = path.resolve(__dirname, '..');
 const write = process.argv.includes('--write');
 
-/** 只选择受版本管理约束的业务文件, 不遍历依赖、构建产物或第三方原件. */
+/** 只选择当前仍存在的业务文件, 不遍历依赖、构建产物、第三方原件或待提交删除项. */
 function businessFiles() {
   const names = execFileSync(
     'git',
@@ -26,6 +26,7 @@ function businessFiles() {
       }
       return name.startsWith('vendor/platform-wxshop/wx-mall/') && /\.(js|wxss|json)$/.test(name);
     })
+    .filter((name) => fs.existsSync(path.join(root, name)))
     .sort();
 }
 

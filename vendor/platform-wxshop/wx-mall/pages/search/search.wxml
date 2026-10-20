@@ -63,3 +63,5 @@
     <text class="text">您寻找的商品还未上架</text>
   </view>
 </scroll-view>
+
+<merchant-contact />

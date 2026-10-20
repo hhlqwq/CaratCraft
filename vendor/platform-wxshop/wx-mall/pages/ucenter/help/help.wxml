@@ -9,3 +9,5 @@
     </navigator>
   </view>
 </view>
+
+<merchant-contact />

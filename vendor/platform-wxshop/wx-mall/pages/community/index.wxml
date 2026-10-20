@@ -16,3 +16,5 @@
   </view>
   <view wx:if="{{loading}}" class="state">正在加载分享…</view><view wx:elif="{{records.length && records.length >= total}}" class="end-note">已展示全部分享</view>
 </view>
+
+<merchant-contact />

@@ -34,3 +34,5 @@
       </block>
     </view>
 </view>
+
+<merchant-contact />

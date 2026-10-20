@@ -25,3 +25,5 @@
 
   <view class="fb-btn" bindtap="sbmitFeedback">提交</view>
 </view>
+
+<merchant-contact />

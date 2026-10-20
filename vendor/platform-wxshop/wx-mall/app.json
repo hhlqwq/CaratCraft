@@ -37,7 +37,8 @@
     "pages/auth/btnAuth/btnAuth",
     "pages/community/index",
     "pages/community/detail",
-    "pages/community/publish"
+    "pages/community/publish",
+    "pages/ucenter/aftersales/index"
   ],
   "window": {
     "backgroundTextStyle": "dark",
@@ -84,5 +85,8 @@
   },
   "lazyCodeLoading": "requiredComponents",
   "debug": false,
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "usingComponents": {
+    "merchant-contact": "/components/merchant-contact/index"
+  }
 }

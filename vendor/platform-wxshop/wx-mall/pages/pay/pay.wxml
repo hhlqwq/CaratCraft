@@ -17,3 +17,5 @@
 
     <view class="pay-btn" bindtap="startPay">确定</view>
 </view>
+
+<merchant-contact />

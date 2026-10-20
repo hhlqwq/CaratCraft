@@ -1,0 +1,24 @@
+-- 商家客服资料独立于含密钥的系统配置, 初始留空由经营者维护.
+ALTER TABLE SYS_OSS MODIFY COLUMN URL VARCHAR(1000) DEFAULT NULL COMMENT 'URL地址';
+CREATE TABLE CC_MERCHANT_CONTACT (
+  id INT NOT NULL PRIMARY KEY,
+  merchant_name VARCHAR(120) NOT NULL DEFAULT '',
+  phone VARCHAR(30) NOT NULL DEFAULT '',
+  wechat_id VARCHAR(64) NOT NULL DEFAULT '',
+  qr_url VARCHAR(1000) NOT NULL DEFAULT '',
+  wx_chat_enabled TINYINT NOT NULL DEFAULT 0,
+  version INT NOT NULL DEFAULT 0,
+  update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO CC_MERCHANT_CONTACT(id) VALUES(1);
+CREATE TABLE CC_MERCHANT_CONTACT_LOG (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  version INT NOT NULL,
+  operator_id VARCHAR(64) NOT NULL,
+  snapshot_json JSON NOT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_contact_version(version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT INTO SYS_MENU(menu_id,parent_id,name,url,perms,type,icon,order_num)
+VALUES (9400,0,'商家服务','merchant/contact','merchant:contact:read',1,'menu',46),
+       (940001,9400,'维护客服资料',NULL,'merchant:contact:update',2,NULL,1);
