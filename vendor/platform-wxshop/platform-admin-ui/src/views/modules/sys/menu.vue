@@ -7,17 +7,17 @@
         >
       </el-form-item>
     </el-form>
-    <el-table :data="dataList" border style="width: 100%">
+    <el-table
+      :data="dataList"
+      border
+      style="width: 100%"
+      row-key="menuId"
+      :tree-props="{children: 'childrens'}"
+    >
       <el-table-column prop="menuId" header-align="center" align="left" width="80" label="ID">
       </el-table-column>
-      <table-tree-column
-        prop="name"
-        header-align="center"
-        treeKey="menuId"
-        width="150"
-        label="名称"
-      >
-      </table-tree-column>
+      <el-table-column prop="name" header-align="center" width="150" label="名称">
+      </el-table-column>
       <el-table-column
         prop="parentName"
         header-align="center"
@@ -88,7 +88,6 @@
 </template>
 
 <script>
-import TableTreeColumn from '@/components/table-tree-column';
 import AddOrUpdate from './menu-add-or-update';
 
 export default {
@@ -100,7 +99,6 @@ export default {
     };
   },
   components: {
-    TableTreeColumn,
     AddOrUpdate,
   },
   activated() {

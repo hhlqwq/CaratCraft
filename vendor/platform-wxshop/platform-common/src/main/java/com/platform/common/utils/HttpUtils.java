@@ -1,8 +1,9 @@
 package com.platform.common.utils;
 
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -23,17 +24,14 @@ public class HttpUtils {
    * @return 远程资源的响应结果
    * @throws Exception Exception
    */
-  @SuppressWarnings("unused")
   public static String sendPost(String url, String params) throws Exception {
-    CloseableHttpClient httpClient = HttpClients.createDefault();
     HttpPost httpPost = new HttpPost(url);
-    httpPost.setEntity(new StringEntity(params));
-    CloseableHttpResponse response = httpClient.execute(httpPost);
-    HttpEntity entity = response.getEntity();
-    String responseContent = EntityUtils.toString(entity, "UTF-8");
-    response.close();
-    httpClient.close();
-    return responseContent;
+    httpPost.setEntity(new StringEntity(params, StandardCharsets.UTF_8));
+    try (CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = httpClient.execute(httpPost)) {
+      HttpEntity entity = response.getEntity();
+      return entity == null ? "" : EntityUtils.toString(entity, StandardCharsets.UTF_8);
+    }
   }
 
   /**
@@ -44,8 +42,7 @@ public class HttpUtils {
    * @throws Exception Exception
    */
   public static InputStream getNetResource(String imgUrl) throws Exception {
-    URL url = new URL(imgUrl);
-    URLConnection conn = url.openConnection();
+    URLConnection conn = URI.create(imgUrl).toURL().openConnection();
     return conn.getInputStream();
   }
 }

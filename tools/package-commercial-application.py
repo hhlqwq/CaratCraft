@@ -30,7 +30,8 @@ def source_files():
             selected.append(path)
         elif relative.startswith(("tools/", "legal/", "data/")) or (relative.startswith("docs/") and path.suffix == ".md"):
             selected.append(path)
-        elif relative in {"README.md", ".gitignore", ".gitattributes", ".editorconfig", ".prettierrc.json", "dev.ps1", "dev.sh"}:
+        elif relative in {"README.md", ".gitignore", ".gitattributes", ".editorconfig", ".prettierrc.json",
+                          "dev.ps1", "dev.sh", "build-local-test.cmd", "start-local-test.cmd"}:
             selected.append(path)
     # 许可材料是交付必需项, 即使外部全局Git规则有遗漏也必须完整导出.
     selected.extend(path for path in (VENDOR / "legal").rglob("*") if path.is_file())

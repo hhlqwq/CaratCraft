@@ -124,8 +124,8 @@ assert_database_ready() {
       return 1
     fi
   done
-  version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_03_goods_recycle_schema.sql';")" || return 1
-  [[ "$version" == 1 ]] || { echo "请先按use.md备份并完成V20261021_03迁移。"; return 1; }
+  version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_04_menu_encoding.sql';")" || return 1
+  [[ "$version" == 1 ]] || { echo "请先按use.md备份并完成V20261021_04迁移。"; return 1; }
 }
 
 # 输出有限的容器状态和健康检查结果, 保留启动失败退出码.

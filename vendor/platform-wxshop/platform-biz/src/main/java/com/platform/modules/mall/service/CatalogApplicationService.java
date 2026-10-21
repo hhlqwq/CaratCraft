@@ -2,24 +2,50 @@ package com.platform.modules.mall.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.platform.common.utils.*;
-import com.platform.modules.mall.entity.*;
+import com.platform.common.utils.CharUtil;
+import com.platform.common.utils.DateUtils;
+import com.platform.common.utils.Query;
+import com.platform.common.utils.RestResponse;
+import com.platform.modules.mall.entity.MallAttributeEntity;
+import com.platform.modules.mall.entity.MallBrandEntity;
+import com.platform.modules.mall.entity.MallCartEntity;
+import com.platform.modules.mall.entity.MallCategoryEntity;
+import com.platform.modules.mall.entity.MallCollectEntity;
+import com.platform.modules.mall.entity.MallCouponEntity;
+import com.platform.modules.mall.entity.MallFootprintEntity;
+import com.platform.modules.mall.entity.MallGoodsEntity;
+import com.platform.modules.mall.entity.MallGoodsGalleryEntity;
+import com.platform.modules.mall.entity.MallGoodsIssueEntity;
+import com.platform.modules.mall.entity.MallGoodsSpecificationEntity;
+import com.platform.modules.mall.entity.MallProductEntity;
+import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
+import com.platform.modules.mall.entity.MallSearchHistoryEntity;
+import com.platform.modules.mall.entity.MallUserCouponEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.qiniu.util.StringUtils;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 作者: @author Harmon <br>
  * 时间: 2017-08-11 08:32<br>
  *
- * <p>描述: AppController <br>
+ * <p>描述: 商城目录、详情与购物车商品展示服务 <br>
  */
 @Slf4j
-@org.springframework.stereotype.Service
-@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
+@Service
+@Transactional(rollbackFor = Exception.class)
 public class CatalogApplicationService {
   @Autowired private MallGoodsService goodsService;
   @Autowired private MallGoodsSpecificationService goodsSpecificationService;
@@ -38,37 +64,48 @@ public class CatalogApplicationService {
   @Autowired private MallCartService cartService;
   @Autowired private CustomerReviewService reviews;
 
-  /** */
+  /** 查询当前未删除且在售的商品. */
   public RestResponse<Object> index() {
-    //
     Map<String, Object> param = new HashMap<>();
     param.put("isDelete", 0);
     param.put("isOnSale", 1);
     List<MallGoodsEntity> goodsList = goodsService.queryList(param);
-    //
     return RestResponse.ok(goodsList);
   }
 
   /** 获取商品规格信息，用于购物车编辑时选择规格 */
   public RestResponse<Object> sku(Integer id) {
     Map<String, Object> resultObj = new HashMap<>();
-    //
     Map<String, Object> param = new HashMap<>();
     param.put("goodsId", id);
     List<MallGoodsSpecificationEntity> goodsSpecificationEntityList =
         goodsSpecificationService.queryList(param);
-    //
     List<MallProductEntity> productEntityList = productService.queryList(param);
-    //
     resultObj.put("specificationList", goodsSpecificationEntityList);
     resultObj.put("productList", productEntityList);
     return RestResponse.ok(resultObj);
   }
 
+  /** 按首次出现的规格顺序分组, 保留现有名称和取值字段, 避免原始Map的强制转换. */
+  List<Map<String, Object>> groupSpecifications(List<MallGoodsSpecificationEntity> specifications) {
+    Map<Integer, List<MallGoodsSpecificationEntity>> groups = new LinkedHashMap<>();
+    for (MallGoodsSpecificationEntity item : specifications) {
+      groups.computeIfAbsent(item.getSpecificationId(), ignored -> new ArrayList<>()).add(item);
+    }
+    List<Map<String, Object>> result = new ArrayList<>();
+    for (Map.Entry<Integer, List<MallGoodsSpecificationEntity>> group : groups.entrySet()) {
+      Map<String, Object> item = new LinkedHashMap<>();
+      item.put("specificationId", group.getKey());
+      item.put("name", group.getValue().get(0).getValue());
+      item.put("valueList", group.getValue());
+      result.add(item);
+    }
+    return result;
+  }
+
   /** 商品详情页数据 */
   public RestResponse<Object> detail(WxUserEntity loginUser, Integer id, Long referrer) {
     Map<String, Object> resultObj = new HashMap<>();
-    //
     Long userId = loginUser == null ? null : loginUser.getId();
     MallGoodsEntity info = goodsService.getById(id);
     if (info == null
@@ -78,7 +115,6 @@ public class CatalogApplicationService {
     }
     Map<String, Object> param = new HashMap<>();
     param.put("goodsId", id);
-    //
     Map<String, Object> specificationParam = new HashMap<>();
     specificationParam.put("fields", "gs.*, s.name");
     specificationParam.put("goodsId", id);
@@ -88,44 +124,8 @@ public class CatalogApplicationService {
     List<MallGoodsSpecificationEntity> goodsSpecificationEntityList =
         goodsSpecificationService.queryList(specificationParam);
 
-    List<Map> specificationList = new ArrayList<>();
-    // 按规格名称分组
-    for (int i = 0; i < goodsSpecificationEntityList.size(); i++) {
-      MallGoodsSpecificationEntity specItem = goodsSpecificationEntityList.get(i);
-      //
-      List<MallGoodsSpecificationEntity> tempList = null;
-      for (int j = 0; j < specificationList.size(); j++) {
-        if (specificationList.get(j).get("specificationId").equals(specItem.getSpecificationId())) {
-          tempList = (List<MallGoodsSpecificationEntity>) specificationList.get(j).get("valueList");
-          break;
-        }
-      }
-      //
-      if (null == tempList) {
-        Map<String, Object> temp = new HashMap<>();
-        temp.put("specificationId", specItem.getSpecificationId());
-        temp.put("name", specItem.getValue());
-        tempList = new ArrayList<>();
-        tempList.add(specItem);
-        temp.put("valueList", tempList);
-        specificationList.add(temp);
-      } else {
-        for (int j = 0; j < specificationList.size(); j++) {
-          if (specificationList
-              .get(j)
-              .get("specificationId")
-              .equals(specItem.getSpecificationId())) {
-            tempList =
-                (List<MallGoodsSpecificationEntity>) specificationList.get(j).get("valueList");
-            tempList.add(specItem);
-            break;
-          }
-        }
-      }
-    }
-    //
+    List<Map<String, Object>> specificationList = groupSpecifications(goodsSpecificationEntityList);
     List<MallProductEntity> productEntityList = productService.queryList(param);
-    //
     List<MallGoodsGalleryEntity> gallery = goodsGalleryService.queryList(param);
     Map<String, Object> ngaParam = new HashMap<>();
     ngaParam.put("fields", "nga.value, na.name");
@@ -133,25 +133,22 @@ public class CatalogApplicationService {
     ngaParam.put("order", "asc");
     ngaParam.put("goodsId", id);
     List<MallAttributeEntity> attribute = attributeService.queryList(ngaParam);
-    //
     Map<String, Object> issueParam = new HashMap<>();
     List<MallGoodsIssueEntity> issue = goodsIssueService.queryList(issueParam);
-    //
     MallBrandEntity brand = brandService.getById(info.getBrandId());
-    //
-    Map<String, Object> approved = reviews.page(0, id, false, 1, 1);
-    List<Map<String, Object>> reviewRows = (List<Map<String, Object>>) approved.get("records");
+    CustomerReviewService.ReviewPage approved = reviews.page(0, id, false, 1, 1);
     Map<String, Object> commentInfo = new LinkedHashMap<>();
-    if (!reviewRows.isEmpty()) {
-      Map<String, Object> review = reviewRows.get(0);
-      commentInfo.putAll(review);
-      commentInfo.putAll((Map<String, Object>) review.get("userInfo"));
-      commentInfo.put(
-          "addTime",
-          DateUtils.timeToStr(
-              ((Number) review.get("addTime")).longValue(), DateUtils.DATE_PATTERN));
+    if (!approved.records().isEmpty()) {
+      CustomerReviewService.PublicReview review = approved.records().get(0);
+      commentInfo.put("id", review.id());
+      commentInfo.put("content", review.content());
+      commentInfo.put("userInfo", review.userInfo());
+      commentInfo.put("picList", review.picList());
+      commentInfo.put("nickname", review.userInfo().nickname());
+      commentInfo.put("avatar", review.userInfo().avatar());
+      commentInfo.put("addTime", DateUtils.timeToStr(review.addTime(), DateUtils.DATE_PATTERN));
     }
-    Map<String, Object> comment = Map.of("count", approved.get("total"), "data", commentInfo);
+    Map<String, Object> comment = Map.of("count", approved.total(), "data", commentInfo);
     // 当前用户是否收藏
     long userHasCollect = 0L;
     if (userId != null) {
@@ -172,7 +169,6 @@ public class CatalogApplicationService {
       footprintEntity.setReferrer(referrer == null ? 0L : referrer);
       footprintService.save(footprintEntity);
     }
-    //
     resultObj.put("info", info);
     resultObj.put("gallery", buildGalleryData(gallery, info));
     resultObj.put("attribute", attribute);
@@ -282,14 +278,11 @@ public class CatalogApplicationService {
   /** 　获取分类下的商品 */
   public RestResponse<Object> category(Integer id) {
     Map<String, Object> resultObj = new HashMap<>();
-    //
     MallCategoryEntity currentCategory = categoryService.getById(id);
-    //
     MallCategoryEntity parentCategory = categoryService.getById(currentCategory.getParentId());
     Map<String, Object> params = new HashMap<>();
     params.put("parentId", currentCategory.getParentId());
     List<MallCategoryEntity> brotherCategory = categoryService.queryList(params);
-    //
     resultObj.put("currentCategory", currentCategory);
     resultObj.put("parentCategory", parentCategory);
     resultObj.put("brotherCategory", brotherCategory);
@@ -308,8 +301,9 @@ public class CatalogApplicationService {
       Integer size,
       String sort,
       String order) {
-    if (page == null || page < 1 || size == null || size < 1 || size > 100)
+    if (page == null || page < 1 || size == null || size < 1 || size > 100) {
       throw new IllegalArgumentException("分页参数不正确");
+    }
     Map<String, Object> params = new HashMap<>();
     params.put("isDelete", 0);
     params.put("isOnSale", 1);
@@ -321,7 +315,6 @@ public class CatalogApplicationService {
     params.put("limit", size);
     params.put("order", sort);
     params.put("sidx", order);
-    //
     if (null != sort && "price".equals(sort)) {
       params.put("sidx", "retail_price");
       params.put("order", order);
@@ -345,7 +338,6 @@ public class CatalogApplicationService {
     rootCategory.setName("全部");
     rootCategory.setChecked(false);
     filterCategory.add(rootCategory);
-    //
     params.put("fields", "category_id");
     Query<MallGoodsEntity> query = new Query<>(params);
     List<MallGoodsEntity> categoryEntityList = goodsService.queryList(query);
@@ -500,19 +492,26 @@ public class CatalogApplicationService {
       relatedGoodsIds.add(relatedGoodsEntity.getRelatedGoodsId());
     }
 
-    List<MallGoodsEntity> relatedGoods = new ArrayList<MallGoodsEntity>();
+    List<MallGoodsEntity> relatedGoods;
 
-    if (null == relatedGoodsIds || relatedGoods.size() < 1) {
+    if (relatedGoodsIds.isEmpty()) {
       // 查找同分类下的商品
       MallGoodsEntity goodsCategory = goodsService.getById(id);
+      if (goodsCategory == null) {
+        throw new IllegalArgumentException("商品不存在");
+      }
       Map<String, Object> paramRelated = new HashMap<>();
       paramRelated.put("fields", "id, name, list_pic_url, retail_price");
+      paramRelated.put("isDelete", 0);
+      paramRelated.put("isOnSale", 1);
       paramRelated.put("categoryId", goodsCategory.getCategoryId());
       relatedGoods = goodsService.queryList(paramRelated);
     } else {
       Map<String, Object> paramRelated = new HashMap<>();
       paramRelated.put("goodsIds", relatedGoodsIds);
       paramRelated.put("fields", "id, name, list_pic_url, retail_price");
+      paramRelated.put("isDelete", 0);
+      paramRelated.put("isOnSale", 1);
       relatedGoods = goodsService.queryList(paramRelated);
     }
     resultObj.put("goodsList", relatedGoods);
@@ -537,15 +536,15 @@ public class CatalogApplicationService {
       Integer size,
       String sort,
       String order) {
-    if (page == null || page < 1 || size == null || size < 1 || size > 100)
+    if (page == null || page < 1 || size == null || size < 1 || size > 100) {
       throw new IllegalArgumentException("分页参数不正确");
+    }
     Map<String, Object> params = new HashMap<>();
     params.put("isNew", isNew);
     params.put("page", page);
     params.put("limit", size);
     params.put("order", sort);
     params.put("sidx", order);
-    //
     if ("price".equals(sort)) {
       params.put("sidx", "retail_price");
       params.put("order", order);

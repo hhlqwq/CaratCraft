@@ -44,6 +44,8 @@ build.json记录代码标识、Node版本、Maven缓存位置、产物目录与�
 
 ## 验证
 
+2026-10-22增加封装前的项目模块核对: 两个应用的`platform-common`和`platform-biz`字节必须一致, 两份构建副本的许可索引同步实际模块SHA256. 不修改工作区索引或第三方准入; 构建失败不启动业务服务.
+
 2026-10-21实测: 无参数执行`build-local-test.cmd`完整成功, 退出码0. 两个后端、Vite前端、HealthCheck及两个运行镜像均完成构建, 记录位于`.tools/offline-build/20261021-234324-98ebba1e/build.json`. 后端编译和镜像封装均禁网, 无node基础镜像拉取. Maven使用`-DskipTests`, 不把编译成功算作Java业务用例通过.
 
 构建记录SHA256经独立核验, 两个JAR均不含application-local配置. 镜像探针、JAR、管理端及许可文件检查通过, 后端默认用户UID为999. 五个业务容器ID与构建前一致且全部健康, 未部署本次镜像.

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.common.utils.Base64Util;
 import com.platform.modules.mall.dao.MallCommentDao;
 import com.platform.modules.mall.dao.MallCommentPictureDao;
@@ -58,7 +60,6 @@ class CustomerReviewServiceTest {
 
   /** 公共列表只返回昵称和头像, 列表及总数均使用审核通过过滤. */
   @Test
-  @SuppressWarnings("unchecked")
   void publicPageOmitsPrivateUserFields() {
     JdbcTemplate jdbc = mock(JdbcTemplate.class);
     WxUserDao users = mock(WxUserDao.class);
@@ -72,7 +73,7 @@ class CustomerReviewServiceTest {
     user.setId(7L);
     user.setNickname("买家");
     user.setHeadImgUrl("/upload/avatar.png");
-    when(users.selectBatchIds(anyCollection())).thenReturn(List.of(user));
+    when(users.selectByIds(anyCollection())).thenReturn(List.of(user));
     when(pictures.selectList(any())).thenReturn(List.of());
     var service =
         new CustomerReviewService(
@@ -82,9 +83,14 @@ class CustomerReviewServiceTest {
             users,
             mock(MallCouponService.class),
             mock(MallUserCouponDao.class));
-    Map<String, Object> page = service.page(0, 10, true, 1, 20);
-    Map<String, Object> record = ((List<Map<String, Object>>) page.get("records")).get(0);
-    assertEquals(Map.of("nickname", "买家", "avatar", "/upload/avatar.png"), record.get("userInfo"));
+    CustomerReviewService.ReviewPage page = service.page(0, 10, true, 1, 20);
+    CustomerReviewService.PublicReview record = page.records().get(0);
+    assertEquals(
+        new CustomerReviewService.PublicProfile("买家", "/upload/avatar.png"), record.userInfo());
+    JsonNode wire = new ObjectMapper().valueToTree(page);
+    assertEquals(1, wire.path("total").asInt());
+    assertEquals("买家", wire.path("records").get(0).path("userInfo").path("nickname").asText());
+    assertEquals(2, wire.path("records").get(0).path("userInfo").size());
     verify(jdbc).queryForList(contains("c.status=1 AND EXISTS"), eq(10), eq(20), eq(0L));
     verify(jdbc).queryForObject(contains("c.status=1 AND EXISTS"), eq(Long.class), eq(10));
     assertThrows(IllegalArgumentException.class, () -> service.page(1, 10, false, 1, 20));

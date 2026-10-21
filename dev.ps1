@@ -142,9 +142,9 @@ function Assert-DatabaseReady {
     if ($Missing) {
         throw "数据库初始化或升级不完整, 缺少: $($Missing -join ', ')。请先备份并按use.md修复, 不要直接重置数据卷。"
     }
-    $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_03_goods_recycle_schema.sql';"
+    $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_04_menu_encoding.sql';"
     if ($LASTEXITCODE -ne 0 -or ($Version -join '').Trim() -ne '1') {
-        throw '数据库尚未完成V20261021_03迁移, 请先按use.md备份并执行版本迁移。'
+        throw '数据库尚未完成V20261021_04迁移, 请先按use.md备份并执行版本迁移。'
     }
 }
 

@@ -17,7 +17,19 @@
           aria-label="展开或折叠导航"
           @click="sidebarFold = !sidebarFold"
         >
-          <icon-svg name="zhedie"></icon-svg>
+          <!-- 折叠入口使用三横线图形, 避免旧几何图标看起来像文字. -->
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </el-menu-item>
       </el-menu>
       <el-menu

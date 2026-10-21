@@ -99,13 +99,53 @@ function Build-CachedFrontend {
     }
 }
 
+# 计算调用者提供的流摘要, 流的关闭仍由打开它的函数负责.
+function Get-CachedStreamHash {
+    param([IO.Stream]$Stream)
+    $Hasher = [Security.Cryptography.SHA256]::Create()
+    try { return [BitConverter]::ToString($Hasher.ComputeHash($Stream)).Replace('-', '').ToLowerInvariant() }
+    finally { $Hasher.Dispose() }
+}
+
 # 直接使用.NET计算文件校验值, 不依赖可选PowerShell模块的Get-FileHash命令.
 function Get-CachedFileHash {
     param([string]$Path)
     $Stream = [IO.File]::OpenRead($Path)
-    $Hasher = [Security.Cryptography.SHA256]::Create()
-    try { return [BitConverter]::ToString($Hasher.ComputeHash($Stream)).Replace('-', '').ToLowerInvariant() }
-    finally { $Hasher.Dispose(); $Stream.Dispose() }
+    try { return Get-CachedStreamHash -Stream $Stream }
+    finally { $Stream.Dispose() }
+}
+
+# 核对两个应用内的本项目模块, 仅更新构建副本的模块摘要, 保留第三方准入与源文件.
+function Update-CachedModuleInventory {
+    param([string]$Backend, [string]$Frontend)
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $Relative = 'legal/generated/runtime-components.json'
+    $Inventory = Get-Content -LiteralPath (Join-Path $Backend $Relative) -Raw -Encoding UTF8 | ConvertFrom-Json
+    foreach ($Module in @('platform-common', 'platform-biz')) {
+        $Filename = "$Module-2.0.0.jar"
+        $Records = @($Inventory.backend | Where-Object file -eq $Filename)
+        if ($Records.Count -ne 1 -or $Records[0].coordinates -ne "com.platform:${Module}:2.0.0") {
+            throw "项目模块索引缺失或坐标不一致: $Module"
+        }
+        $Expected = $null
+        foreach ($Application in @('platform-admin', 'platform-api')) {
+            $Archive = [IO.Compression.ZipFile]::OpenRead((Join-Path $Backend "$Application.jar"))
+            try {
+                $Entry = $Archive.GetEntry("BOOT-INF/lib/$Filename")
+                if (-not $Entry) { throw "应用内缺少项目模块: $Application/$Filename" }
+                $Stream = $Entry.Open()
+                try { $Actual = Get-CachedStreamHash -Stream $Stream }
+                finally { $Stream.Dispose() }
+            } finally { $Archive.Dispose() }
+            if ($Expected -and $Actual -ne $Expected) { throw "两个应用的项目模块字节不一致: $Filename" }
+            $Expected = $Actual
+        }
+        $Records[0].sha256 = $Expected
+    }
+    $Json = ($Inventory | ConvertTo-Json -Depth 100) + "`n"
+    foreach ($Context in @($Backend, $Frontend)) {
+        [IO.File]::WriteAllText((Join-Path $Context $Relative), $Json, [Text.UTF8Encoding]::new($false))
+    }
 }
 
 # 先记录构建证据再发布local标签, 写入失败时不报告整个构建成功.
@@ -146,6 +186,7 @@ Copy-Item -LiteralPath (Join-Path $Project 'deploy/nginx/default.conf') -Destina
 Copy-Item -LiteralPath (Join-Path $Project 'Dockerfile.backend.cached') -Destination (Join-Path $BackendContext 'Dockerfile')
 Copy-Item -LiteralPath (Join-Path $Project 'Dockerfile.admin-ui.cached') -Destination (Join-Path $FrontendContext 'Dockerfile')
 foreach ($Context in @($BackendContext, $FrontendContext)) { Copy-CachedBuildTree -Source (Join-Path $Project 'legal') -Destination (Join-Path $Context 'legal') }
+Update-CachedModuleInventory -Backend $BackendContext -Frontend $FrontendContext
 $PreviousBuilder = $env:DOCKER_BUILDKIT
 try {
     # 传统构建器直接使用已校验的本地基础镜像, 避免BuildKit元数据认证访问.

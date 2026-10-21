@@ -12,6 +12,7 @@ import com.platform.modules.wx.dao.WxUserDao;
 import com.platform.modules.wx.entity.WxUserEntity;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,20 @@ import org.springframework.transaction.annotation.Transactional;
 /** 商品购买评价与社区分离, 公共展示仅输出审核通过的最小用户资料. */
 @Service
 public class CustomerReviewService {
+  /** 公开资料只含昵称和头像, 不持有完整用户实体. */
+  public record PublicProfile(String nickname, String avatar) {}
+
+  /** 评价列表保持原接口字段, 使用明确类型传递公开资料和图片. */
+  public record PublicReview(
+      Integer id,
+      String content,
+      long addTime,
+      PublicProfile userInfo,
+      List<MallCommentPictureEntity> picList) {}
+
+  /** 分页数据保持records、total、current和size响应契约. */
+  public record ReviewPage(List<PublicReview> records, Long total, int current, int size) {}
+
   private final JdbcTemplate jdbc;
   private final MallCommentDao comments;
   private final MallCommentPictureDao pictures;
@@ -69,14 +84,18 @@ public class CustomerReviewService {
             Long.class,
             userId,
             goodsId);
-    if (bought == null || bought == 0) throw new IllegalArgumentException("仅本人已收货商品可以评价");
+    if (bought == null || bought == 0) {
+      throw new IllegalArgumentException("仅本人已收货商品可以评价");
+    }
     Long previous =
         comments.selectCount(
             new QueryWrapper<MallCommentEntity>()
                 .eq("user_id", userId)
                 .eq("type_id", 0)
                 .eq("value_id", goodsId));
-    if (previous != null && previous > 0) throw new IllegalArgumentException("该商品已评价, 请勿重复提交");
+    if (previous != null && previous > 0) {
+      throw new IllegalArgumentException("该商品已评价, 请勿重复提交");
+    }
     MallCommentEntity comment = new MallCommentEntity();
     comment.setTypeId(0);
     comment.setValueId(goodsId);
@@ -84,7 +103,9 @@ public class CustomerReviewService {
     comment.setContent(Base64Util.encode(content.trim()));
     comment.setStatus(0);
     comment.setAddTime(System.currentTimeMillis() / 1000);
-    if (comments.insert(comment) != 1) throw new IllegalStateException("评价保存失败");
+    if (comments.insert(comment) != 1) {
+      throw new IllegalStateException("评价保存失败");
+    }
     int sort = 0;
     for (String url : images == null ? List.<String>of() : images) {
       if (url == null || !url.startsWith("/upload/") || url.length() > 1000 || url.contains("..")) {
@@ -94,7 +115,9 @@ public class CustomerReviewService {
       picture.setCommentId(comment.getId());
       picture.setPicUrl(url);
       picture.setSortOrder(++sort);
-      if (pictures.insert(picture) != 1) throw new IllegalStateException("评价图片保存失败");
+      if (pictures.insert(picture) != 1) {
+        throw new IllegalStateException("评价图片保存失败");
+      }
     }
     Map<String, Object> result = new LinkedHashMap<>();
     String source = "first-review:" + goodsId;
@@ -122,10 +145,11 @@ public class CustomerReviewService {
   }
 
   /** 列表和总数使用完全相同的目标、审核状态和有图过滤. */
-  public Map<String, Object> page(
-      Integer type, Integer goodsId, boolean hasPic, int page, int size) {
+  public ReviewPage page(Integer type, Integer goodsId, boolean hasPic, int page, int size) {
     validateTarget(type, goodsId);
-    if (page < 1 || size < 1 || size > 100) throw new IllegalArgumentException("分页参数不正确");
+    if (page < 1 || size < 1 || size > 100) {
+      throw new IllegalArgumentException("分页参数不正确");
+    }
     String filter =
         " FROM mall_comment c WHERE c.type_id=0 AND c.value_id=? AND c.status=1"
             + (hasPic
@@ -139,13 +163,15 @@ public class CustomerReviewService {
             goodsId,
             size,
             (long) (page - 1) * size);
-    Map<Long, WxUserEntity> profiles = new java.util.HashMap<>();
+    Map<Long, WxUserEntity> profiles = new HashMap<>();
     if (!rows.isEmpty()) {
       List<Long> ids =
           rows.stream().map(row -> ((Number) row.get("user_id")).longValue()).distinct().toList();
-      for (WxUserEntity user : users.selectBatchIds(ids)) profiles.put(user.getId(), user);
+      for (WxUserEntity user : users.selectByIds(ids)) {
+        profiles.put(user.getId(), user);
+      }
     }
-    Map<Integer, List<MallCommentPictureEntity>> byComment = new java.util.HashMap<>();
+    Map<Integer, List<MallCommentPictureEntity>> byComment = new HashMap<>();
     if (!rows.isEmpty()) {
       List<Object> ids = rows.stream().map(row -> row.get("id")).toList();
       for (MallCommentPictureEntity picture :
@@ -158,32 +184,24 @@ public class CustomerReviewService {
             .add(picture);
       }
     }
-    List<Map<String, Object>> records = new ArrayList<>();
+    List<PublicReview> records = new ArrayList<>();
     for (Map<String, Object> row : rows) {
       WxUserEntity profile = profiles.get(((Number) row.get("user_id")).longValue());
-      Map<String, Object> item = new LinkedHashMap<>();
-      item.put("id", row.get("id"));
-      item.put("content", Base64Util.decode(row.get("content").toString()));
-      item.put("addTime", row.get("add_time"));
-      item.put(
-          "userInfo",
-          Map.of(
-              "nickname",
+      int id = ((Number) row.get("id")).intValue();
+      PublicProfile publicProfile =
+          new PublicProfile(
               profile == null || profile.getNickname() == null ? "用户" : profile.getNickname(),
-              "avatar",
-              profile == null || profile.getHeadImgUrl() == null ? "" : profile.getHeadImgUrl()));
-      item.put("picList", byComment.getOrDefault(((Number) row.get("id")).intValue(), List.of()));
-      records.add(item);
+              profile == null || profile.getHeadImgUrl() == null ? "" : profile.getHeadImgUrl());
+      records.add(
+          new PublicReview(
+              id,
+              Base64Util.decode(row.get("content").toString()),
+              ((Number) row.get("add_time")).longValue(),
+              publicProfile,
+              byComment.getOrDefault(id, List.of())));
     }
-    return Map.of(
-        "records",
-        records,
-        "total",
-        jdbc.queryForObject("SELECT COUNT(*)" + filter, Long.class, goodsId),
-        "current",
-        page,
-        "size",
-        size);
+    return new ReviewPage(
+        records, jdbc.queryForObject("SELECT COUNT(*)" + filter, Long.class, goodsId), page, size);
   }
 
   /** 公开计数只包含审核通过的数据. */

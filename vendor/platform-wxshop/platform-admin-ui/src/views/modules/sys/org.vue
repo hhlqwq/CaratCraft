@@ -14,18 +14,17 @@
         >
       </el-form-item>
     </el-form>
-    <el-table :data="dataList" border row-key="orgNo" style="width: 100%">
+    <el-table
+      :data="dataList"
+      border
+      row-key="orgNo"
+      style="width: 100%"
+      :tree-props="{children: 'childrens'}"
+    >
       <el-table-column prop="orgNo" header-align="center" align="left" width="80" label="机构编码">
       </el-table-column>
-      <table-tree-column
-        prop="orgName"
-        header-align="center"
-        treeKey="orgNo"
-        parentKey="parentNo"
-        width="200"
-        label="机构名称"
-      >
-      </table-tree-column>
+      <el-table-column prop="orgName" header-align="center" width="200" label="机构名称">
+      </el-table-column>
       <el-table-column
         width="200"
         prop="parentName"
@@ -85,7 +84,6 @@
 </template>
 
 <script>
-import TableTreeColumn from '@/components/table-tree-column';
 import AddOrUpdate from './org-add-or-update';
 
 export default {
@@ -101,7 +99,6 @@ export default {
   },
   components: {
     AddOrUpdate,
-    TableTreeColumn,
   },
   activated() {
     this.getDataList();

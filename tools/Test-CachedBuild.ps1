@@ -78,6 +78,16 @@ $Frontend = Join-Path $Root 'vendor/platform-wxshop/platform-admin-ui'
 $Revision = 'record-test'
 $script:RecordedBuild = $null
 
+# ZIP条目与普通文件共用摘要实现, 校验标准样本且流的生命周期仍归调用者.
+$HashStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes('abc'))
+try {
+    if ((Get-CachedStreamHash -Stream $HashStream) -ne 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad') {
+        throw '构建模块SHA256计算错误'
+    }
+    $HashStream.Position = 0
+    if ($HashStream.ReadByte() -ne 97) { throw '摘要函数关闭了调用者持有的流' }
+} finally { $HashStream.Dispose() }
+
 # 在内存接收记录, 验证.NET校验值和JSON写入链路, 不产生测试文件.
 function Set-Content {
     param([string]$LiteralPath, [string]$Encoding)

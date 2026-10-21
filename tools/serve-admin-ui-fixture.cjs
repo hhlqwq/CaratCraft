@@ -4,12 +4,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../.tools/copyright/admin-ui-dist');
 const port = Number(process.env.CARATCRAFT_FIXTURE_PORT || 18981);
-const modules = [['mall/address', '地址管理'], ['mall/order', '订单管理'], ['custom/configuration', '定制配置'],
+const modules = [['mall/ad', '广告管理'], ['oss/oss', '文件管理'], ['mall/address', '地址管理'], ['mall/order', '订单管理'], ['custom/configuration', '定制配置'],
   ['custom/work-order', '制作工单'], ['custom/component-stock', '材料库存'], ['mall/goods', '商品管理'], ['community/posts', '社区管理'], ['merchant/legal', '协议与隐私'], ['merchant/contact', '商家服务']];
-const permissions = ['mall:address:list', 'mall:address:info', 'mall:order:list', 'mall:order:update', 'mall:goods:list', 'mall:goods:save',
+const permissions = ['sys:org:list', 'sys:org:save', 'sys:menu:list', 'mall:ad:list', 'mall:ad:save', 'mall:address:list', 'mall:address:info', 'mall:order:list', 'mall:order:update', 'mall:goods:list', 'mall:goods:save',
   'custom:config:list', 'custom:config:update', 'custom:work:list', 'custom:work:update',
   'custom:stock:list', 'custom:stock:update', 'sys:monitor:server', 'community:post:list', 'community:post:moderate', 'merchant:legal:read', 'merchant:legal:update', 'merchant:legal:publish', 'merchant:contact:read', 'merchant:contact:update', 'sys:oss:list'];
 const routes = {
+  '/sys/org/queryAll': [{orgNo: 'test-root', parentNo: '0', orgName: '隔离总部', status: 1}, {orgNo: 'test-child', parentNo: 'test-root', orgName: '隔离门店', status: 1}],
+  '/sys/menu/list': [{menuId: 'test-root', parentId: '0', name: '隔离目录', type: 0}, {menuId: 'test-child', parentId: 'test-root', name: '隔离子菜单', type: 1}],
+  '/mall/ad/queryAll': [],
   '/mall/address/list': {records: [{id: 900001, nickname: '隔离测试会员', userName: '隔离收货人', mobile: '', detailInfo: '仅用于界面测试的地址', isDefault: 1}], total: 1},
   '/mall/address/info/900001': {id: 900001, userName: '隔离收货人', mobile: '', detailInfo: '仅用于界面测试的地址', isDefault: 1},
   '/merchant/legal/TERMS': {head: {revision: 1, published_version: 0}, versions: [{kind: 'TERMS', version: 1, title: '隔离测试用户协议', content: '仅用于界面回归的测试正文, 不作为真实经营协议.', status: 'DRAFT'}]},
@@ -17,7 +20,7 @@ const routes = {
   '/merchant/contact': {merchantName: '隔离测试商家', phone: '', wechatId: '', qrUrl: '', wxChatEnabled: false, version: 0},
   '/merchant/contact/history': [],
   '/sys/oss/list': {records: [{id: 'test-image', url: '/static/img/avatar.png'}], total: 1},
-  '/sys/menu/nav': {menuList: modules.map(([url, name], index) => ({menuId: index + 1, name, url, list: []})),
+  '/sys/menu/nav': {menuList: [{menuId: 'system-fixture', name: '系统设置', icon: 'system', list: [{menuId: 'org-fixture', name: '组织管理', url: 'sys/org', list: []}, {menuId: 'menu-fixture', name: '菜单管理', url: 'sys/menu', list: []}]}, ...modules.map(([url, name], index) => ({menuId: index + 1, name, url, list: []}))],
     permissions, dictList: [], orgList: [], userList: []},
   '/sys/user/info': {userId: 1, userName: '界面测试账号'},
   '/mall/dashboard/summary': {unpaid: 8, toShip: 3, refundReview: 2, refundAttention: 1, workReview: 4, workMaking: 5, stockOut: 2},

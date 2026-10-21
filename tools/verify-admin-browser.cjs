@@ -23,7 +23,91 @@ function subject(relative) {
   return {script, template: descriptor.template.content};
 }
 
-/** 核对发布按钮、窄屏表单、表格详情及四个公共组件的真实Vue3父子同步. */
+/** 校验截图中的深色菜单可读性和真实折叠行为, 不连接业务菜单接口. */
+async function verifySidebar(page, output) {
+  const title = page.locator('.site-sidebar .el-sub-menu__title').filter({hasText: '系统设置'});
+  await title.waitFor();
+  const contrast = await title.evaluate((element) => {
+    /** 按sRGB相对亮度计算前景与深色背景的对比度. */
+    function luminance(color) {
+      const values = color.match(/\d+/g).slice(0, 3).map((value) => {
+        const channel = Number(value) / 255;
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      return values[0] * 0.2126 + values[1] * 0.7152 + values[2] * 0.0722;
+    }
+    const foreground = luminance(getComputedStyle(element).color);
+    const background = luminance(getComputedStyle(document.querySelector('.site-sidebar')).backgroundColor);
+    return (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05);
+  });
+  assert.ok(contrast >= 4.5, '侧栏文字对比度不足: ' + contrast);
+  await title.click();
+  await page.locator('.site-sidebar').getByText('组织管理', {exact: true}).waitFor();
+  const toggle = page.getByRole('menuitem', {name: '展开或折叠导航'});
+  await toggle.click();
+  await page.waitForFunction(() => document.querySelector('.site-sidebar').getBoundingClientRect().width <= 65);
+  assert.equal(await title.locator('span').first().isVisible(), false);
+  await toggle.click();
+  await page.waitForFunction(() => document.querySelector('.site-sidebar').getBoundingClientRect().width >= 230);
+  await page.screenshot({path: path.join(output, 'sidebar-corrected.png'), fullPage: true});
+}
+
+/** 在实际业务页面验证树表格、树选择弹窗、日期选择和图片类型拒绝. */
+async function verifyNativeControls(page, base) {
+  await page.goto(base + '/#/sys-org');
+  const table = page.locator('.mod-org .el-table');
+  await table.getByText('隔离总部', {exact: true}).waitFor();
+  assert.equal(await table.getByText('隔离门店', {exact: true}).isVisible(), false);
+  await table.locator('.el-table__expand-icon').first().click();
+  await table.getByText('隔离门店', {exact: true}).waitFor();
+  await table.locator('.el-table__expand-icon').first().click();
+  await table.getByText('隔离门店', {exact: true}).waitFor({state: 'hidden'});
+  await page.getByRole('button', {name: '新增', exact: true}).click();
+  await page.getByRole('button', {name: '点击选择上级机构'}).click();
+  await page.getByRole('dialog', {name: '选择区域'}).getByText('隔离总部', {exact: true}).click();
+  await page.getByRole('dialog', {name: '新增', exact: true}).getByRole('button', {name: '隔离总部', exact: true}).waitFor();
+  await page.getByRole('dialog', {name: '新增', exact: true}).getByRole('button', {name: '取消', exact: true}).click();
+  await page.goto(base + '/#/sys-menu');
+  const menus = page.locator('.mod-menu .el-table');
+  await menus.getByText('隔离目录', {exact: true}).waitFor();
+  await menus.locator('.el-table__expand-icon').first().click();
+  await menus.getByText('隔离子菜单', {exact: true}).waitFor();
+  await page.goto(base + '/#/mall-ad');
+  await page.getByRole('button', {name: '新增', exact: true}).click();
+  const date = page.locator('.el-dialog .el-date-editor input');
+  await date.click();
+  await page.locator('.el-date-picker .el-date-table td.available').first().click();
+  assert.ok((await date.inputValue()).length > 0);
+  await page.getByRole('dialog', {name: '新增', exact: true}).getByRole('button', {name: '取消', exact: true}).click();
+  await page.goto(base + '/#/oss-oss');
+  await page.getByRole('button', {name: '上传文件', exact: true}).click();
+  await page.locator('.el-upload input[type="file"]').setInputFiles({name: 'invalid.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image')});
+  await page.getByText('只支持 JPG、PNG、GIF、WebP 格式的图片！', {exact: true}).waitFor();
+  await page.getByRole('dialog', {name: '上传文件', exact: true}).locator('.el-dialog__headerbtn').click();
+}
+
+/** 使用独立浏览器页验证无写权限时隐藏操作, 不复用上一个管理员的会话缓存. */
+async function verifyReadOnlyPermissions(browser, base, errors) {
+  const page = await browser.newPage();
+  page.on('pageerror', (error) => errors.push(error.stack || error.message));
+  await page.route('**/fixture-api/sys/menu/nav*', async (route) => {
+    const response = await route.fetch();
+    const data = await response.json();
+    data.data.permissions = ['sys:org:list'];
+    await route.fulfill({response, json: data});
+  });
+  try {
+    await page.goto(base + '/#/sys-org');
+    await page.locator('.mod-org .el-table').getByText('隔离总部', {exact: true}).waitFor();
+    assert.equal(await page.getByRole('button', {name: '新增', exact: true}).count(), 0);
+    assert.equal(await page.getByRole('button', {name: '修改', exact: true}).count(), 0);
+    assert.equal(await page.getByRole('button', {name: '删除', exact: true}).count(), 0);
+  } finally {
+    await page.close();
+  }
+}
+
+/** 核对实际页面及公共组件, 所有数据和写入入口均使用隔离替身. */
 async function main() {
   const {chromium} = browserTools();
   const server = await start(0);
@@ -48,6 +132,7 @@ async function main() {
         throw error;
       });
     const publish = page.getByRole('button', {name: '发布已保存草稿'});
+    await verifySidebar(page, output);
     assert.equal(await publish.isEnabled(), true);
     await page.getByRole('textbox').first().fill('本地修改尚未保存');
     assert.equal(await publish.isEnabled(), false);
@@ -85,10 +170,14 @@ async function main() {
     await page.getByRole('button', {name: '保存商品配置'}).click();
     await page.getByText('请完整填写制作规则, 最小长度不能大于最大长度').waitFor();
     await page.setViewportSize({width: 624, height: 900});
+    await page.waitForFunction(
+      () => document.querySelector('.site-sidebar').getBoundingClientRect().width <= 65
+    );
     for (const field of await lengthForm.locator('.length-rule-field').all()) {
       const label = await field.locator('span').first().boundingBox();
       const input = await field.getByRole('spinbutton').boundingBox();
-      assert.ok(label && input && label.y + label.height <= input.y + 1);
+      assert.ok(label && input && label.y + label.height <= input.y + 1,
+        '长度字段标签不得压住输入框: ' + JSON.stringify({label, input}));
     }
     await page.locator('.el-message').waitFor({state: 'hidden'});
     assert.equal(
@@ -105,6 +194,9 @@ async function main() {
       .getByText('隔离收货人', {exact: true})
       .waitFor({timeout: 10000});
     await page.locator('.el-dialog').getByRole('button', {name: '取消', exact: true}).click();
+    const base = 'http://127.0.0.1:' + server.address().port;
+    await verifyNativeControls(page, base);
+    await verifyReadOnlyPermissions(browser, base, errors);
     for (const relative of [
       'tags-editor.vue',
       'el-dict/index.vue',
@@ -188,7 +280,7 @@ async function main() {
     }
     assert.deepEqual(errors, []);
     console.log(
-      '浏览器验证通过: 协议发布条件、长度规则空值及保存校验、624/1280布局与标签无重叠、真实表格与描述详情、4个Vue3公共组件双向绑定; 无页面运行异常.'
+      '浏览器验证通过: 菜单可读性与折叠、原生树表格与树选择、日期及图片类型拒绝、只读权限、协议发布条件、长度表单、624/1280布局、真实表格与描述详情、4个Vue3公共组件绑定; 无页面运行异常.'
     );
   } finally {
     await browser.close();
