@@ -154,6 +154,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.admin-ui
+      args:
+        BUILD_REVISION: ${BUILD_REVISION:-workspace}
     container_name: platform-nginx
     restart: unless-stopped
     depends_on:

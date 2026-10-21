@@ -1,5 +1,15 @@
 # CaratCraft
 
+## 2026-10-21 本地启动恢复
+
+Windows使用两个独立脚本: `build-local-test.cmd`只构建镜像, `start-local-test.cmd`只启动已有镜像并等待就绪. 首次安装或更新应用源码后先构建再启动, 日常只需双击启动脚本. 缺少镜像或源码标识不匹配时会明确提示. 启动前检查基础表及迁移版本, 部分初始化的数据库会明确报错; MySQL健康不代表业务表完整. 本次根因与恢复验证见[启动恢复记录](docs/startup-recovery-2026-10-21.md), 操作边界见[部署与迁移指南](use.md).
+
+构建入口不再生成或校验数据库、Redis和JWT运行密钥. 私有`.env`不存在时, 联网Compose构建只引用变量模板; 缓存构建同样不要求先配置业务库. 运行密钥仍由启动入口校验. Node版本范围检查集中到独立函数, 覆盖最低版本、上限和异常版本输出; 相关替身回归已在PowerShell5.1及7通过, 本次开发验证未启动或重建业务服务.
+
+Windows构建默认使用本机缓存编译和封装, 避免Docker Hub令牌连接超时. 需要兼容Node、已安装的前端依赖、Maven缓存及本地Maven/JRE/Nginx基础镜像; 不完整时会指出缺失项, 不复用旧产物. 无本机缓存的新电脑可显式使用`build-local-test.cmd -OnlineBuild`执行标准联网构建. 离线条件、产物位置和验证见[缓存构建说明](docs/cached-build.md).
+
+新增`V20261021_03_goods_recycle_schema.sql`为旧库补齐商品回收站字段和索引, 不注册自动清理任务或改写历史删除时间. 启动预检要求完成该版本迁移.
+
 ## 2026-10-21 最新剩余项整改
 
 已处理账号切换隔离、登录与协议确认事务、并发身份唯一性、个人资料白名单及首页旧登录入口. 新交易冻结协议版本, 当前条款确认与既有订单履约分别处理; 长度规则改为毫米表单并完成窄屏验收. 151项不同Java用例、66项Node、4项交付工具回归及生产构建已验证, 详见[剩余项整改与交付验证](docs/remaining-items-2026-10-21.md).
@@ -133,6 +143,7 @@ CaratCraft（克拉匠造，手工克拉·珠宝匠心）是一款面向珠宝�
 Windows PowerShell：
 
 ```powershell
+.\dev.ps1 -Action build
 .\dev.ps1
 ```
 
@@ -142,7 +153,7 @@ Windows 双击启动：
 start-local-test.cmd
 ```
 
-该启动入口会复用现有镜像且不重新构建代码，因此不能用于尚未生成 `carat-craft-backend:local` 和 `carat-craft-admin-ui:local` 的首次启动。首次启动应先运行 `.\dev.ps1` 完成构建；之后双击该脚本会提交 Docker 后台启动并立即返回，可在 Docker Desktop 中确认容器健康，或直接访问本地地址。
+首次安装或更新应用源码后先双击`build-local-test.cmd`, 构建成功后再双击`start-local-test.cmd`. 构建脚本不启动或重启服务; 启动脚本只使用本地镜像, 等待全部服务就绪后显示成功. 日常启动只需后者. 默认构建使用本机缓存, `-OnlineBuild`或`-LegacyBuild`联网构建时需要镜像和依赖仓库可达. `-NoBuild`保留兼容旧命令. 未提交源码修改统一标记dirty, 无法区分两次未提交修改的内容, 修改应用源码后必须主动构建更新.
 
 Windows 双击停止：
 
@@ -159,12 +170,13 @@ chmod +x dev.sh
 ./dev.sh
 ```
 
-首次运行会在容器内构建 Java 后端和 Vue 管理端，然后启动 MySQL、Redis、两个后端服务及 Nginx。
+Windows先通过构建脚本生成Java后端和Vue管理端镜像, 再通过启动脚本启动MySQL、Redis、两个后端服务及Nginx. Linux/macOS的`dev.sh`仍默认构建并启动.
 
 | 操作 | Windows | Ubuntu / macOS |
 |---|---|---|
-| BuildKit 网络异常兼容启动 | `powershell -File dev.ps1 -LegacyBuild` | `./dev.sh --legacy-build` |
-| 启动或更新 | `.\dev.ps1` | `./dev.sh` |
+| 构建镜像 | `build-local-test.cmd` | `docker compose --env-file vendor/platform-wxshop/deploy/.env -f vendor/platform-wxshop/docker-compose.yml build` |
+| BuildKit 网络异常兼容构建 | `build-local-test.cmd -LegacyBuild` | `./dev.sh --legacy-build` |
+| 启动 | `start-local-test.cmd` | `./dev.sh` |
 | 不重新构建 | `.\dev.ps1 -NoBuild` | `./dev.sh --no-build` |
 | 查看状态 | `.\dev.ps1 -Action status` | `./dev.sh status` |
 | 查看日志 | `.\dev.ps1 -Action logs` | `./dev.sh logs` |
@@ -174,13 +186,13 @@ chmod +x dev.sh
 
 `ResetData` 会删除本项目的 MySQL 和 Redis Docker 数据卷，只用于需要全新测试数据的场景。默认启动会保留数据。
 
-> Docker 的初始化 SQL 仅会在 MySQL 数据卷第一次创建时运行。若复用了旧数据卷而后端报 `Table 'platform.sys_region' doesn't exist`，请不要直接使用 `ResetData`：先备份数据，再按 [use.md](use.md) 第三节补导 `vendor/platform-wxshop/_sql/sys_region.sql`。只有明确不需要保留本地测试数据时，才使用 `ResetData` 重建全部初始化表与演示数据。
+> Docker的初始化SQL仅在空数据目录首次启动时运行. 旧库缺表时先备份并按[部分初始化恢复说明](use.md)盘点全部结构, 不直接向现有库执行含DROP TABLE的完整初始化SQL. 只有明确不需保留本地测试数据时, 才使用`ResetData`重建.
 
 首次初始化期间若 MySQL 日志出现 `ERROR 1064 ... base.sql`，即使容器随后显示 `healthy`，数据库也可能只创建了部分表。修复初始化 SQL 后，只有在确认测试数据无需保留时才执行 `.\dev.ps1 -ResetData` 重新初始化；完整排查步骤见 [本地环境搭建与测试指南](use.md)。
 
 默认构建使用 BuildKit 缓存。当 Docker Hub 可通过普通 `docker pull` 访问、但 BuildKit 拉取镜像失败时，可使用 `LegacyBuild` / `--legacy-build` 临时关闭 BuildKit 和 Compose Bake；该模式不影响镜像功能，但首次构建会较慢。
 
-后端容器健康检查不依赖 Bash，并兼容 JVM 的 IPv4/IPv6 监听；服务成功监听 8080/8081 后，Docker Compose 才会继续启动 Nginx。若 `docker compose up --wait` 超时，请先运行 `./dev.ps1 -Action logs`（Windows）或 `./dev.sh logs`（Linux/macOS）获取实际容器日志。
+后端容器通过JRE自带HTTP客户端检查`/internal/health/ready`, 同时验证数据库结构和Redis. 全部依赖就绪后Docker Compose才会启动Nginx. 失败时脚本输出容器状态及健康检查错误; 后端日志使用`.\dev.ps1 -Action logs`或`./dev.sh logs`查看. `ClassNotFoundException: HealthCheck`表示仍在使用缺少新版探针的旧镜像, 需要构建更新.
 
 启动完成后的默认地址：
 

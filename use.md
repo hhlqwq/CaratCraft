@@ -1,17 +1,33 @@
 # CaratCraft部署与迁移指南
 
-当前后端为JDK21、Spring Boot3.2.5和MyBatis-Plus3.5.10, 管理端为Vue2.7.16和ElementUI2.15.10.
+当前后端为JDK21、Spring Boot3.2.5和MyBatis-Plus3.5.10, 管理端为Vue3、Element Plus和Vite.
 功能修复和测试范围以[整改台账](docs/remediation-status.md)为准. 原审查附件是整改前记录, 2026-10-14交付包不是后续修复的最新构建.
 
 ## 新建开发环境
 
 1. 安装并启动Docker及Compose V2, 在仓库根目录操作.
-2. Windows运行`.\dev.ps1`, Linux/macOS运行`./dev.sh`. 首次创建`vendor/platform-wxshop/deploy/.env`时生成独立随机数据库、Redis和JWT秘密, 不在终端打印.
+2. Windows先运行`build-local-test.cmd`构建镜像, 成功后运行`start-local-test.cmd`启动环境; Linux/macOS运行`./dev.sh`. 首次创建`vendor/platform-wxshop/deploy/.env`时生成独立随机数据库、Redis和JWT秘密, 不在终端打印.
 3. 运行已有环境前先阅读下一节, 启动脚本不会自动修改现有数据库密码或账号.
 4. 管理端默认`http://localhost:8888`, 后台路径`/platform-framework`, 商城路径`/platform-framework-api/app/`. 端口由`.env`中的`NGINX_PORT`统一指定.
 5. 小程序开发版通过`wx-mall/config/environment.js`配置服务地址. 真机无法用localhost访问电脑, 请使用可达的开发服务地址; 体验/正式版必须配置HTTPS并加入微信合法域名.
 
 首次构建会获取镜像和构建依赖, 需要网络和磁盘空间. 本指南不是执行指令记录, 不代表已构建或重启当前机器的容器.
+
+Windows构建脚本默认使用本机缓存, 具体条件见[缓存构建说明](docs/cached-build.md). 无缓存的新电脑可用`build-local-test.cmd -OnlineBuild`执行上述联网构建; 在线模式不自动填充宿主机离线缓存. 日常启动不依赖镜像仓库连通性.
+
+Windows两个入口职责独立: `build-local-test.cmd`委托`dev.ps1 -Action build`, 只构建镜像; `start-local-test.cmd`委托`dev.ps1 -Action start`, 只启动本地镜像并等待就绪. 构建成功后不会自动启动或替换正在运行的容器, 需再运行启动脚本. 直接运行`.\dev.ps1`同样只启动. `-NoBuild`保留兼容旧命令, 构建时不能使用; 传统构建器兼容方式为`build-local-test.cmd -LegacyBuild`. 镜像缺失或源码标识不匹配时要求先构建, 启动不会回退到网络构建. 未提交修改统一标记dirty, 该标识不能区分两次未提交修改的内容, 修改应用源码后必须主动构建. Linux/macOS入口仍默认构建, 使用`./dev.sh --no-build`执行日常启动.
+
+## 启动失败与部分初始化恢复
+
+`platform-mysql healthy`只证明数据库可连接. 如果API报`sys_region`不存在或管理端报`mall_order`不存在, 先盘点全部表与迁移版本, 不能只补第一张报错表. 初始化SQL仅在空数据目录首次启动时执行; 更新源码或重启MySQL不会补跑中断后的SQL.
+
+1. 查看`.\dev.ps1 -Action status`与`.\dev.ps1 -Action logs`, 结合启动失败时输出的健康检查结果定位. `HealthCheck`类不存在时必须重建后端镜像; 放宽探针不能修复旧应用或缺表.
+2. 保留现有数据卷, 暂停项目应用写入, 备份数据库、上传文件、私有配置和更新前镜像. 数据库备份应使用`--single-transaction --hex-blob`, 避免Quartz二进制数据被文本编码损坏, 并在独立库恢复核验行数.
+3. 对部分初始化的旧库, 先在备份副本逐项确认缺失的基础表. 只补建确认不存在的表; 地区表可恢复仓库地区字典, 缺失的交易等业务表不导入演示记录. 不对当前库执行含`DROP TABLE`的完整`base.sql`或`sys_region.sql`, 不重跑演示种子和旧目录清理脚本.
+4. 在副本执行下一节的V版本迁移, 验证既有记录、唯一约束和版本校验台账, 然后将已验证的增量步骤应用到目标库. 部分执行过但缺少台账的版本需先核对DDL和数据, 不强行标记成功.
+5. 构建并更新两个后端与管理端, 验证内部就绪探针、管理台和公开API. 数据库结构恢复不会补回原本未导入的演示商品或真实业务记录.
+
+启动预检只检查关键基础表与最新迁移记录, 最终就绪仍由应用探针判断. 构建失败时先处理基础镜像或依赖仓库的网络连接; `LegacyBuild`不保证解决Docker Hub网络故障. 本次使用本地缓存编译、封装镜像及保留数据的恢复证据见[启动恢复记录](docs/startup-recovery-2026-10-21.md).
 
 ## 已有数据库升级
 
@@ -50,9 +66,10 @@ java -cp '<MariaDB驱动路径>' tools/SchemaMigrationTool.java --apply
 
 | 操作 | Windows | Linux/macOS |
 |---|---|---|
+| 构建镜像 | `build-local-test.cmd` | `docker compose --env-file vendor/platform-wxshop/deploy/.env -f vendor/platform-wxshop/docker-compose.yml build` |
 | 查看状态 | `.\dev.ps1 status` | `./dev.sh status` |
 | 查看日志 | `.\dev.ps1 logs` | `./dev.sh logs` |
-| 启动 | `.\dev.ps1` | `./dev.sh` |
+| 启动 | `start-local-test.cmd` | `./dev.sh` |
 | 重启 | `.\dev.ps1 restart` | `./dev.sh restart` |
 | 停止 | `.\dev.ps1 stop` | `./dev.sh stop` |
 | 重建可丢弃测试数据 | `.\dev.ps1 -ResetData` | `./dev.sh --reset-data` |

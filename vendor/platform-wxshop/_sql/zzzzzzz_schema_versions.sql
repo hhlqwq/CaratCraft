@@ -259,3 +259,30 @@ CREATE TABLE CC_ORDER_LEGAL (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
 VALUES ('V20261021_02_order_legal.sql', 'e32dc29ecf4fcbf2f008af1d9d9baff5441fc9746b395172383286410316863e');
+
+-- 版本: V20261021_03_goods_recycle_schema.sql
+-- 补齐旧初始化遗漏的商品回收站结构, 不重置删除时间或注册清理任务.
+-- 已由旧初始化建立结构的新库保持原样, 支持DDL中断后的重试.
+SET @cc_has_delete_time = (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_goods' AND COLUMN_NAME='delete_time'
+);
+SET @cc_recycle_sql = IF(@cc_has_delete_time=0,
+  'ALTER TABLE mall_goods ADD COLUMN delete_time DATETIME DEFAULT NULL COMMENT ''移入回收站时间'' AFTER is_delete',
+  'SELECT 1');
+PREPARE cc_recycle_stmt FROM @cc_recycle_sql;
+EXECUTE cc_recycle_stmt;
+DEALLOCATE PREPARE cc_recycle_stmt;
+
+SET @cc_has_recycle_index = (
+  SELECT COUNT(*) FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_goods' AND INDEX_NAME='idx_goods_recycle'
+);
+SET @cc_recycle_sql = IF(@cc_has_recycle_index=0,
+  'ALTER TABLE mall_goods ADD INDEX idx_goods_recycle (is_delete,delete_time)',
+  'SELECT 1');
+PREPARE cc_recycle_stmt FROM @cc_recycle_sql;
+EXECUTE cc_recycle_stmt;
+DEALLOCATE PREPARE cc_recycle_stmt;
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261021_03_goods_recycle_schema.sql', '6ef60b660b5a32a2b2d079e986c077b03fd9df2f19e01d7ecece085dc9a487ad');

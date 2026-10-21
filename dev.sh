@@ -96,6 +96,71 @@ compose() {
   docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
 }
 
+# 校验免构建镜像的源码标识, 拒绝复用未提供新版探针的历史镜像.
+assert_local_images() {
+  local name revision
+  for name in carat-craft-backend:local carat-craft-admin-ui:local; do
+    revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$name" 2>/dev/null)" || {
+      echo "缺少镜像 $name, 请移除--no-build重新运行。"; return 1;
+    }
+    [[ "$revision" == "$BUILD_REVISION" ]] || {
+      echo "镜像 $name 与当前源码标识不一致, 请移除--no-build重新构建。"; return 1;
+    }
+  done
+}
+
+# 使用数据库容器自身凭据查询结构, 不输出密码或业务行.
+database_query() {
+  compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1"
+}
+
+# 在应用启动前识别部分初始化及缺少迁移的旧数据库.
+assert_database_ready() {
+  local tables name version
+  tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');")" || return 1
+  for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_MIGRATION; do
+    if ! grep -Fxq "$name" <<< "$tables"; then
+      echo "数据库初始化或升级不完整, 缺少$name。请先备份并按use.md修复, 不要直接重置数据卷。"
+      return 1
+    fi
+  done
+  version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_03_goods_recycle_schema.sql';")" || return 1
+  [[ "$version" == 1 ]] || { echo "请先按use.md备份并完成V20261021_03迁移。"; return 1; }
+}
+
+# 输出有限的容器状态和健康检查结果, 保留启动失败退出码.
+show_startup_diagnostics() {
+  compose ps --all || true
+  local name
+  for name in platform-admin platform-api; do
+    docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
+  done
+  echo "日志: ./dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见use.md。"
+}
+
+# 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.
+start_local_environment() {
+  local result=0
+  if [[ "$NO_BUILD" == true ]]; then
+    assert_local_images || result=$?
+  else
+    compose build || result=$?
+    if [[ "$result" != 0 ]]; then
+      echo "镜像构建失败, 请查看上方Docker构建错误并检查镜像或依赖仓库网络。已有当前源码镜像可使用./dev.sh --no-build启动。"
+      return "$result"
+    fi
+  fi
+  if [[ "$result" == 0 ]]; then
+    compose up --detach --wait --wait-timeout 300 mysql redis || result=$?
+  fi
+  if [[ "$result" == 0 ]]; then assert_database_ready || result=$?; fi
+  if [[ "$result" == 0 ]]; then
+    compose up --detach --no-build --wait --wait-timeout 300 || result=$?
+  fi
+  if [[ "$result" != 0 ]]; then show_startup_diagnostics; return "$result"; fi
+  show_access_info
+}
+
 # 输出本地访问地址 / Prints local access URLs.
 show_access_info() {
   local port
@@ -155,17 +220,11 @@ case "$ACTION" in
   restart)
     assert_startup_configuration
     if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; else compose down --remove-orphans; fi
-    up_args=(up --detach --wait --wait-timeout 300)
-    [[ "$NO_BUILD" == "true" ]] || up_args+=(--build)
-    compose "${up_args[@]}"
-    show_access_info
+    start_local_environment
     ;;
   start)
     assert_startup_configuration
     if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; fi
-    up_args=(up --detach --wait --wait-timeout 300)
-    [[ "$NO_BUILD" == "true" ]] || up_args+=(--build)
-    compose "${up_args[@]}"
-    show_access_info
+    start_local_environment
     ;;
 esac
