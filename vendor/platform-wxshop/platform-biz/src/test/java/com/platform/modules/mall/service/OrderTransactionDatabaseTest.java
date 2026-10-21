@@ -72,6 +72,7 @@ class OrderTransactionDatabaseTest {
     }
     sessions = new SqlSessionTemplate(factory.getObject());
     MallOrderServiceImpl orders = new MallOrderServiceImpl();
+    ReflectionTestUtils.setField(orders, "legalDocuments", mock(LegalDocumentService.class));
     ReflectionTestUtils.setField(orders, "baseMapper", sessions.getMapper(MallOrderDao.class));
     logs = mock(OrderPriceLogDao.class);
     OrderLifecycleService target =

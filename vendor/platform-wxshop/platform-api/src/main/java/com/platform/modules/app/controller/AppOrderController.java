@@ -15,6 +15,7 @@ import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
+import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
@@ -34,6 +35,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/app/order")
 public class AppOrderController extends AppBaseController {
+  @Autowired private LegalDocumentService legalDocuments;
+
   @Autowired private com.platform.modules.mall.service.OrderRefundService refundService;
   @Autowired private MallOrderService orderService;
   @Autowired private com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
@@ -141,6 +144,7 @@ public class AppOrderController extends AppBaseController {
     Map<String, Object> handleOption = orderInfo.getHandleOption();
     //
     resultObj.put("orderInfo", orderInfo);
+    resultObj.put("legalDocuments", legalDocuments.orderDocuments(orderId, loginUser.getId()));
     resultObj.put("orderGoods", orderGoods);
     resultObj.put("handleOption", handleOption);
     resultObj.put("customization", getOrderCustomization(orderId));

@@ -25,6 +25,22 @@ function formatNumber(n) {
 
 let pendingRequests = 0;
 let authRedirecting = false;
+let legalRedirecting = false;
+
+/** 当前编辑页保留在页面栈中, 确认后由用户主动重试, 不自动提交交易. */
+function showLegalConfirmation() {
+  const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+  if (legalRedirecting || pages.some((page) => page.route === 'pages/ucenter/legal/index')) {
+    return;
+  }
+  legalRedirecting = true;
+  wx.navigateTo({
+    url: '/pages/ucenter/legal/index',
+    complete() {
+      legalRedirecting = false;
+    },
+  });
+}
 
 /** 将同源上传图片地址转换为当前API来源, 小程序包内静态图片路径保持原样. */
 function normalizeAssetUrls(value, key = '') {
@@ -51,21 +67,37 @@ function normalizeAssetUrls(value, key = '') {
   return value;
 }
 
-/** 失效会话统一清理, 忽略旧令牌的迟到响应并避免重复登录导航. */
-function expireSession(token) {
-  if ((wx.getStorageSync('token') || '') !== token) {
-    return;
-  }
-  ['token', 'userInfo', 'addressId', 'designSnapshotId', 'designQuote'].forEach(function (key) {
+/** 主动退出和身份失效共用清理, 服务端草稿保留, 本机购买上下文不跨账号复用. */
+function clearSession() {
+  [
+    'token',
+    'userInfo',
+    'userId',
+    'addressId',
+    'designSnapshotId',
+    'designQuote',
+    'designerGoodsId',
+    'designerSnapshotId',
+    'lastSavedDesignSnapshotId',
+  ].forEach(function (key) {
     wx.removeStorageSync(key);
   });
   const app = typeof getApp === 'function' ? getApp() : null;
   if (app && app.globalData) {
     app.globalData.token = '';
+    app.globalData.userId = null;
     app.globalData.userInfo = {};
     app.globalData.userCoupon = 'NO_USE_COUPON';
     app.globalData.selectedCoupon = {};
   }
+}
+
+/** 失效会话统一清理, 忽略旧令牌的迟到响应并避免重复登录导航. */
+function expireSession(token) {
+  if ((wx.getStorageSync('token') || '') !== token) {
+    return;
+  }
+  clearSession();
   if (!authRedirecting) {
     authRedirecting = true;
     const pages = typeof getCurrentPages === 'function' ? getCurrentPages() : [];
@@ -109,7 +141,12 @@ function request(url, data = {}, method = 'POST', header = 'application/x-www-fo
         method: method,
         header: {'Content-Type': header, token: token},
         success(res) {
-          if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
+          if (token !== (wx.getStorageSync('token') || '')) {
+            reject(new Error('账号已切换, 请重新操作'));
+          } else if (res.statusCode === 428 || (res.data && res.data.code === 428)) {
+            showLegalConfirmation();
+            reject(new Error('请先阅读并确认更新后的协议, 然后返回重试'));
+          } else if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
             expireSession(token);
             reject(new Error('登录已失效, 请重新登录'));
           } else if (res.data && typeof res.data.code !== 'undefined') {
@@ -189,6 +226,7 @@ function showSuccessToast(msg) {
 }
 
 module.exports = {
+  clearSession,
   normalizeAssetUrls,
   formatTime,
   request,

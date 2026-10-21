@@ -9,14 +9,18 @@ const write = process.argv.includes('--write');
 
 /** 只选择当前仍存在的业务文件, 不遍历依赖、构建产物、第三方原件或待提交删除项. */
 function businessFiles() {
-  const names = execFileSync(
+  const names = fs.existsSync(path.join(root, '.git')) ? execFileSync(
     'git',
     ['ls-files', '--cached', '--others', '--exclude-standard', '-z'],
     {
       cwd: root,
       encoding: 'utf8',
     }
-  ).split('\0');
+  ).split('\0') : JSON.parse(fs.readFileSync(path.join(root, 'source-files.json'), 'utf8'));
+  if (!Array.isArray(names) || names.some((name) => typeof name !== 'string' ||
+      path.isAbsolute(name) || name.split(/[\\/]/).includes('..'))) {
+    throw new Error('源码文件清单无效');
+  }
   return [...new Set(names)]
     .filter((name) => {
       if (name.startsWith('vendor/platform-wxshop/platform-admin-ui/src/')) {

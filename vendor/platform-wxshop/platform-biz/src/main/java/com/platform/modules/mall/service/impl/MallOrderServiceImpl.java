@@ -30,6 +30,7 @@ import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.*;
 import com.platform.modules.mall.dto.BuyGoodsRequest;
 import com.platform.modules.mall.entity.*;
+import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.mall.service.MallGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
@@ -60,6 +61,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
   @Autowired private MallGoodsService goodsService;
   @Autowired private RedisTemplateUtil redisTemplateUtil;
   @Autowired private CustomDesignService customDesignService;
+  @Autowired private LegalDocumentService legalDocuments;
 
   @Autowired
   private org.springframework.beans.factory.ObjectProvider<
@@ -173,6 +175,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
       return java.util.Map.of("code", 0, "data", java.util.Map.of("orderInfo", previous));
     }
 
+    legalDocuments.requireAccepted(loginUser.getId());
     Integer couponId = jsonParam.getInteger("couponId");
     String type = jsonParam.getString("type");
     String postscript = jsonParam.getString("postscript");
@@ -312,6 +315,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
       resultObj.put("msg", "订单提交失败");
       return resultObj;
     }
+    legalDocuments.freezeForOrder(orderInfo.getId(), loginUser.getId());
     if (useCoupon
         && userCouponDao.claim(couponId, loginUser.getId(), orderInfo.getId(), new Date()) != 1) {
       throw new IllegalArgumentException("优惠券已被使用，请重新结算");

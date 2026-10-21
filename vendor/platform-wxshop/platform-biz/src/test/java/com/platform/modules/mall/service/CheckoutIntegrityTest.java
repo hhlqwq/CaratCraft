@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.alibaba.fastjson.JSONObject;
+import com.platform.common.exception.BusinessException;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallAddressDao;
 import com.platform.modules.mall.dao.MallCartDao;
@@ -51,6 +52,7 @@ class CheckoutIntegrityTest {
   @BeforeEach
   void setUp() {
     orders = new MallOrderServiceImpl();
+    ReflectionTestUtils.setField(orders, "legalDocuments", mock(LegalDocumentService.class));
     orderDao = mock(MallOrderDao.class);
     products = mock(MallProductDao.class);
     coupons = mock(MallCouponDao.class);
@@ -118,6 +120,19 @@ class CheckoutIntegrityTest {
     request.put("type", "cart");
     request.put("addressId", 1);
     request.put("expectedActualPrice", new BigDecimal("99.00"));
+  }
+
+  /** 新协议尚未确认时不创建订单, 也不扣减商品库存. */
+  @Test
+  void changedPolicyStopsNewOrderBeforeStockOrOrderWrite() {
+    LegalDocumentService documents = mock(LegalDocumentService.class);
+    org.mockito.Mockito.doThrow(new BusinessException("需要确认", 428))
+        .when(documents)
+        .requireAccepted(7L);
+    ReflectionTestUtils.setField(orders, "legalDocuments", documents);
+    assertThrows(BusinessException.class, () -> orders.submit(request, user));
+    verify(orderDao, never()).insert(any(MallOrderEntity.class));
+    verify(products, never()).deductStock(anyInt(), anyInt());
   }
 
   /** 网络重试返回原订单且不二次扣库存. */

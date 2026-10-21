@@ -71,7 +71,7 @@
     <scroll-view scroll-x class="instance-strip">
       <view wx:for="{{arrangementNodes}}" wx:key="index" class="instance-chip {{activeIndex === index ? 'chosen-chip' : ''}}" data-index="{{index}}" bindtap="selectInstance">{{index + 1}}. {{item.name}} {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸待补'}}</view>
     </scroll-view>
-    <view class="preview-disclaimer">{{quote.lengthComplete ? '估算长度: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}。{{quote.lengthNotice}}</view>
+    <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}。{{quote.lengthNotice}}</view>
     <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
     <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
     <view class="price-row">

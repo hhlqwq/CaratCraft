@@ -9,6 +9,7 @@ import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomProductService;
 import com.platform.modules.custom.service.CustomQuoteService;
+import com.platform.modules.mall.service.LegalDocumentService;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -34,6 +35,7 @@ public class AiRecommendationService {
   private final CustomQuoteService quotes;
   private final ComponentStockDao stocks;
   private final StringRedisTemplate redis;
+  private final LegalDocumentService legalDocuments;
   private static final DefaultRedisScript<Long> HOURLY =
       new DefaultRedisScript<>(
           "local n=redis.call('INCR',KEYS[1]); "
@@ -47,11 +49,13 @@ public class AiRecommendationService {
       CustomProductService products,
       CustomQuoteService quotes,
       ComponentStockDao stocks,
-      StringRedisTemplate redis) {
+      StringRedisTemplate redis,
+      LegalDocumentService legalDocuments) {
     this.products = products;
     this.quotes = quotes;
     this.stocks = stocks;
     this.redis = redis;
+    this.legalDocuments = legalDocuments;
   }
 
   /** 只公开功能状态和隐私说明, 不输出供应商凭证. */
@@ -73,6 +77,7 @@ public class AiRecommendationService {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "请先登录");
     }
     products.getConfig(request.goodsId());
+    legalDocuments.requireAccepted(userId);
     List<CustomComponentOptionEntity> options = availableOptions(request.goodsId());
     if (options.isEmpty() || options.size() > 100) {
       throw new IllegalArgumentException("当前可用材料为空或超过单次AI推荐范围, 请手动设计");

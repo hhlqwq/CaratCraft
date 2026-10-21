@@ -13,3 +13,6 @@ trim_trailing_whitespace = false
 
 [*.{c,cc,cpp,cxx,h,hpp,hxx}]
 indent_size = 4
+
+[*.py]
+indent_size = 4

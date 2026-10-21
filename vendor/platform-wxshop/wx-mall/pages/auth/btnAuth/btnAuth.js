@@ -1,11 +1,10 @@
 const user = require('../../../services/user.js');
 
 Page({
-  data: {canIUseGetUserProfile: false, navUrl: '', legalAcceptance: null, saving: false},
+  data: {navUrl: '', legalAcceptance: null, saving: false},
   /** 只初始化能力和返回位置, 用户主动授权前不请求微信登录凭证. */
   onLoad() {
     this.setData({
-      canIUseGetUserProfile: typeof wx.getUserProfile === 'function',
       navUrl: wx.getStorageSync('navUrl') || '/pages/index/index',
     });
   },
@@ -13,21 +12,12 @@ Page({
   consentChanged(event) {
     this.setData({legalAcceptance: event.detail});
   },
-  /** 先确认协议, 再由用户手势请求微信资料. */
-  getUserProfile() {
+  /** 先确认协议, 再由用户手势请求身份登录, 昵称头像另行自愿填写. */
+  confirmLogin() {
     if (!this.data.legalAcceptance || this.data.saving) {
       return;
     }
-    wx.getUserProfile({
-      desc: '用于完善会员资料',
-      success: (profile) => this.loginByWeixin(profile),
-    });
-  },
-  /** 旧版微信授权回调同样经过协议及重复提交校验. */
-  bindGetUserInfo(event) {
-    if (event.detail && event.detail.userInfo) {
-      this.loginByWeixin(event.detail);
-    }
+    this.loginByWeixin();
   },
   /** 共用登录服务, 失败只显示一条提示并保留协议查看入口. */
   async loginByWeixin(profile) {

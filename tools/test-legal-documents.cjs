@@ -37,15 +37,18 @@ test('未同意协议及登录失败不会生成本地登录状态', async () =>
 test('登录提交精确协议版本并仅缓存成功会话', async () => {
   const requests = [];
   const storage = {};
+  const app = {globalData: {}};
   const service = load('services/user.js', {
-    '../utils/util.js': {login: async () => ({code: 'one-time'}),
+    '../utils/util.js': {clearSession: () => {}, login: async () => ({code: 'one-time'}),
       request: async (...args) => { requests.push(args); return {code: 0, data: {token: 'test-token', userInfo: {id: 9}, userId: 9}}; }},
     '../config/api.js': {AuthLoginByWeixin: '/login'},
-  }, {wx: {setStorageSync: (key, value) => { storage[key] = value; }}});
+  }, {getApp: () => app, wx: {setStorageSync: (key, value) => { storage[key] = value; }}});
   await service.loginByWeixin({}, {termsVersion: 3, privacyVersion: 4});
   assert.equal(requests[0][1].legalAcceptance.privacyVersion, 4);
   assert.equal(requests[0][2], 'POST');
   assert.equal(storage.token, 'test-token');
+  assert.equal(app.globalData.token, storage.token);
+  assert.equal(app.globalData.userId, 9);
 });
 
 /** 提供可控请求、组件回调及生命周期, 观察未配置和卸载后的行为. */

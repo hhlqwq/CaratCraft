@@ -52,17 +52,17 @@ public class ReadinessController {
               connection.prepareStatement(
                   "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND"
                       + " table_name IN"
-                      + " ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_MIGRATION','CC_REFUND','CC_STOCK_LOG','CC_COMMUNITY_POST','CC_COMMUNITY_LIKE','CC_COMMUNITY_MEDIA','CC_COMMUNITY_LOG','CC_MERCHANT_CONTACT','CC_MERCHANT_CONTACT_LOG','CC_LEGAL_HEAD','CC_LEGAL_DOCUMENT','CC_LEGAL_ACCEPTANCE')")) {
+                      + " ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_MIGRATION','CC_REFUND','CC_STOCK_LOG','CC_COMMUNITY_POST','CC_COMMUNITY_LIKE','CC_COMMUNITY_MEDIA','CC_COMMUNITY_LOG','CC_MERCHANT_CONTACT','CC_MERCHANT_CONTACT_LOG','CC_LEGAL_HEAD','CC_LEGAL_DOCUMENT','CC_LEGAL_ACCEPTANCE','CC_LOGIN_IDENTITY_LOCK','CC_ORDER_LEGAL')")) {
         statement.setQueryTimeout(3);
         try (var rows = statement.executeQuery()) {
-          if (!rows.next() || rows.getInt(1) != 14) {
+          if (!rows.next() || rows.getInt(1) != 16) {
             return ResponseEntity.status(503).body(metadata("schema_required"));
           }
         }
         try (var versionQuery =
                 connection.prepareStatement(
                     "SELECT version FROM CC_SCHEMA_MIGRATION WHERE"
-                        + " version='V20261020_03_finished_length.sql'");
+                        + " version='V20261021_02_order_legal.sql'");
             var versions = versionQuery.executeQuery()) {
           if (!versions.next()) {
             return ResponseEntity.status(503).body(metadata("schema_required"));
@@ -90,6 +90,6 @@ public class ReadinessController {
         "revision",
         revision,
         "requiredSchema",
-        "V20261020_03");
+        "V20261021_02");
   }
 }

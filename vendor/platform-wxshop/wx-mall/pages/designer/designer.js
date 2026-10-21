@@ -8,8 +8,9 @@ const DEFAULT_GOODS_ID = 1999105;
 /**
  * 项链 DIY 页面 / Necklace DIY page.
  */
-Page({
-  data: {
+/** 为账号切换创建全新的编辑状态, 不迁移其他账号的私人输入. */
+function initialDesignerState() {
+  return {
     goodsId: 0,
     draftId: null,
     draftVersion: null,
@@ -46,7 +47,11 @@ Page({
     aiLoading: false,
     aiError: '',
     aiResult: null,
-  },
+  };
+}
+
+Page({
+  data: initialDesignerState(),
 
   /** 获取功能开关与数据用途, 配置缺失不影响手动设计. */
   loadAiStatus() {
@@ -713,6 +718,8 @@ Page({
       wx.showToast({title: '请先完成成品长度校验', icon: 'none'});
       return Promise.reject(new Error('成品长度尚未校验通过'));
     }
+    const token = wx.getStorageSync('token') || '';
+    const current = () => !that._unloaded && token === (wx.getStorageSync('token') || '');
     that.setData({saving: true});
     return util
       .request(
@@ -731,6 +738,9 @@ Page({
         'application/json'
       )
       .then(function (res) {
+        if (!current()) {
+          return;
+        }
         that.setData({saving: false});
         if (res.code !== 0) {
           throw new Error(res.msg || '保存失败');
@@ -754,6 +764,9 @@ Page({
             'application/json'
           )
           .then(function (buyRes) {
+            if (!current()) {
+              return;
+            }
             if (buyRes.code !== 0) {
               throw new Error(buyRes.msg || '创建购买信息失败');
             }
@@ -768,6 +781,9 @@ Page({
           });
       })
       .catch(function (error) {
+        if (!current()) {
+          return;
+        }
         that.setData({saving: false});
         wx.showToast({title: error.message || '操作失败', icon: 'none'});
         throw error;
@@ -786,6 +802,7 @@ Page({
   /** 初始化页面 / Initializes page state. */
   onLoad(options) {
     this._unloaded = false;
+    this._sessionToken = wx.getStorageSync('token') || '';
     this.loadAiStatus();
     let goodsId = Number((options && options.goodsId) || 0);
     let snapshotId = Number((options && options.snapshotId) || 0);
@@ -812,6 +829,21 @@ Page({
 
   /** 每次 tab 展示时重载配置, 保证从商品页带入新 ID / Reloads config on each tab show. */
   onShow() {
+    const token = wx.getStorageSync('token') || '';
+    if (this._sessionToken !== undefined && token !== this._sessionToken) {
+      this.invalidateAi();
+      this._configSeq = (this._configSeq || 0) + 1;
+      this._snapshotSeq = (this._snapshotSeq || 0) + 1;
+      this._quoteSeq = (this._quoteSeq || 0) + 1;
+      this._history = [];
+      if (this._engravingTimer) {
+        clearTimeout(this._engravingTimer);
+      }
+      this.setData({...initialDesignerState(), goodsId: DEFAULT_GOODS_ID});
+      this.loadAiStatus();
+      this.loadConfig();
+    }
+    this._sessionToken = token;
     const goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
     const snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
     if (snapshotId) {

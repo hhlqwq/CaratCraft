@@ -53,6 +53,10 @@
         <view class="customization-text">刻字内容：{{customization.engraving}}</view>
     </view>
 
+    <view class="customization" wx:if="{{legalDocuments.length}}">
+        <view class="customization-text">下单时已确认的协议版本</view>
+        <navigator wx:for="{{legalDocuments}}" wx:key="kind" url="/pages/ucenter/legal/index?kind={{item.kind}}&amp;version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
+    </view>
     <view class="order-bottom">
         <view class="total" wx:if="{{refund.label}}">售后进度: {{refund.label}}</view>
         <view class="total" wx:if="{{orderInfo.payStatus === 2 && (orderInfo.orderStatus === 201 || orderInfo.orderStatus === 300 || orderInfo.orderStatus === 301) && (!refund.status || refund.status === 'NONE')}}">

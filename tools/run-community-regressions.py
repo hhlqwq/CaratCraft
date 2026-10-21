@@ -55,6 +55,8 @@ def main():
         "CheckoutIntegrityTest",
         "FinishedLengthRulesTest",
         "LegalDocumentDatabaseTest",
+        "AccountLoginDatabaseTest",
+        "AccountLoginControllerTest",
     ])
     command = [str(ROOT / ".tools/maven/apache-maven-3.9.11/bin/mvn.cmd"), "-o",
                "-s", str(ROOT / ".tools/copyright/maven-central.xml"),
@@ -64,25 +66,32 @@ def main():
                "package" if args.package else "test"]
     if args.docker:
         cache = ROOT / ".tools/m2"
+        if (cache / "repository").is_dir():
+            cache = cache / "repository"
+        # 同一离线缓存沿用下载时的官方仓库标识, 避免Maven拒绝已有依赖.
+        settings = "/workspace/.tools/copyright/maven-central.xml"
+        if not (ROOT / ".tools/copyright/maven-central.xml").is_file():
+            settings = "deploy/maven-settings.xml"
         container_agent = "/root/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.13/byte-buddy-agent-1.14.13.jar"
         env["MAVEN_OPTS"] = "-javaagent:" + container_agent + " -Djava.io.tmpdir=/test-temp -Djansi.tmpdir=/test-temp -Dfile.encoding=UTF-8"
-        command = ["docker", "run", "--rm", "--network", "container:platform-mysql",
+        command = ["docker", "run", "--rm", "--pull=never", "--network", "container:platform-mysql",
                    "--mount", f"type=bind,source={ROOT},target=/workspace",
-                   "--mount", f"type=bind,source={cache},target=/root/.m2",
+                   "--mount", f"type=bind,source={cache},target=/root/.m2/repository",
                    "--mount", f"type=bind,source={temporary},target=/test-temp",
                    "--workdir", "/workspace/vendor/platform-wxshop"]
         for key in ("CARATCRAFT_DATABASE_TEST", "CARATCRAFT_DATABASE_TEST_URL",
                     "CARATCRAFT_DATABASE_TEST_PASSWORD", "MAVEN_OPTS"):
             command.extend(["--env", key])
         command.extend(["maven:3.9.11-eclipse-temurin-21", "mvn", "-o", "-B",
-                        "-s", "deploy/maven-settings.xml", "-DforkCount=0",
+                        "-s", settings, "-DforkCount=0",
                         "-Dsurefire.failIfNoSpecifiedTests=false"])
         if not args.all:
             command.append("-Dtest=" + tests)
         command.append("package" if args.package else "test")
     elif args.all:
         command = [value for value in command if not value.startswith("-Dtest=")]
-    log = ROOT / ".tools/copyright/community-java-tests.log"
+    log_name = "community-java-tests-docker.log" if args.docker else "community-java-tests.log"
+    log = ROOT / ".tools/copyright" / log_name
     print("[1/2] 执行社区、排列、旧设计及交易回归: " + args.database, flush=True)
     with log.open("w", encoding="utf-8") as output:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT)

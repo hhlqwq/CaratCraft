@@ -22,19 +22,20 @@ package com.platform.modules.app.controller;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
-import cn.binarywang.wx.miniapp.bean.WxMaUserInfo;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.RestResponse;
 import com.platform.common.utils.StringUtils;
 import com.platform.common.validator.AbstractAssert;
-import com.platform.modules.app.entity.FullUserInfo;
 import com.platform.modules.app.request.LoginAppRequest;
 import com.platform.modules.app.request.LoginWxMpRequest;
 import com.platform.modules.app.request.LoginWxPhoneRequest;
 import com.platform.modules.app.request.LoginWxRequest;
+import com.platform.modules.app.vo.LoginUserInfo;
 import com.platform.modules.app.vo.LoginVo;
+import com.platform.modules.mall.service.AccountLoginService;
+import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
 import com.platform.utils.JwtUtils;
@@ -42,7 +43,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
@@ -50,7 +50,13 @@ import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * APP登录授权
@@ -67,7 +73,8 @@ public class AppLoginController extends AppBaseController {
   private final JwtUtils jwtUtils;
   private final WxMaService wxMaService;
   private final WxMpService wxMpService;
-  private final com.platform.modules.mall.service.LegalDocumentService legalDocuments;
+  private final LegalDocumentService legalDocuments;
+  private final AccountLoginService accounts;
 
   /**
    * 微信小程序登录
@@ -80,77 +87,16 @@ public class AppLoginController extends AppBaseController {
   @Operation(summary = "微信小程序登录", description = "wx.login()每次返回的code只能使用一次")
   public RestResponse<LoginVo> loginByMa(@RequestBody LoginWxRequest request) {
     legalDocuments.requireCurrent(request.getLegalAcceptance());
-    if (request.getLegalAcceptance() == null) {
-      return RestResponse.fail("请先阅读并主动同意用户协议及隐私政策");
-    }
-    FullUserInfo fullUserInfo = request.getUserInfo();
-    AbstractAssert.isNull(fullUserInfo, "登录失败：userInfo为空");
-
     String code = request.getCode();
-    AbstractAssert.isBlank(code, "登录失败：code为空");
-
+    AbstractAssert.isBlank(code, "登录失败: code为空");
     try {
       WxMaJscode2SessionResult session = wxMaService.getUserService().getSessionInfo(code);
-      // 用户信息校验
-      log.debug("微信会话交换成功");
-
-      if (!wxMaService
-          .getUserService()
-          .checkUserInfo(
-              session.getSessionKey(), fullUserInfo.getRawData(), fullUserInfo.getSignature())) {
-        log.error("登录失败：数据签名验证失败");
-        return RestResponse.fail("登录失败");
-      }
-
-      // 解密用户信息
-      WxMaUserInfo wxMpUser =
-          wxMaService
-              .getUserService()
-              .getUserInfo(
-                  session.getSessionKey(), fullUserInfo.getEncryptedData(), fullUserInfo.getIv());
-
-      WxUserEntity user =
-          userService.getOne(new QueryWrapper<WxUserEntity>().eq("UNION_ID", session.getUnionid()));
-      if (user == null) {
-        user =
-            userService.getOne(
-                new QueryWrapper<WxUserEntity>().eq("MA_OPENID", session.getOpenid()));
-      }
-      // 没有数据即新注册用户
-      if (user == null) {
-        user = new WxUserEntity();
-        user.setAllIntegral(0);
-        user.setIntegral(0);
-        user.setRegisterTime(new Date());
-        user.setRegisterIp(getClientIp());
-      }
-      user.setLastLoginTime(new Date());
-      user.setLastLoginIp(getClientIp());
-      user.setUnionId(session.getUnionid());
-      user.setMaOpenid(session.getOpenid());
-      // 性别 0：未知、1：男、2：女
-      user.setSex(Integer.parseInt(wxMpUser.getGender()));
-      user.setNickname(wxMpUser.getNickName());
-      user.setHeadImgUrl(wxMpUser.getAvatarUrl());
-      user.setCity(wxMpUser.getCity());
-      user.setProvince(wxMpUser.getProvince());
-      userService.saveOrUpdate(user);
-      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
-
-      String token = jwtUtils.generateToken(user.getId());
-
-      if (StringUtils.isNullOrEmpty(token)) {
-        log.error("登录失败：token生成异常");
-        return RestResponse.fail("登录失败");
-      }
-      LoginVo map = new LoginVo();
-      map.setToken(token);
-      map.setUserInfo(user);
-      map.setUserId(user.getId());
-      return RestResponse.ok(map);
-    } catch (WxErrorException e) {
-      log.error("登录失败：" + e.getMessage());
-      return RestResponse.fail("登录失败");
+      return loginResult(
+          accounts.login(
+              true, session.getOpenid(), session.getUnionid(), request.getLegalAcceptance()));
+    } catch (WxErrorException error) {
+      log.warn("微信身份交换失败");
+      return RestResponse.fail("登录失败, 请重试");
     }
   }
 
@@ -164,6 +110,7 @@ public class AppLoginController extends AppBaseController {
   @Operation(summary = "微信小程序手机号授权", description = "wx.login()每次返回的code只能使用一次")
   public RestResponse<String> loginByMaPhone(
       @LoginUser WxUserEntity loginUser, @RequestBody LoginWxPhoneRequest request) {
+    legalDocuments.requireAccepted(loginUser.getId());
     String code = request.getCode();
     AbstractAssert.isBlank(code, "手机号授权失败：code为空");
     Long userId = loginUser.getId();
@@ -174,10 +121,14 @@ public class AppLoginController extends AppBaseController {
 
       WxUserEntity user = userService.getById(userId);
       user.setPhone(wxMpUser.getPurePhoneNumber());
-      userService.updateById(user);
+      userService.update(
+          null,
+          new UpdateWrapper<WxUserEntity>()
+              .eq("ID", userId)
+              .set("PHONE", wxMpUser.getPurePhoneNumber()));
       return RestResponse.ok("手机号授权成功");
     } catch (WxErrorException e) {
-      log.error("手机号授权失败：" + e.getMessage());
+      log.warn("手机号授权失败");
       return RestResponse.fail("手机号授权失败");
     }
   }
@@ -203,57 +154,16 @@ public class AppLoginController extends AppBaseController {
       throw new IllegalArgumentException(String.format("未找到对应appid=[%s]的配置，请核实！", mpAppId));
     }
 
-    LoginVo map = new LoginVo();
     try {
-      WxOAuth2AccessToken auth2AccessToken = wxMpService.getOAuth2Service().getAccessToken(code);
-
-      String openId = auth2AccessToken.getOpenId();
-
-      // 获取微信用户信息
-      WxOAuth2UserInfo wxMpUser =
-          wxMpService.getOAuth2Service().getUserInfo(auth2AccessToken, null);
-
-      // 保存或者更新
-      WxUserEntity user =
-          userService.getOne(
-              new QueryWrapper<WxUserEntity>().eq("UNION_ID", wxMpUser.getUnionId()));
-      if (user == null) {
-        user =
-            userService.getOne(new QueryWrapper<WxUserEntity>().eq("OPENID", wxMpUser.getOpenid()));
-      }
-      // 没有数据即新注册用户
-      if (user == null) {
-        user = new WxUserEntity();
-        user.setAllIntegral(0);
-        user.setIntegral(0);
-        user.setRegisterTime(new Date());
-        user.setRegisterIp(getClientIp());
-      }
-      user.setLastLoginTime(new Date());
-      user.setLastLoginIp(getClientIp());
-      user.setUnionId(wxMpUser.getUnionId());
-      user.setOpenid(wxMpUser.getOpenid());
-      user.setNickname(wxMpUser.getNickname());
-      user.setHeadImgUrl(wxMpUser.getHeadImgUrl());
-
-      Boolean subscribe = wxMpService.getUserService().userInfo(openId).getSubscribe();
-      user.setSubscribe(subscribe);
-
-      userService.saveOrUpdate(user);
-      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
-
-      // 生成token
-      String token = jwtUtils.generateToken(user.getId());
-
-      map.setToken(token);
-      map.setUserInfo(user);
-      map.setUserId(user.getId());
-    } catch (WxErrorException e) {
-      log.error("登录失败：" + e.getMessage());
-      return RestResponse.fail("登录失败");
+      WxOAuth2AccessToken access = wxMpService.getOAuth2Service().getAccessToken(code);
+      WxOAuth2UserInfo identity = wxMpService.getOAuth2Service().getUserInfo(access, null);
+      return loginResult(
+          accounts.login(
+              false, identity.getOpenid(), identity.getUnionId(), request.getLegalAcceptance()));
+    } catch (WxErrorException error) {
+      log.warn("公众号身份交换失败");
+      return RestResponse.fail("登录失败, 请重试");
     }
-
-    return RestResponse.ok(map);
   }
 
   /**
@@ -272,44 +182,28 @@ public class AppLoginController extends AppBaseController {
     AbstractAssert.isNull(auth2AccessToken, "登录失败：userInfo为空");
 
     try {
-      // 获取微信用户信息
-      WxOAuth2UserInfo wxMpUser =
+      WxOAuth2UserInfo identity =
           wxMpService.getOAuth2Service().getUserInfo(auth2AccessToken, null);
-
-      WxUserEntity user =
-          userService.getOne(
-              new QueryWrapper<WxUserEntity>().eq("UNION_ID", wxMpUser.getUnionId()));
-      // 没有数据即新注册用户
-      if (user == null) {
-        user = new WxUserEntity();
-        user.setAllIntegral(0);
-        user.setIntegral(0);
-        user.setRegisterTime(new Date());
-        user.setRegisterIp(getClientIp());
-      }
-      user.setLastLoginTime(new Date());
-      user.setLastLoginIp(getClientIp());
-      user.setUnionId(wxMpUser.getUnionId());
-      user.setNickname(wxMpUser.getNickname());
-      user.setHeadImgUrl(wxMpUser.getHeadImgUrl());
-      userService.saveOrUpdate(user);
-      legalDocuments.accept(user.getId(), request.getLegalAcceptance());
-
-      String token = jwtUtils.generateToken(user.getId());
-
-      if (StringUtils.isNullOrEmpty(token)) {
-        log.error("登录失败：token生成异常");
-        return RestResponse.fail("登录失败");
-      }
-      LoginVo map = new LoginVo();
-      map.setToken(token);
-      map.setUserInfo(user);
-      map.setUserId(user.getId());
-      return RestResponse.ok(map);
-    } catch (WxErrorException e) {
-      log.error("登录失败：" + e.getMessage());
-      return RestResponse.fail("登录失败");
+      return loginResult(
+          accounts.login(
+              false, identity.getOpenid(), identity.getUnionId(), request.getLegalAcceptance()));
+    } catch (WxErrorException error) {
+      log.warn("App微信身份交换失败");
+      return RestResponse.fail("登录失败, 请重试");
     }
+  }
+
+  /** 账户事务成功返回后签发令牌, 通过白名单返回本人界面资料. */
+  private RestResponse<LoginVo> loginResult(WxUserEntity user) {
+    String token = jwtUtils.generateToken(user.getId());
+    if (StringUtils.isNullOrEmpty(token)) {
+      return RestResponse.fail("登录失败, 请重试");
+    }
+    LoginVo result = new LoginVo();
+    result.setToken(token);
+    result.setUserId(user.getId());
+    result.setUserInfo(LoginUserInfo.from(user));
+    return RestResponse.ok(result);
   }
 
   /**
@@ -329,7 +223,7 @@ public class AppLoginController extends AppBaseController {
             in = ParameterIn.QUERY,
             name = "url",
             description = "url",
-            example = "https://openwtai.com")
+            example = "https://example.com")
       })
   public RestResponse<WxJsapiSignature> createJsapiSignature(
       @PathVariable String appid, @RequestParam String url) {
@@ -337,7 +231,7 @@ public class AppLoginController extends AppBaseController {
     try {
       data = wxMpService.switchoverTo(appid).createJsapiSignature(url);
     } catch (WxErrorException e) {
-      e.printStackTrace();
+      log.warn("微信签名创建失败");
     }
 
     return RestResponse.ok(data);

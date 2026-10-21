@@ -85,17 +85,50 @@
           ></el-col>
         </el-row>
         <el-form-item label="成品长度规则">
-          <el-input
-            v-model="product.lengthRules"
-            type="textarea"
-            :rows="5"
-            placeholder='{"mode":"SUM","claspMm":0,"connectionMm":0,"lossMm":0,"toleranceMm":0,"minLengthMm":0,"maxLengthMm":0}'
-          />
-          <p>
-            单位均为mm, 请填写真实工艺参数. SUM为串珠与链段相加, OVERLAY_MAX为链材承载串珠取较长者.
-            扣件及连接统一计入规则, lossMm为加工缩短量; 吊坠等悬挂件不计周长.
-            空规则只能保存设计草稿.
-          </p>
+          <div class="length-rule-editor">
+            <el-switch
+              :model-value="Boolean(product.lengthRules)"
+              @update:model-value="toggleLengthRules"
+              active-text="配置制作规则"
+              inactive-text="只允许草稿"
+            />
+            <el-alert
+              v-if="lengthSettings.invalid"
+              title="已有规则格式无效, 请先关闭再重新配置, 不会自动覆盖原内容"
+              type="error"
+              :closable="false"
+            />
+            <template v-else-if="product.lengthRules">
+              <el-select
+                class="length-rule-mode"
+                placeholder="请选择实际制作方式"
+                :model-value="lengthSettings.mode"
+                @update:model-value="changeLengthRule('mode', $event)"
+              >
+                <el-option value="SUM" label="串珠与链段相加" />
+                <el-option value="OVERLAY_MAX" label="链材承载串珠, 取较长部分" />
+              </el-select>
+              <div class="length-rule-grid">
+                <label v-for="field in lengthRuleFields" :key="field.key" class="length-rule-field">
+                  <span>{{ field.label }} (mm)</span>
+                  <el-input-number
+                    :model-value="lengthSettings[field.key]"
+                    :min="field.zero ? 0 : 0.001"
+                    :max="3000"
+                    :precision="3"
+                    :controls="false"
+                    class="full-width"
+                    @update:model-value="changeLengthRule(field.key, $event)"
+                  />
+                </label>
+              </div>
+            </template>
+            <p class="length-rule-hint">
+              所有字段由商家明确填写, 空值表示尚未配置. 扣件及连接统一计入规则,
+              加工缩短量从材料长度扣减; 吊坠等悬挂件不计周长. 规则未完整时不能发布此配置,
+              未配置规则的设计只可保存草稿.
+            </p>
+          </div>
         </el-form-item>
         <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct"
           >保存商品配置</el-button
@@ -360,6 +393,14 @@ export default {
       options: [],
       selectedGoodsId: null,
       product: createProduct(),
+      lengthRuleFields: [
+        {key: 'claspMm', label: '扣件长度', zero: true},
+        {key: 'connectionMm', label: '连接长度', zero: true},
+        {key: 'lossMm', label: '加工缩短量', zero: true},
+        {key: 'toleranceMm', label: '允许误差', zero: true},
+        {key: 'minLengthMm', label: '最小成品长度', zero: false},
+        {key: 'maxLengthMm', label: '最大成品长度', zero: false},
+      ],
       option: createOption(),
       ruleForm: {
         quantity: 1,
@@ -388,6 +429,20 @@ export default {
     };
   },
   computed: {
+    /** 从已保存规则读取表单, 无法解析时明确提示而不静默丢弃原配置. */
+    lengthSettings() {
+      if (!this.product.lengthRules) {
+        return {};
+      }
+      try {
+        const rules = JSON.parse(this.product.lengthRules);
+        return rules && typeof rules === 'object' && !Array.isArray(rules)
+          ? rules
+          : {invalid: true};
+      } catch (error) {
+        return {invalid: true};
+      }
+    },
     selectedGoodsName() {
       return this.selectedGoodsId
         ? `${this.goodsName(this.selectedGoodsId)}（ID: ${this.selectedGoodsId}）`
@@ -399,6 +454,27 @@ export default {
     this.loadProducts();
   },
   methods: {
+    /** 显式开启时所有毫米参数保持未知, 不用零值替代商家真实数据. */
+    toggleLengthRules(enabled) {
+      this.product.lengthRules = enabled
+        ? JSON.stringify({
+            mode: null,
+            claspMm: null,
+            connectionMm: null,
+            lossMm: null,
+            toleranceMm: null,
+            minLengthMm: null,
+            maxLengthMm: null,
+          })
+        : '';
+    },
+    /** 每次字段变化写回完整规则, 编辑旧商品时仍保留未修改参数. */
+    changeLengthRule(field, value) {
+      this.product.lengthRules = JSON.stringify({
+        ...this.lengthSettings,
+        [field]: value === undefined ? null : value,
+      });
+    },
     // 空尺寸保持未知, 不让数字控件自动补成最小值或将空串转成零.
     measuredSize(value) {
       if (value === null || value === undefined || String(value).trim() === '') {
@@ -430,6 +506,20 @@ export default {
     },
     // 保存定制商品配置 / Saves the custom product configuration.
     saveProduct() {
+      if (
+        this.product.lengthRules &&
+        (this.lengthSettings.invalid ||
+          !['SUM', 'OVERLAY_MAX'].includes(this.lengthSettings.mode) ||
+          this.lengthRuleFields.some(
+            (field) =>
+              this.lengthSettings[field.key] === null ||
+              this.lengthSettings[field.key] === undefined
+          ) ||
+          this.lengthSettings.minLengthMm > this.lengthSettings.maxLengthMm)
+      ) {
+        this.$message.error('请完整填写制作规则, 最小长度不能大于最大长度');
+        return;
+      }
       this.$http({
         url: '/custom/configuration/product/save',
         method: 'post',
@@ -675,6 +765,39 @@ export default {
 </script>
 
 <style scoped>
+.length-rule-editor {
+  width: 100%;
+  min-width: 0;
+}
+.length-rule-mode {
+  width: 100%;
+  margin: 12px 0;
+}
+.length-rule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+.length-rule-field span {
+  display: block;
+  margin-bottom: 6px;
+  line-height: 22px;
+}
+.length-rule-hint {
+  margin: 12px 0 0;
+  line-height: 1.7;
+  color: #606266;
+}
+@media (max-width: 1200px) {
+  .length-rule-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 768px) {
+  .length-rule-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .toolbar {
   display: flex;
   align-items: center;

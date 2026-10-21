@@ -1,5 +1,7 @@
 package com.platform.modules.mall.service;
 
+import com.platform.common.exception.BusinessException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -39,7 +41,9 @@ public class LegalDocumentService {
                 + " WHERE kind=? AND version=? AND status='PUBLISHED'",
             kind,
             version);
-    if (rows.isEmpty()) throw new IllegalArgumentException("该协议版本尚未发布或不存在");
+    if (rows.isEmpty()) {
+      throw new IllegalArgumentException("该协议版本尚未发布或不存在");
+    }
     return rows.get(0);
   }
 
@@ -59,7 +63,9 @@ public class LegalDocumentService {
   /** 每次保存追加一个草稿修订, 已发布正文不接受原地编辑. */
   @Transactional(rollbackFor = Exception.class)
   public Map<String, Object> save(Draft draft, String operator) {
-    if (draft == null) throw new IllegalArgumentException("协议草稿不能为空");
+    if (draft == null) {
+      throw new IllegalArgumentException("协议草稿不能为空");
+    }
     validateKind(draft.kind());
     String title = draft.title() == null ? "" : draft.title().trim();
     String content = draft.content() == null ? "" : draft.content().trim();
@@ -99,7 +105,9 @@ public class LegalDocumentService {
             operator,
             kind,
             version);
-    if (changed != 1) throw new IllegalArgumentException("只能发布最新未发布草稿");
+    if (changed != 1) {
+      throw new IllegalArgumentException("只能发布最新未发布草稿");
+    }
     jdbc.update("UPDATE CC_LEGAL_HEAD SET published_version=? WHERE kind=?", version, kind);
     return editor(kind);
   }
@@ -147,6 +155,64 @@ public class LegalDocumentService {
     return jdbc.queryForList(
         "SELECT kind,version,accepted_at FROM CC_LEGAL_ACCEPTANCE"
             + " WHERE user_id=? ORDER BY accepted_at DESC,kind LIMIT 100",
+        userId);
+  }
+
+  /** 仅新交易及新增个人数据处理要求当前版本, 不拦截既有订单查询和售后. */
+  @Transactional(rollbackFor = Exception.class)
+  public List<Map<String, Object>> requireAccepted(Long userId) {
+    List<Map<String, Object>> result = new ArrayList<>();
+    for (String kind : List.of("PRIVACY", "TERMS")) {
+      int version = ((Number) head(kind, true).get("published_version")).intValue();
+      if (version == 0) {
+        throw new BusinessException("商家尚未发布完整协议, 暂不能进行新交易", 503);
+      }
+      var rows =
+          jdbc.queryForList(
+              "SELECT a.kind,a.version,a.accepted_at,d.title FROM CC_LEGAL_ACCEPTANCE a JOIN"
+                  + " CC_LEGAL_DOCUMENT d ON d.kind=a.kind AND d.version=a.version WHERE"
+                  + " a.user_id=? AND a.kind=? AND a.version=? AND d.status='PUBLISHED' FOR SHARE",
+              userId,
+              kind,
+              version);
+      if (rows.size() != 1) {
+        throw new BusinessException("协议已有更新, 请阅读并主动确认当前版本后重试", 428);
+      }
+      result.add(rows.get(0));
+    }
+    return result;
+  }
+
+  /** 与订单插入处于同一事务, 保留首次确认时间及不可变发布版本. */
+  @Transactional(rollbackFor = Exception.class)
+  public void freezeForOrder(Integer orderId, Long userId) {
+    Integer owned =
+        jdbc.queryForObject(
+            "SELECT COUNT(*) FROM mall_order WHERE id=? AND user_id=?",
+            Integer.class,
+            orderId,
+            userId);
+    if (owned == null || owned != 1) {
+      throw new IllegalArgumentException("订单不存在或不属于当前用户");
+    }
+    for (var document : requireAccepted(userId)) {
+      jdbc.update(
+          "INSERT INTO CC_ORDER_LEGAL(order_id,user_id,kind,version,accepted_at) VALUES(?,?,?,?,?)",
+          orderId,
+          userId,
+          document.get("kind"),
+          document.get("version"),
+          document.get("accepted_at"));
+    }
+  }
+
+  /** 已有订单只展示当时冻结版本, 不按商家当前指针回填历史事实. */
+  public List<Map<String, Object>> orderDocuments(Integer orderId, Long userId) {
+    return jdbc.queryForList(
+        "SELECT a.kind,a.version,a.accepted_at,d.title FROM CC_ORDER_LEGAL a JOIN CC_LEGAL_DOCUMENT"
+            + " d ON d.kind=a.kind AND d.version=a.version WHERE a.order_id=? AND a.user_id=? ORDER"
+            + " BY a.kind",
+        orderId,
         userId);
   }
 

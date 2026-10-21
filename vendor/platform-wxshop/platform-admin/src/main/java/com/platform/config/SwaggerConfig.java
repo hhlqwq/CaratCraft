@@ -19,7 +19,6 @@ package com.platform.config;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,13 +54,11 @@ public class SwaggerConfig {
     return new OpenAPI().info(apiInfo());
   }
 
+  /** 接口说明只发布本项目元数据, 不替经营者填写法律链接或私人联系资料. */
   private Info apiInfo() {
     return new Info()
         .title("克拉匠造")
         .description("克拉匠造管理端接口文档")
-        .termsOfService("https://openwtai.com")
-        .contact(
-            new Contact().name("何海龙").email("939961241@qq.com").url("https://gitee.com/hehailong"))
         .version(
             "Application Version: "
                 + projectVersion

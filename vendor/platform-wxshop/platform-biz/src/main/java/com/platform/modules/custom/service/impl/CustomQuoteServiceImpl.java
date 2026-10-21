@@ -28,6 +28,7 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
   private final CustomProductDao customProductDao;
   private final ComponentStockDao componentStockDao;
 
+  /** 注入可信商品、材料与库存来源, 报价不采用客户端传入的价格或尺寸. */
   public CustomQuoteServiceImpl(
       MallGoodsService mallGoodsService,
       CustomComponentOptionDao componentOptionDao,

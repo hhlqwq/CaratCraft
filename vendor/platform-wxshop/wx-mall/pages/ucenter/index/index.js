@@ -32,6 +32,7 @@ Page({
 
   /** 页面再次展示时恢复有效会话并刷新个人中心资料. */
   onShow() {
+    this.profileVersion = (this.profileVersion || 0) + 1;
     const userInfo = wx.getStorageSync('userInfo');
     const token = wx.getStorageSync('token');
 
@@ -41,6 +42,22 @@ Page({
     }
 
     this.refreshUserInfo();
+  },
+
+  /** 离页使资料回调失效, 隐藏编辑层中的本地头像和昵称. */
+  onHide() {
+    this.profileVersion = (this.profileVersion || 0) + 1;
+    this.setData({profileVisible: false, profileSaving: false, profileForm: {}});
+  },
+
+  /** 卸载后不再接收个人资料请求结果. */
+  onUnload() {
+    this.profileVersion = (this.profileVersion || 0) + 1;
+  },
+
+  /** 个人资料请求同时绑定令牌和页面代次, 不把旧资料写入新会话. */
+  isCurrentProfileRequest(token, version) {
+    return token === (wx.getStorageSync('token') || '') && version === this.profileVersion;
   },
 
   /** 请求用户主动授权的资料并交给登录流程处理. */
@@ -66,10 +83,10 @@ Page({
       title: '',
       confirmColor: '#b4282d',
       content: '退出登录？',
-      success(res) {
+      success: (res) => {
         if (res.confirm) {
-          wx.removeStorageSync('token');
-          wx.removeStorageSync('userInfo');
+          this.profileVersion = (this.profileVersion || 0) + 1;
+          util.clearSession();
           app.globalData.userInfo = {
             nickname: 'Hi, 游客',
             userName: '点击去登录',
@@ -85,17 +102,19 @@ Page({
   },
   /** 按当前会话刷新个人资料, 无有效会话时显示游客状态. */
   refreshUserInfo() {
+    const token = wx.getStorageSync('token') || '';
+    const version = this.profileVersion;
     const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
     this.setData({
       userInfo: userInfo,
       avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
       nicknameText: userInfo.nickname || 'Hi, 游客',
     });
-    if (app.globalData.token || wx.getStorageSync('token')) {
+    if (token) {
       util
         .request(api.UserProfile)
         .then((res) => {
-          if (res.code === 0 && res.data) {
+          if (this.isCurrentProfileRequest(token, version) && res.code === 0 && res.data) {
             this.applyUserInfo(this.normalizeUserInfo(res.data));
           }
         })
@@ -147,9 +166,15 @@ Page({
   },
   // 经用户确认后同步微信昵称和头像 / Syncs WeChat profile after explicit user consent.
   syncWeChatProfile() {
+    const token = wx.getStorageSync('token') || '';
+    const version = this.profileVersion;
+    const current = () => this.isCurrentProfileRequest(token, version);
     wx.getUserProfile({
       desc: '用于设置商城昵称和头像',
       success: (profile) => {
+        if (!current()) {
+          return;
+        }
         this.setData({profileSaving: true});
         util
           .request(
@@ -162,6 +187,9 @@ Page({
             'application/json'
           )
           .then((res) => {
+            if (!current()) {
+              return;
+            }
             if (res.code !== 0) {
               throw new Error(res.msg || '资料同步失败');
             }
@@ -176,16 +204,24 @@ Page({
             wx.showToast({title: '已同步微信资料', icon: 'success'});
           })
           .catch(() => {
+            if (!current()) {
+              return;
+            }
             wx.showToast({title: '微信资料同步失败', icon: 'none'});
           })
           .finally(() => {
-            this.setData({profileSaving: false});
+            if (current()) {
+              this.setData({profileSaving: false});
+            }
           });
       },
     });
   },
   // 保存昵称和头像 / Saves nickname and avatar.
   saveProfile() {
+    const token = wx.getStorageSync('token') || '';
+    const version = this.profileVersion;
+    const current = () => this.isCurrentProfileRequest(token, version);
     const nickname = (this.data.profileForm.nickname || '').trim();
     if (!nickname || nickname.length > 32) {
       wx.showToast({title: '昵称应为1到32个字符', icon: 'none'});
@@ -193,8 +229,11 @@ Page({
     }
     this.setData({profileSaving: true});
     this.uploadAvatarIfNeeded(this.data.profileForm.avatarUrl)
-      .then((avatarUrl) =>
-        util.request(
+      .then((avatarUrl) => {
+        if (!current()) {
+          throw new Error('账号或页面已变化, 请重新操作');
+        }
+        return util.request(
           api.UpdateUserProfile,
           {
             nickname: nickname,
@@ -202,9 +241,12 @@ Page({
           },
           'POST',
           'application/json'
-        )
-      )
+        );
+      })
       .then((res) => {
+        if (!current()) {
+          return;
+        }
         if (res.code !== 0) {
           throw new Error(res.msg || '保存失败');
         }
@@ -213,10 +255,15 @@ Page({
         wx.showToast({title: '资料已保存', icon: 'success'});
       })
       .catch((error) => {
+        if (!current()) {
+          return;
+        }
         wx.showToast({title: error.message || '资料保存失败', icon: 'none'});
       })
       .finally(() => {
-        this.setData({profileSaving: false});
+        if (current()) {
+          this.setData({profileSaving: false});
+        }
       });
   },
   // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
@@ -229,13 +276,18 @@ Page({
     ) {
       return Promise.resolve(avatarUrl);
     }
+    const token = wx.getStorageSync('token') || '';
     return new Promise((resolve, reject) => {
       wx.uploadFile({
         url: api.UploadFile,
         filePath: avatarUrl,
         name: 'file',
-        header: {token: wx.getStorageSync('token')},
+        header: {token},
         success: (response) => {
+          if (token !== (wx.getStorageSync('token') || '')) {
+            reject(new Error('账号已切换, 请重新选择头像'));
+            return;
+          }
           try {
             const result = JSON.parse(response.data);
             if (response.statusCode === 200 && result.code === 0 && result.data) {

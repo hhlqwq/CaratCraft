@@ -10,13 +10,18 @@ if (-not $Docker -and -not (Test-Path -LiteralPath $taskJava)) { $taskJava = (Ge
 # 默认检查全量Java及两端前端, 增量模式仅供开发时快速检查.
 Push-Location $taskRoot
 try {
-  if ($Incremental) {
+  $taskHasGit = Test-Path -LiteralPath (Join-Path $taskRoot '.git')
+  if (-not $taskHasGit) {
+    if ($Incremental) { throw '无Git源码包只支持全量检查' }
+    $taskFiles = @(Get-Content -LiteralPath (Join-Path $taskRoot 'source-files.json') -Raw | ConvertFrom-Json |
+      Where-Object { $_ -match '^vendor/platform-wxshop/[^/]+/src/.+\.java$' -and $_ -notmatch '(^|[\\/])\.\.([\\/]|$)' })
+  } elseif ($Incremental) {
     $taskFiles = @(git -c core.quotepath=false diff --name-only --diff-filter=AM $Base -- '*.java') +
       @(git -c core.quotepath=false ls-files --others --exclude-standard -- '*.java')
   } else {
     $taskFiles = @(git -c core.quotepath=false ls-files --cached --others --exclude-standard -- 'vendor/platform-wxshop/*/src/**/*.java')
   }
-  if ($LASTEXITCODE -ne 0) { throw '无法读取Git文件范围' }
+  if ($taskHasGit -and $LASTEXITCODE -ne 0) { throw '无法读取Git文件范围' }
   $taskFiles = @($taskFiles | Sort-Object -Unique | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf })
   if ($taskFiles.Count -gt 0) {
     if (-not (Test-Path -LiteralPath $taskFormatter)) { throw '请按docs/source-style.md准备官方Java格式化工具' }
@@ -26,7 +31,7 @@ try {
       $taskBatch = @($taskFiles[$taskOffset..$taskEnd])
       $taskArguments = @(if ($Format) { '--replace' } else { '--dry-run'; '--set-exit-if-changed' })
       if ($Docker) {
-        & docker run --rm --mount "type=bind,source=$taskRoot,target=/workspace" --workdir /workspace maven:3.9.11-eclipse-temurin-21 java -jar /workspace/.tools/copyright/google-java-format.jar @taskArguments @taskBatch
+        & docker run --rm --pull=never --mount "type=bind,source=$taskRoot,target=/workspace" --workdir /workspace maven:3.9.11-eclipse-temurin-21 java -jar /workspace/.tools/copyright/google-java-format.jar @taskArguments @taskBatch
       } else {
         & $taskJava -jar $taskFormatter @taskArguments @taskBatch
       }
@@ -45,7 +50,11 @@ try {
     node node_modules/eslint/bin/eslint.js src --max-warnings 0
     if ($LASTEXITCODE -ne 0) { throw '业务前端规范检查失败' }
   } finally { Pop-Location }
-  git -c core.safecrlf=false diff --check
-  if ($LASTEXITCODE -ne 0) { throw '变更空白符检查失败' }
+  if ($taskHasGit) {
+    git -c core.safecrlf=false diff --check
+    if ($LASTEXITCODE -ne 0) { throw '变更空白符检查失败' }
+  } else {
+    Write-Output '无Git交付目录: 已按源码清单检查全量格式, 不执行Git差异检查'
+  }
   Write-Output '源代码规范检查通过'
 } finally { Pop-Location }

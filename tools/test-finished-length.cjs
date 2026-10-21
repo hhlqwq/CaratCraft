@@ -9,7 +9,7 @@ const {test} = require('node:test');
 function fixture() {
   let page;
   const calls = [];
-  const sandbox = {Page: value => { page = value; }, wx: {showToast() {}, setStorageSync() {}},
+  const sandbox = {Page: value => { page = value; }, wx: {showToast() {}, setStorageSync() {}, getStorageSync() { return ''; }},
     require: name => {
       if (name.includes('/utils/')) return {request: (url, data) => new Promise(resolve => calls.push({url, data, resolve}))};
       if (name.includes('/config/')) return {CustomizationQuote: '/quote', CustomizationSave: '/save'};

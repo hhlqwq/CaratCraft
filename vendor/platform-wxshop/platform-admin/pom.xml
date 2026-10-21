@@ -60,6 +60,11 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <excludes>
+                    <exclude>**/application-local*</exclude>
+                    <exclude>**/.env</exclude>
+                    <exclude>**/*.key</exclude>
+                    <exclude>**/*.pem</exclude>
+                    <exclude>**/*.p12</exclude>
                     <exclude>**/*.woff</exclude>
                     <exclude>**/*.woff2</exclude>
                     <exclude>**/*.ttf</exclude>

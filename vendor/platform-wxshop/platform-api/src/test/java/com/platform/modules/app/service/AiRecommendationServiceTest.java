@@ -24,6 +24,7 @@ import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomProductService;
 import com.platform.modules.custom.service.CustomQuoteService;
+import com.platform.modules.mall.service.LegalDocumentService;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
@@ -55,7 +56,9 @@ class AiRecommendationServiceTest {
     stocks = mock(ComponentStockDao.class);
     redis = mock(StringRedisTemplate.class);
     values = mock(ValueOperations.class);
-    service = new AiRecommendationService(products, quotes, stocks, redis);
+    service =
+        new AiRecommendationService(
+            products, quotes, stocks, redis, mock(LegalDocumentService.class));
     CustomProductEntity product = new CustomProductEntity();
     product.setRequiredComponentTypes("pearl");
     when(products.getByGoodsId(10)).thenReturn(product);

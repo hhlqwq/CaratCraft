@@ -5,6 +5,7 @@ Page({
   data: {
     orderId: 0,
     orderInfo: {},
+    legalDocuments: [],
     orderGoods: [],
     handleOption: {},
     customization: null,
@@ -30,6 +31,7 @@ Page({
         if (res.code === 0) {
           that.setData({
             orderInfo: res.data.orderInfo,
+            legalDocuments: res.data.legalDocuments || [],
             orderGoods: res.data.orderGoods,
             handleOption: res.data.handleOption,
             customization: that.formatCustomization(res.data.customization),

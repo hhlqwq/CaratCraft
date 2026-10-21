@@ -96,24 +96,5 @@ Page({
   /** 初始化商城首页状态并读取页面所需数据. */
   onLoad(options) {
     this.getIndexData();
-    wx.login({
-      success: (resp) => {
-        util.request(api.Code + resp.code, {}, 'GET').then(function (res) {
-          if (res.code === 0) {
-            //存储用户信息
-            wx.setStorageSync('userInfo', res.data.userInfo);
-            wx.setStorageSync('token', res.data.token);
-            wx.setStorageSync('userId', res.data.userId);
-          } else {
-            // util.showErrorToast(res.msg)
-            wx.showModal({
-              title: '提示',
-              content: res.msg,
-              showCancel: false,
-            });
-          }
-        });
-      },
-    });
   },
 });

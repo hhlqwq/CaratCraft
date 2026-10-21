@@ -2,6 +2,7 @@ package com.platform.modules.mall.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.platform.common.exception.BusinessException;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +108,34 @@ class LegalDocumentDatabaseTest {
           assertEquals(0, ((Number) head.get("revision")).intValue());
           assertEquals(
               0, jdbc.queryForObject("SELECT COUNT(*) FROM CC_LEGAL_DOCUMENT", Integer.class));
+        });
+  }
+
+  /** 更新政策后新交易须重新确认, 已有订单仍保留原版本且不可跨用户查询. */
+  @Test
+  void orderKeepsAcceptedVersionsAfterPolicyUpdate() {
+    rollback(
+        () -> {
+          for (String kind : new String[] {"TERMS", "PRIVACY"}) {
+            save(kind, 0, "隔离测试正文");
+            service.publish(kind, 1, "publisher");
+          }
+          service.accept(100L, new LegalDocumentService.Acceptance(1, 1));
+          jdbc.update(
+              "INSERT INTO mall_order(order_sn,user_id) VALUES('legal-isolated-test-order',100)");
+          Integer orderId =
+              jdbc.queryForObject(
+                  "SELECT id FROM mall_order WHERE order_sn='legal-isolated-test-order'",
+                  Integer.class);
+          service.freezeForOrder(orderId, 100L);
+          save("PRIVACY", 1, "隔离测试新正文");
+          service.publish("PRIVACY", 2, "publisher");
+          assertThrows(BusinessException.class, () -> service.requireAccepted(100L));
+          var frozen = service.orderDocuments(orderId, 100L);
+          assertEquals(2, frozen.size());
+          assertTrue(
+              frozen.stream().allMatch(row -> ((Number) row.get("version")).intValue() == 1));
+          assertTrue(service.orderDocuments(orderId, 101L).isEmpty());
         });
   }
 

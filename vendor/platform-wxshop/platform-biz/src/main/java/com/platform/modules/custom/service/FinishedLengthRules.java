@@ -15,7 +15,9 @@ public final class FinishedLengthRules {
 
   /** 保存时校验完整规则, 空规则允许暂存但不能据此下单. */
   public static JSONObject parse(String json) {
-    if (json == null || json.isBlank()) return null;
+    if (json == null || json.isBlank()) {
+      return null;
+    }
     JSONObject rules;
     try {
       rules = JSON.parseObject(json);
@@ -32,7 +34,9 @@ public final class FinishedLengthRules {
     }
     BigDecimal minimum = decimal(rules.get("minLengthMm"), "minLengthMm", false);
     BigDecimal maximum = decimal(rules.get("maxLengthMm"), "maxLengthMm", false);
-    if (minimum.compareTo(maximum) > 0) throw new IllegalArgumentException("成品长度下限不能大于上限");
+    if (minimum.compareTo(maximum) > 0) {
+      throw new IllegalArgumentException("成品长度下限不能大于上限");
+    }
     return rules;
   }
 
@@ -42,8 +46,12 @@ public final class FinishedLengthRules {
     Map<String, Object> result = new LinkedHashMap<>();
     BigDecimal neck = request.getNeckCircumferenceMm();
     BigDecimal target = request.getTargetLengthMm();
-    if (neck != null) neck = decimal(neck, "实测颈围", false);
-    if (target != null) target = decimal(target, "目标成品长度", false);
+    if (neck != null) {
+      neck = decimal(neck, "实测颈围", false);
+    }
+    if (target != null) {
+      target = decimal(target, "目标成品长度", false);
+    }
     result.put("neckCircumferenceMm", neck);
     result.put("targetLengthMm", target);
     JSONObject rules = parse(json);
@@ -51,9 +59,11 @@ public final class FinishedLengthRules {
     result.put("ready", false);
     String reason = "请商家补齐成品长度工艺规则";
     if (rules != null) {
-      if (neck == null || target == null) reason = "请填写实测颈围及目标成品长度";
-      else if (target.compareTo(neck) < 0) reason = "目标成品长度不能小于实测颈围";
-      else if (target.compareTo(rules.getBigDecimal("minLengthMm")) < 0
+      if (neck == null || target == null) {
+        reason = "请填写实测颈围及目标成品长度";
+      } else if (target.compareTo(neck) < 0) {
+        reason = "目标成品长度不能小于实测颈围";
+      } else if (target.compareTo(rules.getBigDecimal("minLengthMm")) < 0
           || target.compareTo(rules.getBigDecimal("maxLengthMm")) > 0) {
         reason = "目标长度超出商家可制作范围";
       } else if (materialLength(rules, arrangement) == null) {
@@ -85,18 +95,29 @@ public final class FinishedLengthRules {
     BigDecimal beads = BigDecimal.ZERO;
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> items = (List<Map<String, Object>>) arrangement.get("arrangement");
-    if (items == null || items.isEmpty()) return null;
+    if (items == null || items.isEmpty()) {
+      return null;
+    }
     boolean measured = false;
     for (var item : items) {
       String type = String.valueOf(item.get("componentType")).toLowerCase(java.util.Locale.ROOT);
-      if (List.of("clasp", "fitting", "pendant", "gem", "style", "length").contains(type)) continue;
-      if (item.get("sizeMm") == null) return null;
+      if (List.of("clasp", "fitting", "pendant", "gem", "style", "length").contains(type)) {
+        continue;
+      }
+      if (item.get("sizeMm") == null) {
+        return null;
+      }
       BigDecimal size = new BigDecimal(String.valueOf(item.get("sizeMm")));
       measured = true;
-      if ("chain".equals(type)) chain = chain.add(size);
-      else beads = beads.add(size);
+      if ("chain".equals(type)) {
+        chain = chain.add(size);
+      } else {
+        beads = beads.add(size);
+      }
     }
-    if (!measured) return null;
+    if (!measured) {
+      return null;
+    }
     return "SUM".equals(rules.getString("mode")) ? beads.add(chain) : beads.max(chain);
   }
 
@@ -106,7 +127,9 @@ public final class FinishedLengthRules {
       BigDecimal value = new BigDecimal(String.valueOf(raw));
       if (value.signum() < (zeroAllowed ? 0 : 1)
           || value.compareTo(new BigDecimal("3000")) > 0
-          || value.scale() > 3) throw new IllegalArgumentException();
+          || value.scale() > 3) {
+        throw new IllegalArgumentException();
+      }
       return value;
     } catch (RuntimeException error) {
       throw new IllegalArgumentException(label + "须为有效毫米数值, 最多三位小数, 最大3000");
