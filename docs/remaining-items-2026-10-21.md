@@ -70,6 +70,16 @@ FROM (
 
 在干净的已提交源码上执行`python tools/package-commercial-application.py --date 20261021`, 应用包、源码包和manifest均携带提交号. 包内保留许可材料及源码; 构建版本和SHA256以实际生成清单为准, 不将运行中的旧容器当作本次应用已部署.
 
+已从干净提交876e87e96eed63a771a929473ac418d3ac8b53d7导出并验证以下文件, 位置为工作区.tools/copyright/release:
+
+| 文件 | 大小(bytes) |
+| --- | --- |
+| caratcraft-source-20261021-876e87e96eed.zip | 9904548 |
+| caratcraft-application-20261021-876e87e96eed.zip | 322407511 |
+| manifest-20261021-876e87e96eed.json | 包含两个文件的完整SHA256及源码提交 |
+
+verification-20261021-876e87e96eed.json记录六项校验通过: 清单大小/哈希、ZIP完整性、私有资源排除、源码格式配置完整、内嵌源码一致、后端JAR与最终构建一致. 源码清单2225个文件, 不包含Git历史. 本文随后仅补充交付记录, 交付物继续固定上述代码提交, 不将后续文档提交冒充新的应用版本.
+
 检查确认20261014、20261016历史应用ZIP中的两个后端JAR均包含application-local.yml. 这些旧包停止用于分发, 保留原文件供核对, 不覆盖或删除. 本批修复资源排除并在最终JAR检查后导出替代包. 未读取或打印该配置内容; 若旧包已对外提供, 应由配置持有人核对并轮换其中可能有效的凭证.
 
 无Git目录的源码规范检查通过source-files.json确定文件范围. 管理端依赖按锁文件准备, Java格式工具按[规范说明](source-style.md)恢复; 增量检查需要Git, 普通交付目录使用默认全量模式. 临时验证目录保留在D:/tmp/hailongcodex/2026-10-21, 本批不删除用户的其他临时文件.
