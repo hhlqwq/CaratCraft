@@ -29,7 +29,8 @@
                 prop="orgNo"
                 header-align="center"
                 align="left"
-                width="80"
+                min-width="200"
+                show-tooltip-when-overflow
                 label="机构编码"
             >
             </el-table-column>

@@ -2,9 +2,12 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const root = path.resolve(__dirname, '../../.tools/copyright/admin-ui-dist');
+const root = path.resolve(
+    process.env.CARATCRAFT_ADMIN_DIST || path.join(__dirname, '../../apps/admin-ui/dist')
+);
 const port = Number(process.env.CARATCRAFT_FIXTURE_PORT || 18981);
 const modules = [
+    ['mall/category', '分类管理'],
     ['mall/ad', '广告管理'],
     ['oss/oss', '文件管理'],
     ['mall/address', '地址管理'],
@@ -47,12 +50,17 @@ const permissions = [
 ];
 const routes = {
     '/sys/org/queryAll': [
-        {orgNo: 'test-root', parentNo: '0', orgName: '隔离总部', status: 1},
-        {orgNo: 'test-child', parentNo: 'test-root', orgName: '隔离门店', status: 1},
+        {orgNo: '100000000000', parentNo: '0', orgName: '隔离总部', status: 1},
+        {orgNo: '100000000001', parentNo: '100000000000', orgName: '隔离门店', status: 1},
     ],
     '/sys/menu/list': [
-        {menuId: 'test-root', parentId: '0', name: '隔离目录', type: 0},
-        {menuId: 'test-child', parentId: 'test-root', name: '隔离子菜单', type: 1},
+        {menuId: 10, parentId: 0, name: '隔离目录', type: 0},
+        {menuId: 1001, parentId: 10, name: '隔离子菜单', type: 1},
+        {menuId: 100101, parentId: 1001, name: '隔离按钮', type: 2},
+    ],
+    '/mall/category/queryAll': [
+        {id: 10, parentId: 0, name: '隔离珍珠', level: 1, isShow: 1},
+        {id: 1001, parentId: 10, name: '隔离淡水珠', level: 2, isShow: 1},
     ],
     '/mall/ad/queryAll': [],
     '/mall/address/list': {
@@ -186,6 +194,19 @@ const routes = {
 /** 固定回归数据只支持读取, 未实现的业务写入明确拒绝. */
 function serve(request, response) {
     const url = new URL(request.url, 'http://127.0.0.1:18981');
+    if (url.pathname === '/viewport-fixture') {
+        const width = Number(url.searchParams.get('width'));
+        if (![624, 1024].includes(width)) {
+            response.writeHead(400);
+            return response.end('Unsupported viewport');
+        }
+        response.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return response.end(
+            `<title>树表格窄屏回归</title><body style="margin:0">` +
+                `<iframe title="隔离窄屏管理端" width="${width}" height="900" ` +
+                `style="border:0" src="/#/sys-menu"></iframe></body>`
+        );
+    }
     if (url.pathname.startsWith('/fixture-api/')) {
         const endpoint = url.pathname.replace('/fixture-api', '');
         response.setHeader('Content-Type', 'application/json; charset=utf-8');

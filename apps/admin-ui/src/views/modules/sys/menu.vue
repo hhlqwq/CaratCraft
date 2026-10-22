@@ -17,7 +17,14 @@
             row-key="menuId"
             :tree-props="{children: 'childrens'}"
         >
-            <el-table-column prop="menuId" header-align="center" align="left" width="80" label="ID">
+            <el-table-column
+                prop="menuId"
+                header-align="center"
+                align="left"
+                min-width="160"
+                show-tooltip-when-overflow
+                label="ID"
+            >
             </el-table-column>
             <el-table-column prop="name" header-align="center" width="150" label="名称">
             </el-table-column>
