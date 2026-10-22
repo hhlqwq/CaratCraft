@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallHelpIssueEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,61 +34,61 @@ import java.util.Map;
  */
 public interface MallHelpIssueService extends IService<MallHelpIssueEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallHelpIssueEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallHelpIssueEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询所有列表
-   *
-   * @param queryWrapper 查询参数
-   * @return List
-   */
-  List<MallHelpIssueEntity> queryAllByWrapper(QueryWrapper<MallHelpIssueEntity> queryWrapper);
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallHelpIssueEntity> queryAllByWrapper(QueryWrapper<MallHelpIssueEntity> queryWrapper);
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<MallHelpIssueEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallHelpIssueEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增
-   *
-   * @param mallHelpIssue
-   * @return 新增结果
-   */
-  boolean add(MallHelpIssueEntity mallHelpIssue);
+    /**
+     * 新增
+     *
+     * @param mallHelpIssue
+     * @return 新增结果
+     */
+    boolean add(MallHelpIssueEntity mallHelpIssue);
 
-  /**
-   * 根据主键更新
-   *
-   * @param mallHelpIssue
-   * @return 更新结果
-   */
-  boolean update(MallHelpIssueEntity mallHelpIssue);
+    /**
+     * 根据主键更新
+     *
+     * @param mallHelpIssue
+     * @return 更新结果
+     */
+    boolean update(MallHelpIssueEntity mallHelpIssue);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  List<MallHelpIssueEntity> queryList(Map<String, Object> params);
+    List<MallHelpIssueEntity> queryList(Map<String, Object> params);
 }

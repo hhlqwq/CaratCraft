@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ApiCartAddRequest {
-  private Integer goodsId;
-  private Integer productId;
-  private Integer number;
+    private Integer goodsId;
+    private Integer productId;
+    private Integer number;
 }

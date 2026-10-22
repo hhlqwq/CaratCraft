@@ -20,8 +20,10 @@ package com.platform.modules.sys.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.sys.entity.SysRoleMenuEntity;
-import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * 角色与菜单对应关系
@@ -31,19 +33,19 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface SysRoleMenuDao extends BaseMapper<SysRoleMenuEntity> {
 
-  /**
-   * 根据角色ID，获取菜单ID列表
-   *
-   * @param roleId 角色Id
-   * @return List
-   */
-  List<String> queryMenuIdList(String roleId);
+    /**
+     * 根据角色ID，获取菜单ID列表
+     *
+     * @param roleId 角色Id
+     * @return List
+     */
+    List<String> queryMenuIdList(String roleId);
 
-  /**
-   * 根据角色ID数组，批量删除
-   *
-   * @param roleIds 角色Ids
-   * @return int
-   */
-  int deleteBatch(String[] roleIds);
+    /**
+     * 根据角色ID数组，批量删除
+     *
+     * @param roleIds 角色Ids
+     * @return int
+     */
+    int deleteBatch(String[] roleIds);
 }

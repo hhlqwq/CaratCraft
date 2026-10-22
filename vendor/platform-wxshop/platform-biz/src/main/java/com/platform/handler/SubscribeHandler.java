@@ -19,15 +19,19 @@ package com.platform.handler;
 import com.platform.builder.TextBuilder;
 import com.platform.modules.wx.service.MsgReplyService;
 import com.platform.modules.wx.service.WxUserService;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import java.util.Map;
 
 /**
  * 微信公众号消息处理（用户关注）
@@ -38,50 +42,51 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class SubscribeHandler extends AbstractHandler {
 
-  private final MsgReplyService msgReplyService;
+    private final MsgReplyService msgReplyService;
 
-  private final WxUserService userService;
+    private final WxUserService userService;
 
-  @Override
-  public WxMpXmlOutMessage handle(
-      WxMpXmlMessage wxMessage,
-      Map<String, Object> context,
-      WxMpService weixinService,
-      WxSessionManager sessionManager)
-      throws WxErrorException {
-    this.logger.info("新关注用户，OPENID: " + wxMessage.getFromUser() + "，事件：" + wxMessage.getEventKey());
+    @Override
+    public WxMpXmlOutMessage handle(
+            WxMpXmlMessage wxMessage,
+            Map<String, Object> context,
+            WxMpService weixinService,
+            WxSessionManager sessionManager)
+            throws WxErrorException {
+        this.logger.info(
+                "新关注用户，OPENID: " + wxMessage.getFromUser() + "，事件：" + wxMessage.getEventKey());
 
-    userService.refreshUserInfo(wxMessage.getFromUser());
+        userService.refreshUserInfo(wxMessage.getFromUser());
 
-    msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEvent());
+        msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEvent());
 
-    // 处理特殊事件，如用户扫描带参二维码关注
-    if (StringUtils.hasText(wxMessage.getEventKey())) {
-      msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEventKey());
+        // 处理特殊事件，如用户扫描带参二维码关注
+        if (StringUtils.hasText(wxMessage.getEventKey())) {
+            msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEventKey());
+        }
+        try {
+            return new TextBuilder()
+                    .build(
+                            "fromUser："
+                                    + wxMessage.getFromUser()
+                                    + "；自动回复：您好，克拉匠造商业版，销售价格两万元，提供所有源码以及文档！如有需要请加客服微信（15209831990）咨询",
+                            wxMessage,
+                            weixinService);
+        } catch (Exception e) {
+            this.logger.error(e.getMessage(), e);
+        }
+        return null;
     }
-    try {
-      return new TextBuilder()
-          .build(
-              "fromUser："
-                  + wxMessage.getFromUser()
-                  + "；自动回复：您好，克拉匠造商业版，销售价格两万元，提供所有源码以及文档！如有需要请加客服微信（15209831990）咨询",
-              wxMessage,
-              weixinService);
-    } catch (Exception e) {
-      this.logger.error(e.getMessage(), e);
-    }
-    return null;
-  }
 
-  /** 处理特殊请求，比如如果是扫码进来的，可以做相应处理 */
-  protected WxMpXmlOutMessage handleSpecial(WxMpXmlMessage wxMessage) {
-    this.logger.info("特殊请求-新关注用户，OPENID: " + wxMessage.getFromUser());
-    // 对关注事件和扫码事件分别处理
-    userService.refreshUserInfo(wxMessage.getFromUser());
-    msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEvent());
-    if (StringUtils.hasText(wxMessage.getEventKey())) {
-      msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEventKey());
+    /** 处理特殊请求，比如如果是扫码进来的，可以做相应处理 */
+    protected WxMpXmlOutMessage handleSpecial(WxMpXmlMessage wxMessage) {
+        this.logger.info("特殊请求-新关注用户，OPENID: " + wxMessage.getFromUser());
+        // 对关注事件和扫码事件分别处理
+        userService.refreshUserInfo(wxMessage.getFromUser());
+        msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEvent());
+        if (StringUtils.hasText(wxMessage.getEventKey())) {
+            msgReplyService.tryAutoReply(true, wxMessage.getFromUser(), wxMessage.getEventKey());
+        }
+        return null;
     }
-    return null;
-  }
 }

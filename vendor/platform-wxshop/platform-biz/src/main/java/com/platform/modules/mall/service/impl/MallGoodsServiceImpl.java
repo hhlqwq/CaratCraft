@@ -28,6 +28,11 @@ import com.platform.modules.mall.dao.MallGoodsDao;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
 import com.platform.modules.mall.service.PearlProductValidator;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -35,9 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -47,172 +49,172 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallGoodsService")
 public class MallGoodsServiceImpl extends ServiceImpl<MallGoodsDao, MallGoodsEntity>
-    implements MallGoodsService {
-  @Autowired private PearlProductValidator pearlProductValidator;
+        implements MallGoodsService {
+    @Autowired private PearlProductValidator pearlProductValidator;
 
-  @Override
-  public List<MallGoodsEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
-
-  @Override
-  public List<MallGoodsEntity> queryAllByWrapper(QueryWrapper<MallGoodsEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
-
-  @Override
-  public Page<MallGoodsEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallGoodsEntity> page = new Query<MallGoodsEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallGoodsPage(page, params));
-  }
-
-  @Override
-  public Page<MallGoodsEntity> queryRecyclePage(Map<String, Object> params) {
-    params.put("sidx", "T.delete_time");
-    params.put("asc", false);
-    Page<MallGoodsEntity> page = new Query<MallGoodsEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectRecyclePage(page, params));
-  }
-
-  /** 创建商品前校验珍珠参数, 视频地址由已完成上传的媒体记录确定. */
-  @Override
-  public boolean add(MallGoodsEntity mallGoods) {
-    pearlProductValidator.validate(mallGoods, true);
-    return this.save(mallGoods);
-  }
-
-  /** 保存商品参数并支持主动清空直径区间, 不影响SKU汇总使用的局部更新. */
-  @Override
-  public boolean update(MallGoodsEntity mallGoods) {
-    if (mallGoods == null || mallGoods.getId() == null || mallGoods.getId() <= 0) {
-      throw new IllegalArgumentException("更新商品必须提供有效商品标识");
+    @Override
+    public List<MallGoodsEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
     }
-    if (!hasPearlMetadata(mallGoods)) {
-      return this.updateById(mallGoods);
+
+    @Override
+    public List<MallGoodsEntity> queryAllByWrapper(QueryWrapper<MallGoodsEntity> queryWrapper) {
+        return this.list(queryWrapper);
     }
-    pearlProductValidator.validate(mallGoods, false);
-    return this.update(
-        mallGoods,
-        new UpdateWrapper<MallGoodsEntity>()
-            .eq("id", mallGoods.getId())
-            .set(mallGoods.getPearlDiameterMin() == null, "pearl_diameter_min", null)
-            .set(mallGoods.getPearlDiameterMax() == null, "pearl_diameter_max", null));
-  }
 
-  /** 旧客户端局部更新保留新增字段, 携带珍珠字段时按完整参数保存. */
-  private boolean hasPearlMetadata(MallGoodsEntity goods) {
-    return Stream.of(
-            goods.getPearlSource(),
-            goods.getJewelryType(),
-            goods.getPearlVariety(),
-            goods.getPearlOrigin(),
-            goods.getPearlShape(),
-            goods.getPearlLuster(),
-            goods.getPearlBlemish(),
-            goods.getPearlDiameterMin(),
-            goods.getPearlDiameterMax(),
-            goods.getVideoMediaId(),
-            goods.getVideoUrl())
-        .anyMatch(Objects::nonNull);
-  }
-
-  @Override
-  public boolean delete(Integer id) {
-    return deleteBatch(new Integer[] {id});
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    List<Integer> goodsIds = validateIds(ids);
-    int affectedRows = baseMapper.moveToRecycleBin(goodsIds, new Date());
-    if (affectedRows == 0) {
-      throw new BusinessException("所选商品不存在或已在回收站中");
+    @Override
+    public Page<MallGoodsEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallGoodsEntity> page = new Query<MallGoodsEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallGoodsPage(page, params));
     }
-    return true;
-  }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean restoreBatch(Integer[] ids) {
-    List<Integer> goodsIds = validateIds(ids);
-    int affectedRows = baseMapper.restoreFromRecycleBin(goodsIds);
-    if (affectedRows == 0) {
-      throw new BusinessException("所选商品不在回收站中或已经恢复");
+    @Override
+    public Page<MallGoodsEntity> queryRecyclePage(Map<String, Object> params) {
+        params.put("sidx", "T.delete_time");
+        params.put("asc", false);
+        Page<MallGoodsEntity> page = new Query<MallGoodsEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectRecyclePage(page, params));
     }
-    return true;
-  }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public int permanentlyDeleteBatch(Integer[] ids) {
-    return permanentlyDelete(validateIds(ids));
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public int purgeExpiredRecycleBin(Date expireTime) {
-    if (expireTime == null) {
-      throw new BusinessException("回收站过期时间不能为空");
+    /** 创建商品前校验珍珠参数, 视频地址由已完成上传的媒体记录确定. */
+    @Override
+    public boolean add(MallGoodsEntity mallGoods) {
+        pearlProductValidator.validate(mallGoods, true);
+        return this.save(mallGoods);
     }
-    List<Integer> expiredIds = baseMapper.selectExpiredRecycleIds(expireTime);
-    if (expiredIds == null || expiredIds.isEmpty()) {
-      return 0;
-    }
-    return permanentlyDelete(expiredIds);
-  }
 
-  @Override
-  public List<MallGoodsEntity> queryCatalogProductList(Map<String, Object> params) {
-    return baseMapper.queryCatalogProductList(params);
-  }
-
-  @Override
-  public List<MallGoodsEntity> queryList(Map<String, Object> param) {
-    return baseMapper.queryList(param);
-  }
-
-  @Override
-  public long queryTotal(Map<String, Object> params) {
-    return baseMapper.queryTotal(params);
-  }
-
-  /**
-   * 校验并规范商品 ID。
-   *
-   * @param ids 商品 ID。
-   * @return 非空商品 ID 列表。
-   */
-  private List<Integer> validateIds(Integer[] ids) {
-    if (ids == null || ids.length == 0) {
-      throw new BusinessException("请选择商品");
+    /** 保存商品参数并支持主动清空直径区间, 不影响SKU汇总使用的局部更新. */
+    @Override
+    public boolean update(MallGoodsEntity mallGoods) {
+        if (mallGoods == null || mallGoods.getId() == null || mallGoods.getId() <= 0) {
+            throw new IllegalArgumentException("更新商品必须提供有效商品标识");
+        }
+        if (!hasPearlMetadata(mallGoods)) {
+            return this.updateById(mallGoods);
+        }
+        pearlProductValidator.validate(mallGoods, false);
+        return this.update(
+                mallGoods,
+                new UpdateWrapper<MallGoodsEntity>()
+                        .eq("id", mallGoods.getId())
+                        .set(mallGoods.getPearlDiameterMin() == null, "pearl_diameter_min", null)
+                        .set(mallGoods.getPearlDiameterMax() == null, "pearl_diameter_max", null));
     }
-    List<Integer> goodsIds = Arrays.asList(ids);
-    if (goodsIds.contains(null)) {
-      throw new BusinessException("商品 ID 不能为空");
-    }
-    return goodsIds;
-  }
 
-  /**
-   * 永久删除商品和可重建关联数据，保留订单及定制历史快照。
-   *
-   * @param goodsIds 商品 ID。
-   * @return 实际删除商品数量。
-   */
-  private int permanentlyDelete(List<Integer> goodsIds) {
-    List<Integer> safeIds = goodsIds == null ? Collections.emptyList() : goodsIds;
-    if (safeIds.isEmpty()) {
-      return 0;
+    /** 旧客户端局部更新保留新增字段, 携带珍珠字段时按完整参数保存. */
+    private boolean hasPearlMetadata(MallGoodsEntity goods) {
+        return Stream.of(
+                        goods.getPearlSource(),
+                        goods.getJewelryType(),
+                        goods.getPearlVariety(),
+                        goods.getPearlOrigin(),
+                        goods.getPearlShape(),
+                        goods.getPearlLuster(),
+                        goods.getPearlBlemish(),
+                        goods.getPearlDiameterMin(),
+                        goods.getPearlDiameterMax(),
+                        goods.getVideoMediaId(),
+                        goods.getVideoUrl())
+                .anyMatch(Objects::nonNull);
     }
-    baseMapper.deleteRecycleRelations(safeIds);
-    int deletedRows = baseMapper.permanentlyDeleteGoods(safeIds);
-    if (deletedRows == 0) {
-      throw new BusinessException("所选商品不在回收站中，无法永久删除");
+
+    @Override
+    public boolean delete(Integer id) {
+        return deleteBatch(new Integer[] {id});
     }
-    return deletedRows;
-  }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        List<Integer> goodsIds = validateIds(ids);
+        int affectedRows = baseMapper.moveToRecycleBin(goodsIds, new Date());
+        if (affectedRows == 0) {
+            throw new BusinessException("所选商品不存在或已在回收站中");
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean restoreBatch(Integer[] ids) {
+        List<Integer> goodsIds = validateIds(ids);
+        int affectedRows = baseMapper.restoreFromRecycleBin(goodsIds);
+        if (affectedRows == 0) {
+            throw new BusinessException("所选商品不在回收站中或已经恢复");
+        }
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int permanentlyDeleteBatch(Integer[] ids) {
+        return permanentlyDelete(validateIds(ids));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int purgeExpiredRecycleBin(Date expireTime) {
+        if (expireTime == null) {
+            throw new BusinessException("回收站过期时间不能为空");
+        }
+        List<Integer> expiredIds = baseMapper.selectExpiredRecycleIds(expireTime);
+        if (expiredIds == null || expiredIds.isEmpty()) {
+            return 0;
+        }
+        return permanentlyDelete(expiredIds);
+    }
+
+    @Override
+    public List<MallGoodsEntity> queryCatalogProductList(Map<String, Object> params) {
+        return baseMapper.queryCatalogProductList(params);
+    }
+
+    @Override
+    public List<MallGoodsEntity> queryList(Map<String, Object> param) {
+        return baseMapper.queryList(param);
+    }
+
+    @Override
+    public long queryTotal(Map<String, Object> params) {
+        return baseMapper.queryTotal(params);
+    }
+
+    /**
+     * 校验并规范商品 ID。
+     *
+     * @param ids 商品 ID。
+     * @return 非空商品 ID 列表。
+     */
+    private List<Integer> validateIds(Integer[] ids) {
+        if (ids == null || ids.length == 0) {
+            throw new BusinessException("请选择商品");
+        }
+        List<Integer> goodsIds = Arrays.asList(ids);
+        if (goodsIds.contains(null)) {
+            throw new BusinessException("商品 ID 不能为空");
+        }
+        return goodsIds;
+    }
+
+    /**
+     * 永久删除商品和可重建关联数据，保留订单及定制历史快照。
+     *
+     * @param goodsIds 商品 ID。
+     * @return 实际删除商品数量。
+     */
+    private int permanentlyDelete(List<Integer> goodsIds) {
+        List<Integer> safeIds = goodsIds == null ? Collections.emptyList() : goodsIds;
+        if (safeIds.isEmpty()) {
+            return 0;
+        }
+        baseMapper.deleteRecycleRelations(safeIds);
+        int deletedRows = baseMapper.permanentlyDeleteGoods(safeIds);
+        if (deletedRows == 0) {
+            throw new BusinessException("所选商品不在回收站中，无法永久删除");
+        }
+        return deletedRows;
+    }
 }

@@ -22,14 +22,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.sys.entity.SysCacheEntity;
 import com.platform.modules.sys.service.SysCacheService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.SerializationException;
-import org.springframework.stereotype.Service;
 
 /**
  * @author 何海龙
@@ -37,39 +40,39 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("sysCacheService")
 public class SysCacheServiceImpl implements SysCacheService {
-  private final RedisTemplateUtil redisTemplateUtil;
-  private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplateUtil redisTemplateUtil;
+    private final StringRedisTemplate stringRedisTemplate;
 
-  @Override
-  public List<SysCacheEntity> queryAll(Map<String, String> params) {
-    SysCacheEntity sysCacheEntity;
-    List<SysCacheEntity> result = new ArrayList<>();
+    @Override
+    public List<SysCacheEntity> queryAll(Map<String, String> params) {
+        SysCacheEntity sysCacheEntity;
+        List<SysCacheEntity> result = new ArrayList<>();
 
-    String pattern = params.get("pattern");
-    // 获取所有key
-    Set<String> keySet = redisTemplateUtil.keys(pattern);
-    for (String key : keySet) {
-      sysCacheEntity = new SysCacheEntity();
-      sysCacheEntity.setCacheKey(key);
-      try {
-        sysCacheEntity.setValue(JSONObject.toJSON(redisTemplateUtil.get(key)).toString());
-      } catch (SerializationException serializationException) {
-        // 序列号异常是因为WxJava包里使用的是StringRedisTemplate
-        sysCacheEntity.setValue(stringRedisTemplate.opsForValue().get(key));
-      } catch (Exception e) {
-        sysCacheEntity.setValue("");
-      }
-      sysCacheEntity.setSeconds(redisTemplateUtil.getExpire(key));
-      result.add(sysCacheEntity);
+        String pattern = params.get("pattern");
+        // 获取所有key
+        Set<String> keySet = redisTemplateUtil.keys(pattern);
+        for (String key : keySet) {
+            sysCacheEntity = new SysCacheEntity();
+            sysCacheEntity.setCacheKey(key);
+            try {
+                sysCacheEntity.setValue(JSONObject.toJSON(redisTemplateUtil.get(key)).toString());
+            } catch (SerializationException serializationException) {
+                // 序列号异常是因为WxJava包里使用的是StringRedisTemplate
+                sysCacheEntity.setValue(stringRedisTemplate.opsForValue().get(key));
+            } catch (Exception e) {
+                sysCacheEntity.setValue("");
+            }
+            sysCacheEntity.setSeconds(redisTemplateUtil.getExpire(key));
+            result.add(sysCacheEntity);
+        }
+        return result;
     }
-    return result;
-  }
 
-  @Override
-  public int deleteBatch(String[] keys) {
-    for (String key : keys) {
-      redisTemplateUtil.del(key);
+    @Override
+    public int deleteBatch(String[] keys) {
+        for (String key : keys) {
+            redisTemplateUtil.del(key);
+        }
+        return keys.length;
     }
-    return keys.length;
-  }
 }

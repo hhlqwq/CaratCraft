@@ -21,10 +21,12 @@ package com.platform.modules.mall.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.modules.mall.entity.MallAddressEntity;
-import java.util.List;
-import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Dao
@@ -35,23 +37,23 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MallAddressDao extends BaseMapper<MallAddressEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallAddressEntity> queryAll(@Param("params") Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallAddressEntity> queryAll(@Param("params") Map<String, Object> params);
 
-  /**
-   * 自定义分页查询
-   *
-   * @param page 分页参数
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallAddressEntity> selectMallAddressPage(
-      Page<MallAddressEntity> page, @Param("params") Map<String, Object> params);
+    /**
+     * 自定义分页查询
+     *
+     * @param page 分页参数
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallAddressEntity> selectMallAddressPage(
+            Page<MallAddressEntity> page, @Param("params") Map<String, Object> params);
 
-  List<MallAddressEntity> queryList(Map<String, Object> param);
+    List<MallAddressEntity> queryList(Map<String, Object> param);
 }

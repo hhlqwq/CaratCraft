@@ -21,6 +21,7 @@ package com.platform.modules.sys.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
+
 import java.util.Map;
 
 /**
@@ -30,40 +31,40 @@ import java.util.Map;
  */
 public interface SysUserTokenService extends IService<SysUserTokenEntity> {
 
-  /**
-   * 生成token
-   *
-   * @param userId 用户Id
-   * @return Map
-   */
-  String createToken(String userId);
+    /**
+     * 生成token
+     *
+     * @param userId 用户Id
+     * @return Map
+     */
+    String createToken(String userId);
 
-  /**
-   * 退出，修改token值
-   *
-   * @param userId 用户Id
-   */
-  void logout(String userId);
+    /**
+     * 退出，修改token值
+     *
+     * @param userId 用户Id
+     */
+    void logout(String userId);
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<SysUserTokenEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<SysUserTokenEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 根据主键删除
-   *
-   * @param userId 用户Id
-   */
-  void delete(String userId);
+    /**
+     * 根据主键删除
+     *
+     * @param userId 用户Id
+     */
+    void delete(String userId);
 
-  /**
-   * 批量下线用户(删除用户token记录)
-   *
-   * @param userIds 用户Ids
-   */
-  void offlineBatch(String[] userIds);
+    /**
+     * 批量下线用户(删除用户token记录)
+     *
+     * @param userIds 用户Ids
+     */
+    void offlineBatch(String[] userIds);
 }

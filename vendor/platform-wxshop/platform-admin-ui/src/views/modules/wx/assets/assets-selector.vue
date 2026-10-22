@@ -1,46 +1,51 @@
 <template>
-  <el-dialog
-    title="选择素材"
-    v-model="dataVisible"
-    :modal="true"
-    :lock-scroll="false"
-    append-to-body
-    @close="onClose"
-  >
-    <material-news v-if="selectType === 'news'" @selected="onSelect" selectMode></material-news>
-    <material-file v-else :fileType="selectType" @selected="onSelect" selectMode></material-file>
-  </el-dialog>
+    <el-dialog
+        title="选择素材"
+        v-model="dataVisible"
+        :modal="true"
+        :lock-scroll="false"
+        append-to-body
+        @close="onClose"
+    >
+        <material-news v-if="selectType === 'news'" @selected="onSelect" selectMode></material-news>
+        <material-file
+            v-else
+            :fileType="selectType"
+            @selected="onSelect"
+            selectMode
+        ></material-file>
+    </el-dialog>
 </template>
 <script>
 export default {
-  name: 'assets-selector',
-  data: function () {
-    return {
-      dataVisible: this.visible,
-    };
-  },
-  components: {
-    MaterialFile: () => import('./material-file'),
-    MaterialNews: () => import('./material-news'),
-  },
-  props: {
-    selectType: {
-      // image、voice、video、news
-      type: String,
-      default: 'image',
+    name: 'assets-selector',
+    data: function () {
+        return {
+            dataVisible: this.visible,
+        };
     },
-    visible: {
-      type: Boolean,
-      default: false,
+    components: {
+        MaterialFile: () => import('./material-file'),
+        MaterialNews: () => import('./material-news'),
     },
-  },
-  methods: {
-    onSelect(itemInfo) {
-      this.$emit('selected', itemInfo);
+    props: {
+        selectType: {
+            // image、voice、video、news
+            type: String,
+            default: 'image',
+        },
+        visible: {
+            type: Boolean,
+            default: false,
+        },
     },
-    onClose() {
-      this.$emit('onClose');
+    methods: {
+        onSelect(itemInfo) {
+            this.$emit('selected', itemInfo);
+        },
+        onClose() {
+            this.$emit('onClose');
+        },
     },
-  },
 };
 </script>

@@ -21,10 +21,12 @@ package com.platform.modules.mall.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.modules.mall.entity.MallShippingEntity;
-import java.util.List;
-import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Dao
@@ -35,21 +37,21 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MallShippingDao extends BaseMapper<MallShippingEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallShippingEntity> queryAll(@Param("params") Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallShippingEntity> queryAll(@Param("params") Map<String, Object> params);
 
-  /**
-   * 自定义分页查询
-   *
-   * @param page 分页参数
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallShippingEntity> selectMallShippingPage(
-      Page<MallShippingEntity> page, @Param("params") Map<String, Object> params);
+    /**
+     * 自定义分页查询
+     *
+     * @param page 分页参数
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallShippingEntity> selectMallShippingPage(
+            Page<MallShippingEntity> page, @Param("params") Map<String, Object> params);
 }

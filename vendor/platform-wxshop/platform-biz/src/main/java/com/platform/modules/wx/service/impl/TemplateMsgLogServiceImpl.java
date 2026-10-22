@@ -25,32 +25,34 @@ import com.platform.common.utils.Query;
 import com.platform.modules.wx.dao.TemplateMsgLogDao;
 import com.platform.modules.wx.entity.TemplateMsgLogEntity;
 import com.platform.modules.wx.service.TemplateMsgLogService;
-import java.util.Map;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * @author 何海龙
  */
 @Service
 public class TemplateMsgLogServiceImpl extends ServiceImpl<TemplateMsgLogDao, TemplateMsgLogEntity>
-    implements TemplateMsgLogService {
+        implements TemplateMsgLogService {
 
-  @Override
-  public Page<TemplateMsgLogEntity> queryPage(Map<String, Object> params) {
-    Page<TemplateMsgLogEntity> page = new Query<TemplateMsgLogEntity>(params).getPage();
+    @Override
+    public Page<TemplateMsgLogEntity> queryPage(Map<String, Object> params) {
+        Page<TemplateMsgLogEntity> page = new Query<TemplateMsgLogEntity>(params).getPage();
 
-    return baseMapper.selectPage(page, new QueryWrapper<>());
-  }
+        return baseMapper.selectPage(page, new QueryWrapper<>());
+    }
 
-  /**
-   * 记录log，异步入库
-   *
-   * @param log
-   */
-  @Override
-  @Async
-  public void addLog(TemplateMsgLogEntity log) {
-    this.baseMapper.insert(log);
-  }
+    /**
+     * 记录log，异步入库
+     *
+     * @param log
+     */
+    @Override
+    @Async
+    public void addLog(TemplateMsgLogEntity log) {
+        this.baseMapper.insert(log);
+    }
 }

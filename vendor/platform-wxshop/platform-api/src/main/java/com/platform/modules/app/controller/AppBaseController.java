@@ -21,7 +21,9 @@ package com.platform.modules.app.controller;
 import com.platform.common.utils.Constant;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
+
 import jakarta.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
@@ -36,59 +38,59 @@ import org.springframework.web.context.request.WebRequest;
  * @since 2016年9月2日
  */
 public class AppBaseController {
-  /** 得到request对象 */
-  @Autowired protected HttpServletRequest request;
+    /** 得到request对象 */
+    @Autowired protected HttpServletRequest request;
 
-  @Autowired private WxUserService userService;
+    @Autowired private WxUserService userService;
 
-  protected Object getAttribute(String param) {
-    return request.getAttribute(param);
-  }
-
-  /** 请求头里的 maAppId */
-  protected String getMaAppId() {
-    return ObjectUtils.toString(getAttribute(Constant.MA_APPID), null);
-  }
-
-  /**
-   * 获取请求方IP
-   *
-   * @return 客户端Ip
-   */
-  protected String getClientIp() {
-    String xff = request.getHeader("x-forwarded-for");
-    if (xff == null) {
-      return request.getRemoteAddr();
+    protected Object getAttribute(String param) {
+        return request.getAttribute(param);
     }
-    return xff;
-  }
 
-  /**
-   * initBinder 初始化绑定 <br>
-   * 这里处理了1种类型<br>
-   * 1、字符串自动 trim 去掉前后空格 <br>
-   *
-   * @param binder WebDataBinder 要注册的binder
-   * @param request 前端请求
-   */
-  @InitBinder
-  public void initBinder(WebDataBinder binder, WebRequest request) {
-    // 字符串自动Trim
-    binder.registerCustomEditor(String.class, new StringTrimmerEditor(false));
-  }
-
-  /**
-   * 获取请求的用户Id
-   *
-   * @return 客户端Ip
-   */
-  public Long getUserId() {
-    String token = request.getHeader(Constant.USER_KEY);
-    // 查询token信息
-    WxUserEntity tokenEntity = userService.getById(token);
-    if (tokenEntity == null) {
-      return null;
+    /** 请求头里的 maAppId */
+    protected String getMaAppId() {
+        return ObjectUtils.toString(getAttribute(Constant.MA_APPID), null);
     }
-    return tokenEntity.getId();
-  }
+
+    /**
+     * 获取请求方IP
+     *
+     * @return 客户端Ip
+     */
+    protected String getClientIp() {
+        String xff = request.getHeader("x-forwarded-for");
+        if (xff == null) {
+            return request.getRemoteAddr();
+        }
+        return xff;
+    }
+
+    /**
+     * initBinder 初始化绑定 <br>
+     * 这里处理了1种类型<br>
+     * 1、字符串自动 trim 去掉前后空格 <br>
+     *
+     * @param binder WebDataBinder 要注册的binder
+     * @param request 前端请求
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder binder, WebRequest request) {
+        // 字符串自动Trim
+        binder.registerCustomEditor(String.class, new StringTrimmerEditor(false));
+    }
+
+    /**
+     * 获取请求的用户Id
+     *
+     * @return 客户端Ip
+     */
+    public Long getUserId() {
+        String token = request.getHeader(Constant.USER_KEY);
+        // 查询token信息
+        WxUserEntity tokenEntity = userService.getById(token);
+        if (tokenEntity == null) {
+            return null;
+        }
+        return tokenEntity.getId();
+    }
 }

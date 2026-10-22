@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallCouponGoodsDao;
 import com.platform.modules.mall.entity.MallCouponGoodsEntity;
 import com.platform.modules.mall.service.MallCouponGoodsService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 优惠券关联商品Service实现类
@@ -39,47 +41,47 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallCouponGoodsService")
 public class MallCouponGoodsServiceImpl
-    extends ServiceImpl<MallCouponGoodsDao, MallCouponGoodsEntity>
-    implements MallCouponGoodsService {
+        extends ServiceImpl<MallCouponGoodsDao, MallCouponGoodsEntity>
+        implements MallCouponGoodsService {
 
-  @Override
-  public List<MallCouponGoodsEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallCouponGoodsEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallCouponGoodsEntity> queryAllByWrapper(
-      QueryWrapper<MallCouponGoodsEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallCouponGoodsEntity> queryAllByWrapper(
+            QueryWrapper<MallCouponGoodsEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallCouponGoodsEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallCouponGoodsEntity> page = new Query<MallCouponGoodsEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallCouponGoodsPage(page, params));
-  }
+    @Override
+    public Page<MallCouponGoodsEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallCouponGoodsEntity> page = new Query<MallCouponGoodsEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallCouponGoodsPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallCouponGoodsEntity mallCouponGoods) {
-    return this.save(mallCouponGoods);
-  }
+    @Override
+    public boolean add(MallCouponGoodsEntity mallCouponGoods) {
+        return this.save(mallCouponGoods);
+    }
 
-  @Override
-  public boolean update(MallCouponGoodsEntity mallCouponGoods) {
-    return this.updateById(mallCouponGoods);
-  }
+    @Override
+    public boolean update(MallCouponGoodsEntity mallCouponGoods) {
+        return this.updateById(mallCouponGoods);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 }

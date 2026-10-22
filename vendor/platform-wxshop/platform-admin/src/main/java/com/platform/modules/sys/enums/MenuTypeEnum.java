@@ -27,27 +27,27 @@ package com.platform.modules.sys.enums;
  * @since 1.0.0
  */
 public enum MenuTypeEnum {
-  /** 目录 */
-  CATALOG(0, "目录"),
-  /** 菜单 */
-  MENU(1, "菜单"),
-  /** 按钮 */
-  BUTTON(2, "按钮");
+    /** 目录 */
+    CATALOG(0, "目录"),
+    /** 菜单 */
+    MENU(1, "菜单"),
+    /** 按钮 */
+    BUTTON(2, "按钮");
 
-  private Integer value;
-  private String text;
+    private Integer value;
+    private String text;
 
-  MenuTypeEnum(Integer value, String text) {
-    this.value = value;
-    this.text = text;
-  }
+    MenuTypeEnum(Integer value, String text) {
+        this.value = value;
+        this.text = text;
+    }
 
-  public Integer getValue() {
-    return value;
-  }
+    public Integer getValue() {
+        return value;
+    }
 
-  @Override
-  public String toString() {
-    return text;
-  }
+    @Override
+    public String toString() {
+        return text;
+    }
 }

@@ -21,6 +21,7 @@ package com.platform.modules.wx.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.wx.entity.WxMsgEntity;
+
 import java.util.Map;
 
 /**
@@ -30,18 +31,18 @@ import java.util.Map;
  * @date 2021-05-06 18:30:15
  */
 public interface WxMsgService extends IService<WxMsgEntity> {
-  /**
-   * 分页查询用户数据
-   *
-   * @param params 查询参数
-   * @return PageUtils 分页结果
-   */
-  Page<WxMsgEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询用户数据
+     *
+     * @param params 查询参数
+     * @return PageUtils 分页结果
+     */
+    Page<WxMsgEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 记录msg，异步入库
-   *
-   * @param msg
-   */
-  void addWxMsg(WxMsgEntity msg);
+    /**
+     * 记录msg，异步入库
+     *
+     * @param msg
+     */
+    void addWxMsg(WxMsgEntity msg);
 }

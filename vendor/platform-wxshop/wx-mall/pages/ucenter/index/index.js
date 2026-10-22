@@ -4,303 +4,305 @@ const app = getApp();
 const DEFAULT_AVATAR = '/static/images/logo.png';
 
 Page({
-  data: {
-    userInfo: {},
-    hasMobile: '',
-    avatarUrl: DEFAULT_AVATAR,
-    nicknameText: 'Hi, 游客',
-    profileVisible: false,
-    profileForm: {
-      nickname: '',
-      avatarUrl: '',
+    data: {
+        userInfo: {},
+        hasMobile: '',
+        avatarUrl: DEFAULT_AVATAR,
+        nicknameText: 'Hi, 游客',
+        profileVisible: false,
+        profileForm: {
+            nickname: '',
+            avatarUrl: '',
+        },
+        profileSaving: false,
+        menuItems: [
+            {title: '购物车', url: '/pages/cart/cart', badge: '购'},
+            {title: '我的订单', url: '/pages/ucenter/order/order', badge: '单'},
+            {title: '售后中心', url: '/pages/ucenter/aftersales/index', badge: '售'},
+            {title: '我的设计', url: '/pages/ucenter/design/design', badge: '设'},
+            {title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券'},
+            {title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏'},
+            {title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹'},
+            {title: '地址管理', url: '/pages/ucenter/address/address', badge: '址'},
+            {title: '协议与隐私', url: '/pages/ucenter/legal/index', badge: '协'},
+            {title: '帮助中心', url: '/pages/ucenter/help/help', badge: '助'},
+            {title: '意见反馈', url: '/pages/ucenter/feedback/feedback', badge: '评'},
+        ],
     },
-    profileSaving: false,
-    menuItems: [
-      {title: '购物车', url: '/pages/cart/cart', badge: '购'},
-      {title: '我的订单', url: '/pages/ucenter/order/order', badge: '单'},
-      {title: '售后中心', url: '/pages/ucenter/aftersales/index', badge: '售'},
-      {title: '我的设计', url: '/pages/ucenter/design/design', badge: '设'},
-      {title: '优惠券', url: '/pages/ucenter/coupon/coupon', badge: '券'},
-      {title: '我的收藏', url: '/pages/ucenter/collect/collect', badge: '藏'},
-      {title: '我的足迹', url: '/pages/ucenter/footprint/footprint', badge: '迹'},
-      {title: '地址管理', url: '/pages/ucenter/address/address', badge: '址'},
-      {title: '协议与隐私', url: '/pages/ucenter/legal/index', badge: '协'},
-      {title: '帮助中心', url: '/pages/ucenter/help/help', badge: '助'},
-      {title: '意见反馈', url: '/pages/ucenter/feedback/feedback', badge: '评'},
-    ],
-  },
 
-  /** 页面再次展示时恢复有效会话并刷新个人中心资料. */
-  onShow() {
-    this.profileVersion = (this.profileVersion || 0) + 1;
-    const userInfo = wx.getStorageSync('userInfo');
-    const token = wx.getStorageSync('token');
+    /** 页面再次展示时恢复有效会话并刷新个人中心资料. */
+    onShow() {
+        this.profileVersion = (this.profileVersion || 0) + 1;
+        const userInfo = wx.getStorageSync('userInfo');
+        const token = wx.getStorageSync('token');
 
-    if (userInfo && token) {
-      app.globalData.userInfo = this.normalizeUserInfo(userInfo);
-      app.globalData.token = token;
-    }
-
-    this.refreshUserInfo();
-  },
-
-  /** 离页使资料回调失效, 隐藏编辑层中的本地头像和昵称. */
-  onHide() {
-    this.profileVersion = (this.profileVersion || 0) + 1;
-    this.setData({profileVisible: false, profileSaving: false, profileForm: {}});
-  },
-
-  /** 卸载后不再接收个人资料请求结果. */
-  onUnload() {
-    this.profileVersion = (this.profileVersion || 0) + 1;
-  },
-
-  /** 个人资料请求同时绑定令牌和页面代次, 不把旧资料写入新会话. */
-  isCurrentProfileRequest(token, version) {
-    return token === (wx.getStorageSync('token') || '') && version === this.profileVersion;
-  },
-
-  /** 请求用户主动授权的资料并交给登录流程处理. */
-  getUserProfile() {
-    const userInfo = wx.getStorageSync('userInfo');
-    const token = wx.getStorageSync('token');
-    if (userInfo && token) {
-      app.globalData.userInfo = this.normalizeUserInfo(userInfo);
-      app.globalData.token = token;
-      this.openProfileEditor();
-      return;
-    }
-    wx.setStorageSync('navUrl', '/pages/ucenter/index/index');
-    wx.navigateTo({url: '/pages/auth/btnAuth/btnAuth'});
-  },
-  /** 旧版资料授权入口统一转到包含协议确认的登录页. */
-  bindGetUserInfo() {
-    this.getUserProfile();
-  },
-  /** 确认后清除本机会话并恢复游客展示. */
-  exitLogin() {
-    wx.showModal({
-      title: '',
-      confirmColor: '#b4282d',
-      content: '退出登录？',
-      success: (res) => {
-        if (res.confirm) {
-          this.profileVersion = (this.profileVersion || 0) + 1;
-          util.clearSession();
-          app.globalData.userInfo = {
-            nickname: 'Hi, 游客',
-            userName: '点击去登录',
-            avatar: DEFAULT_AVATAR,
-          };
-          util.showSuccessToast('退出成功');
-          wx.switchTab({
-            url: '/pages/index/index',
-          });
+        if (userInfo && token) {
+            app.globalData.userInfo = this.normalizeUserInfo(userInfo);
+            app.globalData.token = token;
         }
-      },
-    });
-  },
-  /** 按当前会话刷新个人资料, 无有效会话时显示游客状态. */
-  refreshUserInfo() {
-    const token = wx.getStorageSync('token') || '';
-    const version = this.profileVersion;
-    const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
-    this.setData({
-      userInfo: userInfo,
-      avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
-      nicknameText: userInfo.nickname || 'Hi, 游客',
-    });
-    if (token) {
-      util
-        .request(api.UserProfile)
-        .then((res) => {
-          if (this.isCurrentProfileRequest(token, version) && res.code === 0 && res.data) {
-            this.applyUserInfo(this.normalizeUserInfo(res.data));
-          }
-        })
-        .catch(() => {});
-    }
-  },
-  // 统一服务端与小程序头像字段 / Normalizes server and mini-program avatar fields.
-  normalizeUserInfo(userInfo) {
-    const normalized = Object.assign({}, userInfo || {});
-    normalized.avatar = normalized.headImgUrl || normalized.avatar || DEFAULT_AVATAR;
-    normalized.headImgUrl = normalized.avatar;
-    return normalized;
-  },
-  // 应用并持久化用户资料 / Applies and persists the user profile.
-  applyUserInfo(userInfo) {
-    const normalized = this.normalizeUserInfo(userInfo);
-    app.globalData.userInfo = normalized;
-    wx.setStorageSync('userInfo', normalized);
-    this.setData({
-      userInfo: normalized,
-      avatarUrl: normalized.avatar,
-      nicknameText: normalized.nickname || 'Hi, 游客',
-    });
-  },
-  // 打开资料编辑层 / Opens the profile editor.
-  openProfileEditor() {
-    const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
-    this.setData({
-      profileVisible: true,
-      profileForm: {
-        nickname: userInfo.nickname || '',
-        avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
-      },
-    });
-  },
-  // 关闭资料编辑层 / Closes the profile editor.
-  closeProfileEditor() {
-    if (!this.data.profileSaving) {
-      this.setData({profileVisible: false});
-    }
-  },
-  // 接收微信头像选择结果 / Receives the avatar selected from WeChat.
-  chooseAvatar(event) {
-    this.setData({'profileForm.avatarUrl': event.detail.avatarUrl});
-  },
-  // 接收昵称输入 / Receives nickname input.
-  inputNickname(event) {
-    this.setData({'profileForm.nickname': event.detail.value});
-  },
-  // 经用户确认后同步微信昵称和头像 / Syncs WeChat profile after explicit user consent.
-  syncWeChatProfile() {
-    const token = wx.getStorageSync('token') || '';
-    const version = this.profileVersion;
-    const current = () => this.isCurrentProfileRequest(token, version);
-    wx.getUserProfile({
-      desc: '用于设置商城昵称和头像',
-      success: (profile) => {
-        if (!current()) {
-          return;
+
+        this.refreshUserInfo();
+    },
+
+    /** 离页使资料回调失效, 隐藏编辑层中的本地头像和昵称. */
+    onHide() {
+        this.profileVersion = (this.profileVersion || 0) + 1;
+        this.setData({profileVisible: false, profileSaving: false, profileForm: {}});
+    },
+
+    /** 卸载后不再接收个人资料请求结果. */
+    onUnload() {
+        this.profileVersion = (this.profileVersion || 0) + 1;
+    },
+
+    /** 个人资料请求同时绑定令牌和页面代次, 不把旧资料写入新会话. */
+    isCurrentProfileRequest(token, version) {
+        return token === (wx.getStorageSync('token') || '') && version === this.profileVersion;
+    },
+
+    /** 请求用户主动授权的资料并交给登录流程处理. */
+    getUserProfile() {
+        const userInfo = wx.getStorageSync('userInfo');
+        const token = wx.getStorageSync('token');
+        if (userInfo && token) {
+            app.globalData.userInfo = this.normalizeUserInfo(userInfo);
+            app.globalData.token = token;
+            this.openProfileEditor();
+            return;
         }
-        this.setData({profileSaving: true});
-        util
-          .request(
-            api.UpdateUserProfile,
-            {
-              nickname: profile.userInfo.nickName,
-              avatarUrl: profile.userInfo.avatarUrl,
+        wx.setStorageSync('navUrl', '/pages/ucenter/index/index');
+        wx.navigateTo({url: '/pages/auth/btnAuth/btnAuth'});
+    },
+    /** 旧版资料授权入口统一转到包含协议确认的登录页. */
+    bindGetUserInfo() {
+        this.getUserProfile();
+    },
+    /** 确认后清除本机会话并恢复游客展示. */
+    exitLogin() {
+        wx.showModal({
+            title: '',
+            confirmColor: '#b4282d',
+            content: '退出登录？',
+            success: (res) => {
+                if (res.confirm) {
+                    this.profileVersion = (this.profileVersion || 0) + 1;
+                    util.clearSession();
+                    app.globalData.userInfo = {
+                        nickname: 'Hi, 游客',
+                        userName: '点击去登录',
+                        avatar: DEFAULT_AVATAR,
+                    };
+                    util.showSuccessToast('退出成功');
+                    wx.switchTab({
+                        url: '/pages/index/index',
+                    });
+                }
             },
-            'POST',
-            'application/json'
-          )
-          .then((res) => {
-            if (!current()) {
-              return;
-            }
-            if (res.code !== 0) {
-              throw new Error(res.msg || '资料同步失败');
-            }
-            const userInfo = this.normalizeUserInfo(res.data);
-            this.applyUserInfo(userInfo);
-            this.setData({
-              profileForm: {
+        });
+    },
+    /** 按当前会话刷新个人资料, 无有效会话时显示游客状态. */
+    refreshUserInfo() {
+        const token = wx.getStorageSync('token') || '';
+        const version = this.profileVersion;
+        const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
+        this.setData({
+            userInfo: userInfo,
+            avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
+            nicknameText: userInfo.nickname || 'Hi, 游客',
+        });
+        if (token) {
+            util.request(api.UserProfile)
+                .then((res) => {
+                    if (
+                        this.isCurrentProfileRequest(token, version) &&
+                        res.code === 0 &&
+                        res.data
+                    ) {
+                        this.applyUserInfo(this.normalizeUserInfo(res.data));
+                    }
+                })
+                .catch(() => {});
+        }
+    },
+    // 统一服务端与小程序头像字段 / Normalizes server and mini-program avatar fields.
+    normalizeUserInfo(userInfo) {
+        const normalized = Object.assign({}, userInfo || {});
+        normalized.avatar = normalized.headImgUrl || normalized.avatar || DEFAULT_AVATAR;
+        normalized.headImgUrl = normalized.avatar;
+        return normalized;
+    },
+    // 应用并持久化用户资料 / Applies and persists the user profile.
+    applyUserInfo(userInfo) {
+        const normalized = this.normalizeUserInfo(userInfo);
+        app.globalData.userInfo = normalized;
+        wx.setStorageSync('userInfo', normalized);
+        this.setData({
+            userInfo: normalized,
+            avatarUrl: normalized.avatar,
+            nicknameText: normalized.nickname || 'Hi, 游客',
+        });
+    },
+    // 打开资料编辑层 / Opens the profile editor.
+    openProfileEditor() {
+        const userInfo = this.normalizeUserInfo(app.globalData.userInfo || {});
+        this.setData({
+            profileVisible: true,
+            profileForm: {
                 nickname: userInfo.nickname || '',
                 avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
-              },
-            });
-            wx.showToast({title: '已同步微信资料', icon: 'success'});
-          })
-          .catch(() => {
-            if (!current()) {
-              return;
-            }
-            wx.showToast({title: '微信资料同步失败', icon: 'none'});
-          })
-          .finally(() => {
-            if (current()) {
-              this.setData({profileSaving: false});
-            }
-          });
-      },
-    });
-  },
-  // 保存昵称和头像 / Saves nickname and avatar.
-  saveProfile() {
-    const token = wx.getStorageSync('token') || '';
-    const version = this.profileVersion;
-    const current = () => this.isCurrentProfileRequest(token, version);
-    const nickname = (this.data.profileForm.nickname || '').trim();
-    if (!nickname || nickname.length > 32) {
-      wx.showToast({title: '昵称应为1到32个字符', icon: 'none'});
-      return;
-    }
-    this.setData({profileSaving: true});
-    this.uploadAvatarIfNeeded(this.data.profileForm.avatarUrl)
-      .then((avatarUrl) => {
-        if (!current()) {
-          throw new Error('账号或页面已变化, 请重新操作');
+            },
+        });
+    },
+    // 关闭资料编辑层 / Closes the profile editor.
+    closeProfileEditor() {
+        if (!this.data.profileSaving) {
+            this.setData({profileVisible: false});
         }
-        return util.request(
-          api.UpdateUserProfile,
-          {
-            nickname: nickname,
-            avatarUrl: avatarUrl,
-          },
-          'POST',
-          'application/json'
-        );
-      })
-      .then((res) => {
-        if (!current()) {
-          return;
-        }
-        if (res.code !== 0) {
-          throw new Error(res.msg || '保存失败');
-        }
-        this.applyUserInfo(this.normalizeUserInfo(res.data));
-        this.setData({profileVisible: false});
-        wx.showToast({title: '资料已保存', icon: 'success'});
-      })
-      .catch((error) => {
-        if (!current()) {
-          return;
-        }
-        wx.showToast({title: error.message || '资料保存失败', icon: 'none'});
-      })
-      .finally(() => {
-        if (current()) {
-          this.setData({profileSaving: false});
-        }
-      });
-  },
-  // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
-  uploadAvatarIfNeeded(avatarUrl) {
-    if (
-      !avatarUrl ||
-      /^https?:\/\//.test(avatarUrl) ||
-      avatarUrl.indexOf('/static/') === 0 ||
-      avatarUrl.indexOf('/upload/') === 0
-    ) {
-      return Promise.resolve(avatarUrl);
-    }
-    const token = wx.getStorageSync('token') || '';
-    return new Promise((resolve, reject) => {
-      wx.uploadFile({
-        url: api.UploadFile,
-        filePath: avatarUrl,
-        name: 'file',
-        header: {token},
-        success: (response) => {
-          if (token !== (wx.getStorageSync('token') || '')) {
-            reject(new Error('账号已切换, 请重新选择头像'));
+    },
+    // 接收微信头像选择结果 / Receives the avatar selected from WeChat.
+    chooseAvatar(event) {
+        this.setData({'profileForm.avatarUrl': event.detail.avatarUrl});
+    },
+    // 接收昵称输入 / Receives nickname input.
+    inputNickname(event) {
+        this.setData({'profileForm.nickname': event.detail.value});
+    },
+    // 经用户确认后同步微信昵称和头像 / Syncs WeChat profile after explicit user consent.
+    syncWeChatProfile() {
+        const token = wx.getStorageSync('token') || '';
+        const version = this.profileVersion;
+        const current = () => this.isCurrentProfileRequest(token, version);
+        wx.getUserProfile({
+            desc: '用于设置商城昵称和头像',
+            success: (profile) => {
+                if (!current()) {
+                    return;
+                }
+                this.setData({profileSaving: true});
+                util.request(
+                    api.UpdateUserProfile,
+                    {
+                        nickname: profile.userInfo.nickName,
+                        avatarUrl: profile.userInfo.avatarUrl,
+                    },
+                    'POST',
+                    'application/json'
+                )
+                    .then((res) => {
+                        if (!current()) {
+                            return;
+                        }
+                        if (res.code !== 0) {
+                            throw new Error(res.msg || '资料同步失败');
+                        }
+                        const userInfo = this.normalizeUserInfo(res.data);
+                        this.applyUserInfo(userInfo);
+                        this.setData({
+                            profileForm: {
+                                nickname: userInfo.nickname || '',
+                                avatarUrl: userInfo.avatar || DEFAULT_AVATAR,
+                            },
+                        });
+                        wx.showToast({title: '已同步微信资料', icon: 'success'});
+                    })
+                    .catch(() => {
+                        if (!current()) {
+                            return;
+                        }
+                        wx.showToast({title: '微信资料同步失败', icon: 'none'});
+                    })
+                    .finally(() => {
+                        if (current()) {
+                            this.setData({profileSaving: false});
+                        }
+                    });
+            },
+        });
+    },
+    // 保存昵称和头像 / Saves nickname and avatar.
+    saveProfile() {
+        const token = wx.getStorageSync('token') || '';
+        const version = this.profileVersion;
+        const current = () => this.isCurrentProfileRequest(token, version);
+        const nickname = (this.data.profileForm.nickname || '').trim();
+        if (!nickname || nickname.length > 32) {
+            wx.showToast({title: '昵称应为1到32个字符', icon: 'none'});
             return;
-          }
-          try {
-            const result = JSON.parse(response.data);
-            if (response.statusCode === 200 && result.code === 0 && result.data) {
-              resolve(util.normalizeAssetUrls(result).data);
-              return;
-            }
-            reject(new Error(result.msg || '头像上传失败'));
-          } catch (error) {
-            reject(new Error('头像上传响应异常'));
-          }
-        },
-        fail: () => reject(new Error('头像上传失败')),
-      });
-    });
-  },
+        }
+        this.setData({profileSaving: true});
+        this.uploadAvatarIfNeeded(this.data.profileForm.avatarUrl)
+            .then((avatarUrl) => {
+                if (!current()) {
+                    throw new Error('账号或页面已变化, 请重新操作');
+                }
+                return util.request(
+                    api.UpdateUserProfile,
+                    {
+                        nickname: nickname,
+                        avatarUrl: avatarUrl,
+                    },
+                    'POST',
+                    'application/json'
+                );
+            })
+            .then((res) => {
+                if (!current()) {
+                    return;
+                }
+                if (res.code !== 0) {
+                    throw new Error(res.msg || '保存失败');
+                }
+                this.applyUserInfo(this.normalizeUserInfo(res.data));
+                this.setData({profileVisible: false});
+                wx.showToast({title: '资料已保存', icon: 'success'});
+            })
+            .catch((error) => {
+                if (!current()) {
+                    return;
+                }
+                wx.showToast({title: error.message || '资料保存失败', icon: 'none'});
+            })
+            .finally(() => {
+                if (current()) {
+                    this.setData({profileSaving: false});
+                }
+            });
+    },
+    // 仅上传本地选择的新头像 / Uploads only a newly selected local avatar.
+    uploadAvatarIfNeeded(avatarUrl) {
+        if (
+            !avatarUrl ||
+            /^https?:\/\//.test(avatarUrl) ||
+            avatarUrl.indexOf('/static/') === 0 ||
+            avatarUrl.indexOf('/upload/') === 0
+        ) {
+            return Promise.resolve(avatarUrl);
+        }
+        const token = wx.getStorageSync('token') || '';
+        return new Promise((resolve, reject) => {
+            wx.uploadFile({
+                url: api.UploadFile,
+                filePath: avatarUrl,
+                name: 'file',
+                header: {token},
+                success: (response) => {
+                    if (token !== (wx.getStorageSync('token') || '')) {
+                        reject(new Error('账号已切换, 请重新选择头像'));
+                        return;
+                    }
+                    try {
+                        const result = JSON.parse(response.data);
+                        if (response.statusCode === 200 && result.code === 0 && result.data) {
+                            resolve(util.normalizeAssetUrls(result).data);
+                            return;
+                        }
+                        reject(new Error(result.msg || '头像上传失败'));
+                    } catch (error) {
+                        reject(new Error('头像上传响应异常'));
+                    }
+                },
+                fail: () => reject(new Error('头像上传失败')),
+            });
+        });
+    },
 });

@@ -19,11 +19,14 @@
 package com.platform.config;
 
 import com.platform.common.utils.Constant;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.redis.RedisTemplateWxRedisOps;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl;
 import me.chanjar.weixin.mp.config.impl.WxMpRedisConfigImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -39,25 +42,25 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 @Configuration
 @EnableConfigurationProperties(WxMpProperties.class)
 public class WxMpConfiguration {
-  @Autowired private StringRedisTemplate stringRedisTemplate;
-  @Autowired private WxMpProperties properties;
+    @Autowired private StringRedisTemplate stringRedisTemplate;
+    @Autowired private WxMpProperties properties;
 
-  @Bean
-  public WxMpService wxMpService() {
-    WxMpService wxMpService = new WxMpServiceImpl();
-    wxMpService.setWxMpConfigStorage(wxMpRedisConfig());
-    return wxMpService;
-  }
+    @Bean
+    public WxMpService wxMpService() {
+        WxMpService wxMpService = new WxMpServiceImpl();
+        wxMpService.setWxMpConfigStorage(wxMpRedisConfig());
+        return wxMpService;
+    }
 
-  @Bean
-  public WxMpRedisConfigImpl wxMpRedisConfig() {
-    WxMpRedisConfigImpl wxMpInRedisConfigStorage =
-        new WxMpRedisConfigImpl(
-            new RedisTemplateWxRedisOps(stringRedisTemplate), Constant.WX_MP_CONFIG);
-    wxMpInRedisConfigStorage.setAppId(properties.getAppId());
-    wxMpInRedisConfigStorage.setSecret(properties.getSecret());
-    wxMpInRedisConfigStorage.setToken(properties.getToken());
-    wxMpInRedisConfigStorage.setAesKey(properties.getAesKey());
-    return wxMpInRedisConfigStorage;
-  }
+    @Bean
+    public WxMpRedisConfigImpl wxMpRedisConfig() {
+        WxMpRedisConfigImpl wxMpInRedisConfigStorage =
+                new WxMpRedisConfigImpl(
+                        new RedisTemplateWxRedisOps(stringRedisTemplate), Constant.WX_MP_CONFIG);
+        wxMpInRedisConfigStorage.setAppId(properties.getAppId());
+        wxMpInRedisConfigStorage.setSecret(properties.getSecret());
+        wxMpInRedisConfigStorage.setToken(properties.getToken());
+        wxMpInRedisConfigStorage.setAesKey(properties.getAesKey());
+        return wxMpInRedisConfigStorage;
+    }
 }

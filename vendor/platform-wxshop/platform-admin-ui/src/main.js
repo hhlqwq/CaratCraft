@@ -21,14 +21,14 @@ import clipboard from '@/utils/clipboard';
 import {watchBuildUpdates} from '@/utils/build-updates';
 
 import {
-  isAuth,
-  treeDataTranslate,
-  transOrg,
-  transUser,
-  transDict,
-  openImg,
-  transDate,
-  subtractDate,
+    isAuth,
+    treeDataTranslate,
+    transOrg,
+    transUser,
+    transDict,
+    openImg,
+    transDate,
+    subtractDate,
 } from '@/utils';
 import cloneDeep from 'lodash/cloneDeep';
 import ElDict from './components/el-dict';

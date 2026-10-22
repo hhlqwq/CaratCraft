@@ -22,15 +22,29 @@ import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.wx.form.MaterialFileDeleteForm;
 import com.platform.modules.wx.service.WxAssetsService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.IOException;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.error.WxErrorException;
-import me.chanjar.weixin.mp.bean.material.*;
+import me.chanjar.weixin.mp.bean.material.WxMpMaterialCountResult;
+import me.chanjar.weixin.mp.bean.material.WxMpMaterialFileBatchGetResult;
+import me.chanjar.weixin.mp.bean.material.WxMpMaterialNews;
+import me.chanjar.weixin.mp.bean.material.WxMpMaterialNewsBatchGetResult;
+import me.chanjar.weixin.mp.bean.material.WxMpMaterialUploadResult;
+
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 /**
  * 微信公众号素材管理
@@ -45,105 +59,108 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/manage/wxAssets")
 public class WxAssetsManageController {
-  private final WxAssetsService wxAssetsService;
+    private final WxAssetsService wxAssetsService;
 
-  /**
-   * 获取素材总数
-   *
-   * @return RestResponse
-   * @throws WxErrorException .
-   */
-  @Operation(summary = "获取素材总数", description = "获取素材总数")
-  @GetMapping("/materialCount")
-  public RestResponse<WxMpMaterialCountResult> materialCount() throws WxErrorException {
-    WxMpMaterialCountResult res = wxAssetsService.materialCount();
-    return RestResponse.ok(res);
-  }
-
-  /**
-   * 获取素材总数
-   *
-   * @return RestResponse
-   * @throws WxErrorException .
-   */
-  @Operation(summary = "获取素材", description = "获取素材")
-  @GetMapping("/materialNewsInfo")
-  public RestResponse<WxMpMaterialNews> materialNewsInfo(String mediaId) throws WxErrorException {
-    WxMpMaterialNews res = wxAssetsService.materialNewsInfo(mediaId);
-    return RestResponse.ok(res);
-  }
-
-  /**
-   * 根据类别分页获取非图文素材列表
-   *
-   * @param type type
-   * @param page page
-   * @return RestResponse
-   * @throws WxErrorException .
-   */
-  @Operation(summary = "根据类别分页获取非图文素材列表", description = "根据类别分页获取非图文素材列表")
-  @GetMapping("/materialFileBatchGet")
-  @RequiresPermissions("wx:wxassets:list")
-  public RestResponse<WxMpMaterialFileBatchGetResult> materialFileBatchGet(
-      @RequestParam(defaultValue = "image") String type, @RequestParam(defaultValue = "1") int page)
-      throws WxErrorException {
-    WxMpMaterialFileBatchGetResult res = wxAssetsService.materialFileBatchGet(type, page);
-    return RestResponse.ok(res);
-  }
-
-  /**
-   * 分页获取图文素材列表
-   *
-   * @param page page
-   * @return RestResponse
-   * @throws WxErrorException .
-   */
-  @Operation(summary = "分页获取图文素材列表", description = "分页获取图文素材列表")
-  @GetMapping("/materialNewsBatchGet")
-  @RequiresPermissions("wx:wxassets:list")
-  public RestResponse<WxMpMaterialNewsBatchGetResult> materialNewsBatchGet(
-      @RequestParam(defaultValue = "1") int page) throws WxErrorException {
-    WxMpMaterialNewsBatchGetResult res = wxAssetsService.materialNewsBatchGet(page);
-    return RestResponse.ok(res);
-  }
-
-  /**
-   * 添加多媒体永久素材
-   *
-   * @param file file
-   * @param fileName fileName
-   * @param mediaType mediaType
-   * @return RestResponse
-   * @throws WxErrorException .
-   * @throws IOException .
-   */
-  @Operation(summary = "添加多媒体永久素材", description = "添加多媒体永久素材")
-  @PostMapping("/materialFileUpload")
-  @RequiresPermissions("wx:wxassets:save")
-  public RestResponse<WxMpMaterialUploadResult> materialFileUpload(
-      MultipartFile file, String fileName, String mediaType) throws WxErrorException, IOException {
-    if (file == null) {
-      return RestResponse.fail("文件不得为空");
+    /**
+     * 获取素材总数
+     *
+     * @return RestResponse
+     * @throws WxErrorException .
+     */
+    @Operation(summary = "获取素材总数", description = "获取素材总数")
+    @GetMapping("/materialCount")
+    public RestResponse<WxMpMaterialCountResult> materialCount() throws WxErrorException {
+        WxMpMaterialCountResult res = wxAssetsService.materialCount();
+        return RestResponse.ok(res);
     }
 
-    WxMpMaterialUploadResult res = wxAssetsService.materialFileUpload(mediaType, fileName, file);
-    return RestResponse.ok(res);
-  }
+    /**
+     * 获取素材总数
+     *
+     * @return RestResponse
+     * @throws WxErrorException .
+     */
+    @Operation(summary = "获取素材", description = "获取素材")
+    @GetMapping("/materialNewsInfo")
+    public RestResponse<WxMpMaterialNews> materialNewsInfo(String mediaId) throws WxErrorException {
+        WxMpMaterialNews res = wxAssetsService.materialNewsInfo(mediaId);
+        return RestResponse.ok(res);
+    }
 
-  /**
-   * 删除素材
-   *
-   * @param form form
-   * @return RestResponse
-   * @throws WxErrorException .
-   */
-  @Operation(summary = "删除素材", description = "删除素材")
-  @SysLog("删除素材")
-  @PostMapping("/materialDelete")
-  @RequiresPermissions("wx:wxassets:delete")
-  public RestResponse<Boolean> materialDelete(@RequestBody MaterialFileDeleteForm form)
-      throws WxErrorException {
-    boolean res = wxAssetsService.materialDelete(form.getMediaId());
-    return RestResponse.ok(res);
-  }
+    /**
+     * 根据类别分页获取非图文素材列表
+     *
+     * @param type type
+     * @param page page
+     * @return RestResponse
+     * @throws WxErrorException .
+     */
+    @Operation(summary = "根据类别分页获取非图文素材列表", description = "根据类别分页获取非图文素材列表")
+    @GetMapping("/materialFileBatchGet")
+    @RequiresPermissions("wx:wxassets:list")
+    public RestResponse<WxMpMaterialFileBatchGetResult> materialFileBatchGet(
+            @RequestParam(defaultValue = "image") String type,
+            @RequestParam(defaultValue = "1") int page)
+            throws WxErrorException {
+        WxMpMaterialFileBatchGetResult res = wxAssetsService.materialFileBatchGet(type, page);
+        return RestResponse.ok(res);
+    }
+
+    /**
+     * 分页获取图文素材列表
+     *
+     * @param page page
+     * @return RestResponse
+     * @throws WxErrorException .
+     */
+    @Operation(summary = "分页获取图文素材列表", description = "分页获取图文素材列表")
+    @GetMapping("/materialNewsBatchGet")
+    @RequiresPermissions("wx:wxassets:list")
+    public RestResponse<WxMpMaterialNewsBatchGetResult> materialNewsBatchGet(
+            @RequestParam(defaultValue = "1") int page) throws WxErrorException {
+        WxMpMaterialNewsBatchGetResult res = wxAssetsService.materialNewsBatchGet(page);
+        return RestResponse.ok(res);
+    }
+
+    /**
+     * 添加多媒体永久素材
+     *
+     * @param file file
+     * @param fileName fileName
+     * @param mediaType mediaType
+     * @return RestResponse
+     * @throws WxErrorException .
+     * @throws IOException .
+     */
+    @Operation(summary = "添加多媒体永久素材", description = "添加多媒体永久素材")
+    @PostMapping("/materialFileUpload")
+    @RequiresPermissions("wx:wxassets:save")
+    public RestResponse<WxMpMaterialUploadResult> materialFileUpload(
+            MultipartFile file, String fileName, String mediaType)
+            throws WxErrorException, IOException {
+        if (file == null) {
+            return RestResponse.fail("文件不得为空");
+        }
+
+        WxMpMaterialUploadResult res =
+                wxAssetsService.materialFileUpload(mediaType, fileName, file);
+        return RestResponse.ok(res);
+    }
+
+    /**
+     * 删除素材
+     *
+     * @param form form
+     * @return RestResponse
+     * @throws WxErrorException .
+     */
+    @Operation(summary = "删除素材", description = "删除素材")
+    @SysLog("删除素材")
+    @PostMapping("/materialDelete")
+    @RequiresPermissions("wx:wxassets:delete")
+    public RestResponse<Boolean> materialDelete(@RequestBody MaterialFileDeleteForm form)
+            throws WxErrorException {
+        boolean res = wxAssetsService.materialDelete(form.getMediaId());
+        return RestResponse.ok(res);
+    }
 }

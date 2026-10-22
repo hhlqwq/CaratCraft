@@ -21,10 +21,12 @@ package com.platform.modules.mall.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
-import java.util.List;
-import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 订单商品明细数据访问接口。
@@ -37,23 +39,23 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MallOrderGoodsDao extends BaseMapper<MallOrderGoodsEntity> {
 
-  /**
-   * 查询订单商品明细列表。
-   *
-   * @param params 查询参数
-   * @return 订单商品明细集合
-   */
-  List<MallOrderGoodsEntity> queryAll(@Param("params") Map<String, Object> params);
+    /**
+     * 查询订单商品明细列表。
+     *
+     * @param params 查询参数
+     * @return 订单商品明细集合
+     */
+    List<MallOrderGoodsEntity> queryAll(@Param("params") Map<String, Object> params);
 
-  /**
-   * 分页查询订单商品明细。
-   *
-   * @param page 分页对象
-   * @param params 查询参数
-   * @return 订单商品明细集合
-   */
-  List<MallOrderGoodsEntity> selectMallOrderGoodsPage(
-      Page<MallOrderGoodsEntity> page, @Param("params") Map<String, Object> params);
+    /**
+     * 分页查询订单商品明细。
+     *
+     * @param page 分页对象
+     * @param params 查询参数
+     * @return 订单商品明细集合
+     */
+    List<MallOrderGoodsEntity> selectMallOrderGoodsPage(
+            Page<MallOrderGoodsEntity> page, @Param("params") Map<String, Object> params);
 
-  List<MallOrderGoodsEntity> queryList(Map<String, Object> param);
+    List<MallOrderGoodsEntity> queryList(Map<String, Object> param);
 }

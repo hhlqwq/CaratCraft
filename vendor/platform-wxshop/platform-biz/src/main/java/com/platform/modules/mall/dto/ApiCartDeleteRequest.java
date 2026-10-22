@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ApiCartDeleteRequest {
-  private String productIds;
+    private String productIds;
 }

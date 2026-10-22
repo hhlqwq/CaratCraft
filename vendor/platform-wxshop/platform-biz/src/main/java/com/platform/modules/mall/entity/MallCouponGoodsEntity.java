@@ -21,8 +21,10 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 优惠券关联商品实体
@@ -33,15 +35,15 @@ import lombok.Data;
 @Data
 @TableName("mall_coupon_goods")
 public class MallCouponGoodsEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 主键 */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** 主键 */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 优惠券Id */
-  private Integer couponId;
+    /** 优惠券Id */
+    private Integer couponId;
 
-  /** 商品id */
-  private Integer goodsId;
+    /** 商品id */
+    private Integer goodsId;
 }

@@ -25,14 +25,24 @@ import com.platform.common.validator.ValidatorUtils;
 import com.platform.modules.sys.entity.SysOrgEntity;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.service.SysOrgService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 组织机构Controller
@@ -46,92 +56,92 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("sys/org")
 public class SysOrgController extends AbstractController {
 
-  private final SysOrgService sysOrgService;
+    private final SysOrgService sysOrgService;
 
-  /**
-   * 查看所有列表
-   *
-   * @param params 查询参数
-   * @return RestResponse
-   */
-  @Operation(summary = "查看所有列表", description = "查看所有列表")
-  @GetMapping("/queryAll")
-  @RequiresPermissions("sys:org:list")
-  public RestResponse<List<SysOrgEntity>> queryAll(@RequestParam Map<String, Object> params) {
-    List<SysOrgEntity> list = sysOrgService.queryAll(params);
-    list.sort(Comparator.comparing(SysOrgEntity::getSort));
+    /**
+     * 查看所有列表
+     *
+     * @param params 查询参数
+     * @return RestResponse
+     */
+    @Operation(summary = "查看所有列表", description = "查看所有列表")
+    @GetMapping("/queryAll")
+    @RequiresPermissions("sys:org:list")
+    public RestResponse<List<SysOrgEntity>> queryAll(@RequestParam Map<String, Object> params) {
+        List<SysOrgEntity> list = sysOrgService.queryAll(params);
+        list.sort(Comparator.comparing(SysOrgEntity::getSort));
 
-    return RestResponse.ok(list);
-  }
-
-  /**
-   * 根据主键查询详情
-   *
-   * @param orgNo 主键
-   * @return RestResponse
-   */
-  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-  @GetMapping("/info/{orgNo}")
-  @RequiresPermissions("sys:org:info")
-  public RestResponse<SysOrgEntity> info(@PathVariable("orgNo") String orgNo) {
-    SysOrgEntity sysOrg = sysOrgService.getById(orgNo);
-
-    return RestResponse.ok(sysOrg);
-  }
-
-  /**
-   * 保存
-   *
-   * @param sysOrg sysOrg
-   * @return RestResponse
-   */
-  @Operation(summary = "新增", description = "新增")
-  @SysLog("保存机构")
-  @PostMapping("/save")
-  @RequiresPermissions("sys:org:save")
-  public RestResponse<String> save(@RequestBody SysOrgEntity sysOrg) {
-    ValidatorUtils.validateEntity(sysOrg);
-
-    SysUserEntity user = getUser();
-    sysOrg.setCreateUserId(user.getUserId());
-    sysOrgService.add(sysOrg);
-    return RestResponse.ok();
-  }
-
-  /**
-   * 修改
-   *
-   * @param sysOrg sysOrg
-   * @return RestResponse
-   */
-  @Operation(summary = "修改", description = "修改")
-  @SysLog("修改机构")
-  @PostMapping("/update")
-  @RequiresPermissions("sys:org:update")
-  public RestResponse<String> update(@RequestBody SysOrgEntity sysOrg) {
-    ValidatorUtils.validateEntity(sysOrg);
-    sysOrgService.update(sysOrg);
-    return RestResponse.ok();
-  }
-
-  /**
-   * 删除
-   *
-   * @param orgNo 机构编码
-   * @return RestResponse
-   */
-  @Operation(summary = "删除", description = "删除")
-  @SysLog("删除机构")
-  @PostMapping("/delete")
-  @RequiresPermissions("sys:org:delete")
-  public RestResponse<String> delete(@RequestBody String orgNo) {
-    orgNo = orgNo.replaceAll("\"", Constant.BLANK);
-    List<SysOrgEntity> sysOrgEntities = sysOrgService.queryListByOrgNo(orgNo);
-    if (sysOrgEntities.size() > 0) {
-      return RestResponse.fail("请先删除子机构");
-    } else {
-      sysOrgService.delete(orgNo);
+        return RestResponse.ok(list);
     }
-    return RestResponse.ok();
-  }
+
+    /**
+     * 根据主键查询详情
+     *
+     * @param orgNo 主键
+     * @return RestResponse
+     */
+    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+    @GetMapping("/info/{orgNo}")
+    @RequiresPermissions("sys:org:info")
+    public RestResponse<SysOrgEntity> info(@PathVariable("orgNo") String orgNo) {
+        SysOrgEntity sysOrg = sysOrgService.getById(orgNo);
+
+        return RestResponse.ok(sysOrg);
+    }
+
+    /**
+     * 保存
+     *
+     * @param sysOrg sysOrg
+     * @return RestResponse
+     */
+    @Operation(summary = "新增", description = "新增")
+    @SysLog("保存机构")
+    @PostMapping("/save")
+    @RequiresPermissions("sys:org:save")
+    public RestResponse<String> save(@RequestBody SysOrgEntity sysOrg) {
+        ValidatorUtils.validateEntity(sysOrg);
+
+        SysUserEntity user = getUser();
+        sysOrg.setCreateUserId(user.getUserId());
+        sysOrgService.add(sysOrg);
+        return RestResponse.ok();
+    }
+
+    /**
+     * 修改
+     *
+     * @param sysOrg sysOrg
+     * @return RestResponse
+     */
+    @Operation(summary = "修改", description = "修改")
+    @SysLog("修改机构")
+    @PostMapping("/update")
+    @RequiresPermissions("sys:org:update")
+    public RestResponse<String> update(@RequestBody SysOrgEntity sysOrg) {
+        ValidatorUtils.validateEntity(sysOrg);
+        sysOrgService.update(sysOrg);
+        return RestResponse.ok();
+    }
+
+    /**
+     * 删除
+     *
+     * @param orgNo 机构编码
+     * @return RestResponse
+     */
+    @Operation(summary = "删除", description = "删除")
+    @SysLog("删除机构")
+    @PostMapping("/delete")
+    @RequiresPermissions("sys:org:delete")
+    public RestResponse<String> delete(@RequestBody String orgNo) {
+        orgNo = orgNo.replaceAll("\"", Constant.BLANK);
+        List<SysOrgEntity> sysOrgEntities = sysOrgService.queryListByOrgNo(orgNo);
+        if (sysOrgEntities.size() > 0) {
+            return RestResponse.fail("请先删除子机构");
+        } else {
+            sysOrgService.delete(orgNo);
+        }
+        return RestResponse.ok();
+    }
 }

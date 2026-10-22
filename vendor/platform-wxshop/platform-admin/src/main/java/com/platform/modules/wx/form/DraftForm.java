@@ -18,9 +18,10 @@
  */
 package com.platform.modules.wx.form;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.List;
-import lombok.Data;
 
 /**
  * 修改草稿信息接收参数
@@ -30,7 +31,7 @@ import lombok.Data;
  */
 @Data
 public class DraftForm implements Serializable {
-  private String mediaId;
+    private String mediaId;
 
-  private List<DraftArticles> newsItem;
+    private List<DraftArticles> newsItem;
 }

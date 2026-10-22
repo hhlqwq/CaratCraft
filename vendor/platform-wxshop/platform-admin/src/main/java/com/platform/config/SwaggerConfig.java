@@ -18,8 +18,10 @@ package com.platform.config;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.RandomUtil;
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootVersion;
@@ -46,39 +48,42 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableWebMvc
 public class SwaggerConfig {
 
-  @Value("${projectVersion}")
-  private String projectVersion;
+    @Value("${projectVersion}")
+    private String projectVersion;
 
-  @Bean
-  public OpenAPI openApi() {
-    return new OpenAPI().info(apiInfo());
-  }
+    @Bean
+    public OpenAPI openApi() {
+        return new OpenAPI().info(apiInfo());
+    }
 
-  /** 接口说明只发布本项目元数据, 不替经营者填写法律链接或私人联系资料. */
-  private Info apiInfo() {
-    return new Info()
-        .title("克拉匠造")
-        .description("克拉匠造管理端接口文档")
-        .version(
-            "Application Version: "
-                + projectVersion
-                + ", Spring Boot Version: "
-                + SpringBootVersion.getVersion());
-  }
+    /** 接口说明只发布本项目元数据, 不替经营者填写法律链接或私人联系资料. */
+    private Info apiInfo() {
+        return new Info()
+                .title("克拉匠造")
+                .description("克拉匠造管理端接口文档")
+                .version(
+                        "Application Version: "
+                                + projectVersion
+                                + ", Spring Boot Version: "
+                                + SpringBootVersion.getVersion());
+    }
 
-  /**
-   * 根据 @Tag 上的排序，写入 x-order
-   *
-   * @return the global open api customizer
-   */
-  @Bean
-  public GlobalOpenApiCustomizer orderGlobalOpenApiCustomizer() {
-    return openApi -> {
-      if (null != openApi.getTags()) {
-        openApi
-            .getTags()
-            .forEach(tag -> tag.setExtensions(MapUtil.of("x-order", RandomUtil.randomInt(0, 100))));
-      }
-    };
-  }
+    /**
+     * 根据 @Tag 上的排序，写入 x-order
+     *
+     * @return the global open api customizer
+     */
+    @Bean
+    public GlobalOpenApiCustomizer orderGlobalOpenApiCustomizer() {
+        return openApi -> {
+            if (null != openApi.getTags()) {
+                openApi.getTags()
+                        .forEach(
+                                tag ->
+                                        tag.setExtensions(
+                                                MapUtil.of(
+                                                        "x-order", RandomUtil.randomInt(0, 100))));
+            }
+        };
+    }
 }

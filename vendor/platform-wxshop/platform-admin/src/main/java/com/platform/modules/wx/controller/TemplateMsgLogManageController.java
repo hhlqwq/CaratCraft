@@ -23,13 +23,23 @@ import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.wx.entity.TemplateMsgLogEntity;
 import com.platform.modules.wx.service.TemplateMsgLogService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Arrays;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 模版消息发送记录
@@ -42,51 +52,51 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/manage/templateMsgLog")
 public class TemplateMsgLogManageController {
-  private final TemplateMsgLogService templateMsgLogService;
+    private final TemplateMsgLogService templateMsgLogService;
 
-  /**
-   * 模板消息日志列表
-   *
-   * @param params params
-   * @return RestResponse
-   */
-  @Operation(summary = "分页查询", description = "分页查询")
-  @GetMapping("/list")
-  @RequiresPermissions("wx:templatemsglog:list")
-  public RestResponse<Page<TemplateMsgLogEntity>> list(@RequestParam Map<String, Object> params) {
-    Page<TemplateMsgLogEntity> page = templateMsgLogService.queryPage(params);
+    /**
+     * 模板消息日志列表
+     *
+     * @param params params
+     * @return RestResponse
+     */
+    @Operation(summary = "分页查询", description = "分页查询")
+    @GetMapping("/list")
+    @RequiresPermissions("wx:templatemsglog:list")
+    public RestResponse<Page<TemplateMsgLogEntity>> list(@RequestParam Map<String, Object> params) {
+        Page<TemplateMsgLogEntity> page = templateMsgLogService.queryPage(params);
 
-    return RestResponse.ok(page);
-  }
+        return RestResponse.ok(page);
+    }
 
-  /**
-   * 模板消息日志
-   *
-   * @param logId 主键
-   * @return RestResponse
-   */
-  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-  @GetMapping("/info/{logId}")
-  @RequiresPermissions("wx:templatemsglog:info")
-  public RestResponse<TemplateMsgLogEntity> info(@PathVariable("logId") String logId) {
-    TemplateMsgLogEntity templateMsgLogEntity = templateMsgLogService.getById(logId);
+    /**
+     * 模板消息日志
+     *
+     * @param logId 主键
+     * @return RestResponse
+     */
+    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+    @GetMapping("/info/{logId}")
+    @RequiresPermissions("wx:templatemsglog:info")
+    public RestResponse<TemplateMsgLogEntity> info(@PathVariable("logId") String logId) {
+        TemplateMsgLogEntity templateMsgLogEntity = templateMsgLogService.getById(logId);
 
-    return RestResponse.ok(templateMsgLogEntity);
-  }
+        return RestResponse.ok(templateMsgLogEntity);
+    }
 
-  /**
-   * 删除模板消息日志
-   *
-   * @param logIds logIds
-   * @return RestResponse
-   */
-  @Operation(summary = "删除", description = "删除")
-  @SysLog("删除模板消息日志")
-  @PostMapping("/delete")
-  @RequiresPermissions("wx:templatemsglog:delete")
-  public RestResponse<String> delete(@RequestBody String[] logIds) {
-    templateMsgLogService.removeByIds(Arrays.asList(logIds));
+    /**
+     * 删除模板消息日志
+     *
+     * @param logIds logIds
+     * @return RestResponse
+     */
+    @Operation(summary = "删除", description = "删除")
+    @SysLog("删除模板消息日志")
+    @PostMapping("/delete")
+    @RequiresPermissions("wx:templatemsglog:delete")
+    public RestResponse<String> delete(@RequestBody String[] logIds) {
+        templateMsgLogService.removeByIds(Arrays.asList(logIds));
 
-    return RestResponse.ok();
-  }
+        return RestResponse.ok();
+    }
 }

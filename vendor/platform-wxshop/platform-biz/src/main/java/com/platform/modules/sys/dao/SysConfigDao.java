@@ -20,6 +20,7 @@ package com.platform.modules.sys.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.sys.entity.SysConfigEntity;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,20 +32,21 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface SysConfigDao extends BaseMapper<SysConfigEntity> {
 
-  /**
-   * 根据key，查询value
-   *
-   * @param paramKey key
-   * @return SysConfigEntity
-   */
-  SysConfigEntity queryByKey(String paramKey);
+    /**
+     * 根据key，查询value
+     *
+     * @param paramKey key
+     * @return SysConfigEntity
+     */
+    SysConfigEntity queryByKey(String paramKey);
 
-  /**
-   * 根据key，更新value
-   *
-   * @param paramKey key
-   * @param paramValue value
-   * @return int
-   */
-  int updateValueByKey(@Param("paramKey") String paramKey, @Param("paramValue") String paramValue);
+    /**
+     * 根据key，更新value
+     *
+     * @param paramKey key
+     * @param paramValue value
+     * @return int
+     */
+    int updateValueByKey(
+            @Param("paramKey") String paramKey, @Param("paramValue") String paramValue);
 }

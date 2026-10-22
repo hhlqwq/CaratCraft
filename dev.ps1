@@ -140,11 +140,11 @@ function Assert-DatabaseReady {
     $Missing = @('sys_region', 'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION') |
         Where-Object { $_ -cnotin $Tables }
     if ($Missing) {
-        throw "数据库初始化或升级不完整, 缺少: $($Missing -join ', ')。请先备份并按use.md修复, 不要直接重置数据卷。"
+        throw "数据库初始化或升级不完整, 缺少: $($Missing -join ', ')。请先备份并按docs/项目维护文档.md修复, 不要直接重置数据卷。"
     }
-    $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_04_menu_encoding.sql';"
+    $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';"
     if ($LASTEXITCODE -ne 0 -or ($Version -join '').Trim() -ne '1') {
-        throw '数据库尚未完成V20261021_04迁移, 请先按use.md备份并执行版本迁移。'
+        throw '数据库尚未完成V20261022_01迁移, 请先按docs/项目维护文档.md备份并执行版本迁移。'
     }
 }
 
@@ -154,7 +154,7 @@ function Show-StartupDiagnostics {
     foreach ($Name in @('platform-admin', 'platform-api')) {
         & docker inspect --format '{{json .State.Health}}' $Name 2>$null
     }
-    Write-Warning '后端日志: .\dev.ps1 -Action logs. 缺表请先备份, 旧镜像请重新构建, 详见use.md。'
+    Write-Warning '后端日志: .\dev.ps1 -Action logs. 缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。'
 }
 
 # 只构建镜像, 保留原始构建错误, 不操作运行中的容器或数据库.

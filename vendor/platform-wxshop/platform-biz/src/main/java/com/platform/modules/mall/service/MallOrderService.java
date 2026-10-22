@@ -24,6 +24,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -37,72 +38,72 @@ import java.util.Map;
  */
 public interface MallOrderService extends IService<MallOrderEntity> {
 
-  /**
-   * 查询订单列表。
-   *
-   * @param params 查询参数
-   * @return 订单集合
-   */
-  List<MallOrderEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询订单列表。
+     *
+     * @param params 查询参数
+     * @return 订单集合
+     */
+    List<MallOrderEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 按条件包装器查询订单列表。
-   *
-   * @param queryWrapper 条件包装器
-   * @return 订单集合
-   */
-  List<MallOrderEntity> queryAllByWrapper(QueryWrapper<MallOrderEntity> queryWrapper);
+    /**
+     * 按条件包装器查询订单列表。
+     *
+     * @param queryWrapper 条件包装器
+     * @return 订单集合
+     */
+    List<MallOrderEntity> queryAllByWrapper(QueryWrapper<MallOrderEntity> queryWrapper);
 
-  /**
-   * 分页查询订单。
-   *
-   * @param params 查询参数
-   * @return 分页数据
-   */
-  Page<MallOrderEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询订单。
+     *
+     * @param params 查询参数
+     * @return 分页数据
+     */
+    Page<MallOrderEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增订单。
-   *
-   * @param mallOrder 订单实体
-   * @return 是否成功
-   */
-  boolean add(MallOrderEntity mallOrder);
+    /**
+     * 新增订单。
+     *
+     * @param mallOrder 订单实体
+     * @return 是否成功
+     */
+    boolean add(MallOrderEntity mallOrder);
 
-  /**
-   * 修改订单。
-   *
-   * @param mallOrder 订单实体
-   * @return 是否成功
-   */
-  boolean update(MallOrderEntity mallOrder);
+    /**
+     * 修改订单。
+     *
+     * @param mallOrder 订单实体
+     * @return 是否成功
+     */
+    boolean update(MallOrderEntity mallOrder);
 
-  /**
-   * 根据主键删除订单。
-   *
-   * @param id 主键
-   * @return 是否成功
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除订单。
+     *
+     * @param id 主键
+     * @return 是否成功
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 批量删除订单。
-   *
-   * @param ids 主键数组
-   * @return 是否成功
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 批量删除订单。
+     *
+     * @param ids 主键数组
+     * @return 是否成功
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  Map<String, Object> submit(JSONObject payload, WxUserEntity loginUser);
+    Map<String, Object> submit(JSONObject payload, WxUserEntity loginUser);
 
-  /** 取消未支付订单并释放资源 / Cancels an unpaid order and releases resources. */
-  boolean cancelUnpaid(Integer orderId, Long userId);
+    /** 取消未支付订单并释放资源 / Cancels an unpaid order and releases resources. */
+    boolean cancelUnpaid(Integer orderId, Long userId);
 
-  /** 完成退款并释放资源 / Completes a refund and releases resources. */
-  void completeRefund(Integer orderId, Integer refundedOrderStatus);
+    /** 完成退款并释放资源 / Completes a refund and releases resources. */
+    void completeRefund(Integer orderId, Integer refundedOrderStatus);
 
-  List<MallOrderEntity> queryList(Map<String, Object> params);
+    List<MallOrderEntity> queryList(Map<String, Object> params);
 
-  /** 在调用方事务内锁定订单, 所有支付和履约状态流转统一使用此入口. */
-  MallOrderEntity lockById(Integer orderId);
+    /** 在调用方事务内锁定订单, 所有支付和履约状态流转统一使用此入口. */
+    MallOrderEntity lockById(Integer orderId);
 }

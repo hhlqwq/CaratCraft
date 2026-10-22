@@ -22,14 +22,24 @@ import com.platform.common.utils.RestResponse;
 import com.platform.modules.wx.form.WxUserBatchTaggingForm;
 import com.platform.modules.wx.form.WxUserTagForm;
 import com.platform.modules.wx.service.WxUserTagsService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.error.WxErrorException;
 import me.chanjar.weixin.mp.bean.tag.WxUserTag;
+
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 公众号用户标签
@@ -42,61 +52,61 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "WxUserTagsManageController|公众号用户标签")
 public class WxUserTagsManageController {
 
-  private final WxUserTagsService wxUserTagsService;
+    private final WxUserTagsService wxUserTagsService;
 
-  /** 查询用户标签 */
-  @GetMapping("/list")
-  @RequiresPermissions("wx:wxuser:info")
-  @Operation(summary = "查看所有列表", description = "查看所有列表")
-  public RestResponse<List<WxUserTag>> list() throws WxErrorException {
-    List<WxUserTag> wxUserTags = wxUserTagsService.getWxTags();
-    return RestResponse.ok(wxUserTags);
-  }
-
-  /** 修改或新增标签 */
-  @PostMapping("/save")
-  @RequiresPermissions("wx:wxuser:save")
-  @Operation(summary = "修改或新增标签", description = "修改或新增标签")
-  public RestResponse<String> save(@RequestBody WxUserTagForm form) throws WxErrorException {
-    Long tagid = form.getId();
-    if (tagid == null || tagid <= 0) {
-      wxUserTagsService.creatTag(form.getName());
-    } else {
-      wxUserTagsService.updateTag(tagid, form.getName());
+    /** 查询用户标签 */
+    @GetMapping("/list")
+    @RequiresPermissions("wx:wxuser:info")
+    @Operation(summary = "查看所有列表", description = "查看所有列表")
+    public RestResponse<List<WxUserTag>> list() throws WxErrorException {
+        List<WxUserTag> wxUserTags = wxUserTagsService.getWxTags();
+        return RestResponse.ok(wxUserTags);
     }
-    return RestResponse.ok();
-  }
 
-  /** 删除标签 */
-  @PostMapping("/delete/{tagid}")
-  @RequiresPermissions("wx:wxuser:save")
-  @Operation(summary = "删除标签", description = "删除标签")
-  public RestResponse<String> delete(@PathVariable("tagid") Long tagid) throws WxErrorException {
-    if (tagid == null || tagid <= 0) {
-      return RestResponse.fail("标签ID不得为空");
+    /** 修改或新增标签 */
+    @PostMapping("/save")
+    @RequiresPermissions("wx:wxuser:save")
+    @Operation(summary = "修改或新增标签", description = "修改或新增标签")
+    public RestResponse<String> save(@RequestBody WxUserTagForm form) throws WxErrorException {
+        Long tagid = form.getId();
+        if (tagid == null || tagid <= 0) {
+            wxUserTagsService.creatTag(form.getName());
+        } else {
+            wxUserTagsService.updateTag(tagid, form.getName());
+        }
+        return RestResponse.ok();
     }
-    wxUserTagsService.deleteTag(tagid);
-    return RestResponse.ok();
-  }
 
-  /** 批量给用户打标签 */
-  @PostMapping("/batchTagging")
-  @RequiresPermissions("wx:wxuser:save")
-  @Operation(summary = "批量给用户打标签", description = "批量给用户打标签")
-  public RestResponse<String> batchTagging(@RequestBody WxUserBatchTaggingForm form)
-      throws WxErrorException {
+    /** 删除标签 */
+    @PostMapping("/delete/{tagid}")
+    @RequiresPermissions("wx:wxuser:save")
+    @Operation(summary = "删除标签", description = "删除标签")
+    public RestResponse<String> delete(@PathVariable("tagid") Long tagid) throws WxErrorException {
+        if (tagid == null || tagid <= 0) {
+            return RestResponse.fail("标签ID不得为空");
+        }
+        wxUserTagsService.deleteTag(tagid);
+        return RestResponse.ok();
+    }
 
-    wxUserTagsService.batchTagging(form.getTagid(), form.getOpenidList());
-    return RestResponse.ok();
-  }
+    /** 批量给用户打标签 */
+    @PostMapping("/batchTagging")
+    @RequiresPermissions("wx:wxuser:save")
+    @Operation(summary = "批量给用户打标签", description = "批量给用户打标签")
+    public RestResponse<String> batchTagging(@RequestBody WxUserBatchTaggingForm form)
+            throws WxErrorException {
 
-  /** 批量移除用户标签 */
-  @PostMapping("/batchUnTagging")
-  @RequiresPermissions("wx:wxuser:save")
-  @Operation(summary = "批量移除用户标签", description = "批量移除用户标签")
-  public RestResponse<String> batchUnTagging(@RequestBody WxUserBatchTaggingForm form)
-      throws WxErrorException {
-    wxUserTagsService.batchUnTagging(form.getTagid(), form.getOpenidList());
-    return RestResponse.ok();
-  }
+        wxUserTagsService.batchTagging(form.getTagid(), form.getOpenidList());
+        return RestResponse.ok();
+    }
+
+    /** 批量移除用户标签 */
+    @PostMapping("/batchUnTagging")
+    @RequiresPermissions("wx:wxuser:save")
+    @Operation(summary = "批量移除用户标签", description = "批量移除用户标签")
+    public RestResponse<String> batchUnTagging(@RequestBody WxUserBatchTaggingForm form)
+            throws WxErrorException {
+        wxUserTagsService.batchUnTagging(form.getTagid(), form.getOpenidList());
+        return RestResponse.ok();
+    }
 }

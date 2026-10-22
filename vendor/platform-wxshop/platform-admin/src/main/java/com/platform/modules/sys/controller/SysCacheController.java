@@ -23,13 +23,22 @@ import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.sys.entity.SysCacheEntity;
 import com.platform.modules.sys.service.SysCacheService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 系统缓存管理
@@ -41,50 +50,50 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/sys/cache")
 public class SysCacheController {
-  private final SysCacheService sysCacheService;
+    private final SysCacheService sysCacheService;
 
-  /**
-   * 查询缓存
-   *
-   * @param params 查询参数
-   * @return RestResponse
-   */
-  @Operation(summary = "查询缓存", description = "查询缓存")
-  @RequiresPermissions("sys:cache:queryAll")
-  @GetMapping("/queryAll")
-  public RestResponse<List<SysCacheEntity>> queryAll(@RequestParam Map<String, String> params) {
-    String type = params.get("type");
-    if (Constant.STR_ONE.equals(type)) {
-      // 查询所有缓存
-      params.put("pattern", "*");
-    } else if (Constant.STR_TWO.equals(type)) {
-      // 查询session缓存
-      params.put("pattern", Constant.CACHEABLE + "*");
-    } else if (Constant.STR_THREE.equals(type)) {
-      // 查询系统缓存
-      params.put("pattern", Constant.SYS_CACHE + "*");
-    } else if (Constant.STR_FOUR.equals(type)) {
-      // 查询业务缓存
-      params.put("pattern", Constant.MTM_CACHE + "*");
+    /**
+     * 查询缓存
+     *
+     * @param params 查询参数
+     * @return RestResponse
+     */
+    @Operation(summary = "查询缓存", description = "查询缓存")
+    @RequiresPermissions("sys:cache:queryAll")
+    @GetMapping("/queryAll")
+    public RestResponse<List<SysCacheEntity>> queryAll(@RequestParam Map<String, String> params) {
+        String type = params.get("type");
+        if (Constant.STR_ONE.equals(type)) {
+            // 查询所有缓存
+            params.put("pattern", "*");
+        } else if (Constant.STR_TWO.equals(type)) {
+            // 查询session缓存
+            params.put("pattern", Constant.CACHEABLE + "*");
+        } else if (Constant.STR_THREE.equals(type)) {
+            // 查询系统缓存
+            params.put("pattern", Constant.SYS_CACHE + "*");
+        } else if (Constant.STR_FOUR.equals(type)) {
+            // 查询业务缓存
+            params.put("pattern", Constant.MTM_CACHE + "*");
+        }
+        List<SysCacheEntity> list = sysCacheService.queryAll(params);
+
+        return RestResponse.ok(list);
     }
-    List<SysCacheEntity> list = sysCacheService.queryAll(params);
 
-    return RestResponse.ok(list);
-  }
+    /**
+     * 删除cache
+     *
+     * @param keys keys
+     * @return RestResponse
+     */
+    @Operation(summary = "删除redis缓存", description = "删除redis缓存")
+    @SysLog("删除redis缓存")
+    @RequiresPermissions("sys:cache:deleteCache")
+    @PostMapping("/deleteCache")
+    public RestResponse<String> deleteBatch(@RequestBody String[] keys) {
+        sysCacheService.deleteBatch(keys);
 
-  /**
-   * 删除cache
-   *
-   * @param keys keys
-   * @return RestResponse
-   */
-  @Operation(summary = "删除redis缓存", description = "删除redis缓存")
-  @SysLog("删除redis缓存")
-  @RequiresPermissions("sys:cache:deleteCache")
-  @PostMapping("/deleteCache")
-  public RestResponse<String> deleteBatch(@RequestBody String[] keys) {
-    sysCacheService.deleteBatch(keys);
-
-    return RestResponse.ok();
-  }
+        return RestResponse.ok();
+    }
 }

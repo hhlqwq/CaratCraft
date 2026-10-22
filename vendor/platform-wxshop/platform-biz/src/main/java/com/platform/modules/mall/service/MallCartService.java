@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallCartEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,68 +34,68 @@ import java.util.Map;
  */
 public interface MallCartService extends IService<MallCartEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallCartEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallCartEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询所有列表
-   *
-   * @param queryWrapper 查询参数
-   * @return List
-   */
-  List<MallCartEntity> queryAllByWrapper(QueryWrapper<MallCartEntity> queryWrapper);
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallCartEntity> queryAllByWrapper(QueryWrapper<MallCartEntity> queryWrapper);
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<MallCartEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallCartEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增
-   *
-   * @param mallCart 已通过业务校验的购物车行
-   * @return 新增结果
-   */
-  boolean add(MallCartEntity mallCart);
+    /**
+     * 新增
+     *
+     * @param mallCart 已通过业务校验的购物车行
+     * @return 新增结果
+     */
+    boolean add(MallCartEntity mallCart);
 
-  /**
-   * 根据主键更新
-   *
-   * @param mallCart 已校验归属的购物车行
-   * @return 更新结果
-   */
-  boolean update(MallCartEntity mallCart);
+    /**
+     * 根据主键更新
+     *
+     * @param mallCart 已校验归属的购物车行
+     * @return 更新结果
+     */
+    boolean update(MallCartEntity mallCart);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  /** 按用户和规格集合批量勾选, isChecked取0或1, 调用方保证集合非空. */
-  void updateCheck(String[] productIdArray, Integer isChecked, Long userId);
+    /** 按用户和规格集合批量勾选, isChecked取0或1, 调用方保证集合非空. */
+    void updateCheck(String[] productIdArray, Integer isChecked, Long userId);
 
-  /** 删除指定用户的规格集合, 用户条件不能省略. */
-  void deleteByUserAndProductIds(Long userId, String[] productIdsArray);
+    /** 删除指定用户的规格集合, 用户条件不能省略. */
+    void deleteByUserAndProductIds(Long userId, String[] productIdsArray);
 
-  /** 查询用户、商品、规格及勾选条件, 原生客户端调用必须携带userId. */
-  List<MallCartEntity> queryList(Map<String, Object> param);
+    /** 查询用户、商品、规格及勾选条件, 原生客户端调用必须携带userId. */
+    List<MallCartEntity> queryList(Map<String, Object> param);
 }

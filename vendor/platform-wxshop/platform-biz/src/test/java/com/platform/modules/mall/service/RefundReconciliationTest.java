@@ -14,8 +14,7 @@ import com.github.binarywang.wxpay.bean.result.WxPayRefundQueryResult;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
-import java.util.List;
-import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
@@ -23,84 +22,88 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 
+import java.util.List;
+import java.util.Map;
+
 /** 使用支付替身验证受理与完成区别, 不触发真实退款. */
 class RefundReconciliationTest {
-  private OrderRefundService refunds;
-  private MallOrderService orders;
-  private JdbcTemplate jdbc;
-  private WxPayService pay;
-  private WxPayRefundQueryResult result;
-  private WxPayRefundQueryResult.RefundRecord record;
+    private OrderRefundService refunds;
+    private MallOrderService orders;
+    private JdbcTemplate jdbc;
+    private WxPayService pay;
+    private WxPayRefundQueryResult result;
+    private WxPayRefundQueryResult.RefundRecord record;
 
-  /** 准备已收货订单和商家批准的退款流水. */
-  @BeforeEach
-  @SuppressWarnings("unchecked")
-  void setUp() throws Exception {
-    orders = mock(MallOrderService.class);
-    jdbc = mock(JdbcTemplate.class);
-    pay = mock(WxPayService.class);
-    ObjectProvider<WxPayService> provider = mock(ObjectProvider.class);
-    when(provider.getIfAvailable()).thenReturn(pay);
-    PlatformTransactionManager manager = mock(PlatformTransactionManager.class);
-    when(manager.getTransaction(any())).thenAnswer(call -> new SimpleTransactionStatus());
-    refunds =
-        new OrderRefundService(orders, mock(CustomDesignService.class), jdbc, provider, manager);
-    when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
-    when(jdbc.queryForMap(anyString(), eq(7)))
-        .thenReturn(
-            Map.of(
-                "refund_no",
-                "CCRF-TEST",
-                "amount_fen",
-                19900,
-                "original_status",
-                301,
-                "status",
-                "APPROVED"));
-    MallOrderEntity order = new MallOrderEntity();
-    order.setId(7);
-    order.setUserId(8L);
-    when(orders.lockById(7)).thenReturn(order);
-    record = new WxPayRefundQueryResult.RefundRecord();
-    record.setOutRefundNo("CCRF-TEST");
-    record.setRefundFee(19900);
-    result = new WxPayRefundQueryResult();
-    result.setResultCode("SUCCESS");
-    result.setRefundRecords(List.of(record));
-    when(pay.refundQuery(any(WxPayRefundQueryRequest.class))).thenReturn(result);
-  }
+    /** 准备已收货订单和商家批准的退款流水. */
+    @BeforeEach
+    @SuppressWarnings("unchecked")
+    void setUp() throws Exception {
+        orders = mock(MallOrderService.class);
+        jdbc = mock(JdbcTemplate.class);
+        pay = mock(WxPayService.class);
+        ObjectProvider<WxPayService> provider = mock(ObjectProvider.class);
+        when(provider.getIfAvailable()).thenReturn(pay);
+        PlatformTransactionManager manager = mock(PlatformTransactionManager.class);
+        when(manager.getTransaction(any())).thenAnswer(call -> new SimpleTransactionStatus());
+        refunds =
+                new OrderRefundService(
+                        orders, mock(CustomDesignService.class), jdbc, provider, manager);
+        when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+        when(jdbc.queryForMap(anyString(), eq(7)))
+                .thenReturn(
+                        Map.of(
+                                "refund_no",
+                                "CCRF-TEST",
+                                "amount_fen",
+                                19900,
+                                "original_status",
+                                301,
+                                "status",
+                                "APPROVED"));
+        MallOrderEntity order = new MallOrderEntity();
+        order.setId(7);
+        order.setUserId(8L);
+        when(orders.lockById(7)).thenReturn(order);
+        record = new WxPayRefundQueryResult.RefundRecord();
+        record.setOutRefundNo("CCRF-TEST");
+        record.setRefundFee(19900);
+        result = new WxPayRefundQueryResult();
+        result.setResultCode("SUCCESS");
+        result.setRefundRecords(List.of(record));
+        when(pay.refundQuery(any(WxPayRefundQueryRequest.class))).thenReturn(result);
+    }
 
-  /** 已受理但仍处理中不能更新本地退款完成. */
-  @Test
-  void processingNeverCompletesOrder() {
-    record.setRefundStatus("PROCESSING");
-    refunds.reconcileOne(7);
-    verify(orders, never()).completeRefund(any(), any());
-  }
+    /** 已受理但仍处理中不能更新本地退款完成. */
+    @Test
+    void processingNeverCompletesOrder() {
+        record.setRefundStatus("PROCESSING");
+        refunds.reconcileOne(7);
+        verify(orders, never()).completeRefund(any(), any());
+    }
 
-  /** 查单成功允许已收货订单进入402, 金额及退款号均须匹配. */
-  @Test
-  void confirmedSuccessCompletesReceivedOrder() {
-    record.setRefundStatus("SUCCESS");
-    refunds.reconcileOne(7);
-    verify(orders).completeRefund(7, 402);
-  }
+    /** 查单成功允许已收货订单进入402, 金额及退款号均须匹配. */
+    @Test
+    void confirmedSuccessCompletesReceivedOrder() {
+        record.setRefundStatus("SUCCESS");
+        refunds.reconcileOne(7);
+        verify(orders).completeRefund(7, 402);
+    }
 
-  /** 异常金额不能推动订单退款完成. */
-  @Test
-  void mismatchedAmountQueuesRetry() {
-    record.setRefundFee(1);
-    record.setRefundStatus("SUCCESS");
-    refunds.reconcileOne(7);
-    verify(orders, never()).completeRefund(any(), any());
-    verify(jdbc).update(contains("status='RETRY'"), eq(7));
-  }
+    /** 异常金额不能推动订单退款完成. */
+    @Test
+    void mismatchedAmountQueuesRetry() {
+        record.setRefundFee(1);
+        record.setRefundStatus("SUCCESS");
+        refunds.reconcileOne(7);
+        verify(orders, never()).completeRefund(any(), any());
+        verify(jdbc).update(contains("status='RETRY'"), eq(7));
+    }
 
-  /** 其他实例已领取租约时不调用网关. */
-  @Test
-  void leasePreventsConcurrentGatewayCall() throws Exception {
-    when(jdbc.update(contains("attempts=attempts+1"), eq(7))).thenReturn(0);
-    refunds.reconcileOne(7);
-    verify(pay, never()).refundQuery(any(WxPayRefundQueryRequest.class));
-  }
+    /** 其他实例已领取租约时不调用网关. */
+    @Test
+    void leasePreventsConcurrentGatewayCall() throws Exception {
+        when(jdbc.update(contains("attempts=attempts+1"), eq(7))).thenReturn(0);
+        refunds.reconcileOne(7);
+        verify(pay, never()).refundQuery(any(WxPayRefundQueryRequest.class));
+    }
 }

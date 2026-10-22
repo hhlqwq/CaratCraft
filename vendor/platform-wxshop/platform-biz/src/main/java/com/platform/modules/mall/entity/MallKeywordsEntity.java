@@ -21,8 +21,10 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 关键词热搜表实体
@@ -33,30 +35,30 @@ import lombok.Data;
 @Data
 @TableName("mall_keywords")
 public class MallKeywordsEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 主键 */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** 主键 */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 关键字 */
-  private String keyword;
+    /** 关键字 */
+    private String keyword;
 
-  /** 热搜 */
-  private Integer isHot;
+    /** 热搜 */
+    private Integer isHot;
 
-  /** 默认 */
-  private Integer isDefault;
+    /** 默认 */
+    private Integer isDefault;
 
-  /** 显示 */
-  private Integer isShow;
+    /** 显示 */
+    private Integer isShow;
 
-  /** 排序 */
-  private Integer sortOrder;
+    /** 排序 */
+    private Integer sortOrder;
 
-  /** 关键词的跳转链接 */
-  private String schemeUrl;
+    /** 关键词的跳转链接 */
+    private String schemeUrl;
 
-  /** 类型 */
-  private Integer type;
+    /** 类型 */
+    private Integer type;
 }

@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallFootprintDao;
 import com.platform.modules.mall.entity.MallFootprintEntity;
 import com.platform.modules.mall.service.MallFootprintService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,61 +41,61 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallFootprintService")
 public class MallFootprintServiceImpl extends ServiceImpl<MallFootprintDao, MallFootprintEntity>
-    implements MallFootprintService {
+        implements MallFootprintService {
 
-  @Override
-  public List<MallFootprintEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallFootprintEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallFootprintEntity> queryAllByWrapper(
-      QueryWrapper<MallFootprintEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallFootprintEntity> queryAllByWrapper(
+            QueryWrapper<MallFootprintEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallFootprintEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallFootprintEntity> page = new Query<MallFootprintEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallFootprintPage(page, params));
-  }
+    @Override
+    public Page<MallFootprintEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallFootprintEntity> page = new Query<MallFootprintEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallFootprintPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallFootprintEntity mallFootprint) {
-    return this.save(mallFootprint);
-  }
+    @Override
+    public boolean add(MallFootprintEntity mallFootprint) {
+        return this.save(mallFootprint);
+    }
 
-  @Override
-  public boolean update(MallFootprintEntity mallFootprint) {
-    return this.updateById(mallFootprint);
-  }
+    @Override
+    public boolean update(MallFootprintEntity mallFootprint) {
+        return this.updateById(mallFootprint);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 
-  @Override
-  public void deleteByParam(Map<String, Object> param) {
-    baseMapper.deleteByMap(param);
-  }
+    @Override
+    public void deleteByParam(Map<String, Object> param) {
+        baseMapper.deleteByMap(param);
+    }
 
-  @Override
-  public List<MallFootprintEntity> shareList(Map<String, Object> params) {
-    return baseMapper.shareList(params);
-  }
+    @Override
+    public List<MallFootprintEntity> shareList(Map<String, Object> params) {
+        return baseMapper.shareList(params);
+    }
 
-  @Override
-  public List<MallFootprintEntity> queryListFootprint(String userId) {
-    return baseMapper.queryListFootprint(userId);
-  }
+    @Override
+    public List<MallFootprintEntity> queryListFootprint(String userId) {
+        return baseMapper.queryListFootprint(userId);
+    }
 }

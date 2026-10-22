@@ -29,12 +29,15 @@ import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.sys.dao.SysConfigDao;
 import com.platform.modules.sys.entity.SysConfigEntity;
 import com.platform.modules.sys.service.SysConfigService;
-import java.util.Arrays;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * @author 何海龙
@@ -42,101 +45,101 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("sysConfigService")
 @RequiredArgsConstructor
 public class SysConfigServiceImpl extends ServiceImpl<SysConfigDao, SysConfigEntity>
-    implements SysConfigService {
+        implements SysConfigService {
 
-  private final RedisTemplateUtil redisTemplateUtils;
+    private final RedisTemplateUtil redisTemplateUtils;
 
-  @Override
-  public Page<SysConfigEntity> queryPage(Map<String, Object> params) {
-    String paramKey = (String) params.get("paramKey");
-    Page<SysConfigEntity> page = new Query<SysConfigEntity>(params).getPage();
-    return baseMapper.selectPage(
-        page,
-        new QueryWrapper<SysConfigEntity>()
-            .like(StringUtils.isNotBlank(paramKey), "PARAM_KEY", paramKey)
-            .eq("STATUS", 1));
-  }
-
-  @Override
-  public void add(SysConfigEntity config) {
-    this.save(config);
-    saveOrUpdateFromRedis(config);
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public void update(SysConfigEntity config) {
-    baseMapper.updateById(config);
-    saveOrUpdateFromRedis(config);
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public void updateValueByKey(String key, String value) {
-    baseMapper.updateValueByKey(key, value);
-    deleteFromRedis(key);
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public void deleteBatch(String[] ids) {
-    for (String id : ids) {
-      SysConfigEntity config = this.getById(id);
-      deleteFromRedis(config.getParamKey());
+    @Override
+    public Page<SysConfigEntity> queryPage(Map<String, Object> params) {
+        String paramKey = (String) params.get("paramKey");
+        Page<SysConfigEntity> page = new Query<SysConfigEntity>(params).getPage();
+        return baseMapper.selectPage(
+                page,
+                new QueryWrapper<SysConfigEntity>()
+                        .like(StringUtils.isNotBlank(paramKey), "PARAM_KEY", paramKey)
+                        .eq("STATUS", 1));
     }
 
-    this.removeByIds(Arrays.asList(ids));
-  }
-
-  @Override
-  public String getValue(String key) {
-    SysConfigEntity config = getFromRedis(key);
-    if (config == null) {
-      config = baseMapper.queryByKey(key);
-      saveOrUpdateFromRedis(config);
+    @Override
+    public void add(SysConfigEntity config) {
+        this.save(config);
+        saveOrUpdateFromRedis(config);
     }
 
-    return config == null ? null : config.getParamValue();
-  }
-
-  @Override
-  public <T> T getConfigObject(String key, Class<T> clazz) {
-    String value = getValue(key);
-    if (StringUtils.isNotBlank(value)) {
-      return new Gson().fromJson(value, clazz);
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void update(SysConfigEntity config) {
+        baseMapper.updateById(config);
+        saveOrUpdateFromRedis(config);
     }
 
-    try {
-      return clazz.getDeclaredConstructor().newInstance();
-    } catch (Exception e) {
-      throw new BusinessException("获取参数失败");
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateValueByKey(String key, String value) {
+        baseMapper.updateValueByKey(key, value);
+        deleteFromRedis(key);
     }
-  }
 
-  private void saveOrUpdateFromRedis(SysConfigEntity config) {
-    if (config == null) {
-      return;
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteBatch(String[] ids) {
+        for (String id : ids) {
+            SysConfigEntity config = this.getById(id);
+            deleteFromRedis(config.getParamKey());
+        }
+
+        this.removeByIds(Arrays.asList(ids));
     }
-    String key = Constant.SYS_CACHE + config.getParamKey();
-    redisTemplateUtils.set(key, config);
-  }
 
-  @Override
-  public String getValue(String key, String defaultValue) {
-    String value = getValue(key);
-    if (StringUtils.isBlank(value)) {
-      return defaultValue;
+    @Override
+    public String getValue(String key) {
+        SysConfigEntity config = getFromRedis(key);
+        if (config == null) {
+            config = baseMapper.queryByKey(key);
+            saveOrUpdateFromRedis(config);
+        }
+
+        return config == null ? null : config.getParamValue();
     }
-    return value;
-  }
 
-  private void deleteFromRedis(String configKey) {
-    String key = Constant.SYS_CACHE + configKey;
-    redisTemplateUtils.del(key);
-  }
+    @Override
+    public <T> T getConfigObject(String key, Class<T> clazz) {
+        String value = getValue(key);
+        if (StringUtils.isNotBlank(value)) {
+            return new Gson().fromJson(value, clazz);
+        }
 
-  private SysConfigEntity getFromRedis(String configKey) {
-    String key = Constant.SYS_CACHE + configKey;
-    return (SysConfigEntity) redisTemplateUtils.get(key);
-  }
+        try {
+            return clazz.getDeclaredConstructor().newInstance();
+        } catch (Exception e) {
+            throw new BusinessException("获取参数失败");
+        }
+    }
+
+    private void saveOrUpdateFromRedis(SysConfigEntity config) {
+        if (config == null) {
+            return;
+        }
+        String key = Constant.SYS_CACHE + config.getParamKey();
+        redisTemplateUtils.set(key, config);
+    }
+
+    @Override
+    public String getValue(String key, String defaultValue) {
+        String value = getValue(key);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    private void deleteFromRedis(String configKey) {
+        String key = Constant.SYS_CACHE + configKey;
+        redisTemplateUtils.del(key);
+    }
+
+    private SysConfigEntity getFromRedis(String configKey) {
+        String key = Constant.SYS_CACHE + configKey;
+        return (SysConfigEntity) redisTemplateUtils.get(key);
+    }
 }

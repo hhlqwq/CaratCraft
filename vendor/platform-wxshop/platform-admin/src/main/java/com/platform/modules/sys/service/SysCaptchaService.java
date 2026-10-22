@@ -20,6 +20,7 @@ package com.platform.modules.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysCaptchaEntity;
+
 import java.awt.image.BufferedImage;
 
 /**
@@ -28,20 +29,20 @@ import java.awt.image.BufferedImage;
  * @author 何海龙
  */
 public interface SysCaptchaService extends IService<SysCaptchaEntity> {
-  /**
-   * 获取图片验证码
-   *
-   * @param uuid uuid
-   * @return BufferedImage
-   */
-  BufferedImage getCaptcha(String uuid);
+    /**
+     * 获取图片验证码
+     *
+     * @param uuid uuid
+     * @return BufferedImage
+     */
+    BufferedImage getCaptcha(String uuid);
 
-  /**
-   * 验证码效验
-   *
-   * @param uuid uuid
-   * @param code code
-   * @return 校验结果
-   */
-  boolean validate(String uuid, String code);
+    /**
+     * 验证码效验
+     *
+     * @param uuid uuid
+     * @param code code
+     * @return 校验结果
+     */
+    boolean validate(String uuid, String code);
 }

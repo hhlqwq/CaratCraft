@@ -1,8 +1,10 @@
 package com.platform.modules.mall.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * @author 何海龙
@@ -10,20 +12,20 @@ import lombok.Data;
 @Data
 @Schema(description = "立即购买类")
 public class BuyGoodsRequest implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  @Schema(description = "skuId", example = "1")
-  private Integer productId;
+    @Schema(description = "skuId", example = "1")
+    private Integer productId;
 
-  @Schema(description = "goodsId", example = "1")
-  private Integer goodsId;
+    @Schema(description = "goodsId", example = "1")
+    private Integer goodsId;
 
-  @Schema(description = "数量", example = "1")
-  private Integer number;
+    @Schema(description = "数量", example = "1")
+    private Integer number;
 
-  @Schema(description = "selectedText", example = "1")
-  private String selectedText;
+    @Schema(description = "selectedText", example = "1")
+    private String selectedText;
 
-  @Schema(description = "定制设计快照ID", example = "1")
-  private Long designSnapshotId;
+    @Schema(description = "定制设计快照ID", example = "1")
+    private Long designSnapshotId;
 }

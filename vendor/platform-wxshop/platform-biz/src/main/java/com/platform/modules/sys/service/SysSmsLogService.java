@@ -21,6 +21,7 @@ package com.platform.modules.sys.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysSmsLogEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -32,47 +33,47 @@ import java.util.Map;
  */
 public interface SysSmsLogService extends IService<SysSmsLogEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<SysSmsLogEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<SysSmsLogEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询分页信息
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<SysSmsLogEntity> queryPage(Map<String, Object> params);
+    /**
+     * 查询分页信息
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<SysSmsLogEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增实体
-   *
-   * @param sysSmsLog 实体
-   */
-  void add(SysSmsLogEntity sysSmsLog);
+    /**
+     * 新增实体
+     *
+     * @param sysSmsLog 实体
+     */
+    void add(SysSmsLogEntity sysSmsLog);
 
-  /**
-   * 根据主键更新实体
-   *
-   * @param sysSmsLog 实体
-   */
-  void update(SysSmsLogEntity sysSmsLog);
+    /**
+     * 根据主键更新实体
+     *
+     * @param sysSmsLog 实体
+     */
+    void update(SysSmsLogEntity sysSmsLog);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id 主键
-   */
-  void delete(String id);
+    /**
+     * 根据主键删除
+     *
+     * @param id 主键
+     */
+    void delete(String id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   */
-  void deleteBatch(String[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     */
+    void deleteBatch(String[] ids);
 }

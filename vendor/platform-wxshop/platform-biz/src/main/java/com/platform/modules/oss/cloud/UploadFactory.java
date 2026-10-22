@@ -30,44 +30,44 @@ import com.platform.modules.sys.service.SysConfigService;
  * @since 2019-01-17 16:21:01
  */
 public final class UploadFactory {
-  private static SysConfigService sysConfigService;
+    private static SysConfigService sysConfigService;
 
-  static {
-    UploadFactory.sysConfigService =
-        (SysConfigService) SpringContextUtils.getBean("sysConfigService");
-  }
-
-  /** 按商家配置创建独立存储访问对象, 调用方负责在完成后关闭. */
-  public static AbstractCloudStorageService build() {
-    // 获取云存储配置信息
-    CloudStorageConfig config =
-        sysConfigService.getConfigObject(
-            Constant.CLOUD_STORAGE_CONFIG_KEY, CloudStorageConfig.class);
-
-    if (config == null || config.getType() == null) {
-      throw new BusinessException("请先配置文件存储类型");
+    static {
+        UploadFactory.sysConfigService =
+                (SysConfigService) SpringContextUtils.getBean("sysConfigService");
     }
 
-    if (config.getType() == Constant.CloudService.QINIU.getValue()) {
-      return new QiniuCloudStorageService(config);
-    } else if (config.getType() == Constant.CloudService.ALIYUN.getValue()) {
-      return new AliyunCloudStorageService(config);
-    } else if (config.getType() == Constant.CloudService.QCLOUD.getValue()) {
-      return new QcloudCloudStorageService(config);
-    } else if (config.getType() == Constant.CloudService.DISCK.getValue()) {
-      return new DiskCloudStorageService(config);
-    } else if (config.getType() == Constant.CloudService.MINIO.getValue()) {
-      return new MinioCloudStorageService(config);
-    } else if (config.getType() == Constant.CloudService.HUAWEI.getValue()) {
-      return new HuaWeiCloudStorageService(config);
-    }
-    throw new BusinessException("文件存储类型不受支持");
-  }
+    /** 按商家配置创建独立存储访问对象, 调用方负责在完成后关闭. */
+    public static AbstractCloudStorageService build() {
+        // 获取云存储配置信息
+        CloudStorageConfig config =
+                sysConfigService.getConfigObject(
+                        Constant.CLOUD_STORAGE_CONFIG_KEY, CloudStorageConfig.class);
 
-  /** 保存已完成安全重编码的PNG, 无论成功或失败都释放独占存储客户端. */
-  public static String uploadPng(byte[] png) {
-    try (var storage = build()) {
-      return storage.uploadSuffix(png, ".png");
+        if (config == null || config.getType() == null) {
+            throw new BusinessException("请先配置文件存储类型");
+        }
+
+        if (config.getType() == Constant.CloudService.QINIU.getValue()) {
+            return new QiniuCloudStorageService(config);
+        } else if (config.getType() == Constant.CloudService.ALIYUN.getValue()) {
+            return new AliyunCloudStorageService(config);
+        } else if (config.getType() == Constant.CloudService.QCLOUD.getValue()) {
+            return new QcloudCloudStorageService(config);
+        } else if (config.getType() == Constant.CloudService.DISCK.getValue()) {
+            return new DiskCloudStorageService(config);
+        } else if (config.getType() == Constant.CloudService.MINIO.getValue()) {
+            return new MinioCloudStorageService(config);
+        } else if (config.getType() == Constant.CloudService.HUAWEI.getValue()) {
+            return new HuaWeiCloudStorageService(config);
+        }
+        throw new BusinessException("文件存储类型不受支持");
     }
-  }
+
+    /** 保存已完成安全重编码的PNG, 无论成功或失败都释放独占存储客户端. */
+    public static String uploadPng(byte[] png) {
+        try (var storage = build()) {
+            return storage.uploadSuffix(png, ".png");
+        }
+    }
 }

@@ -22,14 +22,22 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.job.entity.ScheduleJobLogEntity;
 import com.platform.modules.job.service.ScheduleJobLogService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
 
 /**
  * 定时任务日志
@@ -42,39 +50,43 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/sys/scheduleLog")
 public class ScheduleJobLogController {
 
-  private final ScheduleJobLogService scheduleJobLogService;
+    private final ScheduleJobLogService scheduleJobLogService;
 
-  /**
-   * 分页查询定时任务日志
-   *
-   * @param params 查询参数
-   * @return RestResponse
-   */
-  @Operation(summary = "分页查询定时任务日志", description = "分页查询定时任务日志")
-  @GetMapping("/list")
-  @RequiresPermissions("sys:schedule:log")
-  public RestResponse<Page<ScheduleJobLogEntity>> list(@RequestParam Map<String, Object> params) {
-    Page<ScheduleJobLogEntity> page = scheduleJobLogService.queryPage(params);
+    /**
+     * 分页查询定时任务日志
+     *
+     * @param params 查询参数
+     * @return RestResponse
+     */
+    @Operation(summary = "分页查询定时任务日志", description = "分页查询定时任务日志")
+    @GetMapping("/list")
+    @RequiresPermissions("sys:schedule:log")
+    public RestResponse<Page<ScheduleJobLogEntity>> list(@RequestParam Map<String, Object> params) {
+        Page<ScheduleJobLogEntity> page = scheduleJobLogService.queryPage(params);
 
-    return RestResponse.ok(page);
-  }
+        return RestResponse.ok(page);
+    }
 
-  /**
-   * 根据主键查询详情
-   *
-   * @param logId logId
-   * @return RestResponse
-   */
-  @Operation(
-      summary = "根据主键查询详情",
-      description = "根据主键查询详情",
-      parameters = {
-        @Parameter(in = ParameterIn.PATH, name = "logId", description = "logId", required = true)
-      })
-  @GetMapping("/info/{logId}")
-  public RestResponse<ScheduleJobLogEntity> info(@PathVariable("logId") String logId) {
-    ScheduleJobLogEntity log = scheduleJobLogService.getById(logId);
+    /**
+     * 根据主键查询详情
+     *
+     * @param logId logId
+     * @return RestResponse
+     */
+    @Operation(
+            summary = "根据主键查询详情",
+            description = "根据主键查询详情",
+            parameters = {
+                @Parameter(
+                        in = ParameterIn.PATH,
+                        name = "logId",
+                        description = "logId",
+                        required = true)
+            })
+    @GetMapping("/info/{logId}")
+    public RestResponse<ScheduleJobLogEntity> info(@PathVariable("logId") String logId) {
+        ScheduleJobLogEntity log = scheduleJobLogService.getById(logId);
 
-    return RestResponse.ok(log);
-  }
+        return RestResponse.ok(log);
+    }
 }

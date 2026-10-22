@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -35,61 +36,61 @@ import java.util.Map;
  */
 public interface MallOrderGoodsService extends IService<MallOrderGoodsEntity> {
 
-  /**
-   * 查询订单商品明细列表。
-   *
-   * @param params 查询参数
-   * @return 订单商品明细集合
-   */
-  List<MallOrderGoodsEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询订单商品明细列表。
+     *
+     * @param params 查询参数
+     * @return 订单商品明细集合
+     */
+    List<MallOrderGoodsEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 按条件包装器查询订单商品明细列表。
-   *
-   * @param queryWrapper 条件包装器
-   * @return 订单商品明细集合
-   */
-  List<MallOrderGoodsEntity> queryAllByWrapper(QueryWrapper<MallOrderGoodsEntity> queryWrapper);
+    /**
+     * 按条件包装器查询订单商品明细列表。
+     *
+     * @param queryWrapper 条件包装器
+     * @return 订单商品明细集合
+     */
+    List<MallOrderGoodsEntity> queryAllByWrapper(QueryWrapper<MallOrderGoodsEntity> queryWrapper);
 
-  /**
-   * 分页查询订单商品明细。
-   *
-   * @param params 查询参数
-   * @return 分页数据
-   */
-  Page<MallOrderGoodsEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询订单商品明细。
+     *
+     * @param params 查询参数
+     * @return 分页数据
+     */
+    Page<MallOrderGoodsEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增订单商品明细。
-   *
-   * @param mallOrderGoods 订单商品明细实体
-   * @return 是否成功
-   */
-  boolean add(MallOrderGoodsEntity mallOrderGoods);
+    /**
+     * 新增订单商品明细。
+     *
+     * @param mallOrderGoods 订单商品明细实体
+     * @return 是否成功
+     */
+    boolean add(MallOrderGoodsEntity mallOrderGoods);
 
-  /**
-   * 修改订单商品明细。
-   *
-   * @param mallOrderGoods 订单商品明细实体
-   * @return 是否成功
-   */
-  boolean update(MallOrderGoodsEntity mallOrderGoods);
+    /**
+     * 修改订单商品明细。
+     *
+     * @param mallOrderGoods 订单商品明细实体
+     * @return 是否成功
+     */
+    boolean update(MallOrderGoodsEntity mallOrderGoods);
 
-  /**
-   * 根据主键删除订单商品明细。
-   *
-   * @param id 主键
-   * @return 是否成功
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除订单商品明细。
+     *
+     * @param id 主键
+     * @return 是否成功
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 批量删除订单商品明细。
-   *
-   * @param ids 主键数组
-   * @return 是否成功
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 批量删除订单商品明细。
+     *
+     * @param ids 主键数组
+     * @return 是否成功
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  List<MallOrderGoodsEntity> queryList(Map<String, Object> orderGoodsParam);
+    List<MallOrderGoodsEntity> queryList(Map<String, Object> orderGoodsParam);
 }

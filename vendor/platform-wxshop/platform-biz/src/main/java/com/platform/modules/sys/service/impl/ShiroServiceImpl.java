@@ -28,10 +28,17 @@ import com.platform.modules.sys.entity.SysMenuEntity;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
 import com.platform.modules.sys.service.ShiroService;
-import java.util.*;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author 何海龙
@@ -39,47 +46,47 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("shiroService")
 public class ShiroServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenEntity>
-    implements ShiroService {
+        implements ShiroService {
 
-  private final SysMenuDao sysMenuDao;
+    private final SysMenuDao sysMenuDao;
 
-  private final SysUserDao sysUserDao;
+    private final SysUserDao sysUserDao;
 
-  @Override
-  public Set<String> getUserPermissions(String userId) {
-    List<String> permsList;
+    @Override
+    public Set<String> getUserPermissions(String userId) {
+        List<String> permsList;
 
-    // 系统管理员，拥有最高权限
-    if (Constant.SUPER_ADMIN.equals(userId)) {
-      List<SysMenuEntity> menuList =
-          sysMenuDao.selectList(new QueryWrapper<SysMenuEntity>().select("PERMS"));
-      permsList = new ArrayList<>(menuList.size());
-      for (SysMenuEntity menu : menuList) {
-        if (null != menu) {
-          permsList.add(menu.getPerms());
+        // 系统管理员，拥有最高权限
+        if (Constant.SUPER_ADMIN.equals(userId)) {
+            List<SysMenuEntity> menuList =
+                    sysMenuDao.selectList(new QueryWrapper<SysMenuEntity>().select("PERMS"));
+            permsList = new ArrayList<>(menuList.size());
+            for (SysMenuEntity menu : menuList) {
+                if (null != menu) {
+                    permsList.add(menu.getPerms());
+                }
+            }
+        } else {
+            permsList = sysUserDao.queryAllPerms(userId);
         }
-      }
-    } else {
-      permsList = sysUserDao.queryAllPerms(userId);
+        // 用户权限列表
+        Set<String> permsSet = new HashSet<>();
+        for (String perms : permsList) {
+            if (StringUtils.isBlank(perms)) {
+                continue;
+            }
+            permsSet.addAll(Arrays.asList(perms.trim().split(",")));
+        }
+        return permsSet;
     }
-    // 用户权限列表
-    Set<String> permsSet = new HashSet<>();
-    for (String perms : permsList) {
-      if (StringUtils.isBlank(perms)) {
-        continue;
-      }
-      permsSet.addAll(Arrays.asList(perms.trim().split(",")));
+
+    @Override
+    public SysUserTokenEntity queryByToken(String token) {
+        return baseMapper.selectOne(new QueryWrapper<SysUserTokenEntity>().eq("TOKEN", token));
     }
-    return permsSet;
-  }
 
-  @Override
-  public SysUserTokenEntity queryByToken(String token) {
-    return baseMapper.selectOne(new QueryWrapper<SysUserTokenEntity>().eq("TOKEN", token));
-  }
-
-  @Override
-  public SysUserEntity queryUser(String userId) {
-    return sysUserDao.selectById(userId);
-  }
+    @Override
+    public SysUserEntity queryUser(String userId) {
+        return sysUserDao.selectById(userId);
+    }
 }

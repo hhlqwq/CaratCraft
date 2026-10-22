@@ -20,8 +20,10 @@ package com.platform.modules.sys.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.sys.entity.SysUserRoleEntity;
-import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
+
+import java.util.List;
 
 /**
  * 用户与角色对应关系
@@ -31,19 +33,19 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface SysUserRoleDao extends BaseMapper<SysUserRoleEntity> {
 
-  /**
-   * 根据用户ID，获取角色ID列表
-   *
-   * @param userId 用户ID
-   * @return List
-   */
-  List<String> queryRoleIdList(String userId);
+    /**
+     * 根据用户ID，获取角色ID列表
+     *
+     * @param userId 用户ID
+     * @return List
+     */
+    List<String> queryRoleIdList(String userId);
 
-  /**
-   * 根据角色ID数组，批量删除
-   *
-   * @param roleIds 角色ids
-   * @return int
-   */
-  int deleteBatch(String[] roleIds);
+    /**
+     * 根据角色ID数组，批量删除
+     *
+     * @param roleIds 角色ids
+     * @return int
+     */
+    int deleteBatch(String[] roleIds);
 }

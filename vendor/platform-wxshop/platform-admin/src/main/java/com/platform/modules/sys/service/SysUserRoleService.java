@@ -20,6 +20,7 @@ package com.platform.modules.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysUserRoleEntity;
+
 import java.util.List;
 
 /**
@@ -29,27 +30,27 @@ import java.util.List;
  */
 public interface SysUserRoleService extends IService<SysUserRoleEntity> {
 
-  /**
-   * saveOrUpdate
-   *
-   * @param userId 用户Id
-   * @param roleIdList roleIdList
-   */
-  void saveOrUpdate(String userId, List<String> roleIdList);
+    /**
+     * saveOrUpdate
+     *
+     * @param userId 用户Id
+     * @param roleIdList roleIdList
+     */
+    void saveOrUpdate(String userId, List<String> roleIdList);
 
-  /**
-   * 根据用户ID，获取角色ID列表
-   *
-   * @param userId 用户Id
-   * @return List
-   */
-  List<String> queryRoleIdList(String userId);
+    /**
+     * 根据用户ID，获取角色ID列表
+     *
+     * @param userId 用户Id
+     * @return List
+     */
+    List<String> queryRoleIdList(String userId);
 
-  /**
-   * 根据角色ID数组，批量删除
-   *
-   * @param roleIds roleIds
-   * @return int
-   */
-  int deleteBatch(String[] roleIds);
+    /**
+     * 根据角色ID数组，批量删除
+     *
+     * @param roleIds roleIds
+     * @return int
+     */
+    int deleteBatch(String[] roleIds);
 }

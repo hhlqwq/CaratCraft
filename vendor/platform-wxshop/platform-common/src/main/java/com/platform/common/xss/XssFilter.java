@@ -18,8 +18,14 @@
  */
 package com.platform.common.xss;
 
-import jakarta.servlet.*;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.io.IOException;
 
 /**
@@ -28,33 +34,33 @@ import java.io.IOException;
  * @author 何海龙
  */
 public class XssFilter implements Filter {
-  private String[] excludedPageArray = new String[] {"/service/model/"};
+    private String[] excludedPageArray = new String[] {"/service/model/"};
 
-  @Override
-  public void init(FilterConfig config) {}
+    @Override
+    public void init(FilterConfig config) {}
 
-  @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
-    XssHttpServletRequestWrapper xssRequest =
-        new XssHttpServletRequestWrapper((HttpServletRequest) request);
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        XssHttpServletRequestWrapper xssRequest =
+                new XssHttpServletRequestWrapper((HttpServletRequest) request);
 
-    boolean isExcludedPage = false;
-    // 判断是否在过滤url之外
-    for (String page : excludedPageArray) {
-      if (((HttpServletRequest) request).getServletPath().indexOf(page) > -1) {
-        isExcludedPage = true;
-        break;
-      }
+        boolean isExcludedPage = false;
+        // 判断是否在过滤url之外
+        for (String page : excludedPageArray) {
+            if (((HttpServletRequest) request).getServletPath().indexOf(page) > -1) {
+                isExcludedPage = true;
+                break;
+            }
+        }
+        // 排除过滤url
+        if (isExcludedPage) {
+            chain.doFilter(request, response);
+        } else {
+            chain.doFilter(xssRequest, response);
+        }
     }
-    // 排除过滤url
-    if (isExcludedPage) {
-      chain.doFilter(request, response);
-    } else {
-      chain.doFilter(xssRequest, response);
-    }
-  }
 
-  @Override
-  public void destroy() {}
+    @Override
+    public void destroy() {}
 }

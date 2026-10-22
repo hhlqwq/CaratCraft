@@ -22,9 +22,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.modules.mall.dao.MallRelatedGoodsDao;
 import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
 import com.platform.modules.mall.service.MallRelatedGoodsService;
-import java.util.Arrays;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
 
 /**
  * 商品关联Service实现类
@@ -34,27 +36,27 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallRelatedGoodsService")
 public class MallRelatedGoodsServiceImpl
-    extends ServiceImpl<MallRelatedGoodsDao, MallRelatedGoodsEntity>
-    implements MallRelatedGoodsService {
+        extends ServiceImpl<MallRelatedGoodsDao, MallRelatedGoodsEntity>
+        implements MallRelatedGoodsService {
 
-  @Override
-  public boolean add(MallRelatedGoodsEntity mallRelatedGoods) {
-    return this.save(mallRelatedGoods);
-  }
+    @Override
+    public boolean add(MallRelatedGoodsEntity mallRelatedGoods) {
+        return this.save(mallRelatedGoods);
+    }
 
-  @Override
-  public boolean update(MallRelatedGoodsEntity mallRelatedGoods) {
-    return this.updateById(mallRelatedGoods);
-  }
+    @Override
+    public boolean update(MallRelatedGoodsEntity mallRelatedGoods) {
+        return this.updateById(mallRelatedGoods);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 }

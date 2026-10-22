@@ -22,9 +22,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.List;
-import lombok.Data;
 
 /**
  * 实体
@@ -35,61 +37,61 @@ import lombok.Data;
 @Data
 @TableName("mall_category")
 public class MallCategoryEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** */
-  private String name;
+    /** */
+    private String name;
 
-  /** */
-  private String keywords;
+    /** */
+    private String keywords;
 
-  /** */
-  private String frontDesc;
+    /** */
+    private String frontDesc;
 
-  /** */
-  private Integer parentId;
+    /** */
+    private Integer parentId;
 
-  /** */
-  private Integer sortOrder;
+    /** */
+    private Integer sortOrder;
 
-  /** */
-  private Integer showIndex;
+    /** */
+    private Integer showIndex;
 
-  /** */
-  private Integer isShow;
+    /** */
+    private Integer isShow;
 
-  /** */
-  private String bannerUrl;
+    /** */
+    private String bannerUrl;
 
-  /** */
-  private String iconUrl;
+    /** */
+    private String iconUrl;
 
-  /** */
-  private String imgUrl;
+    /** */
+    private String imgUrl;
 
-  /** */
-  private String wapBannerUrl;
+    /** */
+    private String wapBannerUrl;
 
-  /** */
-  private String level;
+    /** */
+    private String level;
 
-  /** */
-  private Integer type;
+    /** */
+    private Integer type;
 
-  /** */
-  private String frontName;
+    /** */
+    private String frontName;
 
-  /** 父节点名称 */
-  @TableField(exist = false)
-  private String parentName;
+    /** 父节点名称 */
+    @TableField(exist = false)
+    private String parentName;
 
-  @TableField(exist = false)
-  private List<MallCategoryEntity> subCategoryList;
+    @TableField(exist = false)
+    private List<MallCategoryEntity> subCategoryList;
 
-  @TableField(exist = false)
-  private Boolean checked;
+    @TableField(exist = false)
+    private Boolean checked;
 }

@@ -1,22 +1,22 @@
 <view class="catalog-page">
-  <view class="intro"><text class="eyebrow">珍珠成品</text><text class="title">找到与你相配的一件</text><text class="description">按珍珠来源与成品品类组合挑选</text></view>
-  <navigator class="search" url="/pages/search/search">搜索商品名称与关键词</navigator>
-  <view class="filters">
-    <view class="filter-row"><button wx:for="{{sources}}" wx:key="id" class="chip {{source === item.id ? 'selected' : ''}}" data-field="source" data-id="{{item.id}}" bindtap="selectFilter">{{item.name}}</button></view>
-    <view class="filter-row"><button wx:for="{{types}}" wx:key="id" class="chip {{type === item.id ? 'selected' : ''}}" data-field="type" data-id="{{item.id}}" bindtap="selectFilter">{{item.name}}</button></view>
-  </view>
-  <view class="result-heading">当前筛选共 {{total}} 件</view>
-  <view class="product-grid">
-    <navigator wx:for="{{goods}}" wx:key="id" class="product-card" url="/pages/goods/goods?id={{item.id}}">
-      <image class="product-image" src="{{item.listPicUrl || item.primaryPicUrl || '/static/images/logo.png'}}" mode="aspectFill" />
-      <view class="product-copy"><text class="product-name">{{item.name}}</text><text class="product-description">{{item.goodsBrief}}</text><text class="price">¥ {{item.retailPrice}}</text></view>
-    </navigator>
-  </view>
-  <view wx:if="{{loading}}" class="status">正在加载商品...</view>
-  <view wx:elif="{{error}}" class="status"><text>{{error}}</text><button class="retry" bindtap="loadMore">重试加载</button></view>
-  <view wx:elif="{{goods.length === 0}}" class="status">此组合暂无已上架商品, 可调整筛选条件</view>
-  <button wx:elif="{{hasMore}}" class="more" bindtap="loadMore">加载更多</button>
-  <view wx:else class="status">已展示全部商品</view>
+    <view class="intro"><text class="eyebrow">珍珠成品</text><text class="title">找到与你相配的一件</text><text class="description">按珍珠来源与成品品类组合挑选</text></view>
+    <navigator class="search" url="/pages/search/search">搜索商品名称与关键词</navigator>
+    <view class="filters">
+        <view class="filter-row"><button wx:for="{{sources}}" wx:key="id" class="chip {{source === item.id ? 'selected' : ''}}" data-field="source" data-id="{{item.id}}" bindtap="selectFilter">{{item.name}}</button></view>
+        <view class="filter-row"><button wx:for="{{types}}" wx:key="id" class="chip {{type === item.id ? 'selected' : ''}}" data-field="type" data-id="{{item.id}}" bindtap="selectFilter">{{item.name}}</button></view>
+    </view>
+    <view class="result-heading">当前筛选共 {{total}} 件</view>
+    <view class="product-grid">
+        <navigator wx:for="{{goods}}" wx:key="id" class="product-card" url="/pages/goods/goods?id={{item.id}}">
+            <image class="product-image" src="{{item.listPicUrl || item.primaryPicUrl || '/static/images/logo.png'}}" mode="aspectFill" />
+            <view class="product-copy"><text class="product-name">{{item.name}}</text><text class="product-description">{{item.goodsBrief}}</text><text class="price">¥ {{item.retailPrice}}</text></view>
+        </navigator>
+    </view>
+    <view wx:if="{{loading}}" class="status">正在加载商品...</view>
+    <view wx:elif="{{error}}" class="status"><text>{{error}}</text><button class="retry" bindtap="loadMore">重试加载</button></view>
+    <view wx:elif="{{goods.length === 0}}" class="status">此组合暂无已上架商品, 可调整筛选条件</view>
+    <button wx:elif="{{hasMore}}" class="more" bindtap="loadMore">加载更多</button>
+    <view wx:else class="status">已展示全部商品</view>
 </view>
 
 <merchant-contact />

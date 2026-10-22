@@ -13,20 +13,20 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class WxPayConfiguredCondition implements Condition {
 
-  /**
-   * 判断支付配置是否完整 / Matches when all required pay properties are present.
-   *
-   * @param context 条件上下文 / condition context
-   * @param metadata 注解元数据 / annotated type metadata
-   * @return 配置是否完整 / true when fully configured
-   */
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    String appId = context.getEnvironment().getProperty("wx.pay.appId");
-    String mchId = context.getEnvironment().getProperty("wx.pay.mchId");
-    String mchKey = context.getEnvironment().getProperty("wx.pay.mchKey");
-    return StringUtils.isNotBlank(appId)
-        && StringUtils.isNotBlank(mchId)
-        && StringUtils.isNotBlank(mchKey);
-  }
+    /**
+     * 判断支付配置是否完整 / Matches when all required pay properties are present.
+     *
+     * @param context 条件上下文 / condition context
+     * @param metadata 注解元数据 / annotated type metadata
+     * @return 配置是否完整 / true when fully configured
+     */
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        String appId = context.getEnvironment().getProperty("wx.pay.appId");
+        String mchId = context.getEnvironment().getProperty("wx.pay.mchId");
+        String mchKey = context.getEnvironment().getProperty("wx.pay.mchKey");
+        return StringUtils.isNotBlank(appId)
+                && StringUtils.isNotBlank(mchId)
+                && StringUtils.isNotBlank(mchKey);
+    }
 }

@@ -20,6 +20,7 @@ package com.platform.modules.mall.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallProductEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +30,7 @@ import java.util.Map;
  * @author pengjun
  */
 public interface MallProductService extends IService<MallProductEntity> {
-  List<MallProductEntity> queryAll(Map<String, Object> param);
+    List<MallProductEntity> queryAll(Map<String, Object> param);
 
-  List<MallProductEntity> queryList(Map<String, Object> param);
+    List<MallProductEntity> queryList(Map<String, Object> param);
 }

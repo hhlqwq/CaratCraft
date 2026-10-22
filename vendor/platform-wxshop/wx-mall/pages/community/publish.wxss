@@ -1,50 +1,50 @@
 @import 'index.wxss';
 .publish-form {
-  margin-top: 28rpx;
-  padding: 24rpx;
-  background: #fff;
-  border-radius: 20rpx;
+    margin-top: 28rpx;
+    padding: 24rpx;
+    background: #fff;
+    border-radius: 20rpx;
 }
 .form-field {
-  padding: 22rpx 0;
-  font-size: 28rpx;
-  border-bottom: 1rpx solid #eee9df;
-  overflow-wrap: anywhere;
+    padding: 22rpx 0;
+    font-size: 28rpx;
+    border-bottom: 1rpx solid #eee9df;
+    overflow-wrap: anywhere;
 }
 .title-input {
-  height: 100rpx;
-  font-size: 29rpx;
-  border-bottom: 1rpx solid #eee9df;
+    height: 100rpx;
+    font-size: 29rpx;
+    border-bottom: 1rpx solid #eee9df;
 }
 .content-input {
-  width: 100%;
-  min-height: 320rpx;
-  padding: 24rpx 0;
-  box-sizing: border-box;
-  font-size: 28rpx;
-  line-height: 1.8;
+    width: 100%;
+    min-height: 320rpx;
+    padding: 24rpx 0;
+    box-sizing: border-box;
+    font-size: 28rpx;
+    line-height: 1.8;
 }
 .design-select {
-  padding: 22rpx 0;
+    padding: 22rpx 0;
 }
 .design-select checkbox-group {
-  margin-top: 20rpx;
+    margin-top: 20rpx;
 }
 .upload-image {
-  width: 30%;
+    width: 30%;
 }
 .upload-image image {
-  width: 100%;
+    width: 100%;
 }
 .upload-image button {
-  font-size: 22rpx;
+    font-size: 22rpx;
 }
 .add-image {
-  margin-top: 22rpx;
-  font-size: 27rpx;
+    margin-top: 22rpx;
+    font-size: 27rpx;
 }
 .submit-post {
-  margin-top: 28rpx;
-  background: #315c4b;
-  color: #fff;
+    margin-top: 28rpx;
+    background: #315c4b;
+    color: #fff;
 }

@@ -22,8 +22,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 实体
@@ -34,25 +36,25 @@ import lombok.Data;
 @Data
 @TableName("mall_help_issue")
 public class MallHelpIssueEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 问题分类 */
-  private Integer typeId;
+    /** 问题分类 */
+    private Integer typeId;
 
-  /** */
-  private String question;
+    /** */
+    private String question;
 
-  /** */
-  private String answer;
+    /** */
+    private String answer;
 
-  /** 排序 */
-  private Integer sort;
+    /** 排序 */
+    private Integer sort;
 
-  /** 问题分类 */
-  @TableField(exist = false)
-  private String typeName;
+    /** 问题分类 */
+    @TableField(exist = false)
+    private String typeName;
 }

@@ -9,6 +9,6 @@ import lombok.Data;
  */
 @Data
 public class CouponInfoVo {
-  private String msg; // 显示信息
-  private Integer type = 0; // 是否凑单 0否 1是
+    private String msg; // 显示信息
+    private Integer type = 0; // 是否凑单 0否 1是
 }

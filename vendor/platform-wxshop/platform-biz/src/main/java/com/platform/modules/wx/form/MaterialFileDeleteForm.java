@@ -19,6 +19,7 @@
 package com.platform.modules.wx.form;
 
 import com.alibaba.fastjson.JSON;
+
 import lombok.Data;
 
 /**
@@ -27,10 +28,10 @@ import lombok.Data;
  */
 @Data
 public class MaterialFileDeleteForm {
-  String mediaId;
+    String mediaId;
 
-  @Override
-  public String toString() {
-    return JSON.toJSONString(this);
-  }
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
+    }
 }

@@ -1,4 +1,4 @@
 {
-  "navigationBarTitleText": "协议与隐私",
-  "usingComponents": {"legal-consent": "/components/legal-consent/index"}
+    "navigationBarTitleText": "协议与隐私",
+    "usingComponents": {"legal-consent": "/components/legal-consent/index"}
 }

@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallAddressDao;
 import com.platform.modules.mall.entity.MallAddressEntity;
 import com.platform.modules.mall.service.MallAddressService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,92 +41,93 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallAddressService")
 public class MallAddressServiceImpl extends ServiceImpl<MallAddressDao, MallAddressEntity>
-    implements MallAddressService {
-  @org.springframework.beans.factory.annotation.Autowired
-  private com.platform.modules.wx.service.WxUserService userService;
+        implements MallAddressService {
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.platform.modules.wx.service.WxUserService userService;
 
-  /** 锁定所属用户以串行维护地址, 更新条件同时包含地址ID和用户ID. */
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean saveOwned(MallAddressEntity address) {
-    if (userService.getOne(
-            new QueryWrapper<com.platform.modules.wx.entity.WxUserEntity>()
-                .eq("ID", address.getUserId())
-                .last("FOR UPDATE"))
-        == null) {
-      throw new com.platform.common.exception.BusinessException("用户不存在");
+    /** 锁定所属用户以串行维护地址, 更新条件同时包含地址ID和用户ID. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean saveOwned(MallAddressEntity address) {
+        if (userService.getOne(
+                        new QueryWrapper<com.platform.modules.wx.entity.WxUserEntity>()
+                                .eq("ID", address.getUserId())
+                                .last("FOR UPDATE"))
+                == null) {
+            throw new com.platform.common.exception.BusinessException("用户不存在");
+        }
+        if (address.getId() != null
+                && getOne(
+                                new QueryWrapper<MallAddressEntity>()
+                                        .eq("id", address.getId())
+                                        .eq("user_id", address.getUserId()))
+                        == null) {
+            throw new com.platform.common.exception.BusinessException("地址不存在或无权修改", 403);
+        }
+        if (Integer.valueOf(1).equals(address.getIsDefault())) {
+            update(
+                    new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<
+                                    MallAddressEntity>()
+                            .eq("user_id", address.getUserId())
+                            .set("is_default", 0));
+        }
+        boolean changed =
+                address.getId() == null
+                        ? save(address)
+                        : update(
+                                address,
+                                new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<
+                                                MallAddressEntity>()
+                                        .eq("id", address.getId())
+                                        .eq("user_id", address.getUserId()));
+        if (!changed) {
+            throw new com.platform.common.exception.BusinessException("地址保存失败, 请刷新后重试");
+        }
+        return true;
     }
-    if (address.getId() != null
-        && getOne(
-                new QueryWrapper<MallAddressEntity>()
-                    .eq("id", address.getId())
-                    .eq("user_id", address.getUserId()))
-            == null) {
-      throw new com.platform.common.exception.BusinessException("地址不存在或无权修改", 403);
+
+    @Override
+    public List<MallAddressEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
     }
-    if (Integer.valueOf(1).equals(address.getIsDefault())) {
-      update(
-          new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<MallAddressEntity>()
-              .eq("user_id", address.getUserId())
-              .set("is_default", 0));
+
+    @Override
+    public List<MallAddressEntity> queryAllByWrapper(QueryWrapper<MallAddressEntity> queryWrapper) {
+        return this.list(queryWrapper);
     }
-    boolean changed =
-        address.getId() == null
-            ? save(address)
-            : update(
-                address,
-                new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<
-                        MallAddressEntity>()
-                    .eq("id", address.getId())
-                    .eq("user_id", address.getUserId()));
-    if (!changed) {
-      throw new com.platform.common.exception.BusinessException("地址保存失败, 请刷新后重试");
+
+    @Override
+    public Page<MallAddressEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallAddressEntity> page = new Query<MallAddressEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallAddressPage(page, params));
     }
-    return true;
-  }
 
-  @Override
-  public List<MallAddressEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public boolean add(MallAddressEntity mallAddress) {
+        return this.save(mallAddress);
+    }
 
-  @Override
-  public List<MallAddressEntity> queryAllByWrapper(QueryWrapper<MallAddressEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public boolean update(MallAddressEntity mallAddress) {
+        return this.updateById(mallAddress);
+    }
 
-  @Override
-  public Page<MallAddressEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallAddressEntity> page = new Query<MallAddressEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallAddressPage(page, params));
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  public boolean add(MallAddressEntity mallAddress) {
-    return this.save(mallAddress);
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 
-  @Override
-  public boolean update(MallAddressEntity mallAddress) {
-    return this.updateById(mallAddress);
-  }
-
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
-
-  @Override
-  public List<MallAddressEntity> queryList(Map<String, Object> param) {
-    return baseMapper.queryList(param);
-  }
+    @Override
+    public List<MallAddressEntity> queryList(Map<String, Object> param) {
+        return baseMapper.queryList(param);
+    }
 }

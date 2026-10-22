@@ -28,21 +28,21 @@ import java.util.function.Consumer;
  * @since 2022-08-21 22:59:47
  */
 public class LambdaUtils {
-  /**
-   * 工具方法
-   *
-   * @param consumer consumer
-   * @param <T> t
-   * @return .
-   */
-  public static <T> Consumer<T> consumerWithIndex(BiConsumer<T, Integer> consumer) {
-    class Obj {
-      int i;
+    /**
+     * 工具方法
+     *
+     * @param consumer consumer
+     * @param <T> t
+     * @return .
+     */
+    public static <T> Consumer<T> consumerWithIndex(BiConsumer<T, Integer> consumer) {
+        class Obj {
+            int i;
+        }
+        Obj obj = new Obj();
+        return t -> {
+            int index = obj.i++;
+            consumer.accept(t, index);
+        };
     }
-    Obj obj = new Obj();
-    return t -> {
-      int index = obj.i++;
-      consumer.accept(t, index);
-    };
-  }
 }

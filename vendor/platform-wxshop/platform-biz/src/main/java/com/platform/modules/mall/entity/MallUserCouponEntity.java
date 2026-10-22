@@ -22,9 +22,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 实体
@@ -35,40 +37,40 @@ import lombok.Data;
 @Data
 @TableName("mall_user_coupon")
 public class MallUserCouponEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** */
-  private Integer couponId;
+    /** */
+    private Integer couponId;
 
-  /** */
-  private String couponNumber;
+    /** */
+    private String couponNumber;
 
-  /** */
-  private Long userId;
+    /** */
+    private Long userId;
 
-  /** */
-  private Date usedTime;
+    /** */
+    private Date usedTime;
 
-  /** */
-  private Date addTime;
+    /** */
+    private Date addTime;
 
-  /** */
-  private Integer orderId;
+    /** */
+    private Integer orderId;
 
-  /** 状态 1. 可用 2. 已用 3. 过期 */
-  private Integer couponStatus;
+    /** 状态 1. 可用 2. 已用 3. 过期 */
+    private Integer couponStatus;
 
-  /** 来源key */
-  private String sourceKey;
+    /** 来源key */
+    private String sourceKey;
 
-  /** 发券人 */
-  private Integer referrer;
+    /** 发券人 */
+    private Integer referrer;
 
-  /** 微信昵称 */
-  @TableField(exist = false)
-  private String nickname;
+    /** 微信昵称 */
+    @TableField(exist = false)
+    private String nickname;
 }

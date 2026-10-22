@@ -20,6 +20,7 @@ package com.platform.modules.wx.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.wx.entity.WxUserEntity;
+
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -28,10 +29,10 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface WxUserDao extends BaseMapper<WxUserEntity> {
 
-  /**
-   * 取消关注，更新关注状态
-   *
-   * @param openid
-   */
-  void unsubscribe(String openid);
+    /**
+     * 取消关注，更新关注状态
+     *
+     * @param openid
+     */
+    void unsubscribe(String openid);
 }

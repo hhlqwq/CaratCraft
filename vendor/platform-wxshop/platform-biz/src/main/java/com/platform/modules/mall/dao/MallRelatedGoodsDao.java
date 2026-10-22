@@ -20,9 +20,11 @@ package com.platform.modules.mall.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
+
+import org.apache.ibatis.annotations.Mapper;
+
 import java.util.List;
 import java.util.Map;
-import org.apache.ibatis.annotations.Mapper;
 
 /**
  * 商品关联Dao
@@ -32,5 +34,5 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface MallRelatedGoodsDao extends BaseMapper<MallRelatedGoodsEntity> {
-  List<MallRelatedGoodsEntity> queryList(Map<String, Object> params);
+    List<MallRelatedGoodsEntity> queryList(Map<String, Object> params);
 }

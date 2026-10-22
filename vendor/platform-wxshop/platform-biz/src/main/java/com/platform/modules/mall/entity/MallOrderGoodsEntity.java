@@ -21,9 +21,11 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-import lombok.Data;
 
 /**
  * 订单商品明细实体，对应表：mall_order_goods。
@@ -36,45 +38,45 @@ import lombok.Data;
 @Data
 @TableName("mall_order_goods")
 public class MallOrderGoodsEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 主键ID（自增） */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** 主键ID（自增） */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 订单ID */
-  private Integer orderId;
+    /** 订单ID */
+    private Integer orderId;
 
-  /** 商品ID */
-  private Integer goodsId;
+    /** 商品ID */
+    private Integer goodsId;
 
-  /** 商品名称（下单快照） */
-  private String goodsName;
+    /** 商品名称（下单快照） */
+    private String goodsName;
 
-  /** 商品编码 */
-  private String goodsSn;
+    /** 商品编码 */
+    private String goodsSn;
 
-  /** 货品ID */
-  private Integer productId;
+    /** 货品ID */
+    private Integer productId;
 
-  /** 购买数量 */
-  private Integer number;
+    /** 购买数量 */
+    private Integer number;
 
-  /** 市场价 */
-  private BigDecimal marketPrice;
+    /** 市场价 */
+    private BigDecimal marketPrice;
 
-  /** 零售价 */
-  private BigDecimal retailPrice;
+    /** 零售价 */
+    private BigDecimal retailPrice;
 
-  /** 规格值文本 */
-  private String goodsSpecifitionNameValue;
+    /** 规格值文本 */
+    private String goodsSpecifitionNameValue;
 
-  /** 是否真实商品（0 否 / 1 是） */
-  private Integer isReal;
+    /** 是否真实商品（0 否 / 1 是） */
+    private Integer isReal;
 
-  /** 规格ID串 */
-  private String goodsSpecifitionIds;
+    /** 规格ID串 */
+    private String goodsSpecifitionIds;
 
-  /** 商品图片 */
-  private String listPicUrl;
+    /** 商品图片 */
+    private String listPicUrl;
 }

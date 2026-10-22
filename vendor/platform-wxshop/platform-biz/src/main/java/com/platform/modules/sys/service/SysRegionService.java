@@ -1,6 +1,7 @@
 package com.platform.modules.sys.service;
 
 import com.platform.modules.sys.entity.SysRegionEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,19 +14,19 @@ import java.util.Map;
  */
 public interface SysRegionService {
 
-  /**
-   * 分页查询
-   *
-   * @param map 参数
-   * @return list
-   */
-  List<SysRegionEntity> queryList(Map<String, Object> map);
+    /**
+     * 分页查询
+     *
+     * @param map 参数
+     * @return list
+     */
+    List<SysRegionEntity> queryList(Map<String, Object> map);
 
-  /**
-   * 分页统计总数
-   *
-   * @param map 参数
-   * @return 总数
-   */
-  int queryTotal(Map<String, Object> map);
+    /**
+     * 分页统计总数
+     *
+     * @param map 参数
+     * @return 总数
+     */
+    int queryTotal(Map<String, Object> map);
 }

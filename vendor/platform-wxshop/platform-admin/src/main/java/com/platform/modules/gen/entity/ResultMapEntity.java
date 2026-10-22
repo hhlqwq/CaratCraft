@@ -19,8 +19,10 @@
 package com.platform.modules.gen.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.util.Date;
+
 import lombok.Data;
+
+import java.util.Date;
 
 /**
  * 名称：ResultMap <br>
@@ -31,15 +33,15 @@ import lombok.Data;
  */
 @Data
 public class ResultMapEntity {
-  /** 表名称 */
-  @TableId private String tableName;
+    /** 表名称 */
+    @TableId private String tableName;
 
-  /** engine */
-  private String engine;
+    /** engine */
+    private String engine;
 
-  /** 表注释 */
-  private String tableComment;
+    /** 表注释 */
+    private String tableComment;
 
-  /** 创建时间 */
-  private Date createTime;
+    /** 创建时间 */
+    private Date createTime;
 }

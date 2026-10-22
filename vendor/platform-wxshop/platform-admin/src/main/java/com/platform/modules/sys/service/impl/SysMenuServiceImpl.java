@@ -28,9 +28,16 @@ import com.platform.modules.sys.enums.MenuTypeEnum;
 import com.platform.modules.sys.service.SysMenuService;
 import com.platform.modules.sys.service.SysRoleMenuService;
 import com.platform.modules.sys.service.SysUserService;
-import java.util.*;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author 何海龙
@@ -38,98 +45,101 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("sysMenuService")
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuDao, SysMenuEntity>
-    implements SysMenuService {
+        implements SysMenuService {
 
-  private final SysUserService sysUserService;
-  private final SysRoleMenuService sysRoleMenuService;
+    private final SysUserService sysUserService;
+    private final SysRoleMenuService sysRoleMenuService;
 
-  @Override
-  public List<SysMenuEntity> queryListParentId(String parentId, List<String> menuIdList) {
-    List<SysMenuEntity> menuList = queryListParentId(parentId);
-    if (menuIdList == null) {
-      return menuList;
+    @Override
+    public List<SysMenuEntity> queryListParentId(String parentId, List<String> menuIdList) {
+        List<SysMenuEntity> menuList = queryListParentId(parentId);
+        if (menuIdList == null) {
+            return menuList;
+        }
+
+        List<SysMenuEntity> userMenuList = new ArrayList<>();
+        for (SysMenuEntity menu : menuList) {
+            if (menuIdList.contains(menu.getMenuId())) {
+                userMenuList.add(menu);
+            }
+        }
+        return userMenuList;
     }
 
-    List<SysMenuEntity> userMenuList = new ArrayList<>();
-    for (SysMenuEntity menu : menuList) {
-      if (menuIdList.contains(menu.getMenuId())) {
-        userMenuList.add(menu);
-      }
-    }
-    return userMenuList;
-  }
-
-  @Override
-  public List<SysMenuEntity> queryListParentId(String parentId) {
-    return baseMapper.selectList(
-        new QueryWrapper<SysMenuEntity>().eq("PARENT_ID", parentId).orderByAsc("ORDER_NUM"));
-  }
-
-  @Override
-  public List<SysMenuEntity> queryNotButtonList() {
-    return baseMapper.queryNotButtonList();
-  }
-
-  @Override
-  public List<SysMenuEntity> getUserMenuList(String userId) {
-    // 系统管理员，拥有最高权限
-    if (Constant.SUPER_ADMIN.equals(userId)) {
-      return getAllMenuList(null);
+    @Override
+    public List<SysMenuEntity> queryListParentId(String parentId) {
+        return baseMapper.selectList(
+                new QueryWrapper<SysMenuEntity>()
+                        .eq("PARENT_ID", parentId)
+                        .orderByAsc("ORDER_NUM"));
     }
 
-    // 用户菜单列表
-    List<String> menuIdList = sysUserService.queryAllMenuId(userId);
-    return getAllMenuList(menuIdList);
-  }
-
-  @Override
-  public boolean delete(String menuId) {
-    // 删除菜单
-    this.removeById(menuId);
-    // 删除菜单与角色关联
-    Map<String, Object> map = new HashMap<>(2);
-    map.put("menu_id", menuId);
-    return sysRoleMenuService.removeByMap(map);
-  }
-
-  @Override
-  public List<SysMenuEntity> queryList() {
-    return baseMapper.queryList();
-  }
-
-  @Override
-  public boolean add(SysMenuEntity menu) {
-    String parentId = menu.getParentId();
-    String maxId = baseMapper.queryMaxIdByParentId(parentId);
-
-    menu.setMenuId(StringUtils.addOne(parentId, maxId));
-    return this.save(menu);
-  }
-
-  /** 获取所有菜单列表 */
-  private List<SysMenuEntity> getAllMenuList(List<String> menuIdList) {
-    // 查询根菜单列表
-    List<SysMenuEntity> menuList = queryListParentId(Constant.STR_ZERO, menuIdList);
-    // 递归获取子菜单
-    getMenuTreeList(menuList, menuIdList);
-
-    return menuList;
-  }
-
-  /** 递归 */
-  private List<SysMenuEntity> getMenuTreeList(
-      List<SysMenuEntity> menuList, List<String> menuIdList) {
-    List<SysMenuEntity> subMenuList = new ArrayList<>();
-
-    for (SysMenuEntity entity : menuList) {
-      // 目录
-      if (Objects.equals(entity.getType(), MenuTypeEnum.CATALOG.getValue())) {
-        entity.setList(
-            getMenuTreeList(queryListParentId(entity.getMenuId(), menuIdList), menuIdList));
-      }
-      subMenuList.add(entity);
+    @Override
+    public List<SysMenuEntity> queryNotButtonList() {
+        return baseMapper.queryNotButtonList();
     }
 
-    return subMenuList;
-  }
+    @Override
+    public List<SysMenuEntity> getUserMenuList(String userId) {
+        // 系统管理员，拥有最高权限
+        if (Constant.SUPER_ADMIN.equals(userId)) {
+            return getAllMenuList(null);
+        }
+
+        // 用户菜单列表
+        List<String> menuIdList = sysUserService.queryAllMenuId(userId);
+        return getAllMenuList(menuIdList);
+    }
+
+    @Override
+    public boolean delete(String menuId) {
+        // 删除菜单
+        this.removeById(menuId);
+        // 删除菜单与角色关联
+        Map<String, Object> map = new HashMap<>(2);
+        map.put("menu_id", menuId);
+        return sysRoleMenuService.removeByMap(map);
+    }
+
+    @Override
+    public List<SysMenuEntity> queryList() {
+        return baseMapper.queryList();
+    }
+
+    @Override
+    public boolean add(SysMenuEntity menu) {
+        String parentId = menu.getParentId();
+        String maxId = baseMapper.queryMaxIdByParentId(parentId);
+
+        menu.setMenuId(StringUtils.addOne(parentId, maxId));
+        return this.save(menu);
+    }
+
+    /** 获取所有菜单列表 */
+    private List<SysMenuEntity> getAllMenuList(List<String> menuIdList) {
+        // 查询根菜单列表
+        List<SysMenuEntity> menuList = queryListParentId(Constant.STR_ZERO, menuIdList);
+        // 递归获取子菜单
+        getMenuTreeList(menuList, menuIdList);
+
+        return menuList;
+    }
+
+    /** 递归 */
+    private List<SysMenuEntity> getMenuTreeList(
+            List<SysMenuEntity> menuList, List<String> menuIdList) {
+        List<SysMenuEntity> subMenuList = new ArrayList<>();
+
+        for (SysMenuEntity entity : menuList) {
+            // 目录
+            if (Objects.equals(entity.getType(), MenuTypeEnum.CATALOG.getValue())) {
+                entity.setList(
+                        getMenuTreeList(
+                                queryListParentId(entity.getMenuId(), menuIdList), menuIdList));
+            }
+            subMenuList.add(entity);
+        }
+
+        return subMenuList;
+    }
 }

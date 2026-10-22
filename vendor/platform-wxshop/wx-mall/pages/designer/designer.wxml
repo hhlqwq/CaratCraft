@@ -1,190 +1,190 @@
 <view class="page">
-  <view class="intro-card">
-    <view class="intro-eyebrow">按需定制</view>
-    <view class="intro-title">珍珠项链定制</view>
-    <view class="intro-description">从材料库添加珍珠、尾扣、配饰和链条, 点击排列中的材料进行编辑。</view>
-  </view>
+    <view class="intro-card">
+        <view class="intro-eyebrow">按需定制</view>
+        <view class="intro-title">珍珠项链定制</view>
+        <view class="intro-description">从材料库添加珍珠、尾扣、配饰和链条, 点击排列中的材料进行编辑。</view>
+    </view>
 
-  <view class="ai-card">
-    <view class="ai-title">AI 尺寸与搭配推荐</view>
-    <view class="ai-note">告诉AI你的佩戴偏好, 获得长度与材料建议, 也可以继续手动设计。</view>
-    <view class="ai-note">仅使用赠送AI额度, 额度不足时停止推荐, 不自动切换付费通道。</view>
-    <view wx:if="{{aiStatusError}}" class="config-state error">
-      {{aiStatusError}}<button size="mini" bindtap="loadAiStatus">重试</button>
-    </view>
-    <view wx:elif="{{!aiStatus.enabled}}" class="ai-note">{{aiStatus.unavailableReason || '正在读取微信AI功能状态…'}}</view>
-    <block wx:else>
-      <view class="ai-fields">
-        <label>身高 cm<input type="digit" maxlength="5" value="{{aiHeight}}" data-field="aiHeight" bindinput="changeAiInput" placeholder="请输入" /></label>
-        <label>体重 kg<input type="digit" maxlength="5" value="{{aiWeight}}" data-field="aiWeight" bindinput="changeAiInput" placeholder="请输入" /></label>
-        <label>实测颈围 cm<input type="digit" maxlength="4" value="{{aiNeck}}" data-field="aiNeck" bindinput="changeAiInput" placeholder="选填, 更有依据" /></label>
-      </view>
-      <picker range="{{aiPreferences}}" value="{{aiPreferenceIndex}}" bindchange="changeAiPreference">
-        <view class="ai-preference">佩戴偏好: {{aiPreferences[aiPreferenceIndex]}} <text>更改 ›</text></view>
-      </picker>
-      <view class="ai-note">{{aiStatus.privacyNotice}}</view>
-      <checkbox-group bindchange="changeAiConsent">
-        <label class="ai-consent"><checkbox value="agree" checked="{{aiConsent}}" color="#315c4b" />我已阅读并同意以上数据使用说明</label>
-      </checkbox-group>
-      <button class="ai-action" bindtap="requestAiRecommendation" loading="{{aiLoading}}"
-              disabled="{{aiLoading || loadingConfig || configError || !aiConsent}}">{{aiLoading ? 'AI正在生成建议' : (aiResult ? '重新推荐' : '获取AI推荐')}}</button>
-      <view wx:if="{{aiError}}" class="config-state error">{{aiError}}</view>
-      <view wx:if="{{aiResult}}" class="ai-result">
-        <view class="ai-length">建议成品长度 {{aiResult.lengthCm}} cm</view>
-        <view class="ai-note">参考范围 {{aiResult.rangeMinCm}}–{{aiResult.rangeMaxCm}} cm</view>
-        <view class="ai-reason">{{aiResult.reason}}</view>
-        <view class="ai-note">推荐材料: {{aiResult.optionNames}}</view>
-        <view class="ai-note">{{aiResult.notice}}</view>
-        <view class="ai-note">{{aiResult.modelNotice}}</view>
-        <view class="ai-note">{{aiResult.lengthNotice}}</view>
-        <button class="ai-action" bindtap="applyAiRecommendation" disabled="{{saving || loadingConfig || aiLoading}}">采用推荐搭配</button>
-      </view>
-    </block>
-  </view>
-
-  <view class="preview-card">
-    <view class="preview-heading">
-      <view>
-        <view class="preview-title">效果预览</view>
-        <view class="preview-subtitle">选择后会立即更新</view>
-      </view>
-      <view class="demo-badge">搭配预览</view>
-    </view>
-    <view class="necklace-stage">
-      <view class="necklace-guide"></view>
-      <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">从下方材料库开始设计</view>
-      <view wx:for="{{arrangementNodes}}" wx:key="index" class="necklace-node {{item.pearl ? 'pearl-node' : 'part-node'}} {{activeIndex === index ? 'active-node' : ''}}"
-            style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
-            data-index="{{index}}" bindtap="selectInstance"></view>
-    </view>
-    <view class="preview-disclaimer">二维结构示意: 珍珠按已配置直径比例显示, 其他材料用定位符号表示, 不代表实物颜色和外观。</view>
-    <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
-    <view class="arrangement-tools">
-      <button size="mini" disabled="{{!canUndo || saving}}" bindtap="undoArrangement">撤回</button>
-      <button size="mini" data-action="clear" bindtap="editInstance" disabled="{{!arrangementNodes.length || saving}}">清空</button>
-      <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="copy" bindtap="editInstance">复制</button>
-      <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="remove" bindtap="editInstance">删除</button>
-      <button size="mini" disabled="{{activeIndex <= 0 || saving}}" data-action="left" bindtap="editInstance">前移</button>
-      <button size="mini" disabled="{{activeIndex < 0 || activeIndex >= arrangementNodes.length - 1 || saving}}" data-action="right" bindtap="editInstance">后移</button>
-    </view>
-    <view class="copy-count">批量复制数量<input type="number" maxlength="3" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" /><text>选中一个材料后点击“复制”, 最多300个实例。</text></view>
-    <scroll-view scroll-x class="instance-strip">
-      <view wx:for="{{arrangementNodes}}" wx:key="index" class="instance-chip {{activeIndex === index ? 'chosen-chip' : ''}}" data-index="{{index}}" bindtap="selectInstance">{{index + 1}}. {{item.name}} {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸待补'}}</view>
-    </scroll-view>
-    <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}。{{quote.lengthNotice}}</view>
-    <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
-    <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
-    <view class="price-row">
-      <view>
-        <view class="price-label">当前预估价格</view>
-        <view class="price-note">下单时由服务端再次确认</view>
-      </view>
-      <view class="price">¥ {{quoting ? '报价中' : (quote.totalPrice || '--')}}</view>
-    </view>
-  </view>
-
-  <view class="config-state" wx:if="{{loadingConfig}}">
-    <view class="config-state-title">正在加载定制选项</view>
-    <view class="config-state-description">请稍候。</view>
-  </view>
-  <view class="config-state error" wx:elif="{{configError}}">
-    <view class="config-state-title">加载失败</view>
-    <view class="config-state-description">{{configError}}</view>
-    <button class="config-retry" bindtap="retryLoadConfig">重新加载</button>
-  </view>
-
-  <block wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type">
-    <view wx:if="{{group.primary}}" class="section">
-      <view class="section-heading">
-        <text class="section-step">{{group.step}}</text>
-        <view class="section-heading-text">
-          <view class="section-title">{{group.name}}</view>
-          <view class="section-description">{{group.description}}</view>
+    <view class="ai-card">
+        <view class="ai-title">AI 尺寸与搭配推荐</view>
+        <view class="ai-note">告诉AI你的佩戴偏好, 获得长度与材料建议, 也可以继续手动设计。</view>
+        <view class="ai-note">仅使用赠送AI额度, 额度不足时停止推荐, 不自动切换付费通道。</view>
+        <view wx:if="{{aiStatusError}}" class="config-state error">
+            {{aiStatusError}}<button size="mini" bindtap="loadAiStatus">重试</button>
         </view>
-      </view>
-      <view class="option-grid">
-        <view class="option {{option.selected ? 'selected' : ''}}"
-              wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
-              data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
-          <view class="option-check">{{option.selected ? '✓' : ''}}</view>
-          <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
-          <view class="option-name">{{option.displayName}}</view>
-          <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
+        <view wx:elif="{{!aiStatus.enabled}}" class="ai-note">{{aiStatus.unavailableReason || '正在读取微信AI功能状态…'}}</view>
+        <block wx:else>
+            <view class="ai-fields">
+                <label>身高 cm<input type="digit" maxlength="5" value="{{aiHeight}}" data-field="aiHeight" bindinput="changeAiInput" placeholder="请输入" /></label>
+                <label>体重 kg<input type="digit" maxlength="5" value="{{aiWeight}}" data-field="aiWeight" bindinput="changeAiInput" placeholder="请输入" /></label>
+                <label>实测颈围 cm<input type="digit" maxlength="4" value="{{aiNeck}}" data-field="aiNeck" bindinput="changeAiInput" placeholder="选填, 更有依据" /></label>
+            </view>
+            <picker range="{{aiPreferences}}" value="{{aiPreferenceIndex}}" bindchange="changeAiPreference">
+                <view class="ai-preference">佩戴偏好: {{aiPreferences[aiPreferenceIndex]}} <text>更改 ›</text></view>
+            </picker>
+            <view class="ai-note">{{aiStatus.privacyNotice}}</view>
+            <checkbox-group bindchange="changeAiConsent">
+                <label class="ai-consent"><checkbox value="agree" checked="{{aiConsent}}" color="#315c4b" />我已阅读并同意以上数据使用说明</label>
+            </checkbox-group>
+            <button class="ai-action" bindtap="requestAiRecommendation" loading="{{aiLoading}}"
+                            disabled="{{aiLoading || loadingConfig || configError || !aiConsent}}">{{aiLoading ? 'AI正在生成建议' : (aiResult ? '重新推荐' : '获取AI推荐')}}</button>
+            <view wx:if="{{aiError}}" class="config-state error">{{aiError}}</view>
+            <view wx:if="{{aiResult}}" class="ai-result">
+                <view class="ai-length">建议成品长度 {{aiResult.lengthCm}} cm</view>
+                <view class="ai-note">参考范围 {{aiResult.rangeMinCm}}–{{aiResult.rangeMaxCm}} cm</view>
+                <view class="ai-reason">{{aiResult.reason}}</view>
+                <view class="ai-note">推荐材料: {{aiResult.optionNames}}</view>
+                <view class="ai-note">{{aiResult.notice}}</view>
+                <view class="ai-note">{{aiResult.modelNotice}}</view>
+                <view class="ai-note">{{aiResult.lengthNotice}}</view>
+                <button class="ai-action" bindtap="applyAiRecommendation" disabled="{{saving || loadingConfig || aiLoading}}">采用推荐搭配</button>
+            </view>
+        </block>
+    </view>
+
+    <view class="preview-card">
+        <view class="preview-heading">
+            <view>
+                <view class="preview-title">效果预览</view>
+                <view class="preview-subtitle">选择后会立即更新</view>
+            </view>
+            <view class="demo-badge">搭配预览</view>
         </view>
-      </view>
+        <view class="necklace-stage">
+            <view class="necklace-guide"></view>
+            <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">从下方材料库开始设计</view>
+            <view wx:for="{{arrangementNodes}}" wx:key="index" class="necklace-node {{item.pearl ? 'pearl-node' : 'part-node'}} {{activeIndex === index ? 'active-node' : ''}}"
+                        style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
+                        data-index="{{index}}" bindtap="selectInstance"></view>
+        </view>
+        <view class="preview-disclaimer">二维结构示意: 珍珠按已配置直径比例显示, 其他材料用定位符号表示, 不代表实物颜色和外观。</view>
+        <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
+        <view class="arrangement-tools">
+            <button size="mini" disabled="{{!canUndo || saving}}" bindtap="undoArrangement">撤回</button>
+            <button size="mini" data-action="clear" bindtap="editInstance" disabled="{{!arrangementNodes.length || saving}}">清空</button>
+            <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="copy" bindtap="editInstance">复制</button>
+            <button size="mini" disabled="{{activeIndex < 0 || saving}}" data-action="remove" bindtap="editInstance">删除</button>
+            <button size="mini" disabled="{{activeIndex <= 0 || saving}}" data-action="left" bindtap="editInstance">前移</button>
+            <button size="mini" disabled="{{activeIndex < 0 || activeIndex >= arrangementNodes.length - 1 || saving}}" data-action="right" bindtap="editInstance">后移</button>
+        </view>
+        <view class="copy-count">批量复制数量<input type="number" maxlength="3" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" /><text>选中一个材料后点击“复制”, 最多300个实例。</text></view>
+        <scroll-view scroll-x class="instance-strip">
+            <view wx:for="{{arrangementNodes}}" wx:key="index" class="instance-chip {{activeIndex === index ? 'chosen-chip' : ''}}" data-index="{{index}}" bindtap="selectInstance">{{index + 1}}. {{item.name}} {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸待补'}}</view>
+        </scroll-view>
+        <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}。{{quote.lengthNotice}}</view>
+        <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
+        <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
+        <view class="price-row">
+            <view>
+                <view class="price-label">当前预估价格</view>
+                <view class="price-note">下单时由服务端再次确认</view>
+            </view>
+            <view class="price">¥ {{quoting ? '报价中' : (quote.totalPrice || '--')}}</view>
+        </view>
     </view>
-  </block>
 
-  <view class="optional-toggle" bindtap="toggleOptional">
-    <view>
-      <view class="optional-toggle-title">更多搭配（可选）</view>
-      <view class="optional-toggle-description">钻石、宝石、长度、配件和刻字，不需要可以跳过。</view>
+    <view class="config-state" wx:if="{{loadingConfig}}">
+        <view class="config-state-title">正在加载定制选项</view>
+        <view class="config-state-description">请稍候。</view>
     </view>
-    <text class="optional-toggle-icon">{{showOptional ? '收起' : '展开'}}</text>
-  </view>
+    <view class="config-state error" wx:elif="{{configError}}">
+        <view class="config-state-title">加载失败</view>
+        <view class="config-state-description">{{configError}}</view>
+        <button class="config-retry" bindtap="retryLoadConfig">重新加载</button>
+    </view>
 
-  <view wx:if="{{showOptional}}" class="optional-panel">
     <block wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type">
-      <view wx:if="{{!group.primary}}" class="section optional-section">
-        <view class="section-heading compact">
-          <view class="section-heading-text">
-            <view class="section-title">{{group.name}} <text class="optional-mark">可选</text></view>
-            <view class="section-description">{{group.description}}</view>
-          </view>
+        <view wx:if="{{group.primary}}" class="section">
+            <view class="section-heading">
+                <text class="section-step">{{group.step}}</text>
+                <view class="section-heading-text">
+                    <view class="section-title">{{group.name}}</view>
+                    <view class="section-description">{{group.description}}</view>
+                </view>
+            </view>
+            <view class="option-grid">
+                <view class="option {{option.selected ? 'selected' : ''}}"
+                            wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
+                            data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
+                    <view class="option-check">{{option.selected ? '✓' : ''}}</view>
+                    <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
+                    <view class="option-name">{{option.displayName}}</view>
+                    <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
+                </view>
+            </view>
         </view>
-        <view class="option-grid">
-          <view class="option option-none {{!group.hasSelection ? 'selected' : ''}}"
-                data-type="{{group.type}}" bindtap="clearOptional">
-            <view class="option-check">{{!group.hasSelection ? '✓' : ''}}</view>
-            <view class="option-none-mark">—</view>
-            <view class="option-name">不选择</view>
-            <view class="option-price">不加价</view>
-          </view>
-          <view class="option {{option.selected ? 'selected' : ''}}"
-                wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
-                data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
-            <view class="option-check">{{option.selected ? '✓' : ''}}</view>
-            <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
-            <view class="option-name">{{option.displayName}}</view>
-            <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
-          </view>
-        </view>
-      </view>
     </block>
 
-    <view class="section optional-section">
-      <view class="section-heading compact">
-        <view class="section-heading-text">
-          <view class="section-title">个性刻字 <text class="optional-mark">可选</text></view>
-          <view class="section-description">最多输入 20 个字符，不需要可以留空。</view>
+    <view class="optional-toggle" bindtap="toggleOptional">
+        <view>
+            <view class="optional-toggle-title">更多搭配（可选）</view>
+            <view class="optional-toggle-description">钻石、宝石、长度、配件和刻字，不需要可以跳过。</view>
         </view>
-      </view>
-      <input class="engraving" maxlength="20" placeholder="例如：姓名、日期或纪念文字"
-             value="{{engraving}}" bindinput="changeEngraving" disabled="{{saving}}"></input>
+        <text class="optional-toggle-icon">{{showOptional ? '收起' : '展开'}}</text>
     </view>
-  </view>
 
-  <view class="section sizing-section">
-    <view class="section-title">实测颈围与目标成品长度</view>
-    <view class="section-description">请使用毫米填写实测颈围, AI建议不作为实测数据. 尺寸未齐可先保存草稿.</view>
-    <input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="实测颈围(mm)" disabled="{{saving}}" />
-    <input type="digit" value="{{targetLengthMm}}" data-field="targetLengthMm" bindinput="changeSizing" placeholder="目标成品长度(mm)" disabled="{{saving}}" />
-    <view wx:if="{{quote.sizing}}">{{quote.sizing.notice}}</view>
-    <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}">商家工艺估算成品长度: {{quote.sizing.estimatedFinishedLengthMm}}mm</view>
-  </view>
-  <view class="section ai-configuration">
-    <view class="section-title">AI配置检查</view>
-    <view>云环境配置: {{aiDiagnostics.configured ? '已填写' : '待商家配置'}}</view>
-    <view>当前微信能力: {{aiDiagnostics.supported ? '支持' : '不可用'}}</view>
-    <view>{{aiDiagnostics.quotaNotice}}</view>
-    <button size="mini" bindtap="loadAiStatus">重新检查</button>
-  </view>
-  <view class="bottom-bar">
-    <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
-            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">保存</button>
-    <button class="primary" bindtap="submitDesign" loading="{{saving}}"
-            disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
-  </view>
+    <view wx:if="{{showOptional}}" class="optional-panel">
+        <block wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type">
+            <view wx:if="{{!group.primary}}" class="section optional-section">
+                <view class="section-heading compact">
+                    <view class="section-heading-text">
+                        <view class="section-title">{{group.name}} <text class="optional-mark">可选</text></view>
+                        <view class="section-description">{{group.description}}</view>
+                    </view>
+                </view>
+                <view class="option-grid">
+                    <view class="option option-none {{!group.hasSelection ? 'selected' : ''}}"
+                                data-type="{{group.type}}" bindtap="clearOptional">
+                        <view class="option-check">{{!group.hasSelection ? '✓' : ''}}</view>
+                        <view class="option-none-mark">—</view>
+                        <view class="option-name">不选择</view>
+                        <view class="option-price">不加价</view>
+                    </view>
+                    <view class="option {{option.selected ? 'selected' : ''}}"
+                                wx:for="{{group.options}}" wx:for-item="option" wx:key="id"
+                                data-id="{{option.id}}" data-type="{{group.type}}" bindtap="selectOption">
+                        <view class="option-check">{{option.selected ? '✓' : ''}}</view>
+                        <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
+                        <view class="option-name">{{option.displayName}}</view>
+                        <view class="option-price">{{option.priceDelta > 0 ? '加 ¥' : '不加价'}}{{option.priceDelta > 0 ? option.priceDelta : ''}}</view>
+                    </view>
+                </view>
+            </view>
+        </block>
+
+        <view class="section optional-section">
+            <view class="section-heading compact">
+                <view class="section-heading-text">
+                    <view class="section-title">个性刻字 <text class="optional-mark">可选</text></view>
+                    <view class="section-description">最多输入 20 个字符，不需要可以留空。</view>
+                </view>
+            </view>
+            <input class="engraving" maxlength="20" placeholder="例如：姓名、日期或纪念文字"
+                          value="{{engraving}}" bindinput="changeEngraving" disabled="{{saving}}"></input>
+        </view>
+    </view>
+
+    <view class="section sizing-section">
+        <view class="section-title">实测颈围与目标成品长度</view>
+        <view class="section-description">请使用毫米填写实测颈围, AI建议不作为实测数据. 尺寸未齐可先保存草稿.</view>
+        <input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="实测颈围(mm)" disabled="{{saving}}" />
+        <input type="digit" value="{{targetLengthMm}}" data-field="targetLengthMm" bindinput="changeSizing" placeholder="目标成品长度(mm)" disabled="{{saving}}" />
+        <view wx:if="{{quote.sizing}}">{{quote.sizing.notice}}</view>
+        <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}">商家工艺估算成品长度: {{quote.sizing.estimatedFinishedLengthMm}}mm</view>
+    </view>
+    <view class="section ai-configuration">
+        <view class="section-title">AI配置检查</view>
+        <view>云环境配置: {{aiDiagnostics.configured ? '已填写' : '待商家配置'}}</view>
+        <view>当前微信能力: {{aiDiagnostics.supported ? '支持' : '不可用'}}</view>
+        <view>{{aiDiagnostics.quotaNotice}}</view>
+        <button size="mini" bindtap="loadAiStatus">重新检查</button>
+    </view>
+    <view class="bottom-bar">
+        <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
+                        disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">保存</button>
+        <button class="primary" bindtap="submitDesign" loading="{{saving}}"
+                        disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
+    </view>
 </view>
 
 <merchant-contact />

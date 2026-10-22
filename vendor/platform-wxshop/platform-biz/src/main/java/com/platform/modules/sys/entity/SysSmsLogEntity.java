@@ -20,9 +20,11 @@ package com.platform.modules.sys.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 短信发送日志实体
@@ -33,35 +35,35 @@ import lombok.Data;
 @Data
 @TableName("SYS_SMS_LOG")
 public class SysSmsLogEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 主键 */
-  @TableId private String id;
+    /** 主键 */
+    @TableId private String id;
 
-  /** 模板ID */
-  private String templateId;
+    /** 模板ID */
+    private String templateId;
 
-  /** 验证码 */
-  private String code;
+    /** 验证码 */
+    private String code;
 
-  /** 手机号码。多个以英文逗号隔开 */
-  private String mobile;
+    /** 手机号码。多个以英文逗号隔开 */
+    private String mobile;
 
-  /** 发送时间 */
-  private Date stime;
+    /** 发送时间 */
+    private Date stime;
 
-  /** 用户签名 */
-  private String sign;
+    /** 用户签名 */
+    private String sign;
 
-  /** 0成功 1失败 */
-  private Integer sendStatus;
+    /** 0成功 1失败 */
+    private Integer sendStatus;
 
-  /** 发送编号 */
-  private String sendId;
+    /** 发送编号 */
+    private String sendId;
 
-  /** 成功提交数 */
-  private Integer successNum;
+    /** 成功提交数 */
+    private Integer successNum;
 
-  /** 返回消息 */
-  private String returnMsg;
+    /** 返回消息 */
+    private String returnMsg;
 }

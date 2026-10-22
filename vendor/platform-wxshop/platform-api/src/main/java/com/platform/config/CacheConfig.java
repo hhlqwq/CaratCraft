@@ -19,6 +19,7 @@
 package com.platform.config;
 
 import com.platform.cache.RegionCacheUtil;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,8 +31,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CacheConfig {
 
-  @Bean
-  public RegionCacheUtil regionCacheUtil() {
-    return new RegionCacheUtil();
-  }
+    @Bean
+    public RegionCacheUtil regionCacheUtil() {
+        return new RegionCacheUtil();
+    }
 }

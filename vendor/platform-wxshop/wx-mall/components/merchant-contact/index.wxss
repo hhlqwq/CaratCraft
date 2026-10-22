@@ -1,99 +1,99 @@
 .contact-entry {
-  position: fixed;
-  z-index: 30;
-  right: 24rpx;
-  bottom: calc(240rpx + env(safe-area-inset-bottom));
-  width: 98rpx;
-  height: 78rpx;
-  padding: 0;
-  line-height: 78rpx;
-  border-radius: 40rpx;
-  background: #23332d;
-  color: #fff;
-  font-size: 24rpx;
-  box-shadow: 0 6rpx 22rpx #0002;
+    position: fixed;
+    z-index: 30;
+    right: 24rpx;
+    bottom: calc(240rpx + env(safe-area-inset-bottom));
+    width: 98rpx;
+    height: 78rpx;
+    padding: 0;
+    line-height: 78rpx;
+    border-radius: 40rpx;
+    background: #23332d;
+    color: #fff;
+    font-size: 24rpx;
+    box-shadow: 0 6rpx 22rpx #0002;
 }
 .contact-entry::after,
 .close::after,
 .contact-action::after {
-  border: 0;
+    border: 0;
 }
 .contact-mask {
-  position: fixed;
-  inset: 0;
-  background: #0007;
-  z-index: 1000;
+    position: fixed;
+    inset: 0;
+    background: #0007;
+    z-index: 1000;
 }
 .contact-sheet {
-  position: fixed;
-  z-index: 1001;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-height: 75vh;
-  overflow-y: auto;
-  padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom));
-  background: #faf8f3;
-  color: #23332d;
-  border-radius: 24rpx 24rpx 0 0;
+    position: fixed;
+    z-index: 1001;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom));
+    background: #faf8f3;
+    color: #23332d;
+    border-radius: 24rpx 24rpx 0 0;
 }
 .contact-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20rpx;
-  margin-bottom: 28rpx;
-  font-size: 32rpx;
-  font-weight: 600;
-  overflow-wrap: anywhere;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20rpx;
+    margin-bottom: 28rpx;
+    font-size: 32rpx;
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
 .close {
-  width: 100rpx;
-  flex-shrink: 0;
-  margin: 0;
-  padding: 0;
-  font-size: 24rpx;
-  line-height: 64rpx;
-  background: #eae6de;
+    width: 100rpx;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 24rpx;
+    line-height: 64rpx;
+    background: #eae6de;
 }
 .notice {
-  padding: 36rpx 0;
-  text-align: center;
-  font-size: 27rpx;
-  color: #777066;
+    padding: 36rpx 0;
+    text-align: center;
+    font-size: 27rpx;
+    color: #777066;
 }
 .contact-row {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-  font-size: 28rpx;
-  overflow-wrap: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 16rpx;
+    font-size: 28rpx;
+    overflow-wrap: anywhere;
 }
 .contact-action {
-  margin: 18rpx 0;
-  padding: 12rpx 20rpx;
-  font-size: 26rpx;
-  line-height: 1.8;
-  background: #eae6de;
-  color: #23332d;
-  border-radius: 8rpx;
+    margin: 18rpx 0;
+    padding: 12rpx 20rpx;
+    font-size: 26rpx;
+    line-height: 1.8;
+    background: #eae6de;
+    color: #23332d;
+    border-radius: 8rpx;
 }
 .primary {
-  background: #23332d;
-  color: #fff;
+    background: #23332d;
+    color: #fff;
 }
 .qr-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24rpx 0;
-  font-size: 23rpx;
-  line-height: 1.8;
-  color: #777066;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24rpx 0;
+    font-size: 23rpx;
+    line-height: 1.8;
+    color: #777066;
 }
 .contact-qr {
-  width: 300rpx;
-  height: 300rpx;
-  margin-bottom: 18rpx;
-  background: #fff;
+    width: 300rpx;
+    height: 300rpx;
+    margin-bottom: 18rpx;
+    background: #fff;
 }

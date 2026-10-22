@@ -18,135 +18,141 @@
  */
 package com.platform.common.utils;
 
-import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageTree;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.apache.pdfbox.util.Matrix;
 
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+
 /**
  * @author 何海龙
  */
 public class PdfUtils {
-  /**
-   * pdf添加文字水印
-   *
-   * @param filePath 原PDF位置
-   * @param attrName PDF文件名称
-   * @param text 要添加的水印
-   * @return 添加水印的文件路径
-   * @throws Exception Exception
-   */
-  public static String addWatermark(String filePath, String attrName, String text) {
-    String result = filePath + File.separator + "autoMail" + File.separator + attrName;
-    File file = new File(filePath + attrName);
-    try {
-      float formWidth = 35f;
-      float formHeight = 35f;
-      float fontSize = 25;
-      int length1 = 14;
-      int length2 = 22;
-      int length3 = 46;
-      int length4 = 62;
-      if (text.length() <= length1) {
-        formWidth = 2.4f;
-        formHeight = 2.4f;
-        fontSize = 50;
-      } else if (text.length() <= length2) {
-        formWidth = 4;
-        formHeight = 4;
-        fontSize = 50;
-      } else if (text.length() <= length3) {
-        formWidth = 10;
-        formHeight = 10;
-        fontSize = 40;
-      } else if (text.length() <= length4) {
-        formWidth = 20;
-        formHeight = 20;
-      }
-      PDDocument document = Loader.loadPDF(file);
-      document.setAllSecurityToBeRemoved(true);
-      for (PDPage page : document.getPages()) {
-        float width = page.getBBox().getWidth();
-        float height = page.getBBox().getHeight();
+    /**
+     * pdf添加文字水印
+     *
+     * @param filePath 原PDF位置
+     * @param attrName PDF文件名称
+     * @param text 要添加的水印
+     * @return 添加水印的文件路径
+     * @throws Exception Exception
+     */
+    public static String addWatermark(String filePath, String attrName, String text) {
+        String result = filePath + File.separator + "autoMail" + File.separator + attrName;
+        File file = new File(filePath + attrName);
+        try {
+            float formWidth = 35f;
+            float formHeight = 35f;
+            float fontSize = 25;
+            int length1 = 14;
+            int length2 = 22;
+            int length3 = 46;
+            int length4 = 62;
+            if (text.length() <= length1) {
+                formWidth = 2.4f;
+                formHeight = 2.4f;
+                fontSize = 50;
+            } else if (text.length() <= length2) {
+                formWidth = 4;
+                formHeight = 4;
+                fontSize = 50;
+            } else if (text.length() <= length3) {
+                formWidth = 10;
+                formHeight = 10;
+                fontSize = 40;
+            } else if (text.length() <= length4) {
+                formWidth = 20;
+                formHeight = 20;
+            }
+            PDDocument document = Loader.loadPDF(file);
+            document.setAllSecurityToBeRemoved(true);
+            for (PDPage page : document.getPages()) {
+                float width = page.getBBox().getWidth();
+                float height = page.getBBox().getHeight();
 
-        PDPageContentStream cs =
-            new PDPageContentStream(
-                document, page, PDPageContentStream.AppendMode.APPEND, true, true);
-        // pdf扩展图形对象
-        PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
-        // 透明度
-        graphicsState.setNonStrokingAlphaConstant(0.2f);
-        graphicsState.setAlphaSourceFlag(true);
-        cs.setGraphicsStateParameters(graphicsState);
-        cs.setNonStrokingColor(Color.red);
-        cs.beginText();
-        cs.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), fontSize);
-        // 获取旋转实例
-        cs.setTextMatrix(
-            Matrix.getRotateInstance(Math.toRadians(45), width / formWidth, height / formHeight));
-        cs.showText(text);
-        cs.endText();
-        cs.close();
-      }
-      document.save(result);
-      document.close();
-    } catch (IOException e) {
-      e.printStackTrace();
+                PDPageContentStream cs =
+                        new PDPageContentStream(
+                                document, page, PDPageContentStream.AppendMode.APPEND, true, true);
+                // pdf扩展图形对象
+                PDExtendedGraphicsState graphicsState = new PDExtendedGraphicsState();
+                // 透明度
+                graphicsState.setNonStrokingAlphaConstant(0.2f);
+                graphicsState.setAlphaSourceFlag(true);
+                cs.setGraphicsStateParameters(graphicsState);
+                cs.setNonStrokingColor(Color.red);
+                cs.beginText();
+                cs.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), fontSize);
+                // 获取旋转实例
+                cs.setTextMatrix(
+                        Matrix.getRotateInstance(
+                                Math.toRadians(45), width / formWidth, height / formHeight));
+                cs.showText(text);
+                cs.endText();
+                cs.close();
+            }
+            document.save(result);
+            document.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
-    return result;
-  }
 
-  /** pdf去除水印 */
-  public static boolean removeWatermark(File file) {
-    try {
-      PDDocument document = Loader.loadPDF(file);
-      // 移除加密
-      document.setAllSecurityToBeRemoved(true);
-      PDPageTree pages = document.getPages();
-      for (PDPage page : pages) {
-        PDResources resources = page.getResources();
-        resources
-            .getExtGStateNames()
-            .forEach(
-                ext -> {
-                  PDExtendedGraphicsState gState = resources.getExtGState(ext);
-                  gState.setNonStrokingAlphaConstant(0.0f);
-                });
-      }
-      String folderPath = file.getParent();
-      String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
-      document.save(folderPath + File.separator + fileName + "_无水印" + ".pdf");
-      document.close();
-      return true;
-    } catch (IOException ex) {
-      ex.printStackTrace();
-      return false;
+    /** pdf去除水印 */
+    public static boolean removeWatermark(File file) {
+        try {
+            PDDocument document = Loader.loadPDF(file);
+            // 移除加密
+            document.setAllSecurityToBeRemoved(true);
+            PDPageTree pages = document.getPages();
+            for (PDPage page : pages) {
+                PDResources resources = page.getResources();
+                resources
+                        .getExtGStateNames()
+                        .forEach(
+                                ext -> {
+                                    PDExtendedGraphicsState gState = resources.getExtGState(ext);
+                                    gState.setNonStrokingAlphaConstant(0.0f);
+                                });
+            }
+            String folderPath = file.getParent();
+            String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
+            document.save(folderPath + File.separator + fileName + "_无水印" + ".pdf");
+            document.close();
+            return true;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
-  }
 
-  /** pdf去除加密 */
-  public static boolean removePwd(File file) {
-    try {
-      PDDocument document = Loader.loadPDF(file);
-      // 移除加密
-      document.setAllSecurityToBeRemoved(true);
-      String folderPath = file.getParent();
-      String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
-      document.save(folderPath + File.separator + fileName + "_无加密" + ".pdf");
-      document.close();
-      return true;
-    } catch (IOException ex) {
-      ex.printStackTrace();
-      return false;
+    /** pdf去除加密 */
+    public static boolean removePwd(File file) {
+        try {
+            PDDocument document = Loader.loadPDF(file);
+            // 移除加密
+            document.setAllSecurityToBeRemoved(true);
+            String folderPath = file.getParent();
+            String fileName = file.getName().substring(0, file.getName().lastIndexOf("."));
+            document.save(folderPath + File.separator + fileName + "_无加密" + ".pdf");
+            document.close();
+            return true;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
-  }
 
-  public static void main(String[] args) {
-    removeWatermark(new File("/Users/pengjun/828.pdf"));
-  }
+    public static void main(String[] args) {
+        removeWatermark(new File("/Users/pengjun/828.pdf"));
+    }
 }

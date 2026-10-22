@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallFootprintEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,65 +34,65 @@ import java.util.Map;
  */
 public interface MallFootprintService extends IService<MallFootprintEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallFootprintEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallFootprintEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询所有列表
-   *
-   * @param queryWrapper 查询参数
-   * @return List
-   */
-  List<MallFootprintEntity> queryAllByWrapper(QueryWrapper<MallFootprintEntity> queryWrapper);
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallFootprintEntity> queryAllByWrapper(QueryWrapper<MallFootprintEntity> queryWrapper);
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<MallFootprintEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallFootprintEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增
-   *
-   * @param mallFootprint
-   * @return 新增结果
-   */
-  boolean add(MallFootprintEntity mallFootprint);
+    /**
+     * 新增
+     *
+     * @param mallFootprint
+     * @return 新增结果
+     */
+    boolean add(MallFootprintEntity mallFootprint);
 
-  /**
-   * 根据主键更新
-   *
-   * @param mallFootprint
-   * @return 更新结果
-   */
-  boolean update(MallFootprintEntity mallFootprint);
+    /**
+     * 根据主键更新
+     *
+     * @param mallFootprint
+     * @return 更新结果
+     */
+    boolean update(MallFootprintEntity mallFootprint);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  void deleteByParam(Map<String, Object> param);
+    void deleteByParam(Map<String, Object> param);
 
-  List<MallFootprintEntity> shareList(Map<String, Object> params);
+    List<MallFootprintEntity> shareList(Map<String, Object> params);
 
-  List<MallFootprintEntity> queryListFootprint(String userId);
+    List<MallFootprintEntity> queryListFootprint(String userId);
 }

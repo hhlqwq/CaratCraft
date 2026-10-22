@@ -55,7 +55,7 @@ if ($script:Calls[-1] -notmatch 'SELECT TABLE_NAME') { throw '缺基础表后仍
 $script:Mode = 'query-error'
 Assert-Rejected { Assert-DatabaseReady } 'MySQL'
 $script:Mode = 'old-schema'
-Assert-Rejected { Assert-DatabaseReady } 'V20261021_04'
+Assert-Rejected { Assert-DatabaseReady } 'V20261022_01'
 
 # 替换外部副作用, 检查完整启动阶段的先后顺序和失败退出.
 function Invoke-Compose {

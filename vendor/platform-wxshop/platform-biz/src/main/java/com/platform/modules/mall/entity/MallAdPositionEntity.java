@@ -22,8 +22,10 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 实体
@@ -34,22 +36,22 @@ import lombok.Data;
 @Data
 @TableName("mall_ad_position")
 public class MallAdPositionEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** */
-  private String name;
+    /** */
+    private String name;
 
-  /** */
-  private Integer width;
+    /** */
+    private Integer width;
 
-  /** */
-  private Integer height;
+    /** */
+    private Integer height;
 
-  /** */
-  @TableField(value = "`desc`")
-  private String desc;
+    /** */
+    @TableField(value = "`desc`")
+    private String desc;
 }

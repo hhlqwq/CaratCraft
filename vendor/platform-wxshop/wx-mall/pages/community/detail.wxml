@@ -1,14 +1,14 @@
 <view class="community-page">
-  <view wx:if="{{loading}}" class="state">正在读取分享…</view>
-  <view wx:if="{{error}}" class="state">{{error}}<button size="mini" bindtap="load">重试</button></view>
-  <view wx:if="{{post}}" class="post-card">
-    <view class="post-meta">{{post.kindText}} · {{post.createTime}}</view><view class="post-title">{{post.title}}</view><view class="post-content">{{post.content}}</view>
-    <view class="post-images"><image wx:for="{{post.images}}" wx:key="*this" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="preview" /></view>
-    <view wx:if="{{post.arrangement.length}}" class="public-design"><view class="post-title">公开设计排列</view><view class="community-note">按保存时的尺寸与顺序展示二维副本, 不代表实物外观, 不包含私人刻字、订单和联系方式。</view>
-      <view class="public-necklace"><view class="public-guide"></view><view wx:for="{{post.publicNodes}}" wx:for-item="node" wx:key="index" class="public-node {{node.pearl ? 'public-pearl' : 'public-part'}}" style="left:{{node.x}}%;top:{{node.y}}%;width:{{node.diameter}}%;height:{{node.diameter}}%;"></view></view>
-      <view wx:for="{{post.arrangement}}" wx:key="position" class="design-line">{{index + 1}}. {{item.name}} · {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸未配置'}} <text wx:if="{{item.shape}}"> · {{item.shape}} / {{item.luster}} / {{item.blemish}}</text></view></view>
-    <view class="post-footer"><button size="mini" bindtap="like" loading="{{busy}}" disabled="{{busy}}">{{liked ? '已赞' : '赞'}} {{post.likes}}</button><button wx:if="{{owned}}" size="mini" bindtap="remove">删除分享</button></view>
-  </view>
+    <view wx:if="{{loading}}" class="state">正在读取分享…</view>
+    <view wx:if="{{error}}" class="state">{{error}}<button size="mini" bindtap="load">重试</button></view>
+    <view wx:if="{{post}}" class="post-card">
+        <view class="post-meta">{{post.kindText}} · {{post.createTime}}</view><view class="post-title">{{post.title}}</view><view class="post-content">{{post.content}}</view>
+        <view class="post-images"><image wx:for="{{post.images}}" wx:key="*this" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="preview" /></view>
+        <view wx:if="{{post.arrangement.length}}" class="public-design"><view class="post-title">公开设计排列</view><view class="community-note">按保存时的尺寸与顺序展示二维副本, 不代表实物外观, 不包含私人刻字、订单和联系方式。</view>
+            <view class="public-necklace"><view class="public-guide"></view><view wx:for="{{post.publicNodes}}" wx:for-item="node" wx:key="index" class="public-node {{node.pearl ? 'public-pearl' : 'public-part'}}" style="left:{{node.x}}%;top:{{node.y}}%;width:{{node.diameter}}%;height:{{node.diameter}}%;"></view></view>
+            <view wx:for="{{post.arrangement}}" wx:key="position" class="design-line">{{index + 1}}. {{item.name}} · {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸未配置'}} <text wx:if="{{item.shape}}"> · {{item.shape}} / {{item.luster}} / {{item.blemish}}</text></view></view>
+        <view class="post-footer"><button size="mini" bindtap="like" loading="{{busy}}" disabled="{{busy}}">{{liked ? '已赞' : '赞'}} {{post.likes}}</button><button wx:if="{{owned}}" size="mini" bindtap="remove">删除分享</button></view>
+    </view>
 </view>
 
 <merchant-contact />

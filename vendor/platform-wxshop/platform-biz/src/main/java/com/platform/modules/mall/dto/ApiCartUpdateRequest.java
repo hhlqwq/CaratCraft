@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class ApiCartUpdateRequest {
-  private Integer goodsId;
-  private Integer productId;
-  private Integer number;
-  private Integer id;
+    private Integer goodsId;
+    private Integer productId;
+    private Integer number;
+    private Integer id;
 }

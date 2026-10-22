@@ -1,47 +1,47 @@
 /* 身份认证页：深色珠宝盒背景与浅色表单形成独立的登录视觉。 */
 page {
-  background: #102f2a;
-  color: #f8eedc;
+    background: #102f2a;
+    color: #f8eedc;
 }
 
 page .container {
-  min-height: 100vh;
-  padding: 110rpx 42rpx 60rpx;
-  box-sizing: border-box;
-  background:
-    radial-gradient(circle at 82% 12%, rgba(197, 151, 85, 0.26), transparent 34%), #102f2a;
+    min-height: 100vh;
+    padding: 110rpx 42rpx 60rpx;
+    box-sizing: border-box;
+    background:
+        radial-gradient(circle at 82% 12%, rgba(197, 151, 85, 0.26), transparent 34%), #102f2a;
 }
 
 page .form-box {
-  padding: 48rpx 36rpx;
-  border: 1rpx solid rgba(247, 228, 189, 0.28);
-  border-radius: 30rpx;
-  background: rgba(255, 253, 248, 0.97);
-  box-shadow: 0 30rpx 70rpx rgba(0, 0, 0, 0.2);
+    padding: 48rpx 36rpx;
+    border: 1rpx solid rgba(247, 228, 189, 0.28);
+    border-radius: 30rpx;
+    background: rgba(255, 253, 248, 0.97);
+    box-shadow: 0 30rpx 70rpx rgba(0, 0, 0, 0.2);
 }
 
 page .form-item,
 page .form-item-code {
-  border-color: rgba(16, 47, 42, 0.14);
-  border-radius: 14rpx;
-  background: #f4f0e8;
+    border-color: rgba(16, 47, 42, 0.14);
+    border-radius: 14rpx;
+    background: #f4f0e8;
 }
 
 page input {
-  color: #17352f;
+    color: #17352f;
 }
 
 page .login-btn,
 page .register-btn,
 page .reset-btn,
 page .mobile-btn {
-  border-radius: 14rpx;
-  background: #b98545;
-  color: #ffffff;
-  box-shadow: none;
+    border-radius: 14rpx;
+    background: #b98545;
+    color: #ffffff;
+    box-shadow: none;
 }
 
 page .form-item-text,
 page .form-item-text navigator {
-  color: #42665e;
+    color: #42665e;
 }

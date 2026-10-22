@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ApiCouponNewUserRequest {
-  private String phone;
-  private Integer smscode;
+    private String phone;
+    private Integer smscode;
 }

@@ -22,11 +22,14 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import jakarta.validation.constraints.NotBlank;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import lombok.Data;
 
 /**
  * 角色
@@ -36,31 +39,31 @@ import lombok.Data;
 @Data
 @TableName("SYS_ROLE")
 public class SysRoleEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 角色ID */
-  @TableId private String roleId;
+    /** 角色ID */
+    @TableId private String roleId;
 
-  /** 角色名称 */
-  @NotBlank(message = "角色名称不能为空")
-  private String roleName;
+    /** 角色名称 */
+    @NotBlank(message = "角色名称不能为空")
+    private String roleName;
 
-  /** 备注 */
-  private String remark;
+    /** 备注 */
+    private String remark;
 
-  /** 创建者ID */
-  private String createUserId;
+    /** 创建者ID */
+    private String createUserId;
 
-  /** 创建者所属机构 */
-  private String createUserOrgNo;
+    /** 创建者所属机构 */
+    private String createUserOrgNo;
 
-  @TableField(exist = false)
-  private List<String> menuIdList;
+    @TableField(exist = false)
+    private List<String> menuIdList;
 
-  @TableField(exist = false)
-  private List<String> orgNoList;
+    @TableField(exist = false)
+    private List<String> orgNoList;
 
-  /** 创建时间 */
-  @TableField(fill = FieldFill.INSERT)
-  private Date createTime;
+    /** 创建时间 */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 }

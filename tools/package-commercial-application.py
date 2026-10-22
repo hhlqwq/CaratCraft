@@ -28,7 +28,7 @@ def source_files():
             if path.name.lower() == "agents.md":
                 continue
             selected.append(path)
-        elif relative.startswith(("tools/", "legal/", "data/")) or (relative.startswith("docs/") and path.suffix == ".md"):
+        elif relative.startswith(("tools/", "legal/", "data/")) or (relative.startswith("docs/") and path.suffix in {".md", ".json"}):
             selected.append(path)
         elif relative in {"README.md", ".gitignore", ".gitattributes", ".editorconfig", ".prettierrc.json",
                           "dev.ps1", "dev.sh", "build-local-test.cmd", "start-local-test.cmd"}:

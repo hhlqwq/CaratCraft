@@ -29,35 +29,35 @@ import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
  */
 public interface MallRelatedGoodsService extends IService<MallRelatedGoodsEntity> {
 
-  /**
-   * 新增
-   *
-   * @param mallRelatedGoods 商品关联实体
-   * @return 新增结果
-   */
-  boolean add(MallRelatedGoodsEntity mallRelatedGoods);
+    /**
+     * 新增
+     *
+     * @param mallRelatedGoods 商品关联实体
+     * @return 新增结果
+     */
+    boolean add(MallRelatedGoodsEntity mallRelatedGoods);
 
-  /**
-   * 根据主键更新
-   *
-   * @param mallRelatedGoods 商品关联实体
-   * @return 更新结果
-   */
-  boolean update(MallRelatedGoodsEntity mallRelatedGoods);
+    /**
+     * 根据主键更新
+     *
+     * @param mallRelatedGoods 商品关联实体
+     * @return 更新结果
+     */
+    boolean update(MallRelatedGoodsEntity mallRelatedGoods);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 }

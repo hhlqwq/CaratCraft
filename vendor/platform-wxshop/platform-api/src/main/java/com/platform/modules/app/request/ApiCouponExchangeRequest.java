@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ApiCouponExchangeRequest {
-  private String couponNumber;
+    private String couponNumber;
 }

@@ -120,12 +120,12 @@ assert_database_ready() {
   tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');")" || return 1
   for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_MIGRATION; do
     if ! grep -Fxq "$name" <<< "$tables"; then
-      echo "数据库初始化或升级不完整, 缺少$name。请先备份并按use.md修复, 不要直接重置数据卷。"
+      echo "数据库初始化或升级不完整, 缺少$name。请先备份并按docs/项目维护文档.md修复, 不要直接重置数据卷。"
       return 1
     fi
   done
-  version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261021_04_menu_encoding.sql';")" || return 1
-  [[ "$version" == 1 ]] || { echo "请先按use.md备份并完成V20261021_04迁移。"; return 1; }
+  version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';")" || return 1
+  [[ "$version" == 1 ]] || { echo "请先按docs/项目维护文档.md备份并完成V20261022_01迁移。"; return 1; }
 }
 
 # 输出有限的容器状态和健康检查结果, 保留启动失败退出码.
@@ -135,7 +135,7 @@ show_startup_diagnostics() {
   for name in platform-admin platform-api; do
     docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
   done
-  echo "日志: ./dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见use.md。"
+  echo "日志: ./dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
 }
 
 # 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.

@@ -19,11 +19,14 @@
 package com.platform.common.utils;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.Serializable;
+
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.springframework.http.HttpStatus;
+
+import java.io.Serializable;
 
 /**
  * 返回数据
@@ -34,74 +37,74 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Schema(description = "响应信息")
 public class RestResponse<V> implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** 是否成功 */
-  @Schema(description = "是否成功", example = "true")
-  private boolean success = true;
+    /** 是否成功 */
+    @Schema(description = "是否成功", example = "true")
+    private boolean success = true;
 
-  /** 状态码 */
-  @Schema(description = "状态码", example = "0")
-  private int code = 0;
+    /** 状态码 */
+    @Schema(description = "状态码", example = "0")
+    private int code = 0;
 
-  /** 状态信息 */
-  @Schema(description = "状态信息", example = "操作成功")
-  private String msg = "操作成功";
+    /** 状态信息 */
+    @Schema(description = "状态信息", example = "操作成功")
+    private String msg = "操作成功";
 
-  /** 返回数据 */
-  @Schema(description = "返回数据")
-  private V data;
+    /** 返回数据 */
+    @Schema(description = "返回数据")
+    private V data;
 
-  /** 时间戳 */
-  @Schema(description = "时间戳", example = "1691453288")
-  private long timestamp = DateUtils.currentSeconds();
+    /** 时间戳 */
+    @Schema(description = "时间戳", example = "1691453288")
+    private long timestamp = DateUtils.currentSeconds();
 
-  /** 成功状态码 */
-  private static final int SUCCESS_CODE = 0;
+    /** 成功状态码 */
+    private static final int SUCCESS_CODE = 0;
 
-  /** 失败状态码 */
-  private static final int FAIL_CODE = HttpStatus.BAD_REQUEST.value();
+    /** 失败状态码 */
+    private static final int FAIL_CODE = HttpStatus.BAD_REQUEST.value();
 
-  public RestResponse(boolean success, int code, String msg, V data) {
-    this.success = success;
-    this.code = code;
-    this.msg = msg;
-    this.data = data;
-  }
+    public RestResponse(boolean success, int code, String msg, V data) {
+        this.success = success;
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
+    }
 
-  public static <V> RestResponse<V> ok() {
-    return new RestResponse<>(true, SUCCESS_CODE, "操作成功", null);
-  }
+    public static <V> RestResponse<V> ok() {
+        return new RestResponse<>(true, SUCCESS_CODE, "操作成功", null);
+    }
 
-  public static <V> RestResponse<V> ok(V data) {
-    return new RestResponse<>(true, SUCCESS_CODE, "操作成功", data);
-  }
+    public static <V> RestResponse<V> ok(V data) {
+        return new RestResponse<>(true, SUCCESS_CODE, "操作成功", data);
+    }
 
-  public static <V> RestResponse<V> ok(String msg) {
-    return new RestResponse<>(true, SUCCESS_CODE, msg, null);
-  }
+    public static <V> RestResponse<V> ok(String msg) {
+        return new RestResponse<>(true, SUCCESS_CODE, msg, null);
+    }
 
-  public static <V> RestResponse<V> ok(String msg, V data) {
-    return new RestResponse<>(true, SUCCESS_CODE, msg, data);
-  }
+    public static <V> RestResponse<V> ok(String msg, V data) {
+        return new RestResponse<>(true, SUCCESS_CODE, msg, data);
+    }
 
-  public static <V> RestResponse<V> fail() {
-    return new RestResponse<>(false, FAIL_CODE, "操作失败", null);
-  }
+    public static <V> RestResponse<V> fail() {
+        return new RestResponse<>(false, FAIL_CODE, "操作失败", null);
+    }
 
-  public static <V> RestResponse<V> fail(String msg) {
-    return new RestResponse<>(false, FAIL_CODE, msg, null);
-  }
+    public static <V> RestResponse<V> fail(String msg) {
+        return new RestResponse<>(false, FAIL_CODE, msg, null);
+    }
 
-  public static <V> RestResponse<V> fail(V data) {
-    return new RestResponse<>(false, FAIL_CODE, "操作失败", data);
-  }
+    public static <V> RestResponse<V> fail(V data) {
+        return new RestResponse<>(false, FAIL_CODE, "操作失败", data);
+    }
 
-  public static <V> RestResponse<V> fail(String msg, V data) {
-    return new RestResponse<>(false, FAIL_CODE, msg, data);
-  }
+    public static <V> RestResponse<V> fail(String msg, V data) {
+        return new RestResponse<>(false, FAIL_CODE, msg, data);
+    }
 
-  public static <V> RestResponse<V> fail(int code, String msg) {
-    return new RestResponse<>(false, code, msg, null);
-  }
+    public static <V> RestResponse<V> fail(int code, String msg) {
+        return new RestResponse<>(false, code, msg, null);
+    }
 }

@@ -26,10 +26,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
 import com.platform.handler.JsonArrayTypeHandler;
+
+import lombok.Data;
+
+import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
-import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 
 /**
  * 模板消息日志
@@ -40,36 +43,36 @@ import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 @TableName(value = "WX_TEMPLATE_MSG_LOG", autoResultMap = true)
 public class TemplateMsgLogEntity implements Serializable {
 
-  private static final long serialVersionUID = 1L;
-  @TableId private String logId;
-  private String touser;
-  private String templateId;
+    private static final long serialVersionUID = 1L;
+    @TableId private String logId;
+    private String touser;
+    private String templateId;
 
-  @TableField(typeHandler = JsonArrayTypeHandler.class)
-  private JSONArray data;
+    @TableField(typeHandler = JsonArrayTypeHandler.class)
+    private JSONArray data;
 
-  private String url;
+    private String url;
 
-  @TableField(typeHandler = FastjsonTypeHandler.class)
-  private JSONObject miniprogram;
+    @TableField(typeHandler = FastjsonTypeHandler.class)
+    private JSONObject miniprogram;
 
-  private Date sendTime;
-  private String sendResult;
+    private Date sendTime;
+    private String sendResult;
 
-  public TemplateMsgLogEntity() {}
+    public TemplateMsgLogEntity() {}
 
-  public TemplateMsgLogEntity(WxMpTemplateMessage msg, String sendResult) {
-    this.touser = msg.getToUser();
-    this.templateId = msg.getTemplateId();
-    this.url = msg.getUrl();
-    this.miniprogram = JSONObject.parseObject(JSON.toJSONString(msg.getMiniProgram()));
-    this.data = JSONArray.parseArray(JSON.toJSONString(msg.getData()));
-    this.sendTime = new Date();
-    this.sendResult = sendResult;
-  }
+    public TemplateMsgLogEntity(WxMpTemplateMessage msg, String sendResult) {
+        this.touser = msg.getToUser();
+        this.templateId = msg.getTemplateId();
+        this.url = msg.getUrl();
+        this.miniprogram = JSONObject.parseObject(JSON.toJSONString(msg.getMiniProgram()));
+        this.data = JSONArray.parseArray(JSON.toJSONString(msg.getData()));
+        this.sendTime = new Date();
+        this.sendResult = sendResult;
+    }
 
-  @Override
-  public String toString() {
-    return JSON.toJSONString(this);
-  }
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
+    }
 }

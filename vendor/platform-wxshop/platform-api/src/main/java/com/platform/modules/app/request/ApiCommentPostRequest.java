@@ -1,12 +1,13 @@
 package com.platform.modules.app.request;
 
-import java.util.List;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class ApiCommentPostRequest {
-  private Integer typeId;
-  private Integer valueId;
-  private String content;
-  private List<String> imagesList;
+    private Integer typeId;
+    private Integer valueId;
+    private String content;
+    private List<String> imagesList;
 }

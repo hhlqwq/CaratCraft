@@ -22,14 +22,24 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * 用户表
@@ -41,34 +51,34 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/manage/wxUser")
 public class WxUserManageController {
-  private final WxUserService userService;
+    private final WxUserService userService;
 
-  /** 列表 */
-  @GetMapping("/list")
-  @RequiresPermissions("wx:wxuser:list")
-  @Operation(summary = "分页查询", description = "分页查询")
-  public RestResponse<Page<WxUserEntity>> list(@RequestParam Map<String, Object> params) {
-    Page<WxUserEntity> page = userService.queryPage(params);
+    /** 列表 */
+    @GetMapping("/list")
+    @RequiresPermissions("wx:wxuser:list")
+    @Operation(summary = "分页查询", description = "分页查询")
+    public RestResponse<Page<WxUserEntity>> list(@RequestParam Map<String, Object> params) {
+        Page<WxUserEntity> page = userService.queryPage(params);
 
-    return RestResponse.ok(page);
-  }
+        return RestResponse.ok(page);
+    }
 
-  /** 列表 */
-  @PostMapping("/listByIds")
-  @RequiresPermissions("wx:wxuser:list")
-  @Operation(summary = "查看所有列表", description = "查看所有列表")
-  public RestResponse<List<WxUserEntity>> listByIds(@RequestBody String[] openids) {
-    List<WxUserEntity> users = userService.listByIds(Arrays.asList(openids));
-    return RestResponse.ok(users);
-  }
+    /** 列表 */
+    @PostMapping("/listByIds")
+    @RequiresPermissions("wx:wxuser:list")
+    @Operation(summary = "查看所有列表", description = "查看所有列表")
+    public RestResponse<List<WxUserEntity>> listByIds(@RequestBody String[] openids) {
+        List<WxUserEntity> users = userService.listByIds(Arrays.asList(openids));
+        return RestResponse.ok(users);
+    }
 
-  /** 信息 */
-  @GetMapping("/info/{openid}")
-  @RequiresPermissions("wx:wxuser:info")
-  @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
-  public RestResponse<WxUserEntity> info(@PathVariable("openid") String openid) {
-    WxUserEntity wxUser = userService.getById(openid);
+    /** 信息 */
+    @GetMapping("/info/{openid}")
+    @RequiresPermissions("wx:wxuser:info")
+    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+    public RestResponse<WxUserEntity> info(@PathVariable("openid") String openid) {
+        WxUserEntity wxUser = userService.getById(openid);
 
-    return RestResponse.ok(wxUser);
-  }
+        return RestResponse.ok(wxUser);
+    }
 }

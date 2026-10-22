@@ -22,9 +22,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
-import lombok.Data;
 
 /**
  * 商品货品表
@@ -34,23 +36,23 @@ import lombok.Data;
 @Data
 @TableName("mall_product")
 public class MallProductEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  private Integer goodsId;
-  private String goodsSpecificationIds;
-  private String goodsSn;
-  private Integer goodsNumber;
-  private BigDecimal retailPrice;
-  private BigDecimal marketPrice;
+    private Integer goodsId;
+    private String goodsSpecificationIds;
+    private String goodsSn;
+    private Integer goodsNumber;
+    private BigDecimal retailPrice;
+    private BigDecimal marketPrice;
 
-  // 商品名称
-  @TableField(exist = false)
-  private String goodsName;
+    // 商品名称
+    @TableField(exist = false)
+    private String goodsName;
 
-  // 商品图片
-  @TableField(exist = false)
-  private String listPicUrl;
+    // 商品图片
+    @TableField(exist = false)
+    private String listPicUrl;
 }

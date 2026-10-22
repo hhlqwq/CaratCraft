@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallCouponDao;
 import com.platform.modules.mall.entity.MallCouponEntity;
 import com.platform.modules.mall.service.MallCouponService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,54 +41,54 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallCouponService")
 public class MallCouponServiceImpl extends ServiceImpl<MallCouponDao, MallCouponEntity>
-    implements MallCouponService {
+        implements MallCouponService {
 
-  @Override
-  public List<MallCouponEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallCouponEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallCouponEntity> queryAllByWrapper(QueryWrapper<MallCouponEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallCouponEntity> queryAllByWrapper(QueryWrapper<MallCouponEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallCouponEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallCouponEntity> page = new Query<MallCouponEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallCouponPage(page, params));
-  }
+    @Override
+    public Page<MallCouponEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallCouponEntity> page = new Query<MallCouponEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallCouponPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallCouponEntity mallCoupon) {
-    return this.save(mallCoupon);
-  }
+    @Override
+    public boolean add(MallCouponEntity mallCoupon) {
+        return this.save(mallCoupon);
+    }
 
-  @Override
-  public boolean update(MallCouponEntity mallCoupon) {
-    return this.updateById(mallCoupon);
-  }
+    @Override
+    public boolean update(MallCouponEntity mallCoupon) {
+        return this.updateById(mallCoupon);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 
-  public MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> map) {
-    return baseMapper.queryMaxUserEnableCoupon(map);
-  }
+    public MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> map) {
+        return baseMapper.queryMaxUserEnableCoupon(map);
+    }
 
-  @Override
-  public List<MallCouponEntity> queryList(Map<String, Object> couponParam) {
-    return baseMapper.queryList(couponParam);
-  }
+    @Override
+    public List<MallCouponEntity> queryList(Map<String, Object> couponParam) {
+        return baseMapper.queryList(couponParam);
+    }
 }

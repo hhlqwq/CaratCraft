@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallKeywordsEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,61 +34,61 @@ import java.util.Map;
  */
 public interface MallKeywordsService extends IService<MallKeywordsEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallKeywordsEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallKeywordsEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询所有列表
-   *
-   * @param queryWrapper 查询参数
-   * @return List
-   */
-  List<MallKeywordsEntity> queryAllByWrapper(QueryWrapper<MallKeywordsEntity> queryWrapper);
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallKeywordsEntity> queryAllByWrapper(QueryWrapper<MallKeywordsEntity> queryWrapper);
 
-  /**
-   * 分页查询关键词热搜表
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<MallKeywordsEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询关键词热搜表
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallKeywordsEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增关键词热搜表
-   *
-   * @param mallKeywords 关键词热搜表
-   * @return 新增结果
-   */
-  boolean add(MallKeywordsEntity mallKeywords);
+    /**
+     * 新增关键词热搜表
+     *
+     * @param mallKeywords 关键词热搜表
+     * @return 新增结果
+     */
+    boolean add(MallKeywordsEntity mallKeywords);
 
-  /**
-   * 根据主键更新关键词热搜表
-   *
-   * @param mallKeywords 关键词热搜表
-   * @return 更新结果
-   */
-  boolean update(MallKeywordsEntity mallKeywords);
+    /**
+     * 根据主键更新关键词热搜表
+     *
+     * @param mallKeywords 关键词热搜表
+     * @return 更新结果
+     */
+    boolean update(MallKeywordsEntity mallKeywords);
 
-  /**
-   * 根据主键删除关键词热搜表
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除关键词热搜表
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  List<MallKeywordsEntity> queryList(Map<String, Object> param);
+    List<MallKeywordsEntity> queryList(Map<String, Object> param);
 }

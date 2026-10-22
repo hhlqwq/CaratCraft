@@ -1,6 +1,7 @@
 package com.platform.modules.app.request;
 
 import com.platform.modules.app.entity.FullUserInfo;
+
 import lombok.Data;
 
 /**
@@ -8,6 +9,6 @@ import lombok.Data;
  */
 @Data
 public class ApiAuthLoginByWeixinRequest {
-  private String code;
-  private FullUserInfo userInfo;
+    private String code;
+    private FullUserInfo userInfo;
 }

@@ -21,8 +21,10 @@ package com.platform.modules.mall.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 商品关联实体
@@ -33,14 +35,14 @@ import lombok.Data;
 @Data
 @TableName("mall_related_goods")
 public class MallRelatedGoodsEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 主商品ID */
-  private Integer goodsId;
+    /** 主商品ID */
+    private Integer goodsId;
 
-  /** 关联商品ID */
-  private Integer relatedGoodsId;
+    /** 关联商品ID */
+    private Integer relatedGoodsId;
 }

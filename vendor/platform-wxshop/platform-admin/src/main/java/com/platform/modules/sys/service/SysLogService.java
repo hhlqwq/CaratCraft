@@ -21,6 +21,7 @@ package com.platform.modules.sys.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysLogEntity;
+
 import java.util.Map;
 
 /**
@@ -30,11 +31,11 @@ import java.util.Map;
  */
 public interface SysLogService extends IService<SysLogEntity> {
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return IPage
-   */
-  Page<SysLogEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return IPage
+     */
+    Page<SysLogEntity> queryPage(Map<String, Object> params);
 }

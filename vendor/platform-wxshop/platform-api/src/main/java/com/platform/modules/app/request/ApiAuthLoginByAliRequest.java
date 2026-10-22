@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class ApiAuthLoginByAliRequest {
-  private String code;
+    private String code;
 }

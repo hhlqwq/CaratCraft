@@ -28,6 +28,7 @@ import com.github.qcloudsms.SmsMultiSender;
 import com.github.qcloudsms.SmsMultiSenderResult;
 import com.github.qcloudsms.SmsSingleSender;
 import com.github.qcloudsms.SmsSingleSenderResult;
+
 import java.util.Map;
 
 /**
@@ -36,161 +37,170 @@ import java.util.Map;
  * @author hehailong
  */
 public class SmsUtil {
-  /**
-   * 使用AK&SK初始化阿里云SMS账号Client
-   *
-   * @param accessKeyId accessKeyId
-   * @param accessKeySecret accessKeySecret
-   * @return Client
-   * @throws Exception
-   */
-  public static Client createAliSmsClient(String accessKeyId, String accessKeySecret)
-      throws Exception {
-    Config config =
-        new Config()
-            .setAccessKeyId(accessKeyId)
-            .setAccessKeySecret(accessKeySecret)
-            .setEndpoint("dysmsapi.aliyuncs.com");
-    return new Client(config);
-  }
-
-  /**
-   * 指定模板ID单发短信 签名参数未提供或者为空时，会使用默认签名发送短信
-   *
-   * @param accessKeyId accessKeyId
-   * @param accessKeySecret accessKeySecret
-   * @param phoneNumber 手机号
-   * @param templateCode 模板CODE
-   * @param params 参数
-   * @param smsSign 签名
-   * @return SmsSingleSenderResult
-   */
-  public static SendSmsResponse aliSendSms(
-      String accessKeyId,
-      String accessKeySecret,
-      String phoneNumber,
-      String templateCode,
-      Map<String, Object> params,
-      String smsSign)
-      throws Exception {
-    Client client = SmsUtil.createAliSmsClient(accessKeyId, accessKeySecret);
-    SendSmsRequest sendSmsRequest = new SendSmsRequest();
-    RuntimeOptions runtime = new RuntimeOptions();
-    sendSmsRequest.setSignName(smsSign);
-    sendSmsRequest.setPhoneNumbers(phoneNumber);
-    sendSmsRequest.setTemplateCode(templateCode);
-    sendSmsRequest.setTemplateParam(JSONObject.toJSONString(params));
-
-    return client.sendSmsWithOptions(sendSmsRequest, runtime);
-  }
-
-  /**
-   * 指定模板ID群发 签名参数未提供或者为空时，会使用默认签名发送短信
-   *
-   * @param appid appid
-   * @param appkey appkey
-   * @param nationCode 国家码，如 86 为中国
-   * @param phoneNumbers 手机号
-   * @param templateId 模板ID
-   * @param params 参数
-   * @param sign 签名
-   * @return SmsMultiSenderResult
-   */
-  public static SmsMultiSenderResult crSendSms(
-      int appid,
-      String appkey,
-      String nationCode,
-      String[] phoneNumbers,
-      int templateId,
-      String[] params,
-      String sign) {
-    SmsMultiSenderResult result = new SmsMultiSenderResult();
-    try {
-      SmsMultiSender msender = new SmsMultiSender(appid, appkey);
-      result = msender.sendWithParam(nationCode, phoneNumbers, templateId, params, sign, "", "");
-    } catch (Exception e) {
-      // 网络IO错误
-      e.printStackTrace();
+    /**
+     * 使用AK&SK初始化阿里云SMS账号Client
+     *
+     * @param accessKeyId accessKeyId
+     * @param accessKeySecret accessKeySecret
+     * @return Client
+     * @throws Exception
+     */
+    public static Client createAliSmsClient(String accessKeyId, String accessKeySecret)
+            throws Exception {
+        Config config =
+                new Config()
+                        .setAccessKeyId(accessKeyId)
+                        .setAccessKeySecret(accessKeySecret)
+                        .setEndpoint("dysmsapi.aliyuncs.com");
+        return new Client(config);
     }
-    return result;
-  }
 
-  /**
-   * 指定模板ID单发短信 签名参数未提供或者为空时，会使用默认签名发送短信
-   *
-   * @param appid appid
-   * @param appkey appkey
-   * @param nationCode 国家码，如 86 为中国
-   * @param phoneNumber 手机号
-   * @param templateId 模板ID
-   * @param params 参数
-   * @param smsSign 签名
-   * @return SmsSingleSenderResult
-   */
-  public static SmsSingleSenderResult crSendSms(
-      int appid,
-      String appkey,
-      String nationCode,
-      String phoneNumber,
-      int templateId,
-      String[] params,
-      String smsSign) {
-    SmsSingleSenderResult result = new SmsSingleSenderResult();
-    try {
-      SmsSingleSender ssender = new SmsSingleSender(appid, appkey);
-      result = ssender.sendWithParam(nationCode, phoneNumber, templateId, params, smsSign, "", "");
-    } catch (Exception e) {
-      // 网络IO错误
-      e.printStackTrace();
-    }
-    return result;
-  }
+    /**
+     * 指定模板ID单发短信 签名参数未提供或者为空时，会使用默认签名发送短信
+     *
+     * @param accessKeyId accessKeyId
+     * @param accessKeySecret accessKeySecret
+     * @param phoneNumber 手机号
+     * @param templateCode 模板CODE
+     * @param params 参数
+     * @param smsSign 签名
+     * @return SmsSingleSenderResult
+     */
+    public static SendSmsResponse aliSendSms(
+            String accessKeyId,
+            String accessKeySecret,
+            String phoneNumber,
+            String templateCode,
+            Map<String, Object> params,
+            String smsSign)
+            throws Exception {
+        Client client = SmsUtil.createAliSmsClient(accessKeyId, accessKeySecret);
+        SendSmsRequest sendSmsRequest = new SendSmsRequest();
+        RuntimeOptions runtime = new RuntimeOptions();
+        sendSmsRequest.setSignName(smsSign);
+        sendSmsRequest.setPhoneNumbers(phoneNumber);
+        sendSmsRequest.setTemplateCode(templateCode);
+        sendSmsRequest.setTemplateParam(JSONObject.toJSONString(params));
 
-  /**
-   * 单发短信
-   *
-   * @param appid appid
-   * @param appkey appkey
-   * @param type 短信类型，0 为普通短信，1 营销短信
-   * @param nationCode 国家码，如 86 为中国
-   * @param phoneNumber 不带国家码的手机号列表
-   * @param msg 短信内容，必须与申请的模板格式一致，否则将返回错误
-   * @return SmsSingleSenderResult
-   */
-  public static SmsSingleSenderResult crSendSms(
-      int appid, String appkey, int type, String nationCode, String phoneNumber, String msg) {
-    SmsSingleSenderResult result = new SmsSingleSenderResult();
-    try {
-      SmsSingleSender ssender = new SmsSingleSender(appid, appkey);
-      result = ssender.send(type, nationCode, phoneNumber, msg, "", "");
-    } catch (Exception e) {
-      // 网络IO错误
-      e.printStackTrace();
+        return client.sendSmsWithOptions(sendSmsRequest, runtime);
     }
-    return result;
-  }
 
-  /**
-   * 群发短信
-   *
-   * @param appid appid
-   * @param appkey appkey
-   * @param type 短信类型，0 为普通短信，1 营销短信
-   * @param nationCode 国家码，如 86 为中国
-   * @param phoneNumbers 不带国家码的手机号列表
-   * @param msg 短信内容，必须与申请的模板格式一致，否则将返回错误
-   * @return SmsMultiSenderResult
-   */
-  public static SmsMultiSenderResult crSendSms(
-      int appid, String appkey, int type, String nationCode, String[] phoneNumbers, String msg) {
-    SmsMultiSenderResult result = new SmsMultiSenderResult();
-    try {
-      SmsMultiSender msender = new SmsMultiSender(appid, appkey);
-      result = msender.send(type, nationCode, phoneNumbers, msg, "", "");
-    } catch (Exception e) {
-      // 网络IO错误
-      e.printStackTrace();
+    /**
+     * 指定模板ID群发 签名参数未提供或者为空时，会使用默认签名发送短信
+     *
+     * @param appid appid
+     * @param appkey appkey
+     * @param nationCode 国家码，如 86 为中国
+     * @param phoneNumbers 手机号
+     * @param templateId 模板ID
+     * @param params 参数
+     * @param sign 签名
+     * @return SmsMultiSenderResult
+     */
+    public static SmsMultiSenderResult crSendSms(
+            int appid,
+            String appkey,
+            String nationCode,
+            String[] phoneNumbers,
+            int templateId,
+            String[] params,
+            String sign) {
+        SmsMultiSenderResult result = new SmsMultiSenderResult();
+        try {
+            SmsMultiSender msender = new SmsMultiSender(appid, appkey);
+            result =
+                    msender.sendWithParam(
+                            nationCode, phoneNumbers, templateId, params, sign, "", "");
+        } catch (Exception e) {
+            // 网络IO错误
+            e.printStackTrace();
+        }
+        return result;
     }
-    return result;
-  }
+
+    /**
+     * 指定模板ID单发短信 签名参数未提供或者为空时，会使用默认签名发送短信
+     *
+     * @param appid appid
+     * @param appkey appkey
+     * @param nationCode 国家码，如 86 为中国
+     * @param phoneNumber 手机号
+     * @param templateId 模板ID
+     * @param params 参数
+     * @param smsSign 签名
+     * @return SmsSingleSenderResult
+     */
+    public static SmsSingleSenderResult crSendSms(
+            int appid,
+            String appkey,
+            String nationCode,
+            String phoneNumber,
+            int templateId,
+            String[] params,
+            String smsSign) {
+        SmsSingleSenderResult result = new SmsSingleSenderResult();
+        try {
+            SmsSingleSender ssender = new SmsSingleSender(appid, appkey);
+            result =
+                    ssender.sendWithParam(
+                            nationCode, phoneNumber, templateId, params, smsSign, "", "");
+        } catch (Exception e) {
+            // 网络IO错误
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * 单发短信
+     *
+     * @param appid appid
+     * @param appkey appkey
+     * @param type 短信类型，0 为普通短信，1 营销短信
+     * @param nationCode 国家码，如 86 为中国
+     * @param phoneNumber 不带国家码的手机号列表
+     * @param msg 短信内容，必须与申请的模板格式一致，否则将返回错误
+     * @return SmsSingleSenderResult
+     */
+    public static SmsSingleSenderResult crSendSms(
+            int appid, String appkey, int type, String nationCode, String phoneNumber, String msg) {
+        SmsSingleSenderResult result = new SmsSingleSenderResult();
+        try {
+            SmsSingleSender ssender = new SmsSingleSender(appid, appkey);
+            result = ssender.send(type, nationCode, phoneNumber, msg, "", "");
+        } catch (Exception e) {
+            // 网络IO错误
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * 群发短信
+     *
+     * @param appid appid
+     * @param appkey appkey
+     * @param type 短信类型，0 为普通短信，1 营销短信
+     * @param nationCode 国家码，如 86 为中国
+     * @param phoneNumbers 不带国家码的手机号列表
+     * @param msg 短信内容，必须与申请的模板格式一致，否则将返回错误
+     * @return SmsMultiSenderResult
+     */
+    public static SmsMultiSenderResult crSendSms(
+            int appid,
+            String appkey,
+            int type,
+            String nationCode,
+            String[] phoneNumbers,
+            String msg) {
+        SmsMultiSenderResult result = new SmsMultiSenderResult();
+        try {
+            SmsMultiSender msender = new SmsMultiSender(appid, appkey);
+            result = msender.send(type, nationCode, phoneNumbers, msg, "", "");
+        } catch (Exception e) {
+            // 网络IO错误
+            e.printStackTrace();
+        }
+        return result;
+    }
 }

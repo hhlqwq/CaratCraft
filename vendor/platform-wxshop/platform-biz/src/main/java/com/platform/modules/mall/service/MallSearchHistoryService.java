@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallSearchHistoryEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -33,62 +34,62 @@ import java.util.Map;
  */
 public interface MallSearchHistoryService extends IService<MallSearchHistoryEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallSearchHistoryEntity> queryAll(Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallSearchHistoryEntity> queryAll(Map<String, Object> params);
 
-  /**
-   * 查询所有列表
-   *
-   * @param queryWrapper 查询参数
-   * @return List
-   */
-  List<MallSearchHistoryEntity> queryAllByWrapper(
-      QueryWrapper<MallSearchHistoryEntity> queryWrapper);
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallSearchHistoryEntity> queryAllByWrapper(
+            QueryWrapper<MallSearchHistoryEntity> queryWrapper);
 
-  /**
-   * 分页查询
-   *
-   * @param params 查询参数
-   * @return Page
-   */
-  Page<MallSearchHistoryEntity> queryPage(Map<String, Object> params);
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallSearchHistoryEntity> queryPage(Map<String, Object> params);
 
-  /**
-   * 新增
-   *
-   * @param mallSearchHistory
-   * @return 新增结果
-   */
-  boolean add(MallSearchHistoryEntity mallSearchHistory);
+    /**
+     * 新增
+     *
+     * @param mallSearchHistory
+     * @return 新增结果
+     */
+    boolean add(MallSearchHistoryEntity mallSearchHistory);
 
-  /**
-   * 根据主键更新
-   *
-   * @param mallSearchHistory
-   * @return 更新结果
-   */
-  boolean update(MallSearchHistoryEntity mallSearchHistory);
+    /**
+     * 根据主键更新
+     *
+     * @param mallSearchHistory
+     * @return 更新结果
+     */
+    boolean update(MallSearchHistoryEntity mallSearchHistory);
 
-  /**
-   * 根据主键删除
-   *
-   * @param id id
-   * @return 删除结果
-   */
-  boolean delete(Integer id);
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
 
-  /**
-   * 根据主键批量删除
-   *
-   * @param ids ids
-   * @return 删除结果
-   */
-  boolean deleteBatch(Integer[] ids);
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
 
-  List<MallSearchHistoryEntity> queryList(Map<String, Object> param);
+    List<MallSearchHistoryEntity> queryList(Map<String, Object> param);
 }

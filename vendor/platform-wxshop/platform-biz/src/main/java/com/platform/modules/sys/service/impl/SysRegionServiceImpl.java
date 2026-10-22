@@ -3,10 +3,12 @@ package com.platform.modules.sys.service.impl;
 import com.platform.modules.sys.dao.SysRegionDao;
 import com.platform.modules.sys.entity.SysRegionEntity;
 import com.platform.modules.sys.service.SysRegionService;
-import java.util.List;
-import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service实现类
@@ -17,15 +19,15 @@ import org.springframework.stereotype.Service;
  */
 @Service("regionService")
 public class SysRegionServiceImpl implements SysRegionService {
-  @Autowired private SysRegionDao sysRegionDao;
+    @Autowired private SysRegionDao sysRegionDao;
 
-  @Override
-  public List<SysRegionEntity> queryList(Map<String, Object> map) {
-    return sysRegionDao.queryList(map);
-  }
+    @Override
+    public List<SysRegionEntity> queryList(Map<String, Object> map) {
+        return sysRegionDao.queryList(map);
+    }
 
-  @Override
-  public int queryTotal(Map<String, Object> map) {
-    return sysRegionDao.queryTotal(map);
-  }
+    @Override
+    public int queryTotal(Map<String, Object> map) {
+        return sysRegionDao.queryTotal(map);
+    }
 }

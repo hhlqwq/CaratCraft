@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallSearchHistoryDao;
 import com.platform.modules.mall.entity.MallSearchHistoryEntity;
 import com.platform.modules.mall.service.MallSearchHistoryService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,52 +41,52 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallSearchHistoryService")
 public class MallSearchHistoryServiceImpl
-    extends ServiceImpl<MallSearchHistoryDao, MallSearchHistoryEntity>
-    implements MallSearchHistoryService {
+        extends ServiceImpl<MallSearchHistoryDao, MallSearchHistoryEntity>
+        implements MallSearchHistoryService {
 
-  @Override
-  public List<MallSearchHistoryEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallSearchHistoryEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallSearchHistoryEntity> queryAllByWrapper(
-      QueryWrapper<MallSearchHistoryEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallSearchHistoryEntity> queryAllByWrapper(
+            QueryWrapper<MallSearchHistoryEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallSearchHistoryEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallSearchHistoryEntity> page = new Query<MallSearchHistoryEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallSearchHistoryPage(page, params));
-  }
+    @Override
+    public Page<MallSearchHistoryEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallSearchHistoryEntity> page = new Query<MallSearchHistoryEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallSearchHistoryPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallSearchHistoryEntity mallSearchHistory) {
-    return this.save(mallSearchHistory);
-  }
+    @Override
+    public boolean add(MallSearchHistoryEntity mallSearchHistory) {
+        return this.save(mallSearchHistory);
+    }
 
-  @Override
-  public boolean update(MallSearchHistoryEntity mallSearchHistory) {
-    return this.updateById(mallSearchHistory);
-  }
+    @Override
+    public boolean update(MallSearchHistoryEntity mallSearchHistory) {
+        return this.updateById(mallSearchHistory);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 
-  @Override
-  public List<MallSearchHistoryEntity> queryList(Map<String, Object> param) {
-    return baseMapper.queryList(param);
-  }
+    @Override
+    public List<MallSearchHistoryEntity> queryList(Map<String, Object> param) {
+        return baseMapper.queryList(param);
+    }
 }

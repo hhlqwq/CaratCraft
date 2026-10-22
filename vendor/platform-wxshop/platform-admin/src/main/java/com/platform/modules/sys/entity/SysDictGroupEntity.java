@@ -24,10 +24,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.platform.common.validator.group.AddGroup;
 import com.platform.common.validator.group.UpdateGroup;
+
 import jakarta.validation.constraints.NotBlank;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 数据字典分组实体 表名 sys_dict_group
@@ -38,26 +41,26 @@ import lombok.Data;
 @Data
 @TableName("SYS_DICT_GROUP")
 public class SysDictGroupEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  @TableId private String id;
+    @TableId private String id;
 
-  /** 分组编码 */
-  @NotBlank(
-      message = "分组编码不能为空",
-      groups = {AddGroup.class, UpdateGroup.class})
-  private String code;
+    /** 分组编码 */
+    @NotBlank(
+            message = "分组编码不能为空",
+            groups = {AddGroup.class, UpdateGroup.class})
+    private String code;
 
-  /** 分组名称 */
-  @NotBlank(
-      message = "分组名称不能为空",
-      groups = {AddGroup.class, UpdateGroup.class})
-  private String name;
+    /** 分组名称 */
+    @NotBlank(
+            message = "分组名称不能为空",
+            groups = {AddGroup.class, UpdateGroup.class})
+    private String name;
 
-  /** 创建时间 */
-  @TableField(fill = FieldFill.INSERT)
-  private Date createTime;
+    /** 创建时间 */
+    @TableField(fill = FieldFill.INSERT)
+    private Date createTime;
 
-  /** 备注 */
-  private String remark;
+    /** 备注 */
+    private String remark;
 }

@@ -19,6 +19,7 @@
 package com.platform.modules.job.task;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +32,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Component("testTask")
 public class TestTask {
 
-  /** 过期自动取消订单 */
-  @SuppressWarnings(value = "unused")
-  @Transactional(rollbackFor = Exception.class)
-  public void test() {
-    log.info("--------------------------开始定时任务--------------------------");
+    /** 过期自动取消订单 */
+    @SuppressWarnings(value = "unused")
+    @Transactional(rollbackFor = Exception.class)
+    public void test() {
+        log.info("--------------------------开始定时任务--------------------------");
 
-    log.info("--------------------------结束定时任务--------------------------");
-  }
+        log.info("--------------------------结束定时任务--------------------------");
+    }
 }

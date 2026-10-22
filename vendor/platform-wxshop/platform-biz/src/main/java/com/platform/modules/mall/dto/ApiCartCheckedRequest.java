@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class ApiCartCheckedRequest {
-  private String productIds;
-  private Integer isChecked;
+    private String productIds;
+    private Integer isChecked;
 }

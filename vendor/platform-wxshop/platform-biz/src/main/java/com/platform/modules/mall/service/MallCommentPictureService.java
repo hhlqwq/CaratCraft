@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.mall.entity.MallCommentPictureEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -32,20 +33,20 @@ import java.util.Map;
  * @since 2026-03-15 13:45:28
  */
 public interface MallCommentPictureService extends IService<MallCommentPictureEntity> {
-  List<MallCommentPictureEntity> queryAll(Map<String, Object> params);
+    List<MallCommentPictureEntity> queryAll(Map<String, Object> params);
 
-  List<MallCommentPictureEntity> queryAllByWrapper(
-      QueryWrapper<MallCommentPictureEntity> queryWrapper);
+    List<MallCommentPictureEntity> queryAllByWrapper(
+            QueryWrapper<MallCommentPictureEntity> queryWrapper);
 
-  Page<MallCommentPictureEntity> queryPage(Map<String, Object> params);
+    Page<MallCommentPictureEntity> queryPage(Map<String, Object> params);
 
-  boolean add(MallCommentPictureEntity mallCommentPicture);
+    boolean add(MallCommentPictureEntity mallCommentPicture);
 
-  boolean update(MallCommentPictureEntity mallCommentPicture);
+    boolean update(MallCommentPictureEntity mallCommentPicture);
 
-  boolean delete(Integer id);
+    boolean delete(Integer id);
 
-  boolean deleteBatch(Integer[] ids);
+    boolean deleteBatch(Integer[] ids);
 
-  List<MallCommentPictureEntity> queryList(Map<String, Object> paramPicture);
+    List<MallCommentPictureEntity> queryList(Map<String, Object> paramPicture);
 }

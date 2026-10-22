@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallShippingDao;
 import com.platform.modules.mall.entity.MallShippingEntity;
 import com.platform.modules.mall.service.MallShippingService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,45 +41,46 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallShippingService")
 public class MallShippingServiceImpl extends ServiceImpl<MallShippingDao, MallShippingEntity>
-    implements MallShippingService {
+        implements MallShippingService {
 
-  @Override
-  public List<MallShippingEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallShippingEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallShippingEntity> queryAllByWrapper(QueryWrapper<MallShippingEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallShippingEntity> queryAllByWrapper(
+            QueryWrapper<MallShippingEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallShippingEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallShippingEntity> page = new Query<MallShippingEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallShippingPage(page, params));
-  }
+    @Override
+    public Page<MallShippingEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallShippingEntity> page = new Query<MallShippingEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallShippingPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallShippingEntity mallShipping) {
-    return this.save(mallShipping);
-  }
+    @Override
+    public boolean add(MallShippingEntity mallShipping) {
+        return this.save(mallShipping);
+    }
 
-  @Override
-  public boolean update(MallShippingEntity mallShipping) {
-    return this.updateById(mallShipping);
-  }
+    @Override
+    public boolean update(MallShippingEntity mallShipping) {
+        return this.updateById(mallShipping);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 }

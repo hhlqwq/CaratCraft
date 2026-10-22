@@ -1,4 +1,4 @@
 {
-  "component": true,
-  "usingComponents": {"legal-consent": "/components/legal-consent/index"}
+    "component": true,
+    "usingComponents": {"legal-consent": "/components/legal-consent/index"}
 }

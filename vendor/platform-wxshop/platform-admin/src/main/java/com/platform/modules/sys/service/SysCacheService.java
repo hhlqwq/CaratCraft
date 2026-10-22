@@ -19,6 +19,7 @@
 package com.platform.modules.sys.service;
 
 import com.platform.modules.sys.entity.SysCacheEntity;
+
 import java.util.List;
 import java.util.Map;
 
@@ -29,19 +30,19 @@ import java.util.Map;
  */
 public interface SysCacheService {
 
-  /**
-   * 查询缓存
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<SysCacheEntity> queryAll(Map<String, String> params);
+    /**
+     * 查询缓存
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<SysCacheEntity> queryAll(Map<String, String> params);
 
-  /**
-   * 删除缓存
-   *
-   * @param keys keys
-   * @return int
-   */
-  int deleteBatch(String[] keys);
+    /**
+     * 删除缓存
+     *
+     * @param keys keys
+     * @return int
+     */
+    int deleteBatch(String[] keys);
 }

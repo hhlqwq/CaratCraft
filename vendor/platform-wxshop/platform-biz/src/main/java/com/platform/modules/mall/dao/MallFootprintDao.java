@@ -21,10 +21,12 @@ package com.platform.modules.mall.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.modules.mall.entity.MallFootprintEntity;
-import java.util.List;
-import java.util.Map;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Dao
@@ -35,27 +37,27 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface MallFootprintDao extends BaseMapper<MallFootprintEntity> {
 
-  /**
-   * 查询所有列表
-   *
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallFootprintEntity> queryAll(@Param("params") Map<String, Object> params);
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallFootprintEntity> queryAll(@Param("params") Map<String, Object> params);
 
-  /**
-   * 自定义分页查询
-   *
-   * @param page 分页参数
-   * @param params 查询参数
-   * @return List
-   */
-  List<MallFootprintEntity> selectMallFootprintPage(
-      Page<MallFootprintEntity> page, @Param("params") Map<String, Object> params);
+    /**
+     * 自定义分页查询
+     *
+     * @param page 分页参数
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallFootprintEntity> selectMallFootprintPage(
+            Page<MallFootprintEntity> page, @Param("params") Map<String, Object> params);
 
-  List<MallFootprintEntity> shareList(Map<String, Object> params);
+    List<MallFootprintEntity> shareList(Map<String, Object> params);
 
-  List<MallFootprintEntity> queryList(Map<String, Object> param);
+    List<MallFootprintEntity> queryList(Map<String, Object> param);
 
-  List<MallFootprintEntity> queryListFootprint(String userId);
+    List<MallFootprintEntity> queryListFootprint(String userId);
 }

@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.sys.dao.SysSmsLogDao;
 import com.platform.modules.sys.entity.SysSmsLogEntity;
 import com.platform.modules.sys.service.SysSmsLogService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 短信发送日志Service实现类
@@ -39,39 +41,39 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("sysSmsLogService")
 public class SysSmsLogServiceImpl extends ServiceImpl<SysSmsLogDao, SysSmsLogEntity>
-    implements SysSmsLogService {
-  @Override
-  public List<SysSmsLogEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+        implements SysSmsLogService {
+    @Override
+    public List<SysSmsLogEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public Page<SysSmsLogEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.STIME");
-    params.put("asc", false);
-    Page<SysSmsLogEntity> page = new Query<SysSmsLogEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectSysSmsLogPage(page, params));
-  }
+    @Override
+    public Page<SysSmsLogEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.STIME");
+        params.put("asc", false);
+        Page<SysSmsLogEntity> page = new Query<SysSmsLogEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectSysSmsLogPage(page, params));
+    }
 
-  @Override
-  public void add(SysSmsLogEntity sysSmsLog) {
-    this.save(sysSmsLog);
-  }
+    @Override
+    public void add(SysSmsLogEntity sysSmsLog) {
+        this.save(sysSmsLog);
+    }
 
-  @Override
-  public void update(SysSmsLogEntity sysSmsLog) {
-    this.update(sysSmsLog, new QueryWrapper<>());
-  }
+    @Override
+    public void update(SysSmsLogEntity sysSmsLog) {
+        this.update(sysSmsLog, new QueryWrapper<>());
+    }
 
-  @Override
-  public void delete(String id) {
-    this.removeById(id);
-  }
+    @Override
+    public void delete(String id) {
+        this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public void deleteBatch(String[] ids) {
-    this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteBatch(String[] ids) {
+        this.removeByIds(Arrays.asList(ids));
+    }
 }

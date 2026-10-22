@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallAttributeCategoryDao;
 import com.platform.modules.mall.entity.MallAttributeCategoryEntity;
 import com.platform.modules.mall.service.MallAttributeCategoryService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service实现类
@@ -39,48 +41,48 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallAttributeCategoryService")
 public class MallAttributeCategoryServiceImpl
-    extends ServiceImpl<MallAttributeCategoryDao, MallAttributeCategoryEntity>
-    implements MallAttributeCategoryService {
+        extends ServiceImpl<MallAttributeCategoryDao, MallAttributeCategoryEntity>
+        implements MallAttributeCategoryService {
 
-  @Override
-  public List<MallAttributeCategoryEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallAttributeCategoryEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallAttributeCategoryEntity> queryAllByWrapper(
-      QueryWrapper<MallAttributeCategoryEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallAttributeCategoryEntity> queryAllByWrapper(
+            QueryWrapper<MallAttributeCategoryEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallAttributeCategoryEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallAttributeCategoryEntity> page =
-        new Query<MallAttributeCategoryEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallAttributeCategoryPage(page, params));
-  }
+    @Override
+    public Page<MallAttributeCategoryEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallAttributeCategoryEntity> page =
+                new Query<MallAttributeCategoryEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallAttributeCategoryPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallAttributeCategoryEntity mallAttributeCategory) {
-    return this.save(mallAttributeCategory);
-  }
+    @Override
+    public boolean add(MallAttributeCategoryEntity mallAttributeCategory) {
+        return this.save(mallAttributeCategory);
+    }
 
-  @Override
-  public boolean update(MallAttributeCategoryEntity mallAttributeCategory) {
-    return this.updateById(mallAttributeCategory);
-  }
+    @Override
+    public boolean update(MallAttributeCategoryEntity mallAttributeCategory) {
+        return this.updateById(mallAttributeCategory);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 }

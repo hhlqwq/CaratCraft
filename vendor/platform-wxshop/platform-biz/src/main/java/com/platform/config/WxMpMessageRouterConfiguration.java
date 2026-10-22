@@ -18,12 +18,24 @@
  */
 package com.platform.config;
 
-import com.platform.handler.*;
+import com.platform.handler.KfSessionHandler;
+import com.platform.handler.LocationHandler;
+import com.platform.handler.LogHandler;
+import com.platform.handler.MenuHandler;
+import com.platform.handler.MsgHandler;
+import com.platform.handler.NullHandler;
+import com.platform.handler.ScanHandler;
+import com.platform.handler.StoreCheckNotifyHandler;
+import com.platform.handler.SubscribeHandler;
+import com.platform.handler.UnsubscribeHandler;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.api.WxConsts;
 import me.chanjar.weixin.mp.api.WxMpMessageRouter;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.constant.WxMpEventConstants;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,121 +48,121 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 @Configuration
 public class WxMpMessageRouterConfiguration {
-  private final LogHandler logHandler;
-  private final NullHandler nullHandler;
-  private final KfSessionHandler kfSessionHandler;
-  private final StoreCheckNotifyHandler storeCheckNotifyHandler;
-  private final LocationHandler locationHandler;
-  private final MenuHandler menuHandler;
-  private final MsgHandler msgHandler;
-  private final UnsubscribeHandler unsubscribeHandler;
-  private final SubscribeHandler subscribeHandler;
-  private final ScanHandler scanHandler;
+    private final LogHandler logHandler;
+    private final NullHandler nullHandler;
+    private final KfSessionHandler kfSessionHandler;
+    private final StoreCheckNotifyHandler storeCheckNotifyHandler;
+    private final LocationHandler locationHandler;
+    private final MenuHandler menuHandler;
+    private final MsgHandler msgHandler;
+    private final UnsubscribeHandler unsubscribeHandler;
+    private final SubscribeHandler subscribeHandler;
+    private final ScanHandler scanHandler;
 
-  @Bean
-  public WxMpMessageRouter messageRouter(WxMpService wxMpService) {
-    final WxMpMessageRouter newRouter = new WxMpMessageRouter(wxMpService);
+    @Bean
+    public WxMpMessageRouter messageRouter(WxMpService wxMpService) {
+        final WxMpMessageRouter newRouter = new WxMpMessageRouter(wxMpService);
 
-    // 记录所有事件的日志 （异步执行）
-    newRouter.rule().handler(this.logHandler).next();
+        // 记录所有事件的日志 （异步执行）
+        newRouter.rule().handler(this.logHandler).next();
 
-    // 接收客服会话管理事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxMpEventConstants.CustomerService.KF_CREATE_SESSION)
-        .handler(this.kfSessionHandler)
-        .end();
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxMpEventConstants.CustomerService.KF_CLOSE_SESSION)
-        .handler(this.kfSessionHandler)
-        .end();
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxMpEventConstants.CustomerService.KF_SWITCH_SESSION)
-        .handler(this.kfSessionHandler)
-        .end();
+        // 接收客服会话管理事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxMpEventConstants.CustomerService.KF_CREATE_SESSION)
+                .handler(this.kfSessionHandler)
+                .end();
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxMpEventConstants.CustomerService.KF_CLOSE_SESSION)
+                .handler(this.kfSessionHandler)
+                .end();
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxMpEventConstants.CustomerService.KF_SWITCH_SESSION)
+                .handler(this.kfSessionHandler)
+                .end();
 
-    // 门店审核事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxMpEventConstants.POI_CHECK_NOTIFY)
-        .handler(this.storeCheckNotifyHandler)
-        .end();
+        // 门店审核事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxMpEventConstants.POI_CHECK_NOTIFY)
+                .handler(this.storeCheckNotifyHandler)
+                .end();
 
-    // 自定义菜单事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.MenuButtonType.CLICK)
-        .handler(this.menuHandler)
-        .end();
+        // 自定义菜单事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.MenuButtonType.CLICK)
+                .handler(this.menuHandler)
+                .end();
 
-    // 点击菜单连接事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.MenuButtonType.VIEW)
-        .handler(this.nullHandler)
-        .end();
+        // 点击菜单连接事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.MenuButtonType.VIEW)
+                .handler(this.nullHandler)
+                .end();
 
-    // 关注事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.EventType.SUBSCRIBE)
-        .handler(this.subscribeHandler)
-        .end();
+        // 关注事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.EventType.SUBSCRIBE)
+                .handler(this.subscribeHandler)
+                .end();
 
-    // 取消关注事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.EventType.UNSUBSCRIBE)
-        .handler(this.unsubscribeHandler)
-        .end();
+        // 取消关注事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.EventType.UNSUBSCRIBE)
+                .handler(this.unsubscribeHandler)
+                .end();
 
-    // 上报地理位置事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.EventType.LOCATION)
-        .handler(this.locationHandler)
-        .end();
+        // 上报地理位置事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.EventType.LOCATION)
+                .handler(this.locationHandler)
+                .end();
 
-    // 接收地理位置消息
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.LOCATION)
-        .handler(this.locationHandler)
-        .end();
+        // 接收地理位置消息
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.LOCATION)
+                .handler(this.locationHandler)
+                .end();
 
-    // 扫码事件
-    newRouter
-        .rule()
-        .async(false)
-        .msgType(WxConsts.XmlMsgType.EVENT)
-        .event(WxConsts.EventType.SCAN)
-        .handler(this.scanHandler)
-        .end();
+        // 扫码事件
+        newRouter
+                .rule()
+                .async(false)
+                .msgType(WxConsts.XmlMsgType.EVENT)
+                .event(WxConsts.EventType.SCAN)
+                .handler(this.scanHandler)
+                .end();
 
-    // 默认
-    newRouter.rule().async(false).handler(this.msgHandler).end();
+        // 默认
+        newRouter.rule().async(false).handler(this.msgHandler).end();
 
-    return newRouter;
-  }
+        return newRouter;
+    }
 }

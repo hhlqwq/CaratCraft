@@ -21,13 +21,17 @@ package com.platform.handler;
 import com.alibaba.fastjson.JSON;
 import com.platform.modules.wx.entity.WxMsgEntity;
 import com.platform.modules.wx.service.WxMsgService;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import me.chanjar.weixin.common.session.WxSessionManager;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
 import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * 微信公众号消息处理（日志）
@@ -37,21 +41,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class LogHandler extends AbstractHandler {
-  private final WxMsgService wxMsgService;
+    private final WxMsgService wxMsgService;
 
-  @Override
-  public WxMpXmlOutMessage handle(
-      WxMpXmlMessage wxMessage,
-      Map<String, Object> context,
-      WxMpService wxMpService,
-      WxSessionManager sessionManager) {
-    try {
-      this.logger.debug("\n接收到请求消息，内容：{}", JSON.toJSONString(wxMessage));
-      wxMsgService.addWxMsg(new WxMsgEntity(wxMessage));
-    } catch (Exception e) {
-      this.logger.error("记录消息异常", e);
+    @Override
+    public WxMpXmlOutMessage handle(
+            WxMpXmlMessage wxMessage,
+            Map<String, Object> context,
+            WxMpService wxMpService,
+            WxSessionManager sessionManager) {
+        try {
+            this.logger.debug("\n接收到请求消息，内容：{}", JSON.toJSONString(wxMessage));
+            wxMsgService.addWxMsg(new WxMsgEntity(wxMessage));
+        } catch (Exception e) {
+            this.logger.error("记录消息异常", e);
+        }
+
+        return null;
     }
-
-    return null;
-  }
 }

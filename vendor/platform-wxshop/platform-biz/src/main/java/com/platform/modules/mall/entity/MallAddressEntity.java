@@ -22,9 +22,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+
 import lombok.Data;
+
 import org.apache.commons.lang.StringUtils;
+
+import java.io.Serializable;
 
 /**
  * 实体
@@ -35,53 +38,53 @@ import org.apache.commons.lang.StringUtils;
 @Data
 @TableName("mall_address")
 public class MallAddressEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  /** */
-  @TableId(type = IdType.AUTO)
-  private Integer id;
+    /** */
+    @TableId(type = IdType.AUTO)
+    private Integer id;
 
-  /** 会员ID */
-  private Long userId;
+    /** 会员ID */
+    private Long userId;
 
-  /** 收货人姓名 */
-  private String userName;
+    /** 收货人姓名 */
+    private String userName;
 
-  /** */
-  private Integer isDefault;
+    /** */
+    private Integer isDefault;
 
-  /** 手机 */
-  private String telNumber;
+    /** 手机 */
+    private String telNumber;
 
-  /** 邮编 */
-  private String postalCode;
+    /** 邮编 */
+    private String postalCode;
 
-  /** 收货地址国家码 */
-  private String nationalCode;
+    /** 收货地址国家码 */
+    private String nationalCode;
 
-  /** 省 */
-  private String provinceName;
+    /** 省 */
+    private String provinceName;
 
-  /** 市 */
-  private String cityName;
+    /** 市 */
+    private String cityName;
 
-  /** 区 */
-  private String countyName;
+    /** 区 */
+    private String countyName;
 
-  /** 详细收货地址信息 */
-  private String detailInfo;
+    /** 详细收货地址信息 */
+    private String detailInfo;
 
-  /** 微信昵称 */
-  @TableField(exist = false)
-  private String nickname;
+    /** 微信昵称 */
+    @TableField(exist = false)
+    private String nickname;
 
-  @TableField(exist = false)
-  private String fullRegion;
+    @TableField(exist = false)
+    private String fullRegion;
 
-  public String getFullRegion() {
-    if (StringUtils.isEmpty(this.fullRegion)) {
-      this.fullRegion = this.provinceName + this.cityName + this.countyName;
+    public String getFullRegion() {
+        if (StringUtils.isEmpty(this.fullRegion)) {
+            this.fullRegion = this.provinceName + this.cityName + this.countyName;
+        }
+        return fullRegion;
     }
-    return fullRegion;
-  }
 }

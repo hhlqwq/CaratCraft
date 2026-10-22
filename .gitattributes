@@ -23,3 +23,5 @@ Dockerfile* text eol=lf
 *.h text eol=lf
 *.hpp text eol=lf
 *.hxx text eol=lf
+*.py text eol=lf
+*.md text eol=lf

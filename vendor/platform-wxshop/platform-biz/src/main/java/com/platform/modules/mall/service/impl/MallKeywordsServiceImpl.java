@@ -25,11 +25,13 @@ import com.platform.common.utils.Query;
 import com.platform.modules.mall.dao.MallKeywordsDao;
 import com.platform.modules.mall.entity.MallKeywordsEntity;
 import com.platform.modules.mall.service.MallKeywordsService;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 关键词热搜表Service实现类
@@ -39,50 +41,51 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("mallKeywordsService")
 public class MallKeywordsServiceImpl extends ServiceImpl<MallKeywordsDao, MallKeywordsEntity>
-    implements MallKeywordsService {
+        implements MallKeywordsService {
 
-  @Override
-  public List<MallKeywordsEntity> queryAll(Map<String, Object> params) {
-    return baseMapper.queryAll(params);
-  }
+    @Override
+    public List<MallKeywordsEntity> queryAll(Map<String, Object> params) {
+        return baseMapper.queryAll(params);
+    }
 
-  @Override
-  public List<MallKeywordsEntity> queryAllByWrapper(QueryWrapper<MallKeywordsEntity> queryWrapper) {
-    return this.list(queryWrapper);
-  }
+    @Override
+    public List<MallKeywordsEntity> queryAllByWrapper(
+            QueryWrapper<MallKeywordsEntity> queryWrapper) {
+        return this.list(queryWrapper);
+    }
 
-  @Override
-  public Page<MallKeywordsEntity> queryPage(Map<String, Object> params) {
-    // 排序
-    params.put("sidx", "T.id");
-    params.put("asc", false);
-    Page<MallKeywordsEntity> page = new Query<MallKeywordsEntity>(params).getPage();
-    return page.setRecords(baseMapper.selectMallKeywordsPage(page, params));
-  }
+    @Override
+    public Page<MallKeywordsEntity> queryPage(Map<String, Object> params) {
+        // 排序
+        params.put("sidx", "T.id");
+        params.put("asc", false);
+        Page<MallKeywordsEntity> page = new Query<MallKeywordsEntity>(params).getPage();
+        return page.setRecords(baseMapper.selectMallKeywordsPage(page, params));
+    }
 
-  @Override
-  public boolean add(MallKeywordsEntity mallKeywords) {
-    return this.save(mallKeywords);
-  }
+    @Override
+    public boolean add(MallKeywordsEntity mallKeywords) {
+        return this.save(mallKeywords);
+    }
 
-  @Override
-  public boolean update(MallKeywordsEntity mallKeywords) {
-    return this.updateById(mallKeywords);
-  }
+    @Override
+    public boolean update(MallKeywordsEntity mallKeywords) {
+        return this.updateById(mallKeywords);
+    }
 
-  @Override
-  public boolean delete(Integer id) {
-    return this.removeById(id);
-  }
+    @Override
+    public boolean delete(Integer id) {
+        return this.removeById(id);
+    }
 
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public boolean deleteBatch(Integer[] ids) {
-    return this.removeByIds(Arrays.asList(ids));
-  }
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteBatch(Integer[] ids) {
+        return this.removeByIds(Arrays.asList(ids));
+    }
 
-  @Override
-  public List<MallKeywordsEntity> queryList(Map<String, Object> param) {
-    return baseMapper.queryList(param);
-  }
+    @Override
+    public List<MallKeywordsEntity> queryList(Map<String, Object> param) {
+        return baseMapper.queryList(param);
+    }
 }

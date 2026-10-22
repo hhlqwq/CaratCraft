@@ -20,10 +20,9 @@ package com.platform.config;
 
 import com.platform.modules.sys.oauth2.Oauth2Filter;
 import com.platform.modules.sys.oauth2.Oauth2Realm;
+
 import jakarta.servlet.Filter;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
 import org.apache.shiro.mgt.SecurityManager;
@@ -36,6 +35,10 @@ import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Shiro配置
  *
@@ -44,66 +47,66 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ShiroConfig {
 
-  @Bean("sessionManager")
-  public SessionManager sessionManager() {
-    DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
-    // 管理端使用请求头令牌认证，不创建或读取共享 Web Session / Uses stateless header-token authentication.
-    sessionManager.setSessionValidationSchedulerEnabled(false);
-    sessionManager.setSessionIdCookieEnabled(false);
-    sessionManager.setSessionIdUrlRewritingEnabled(false);
-    return sessionManager;
-  }
+    @Bean("sessionManager")
+    public SessionManager sessionManager() {
+        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        // 管理端使用请求头令牌认证，不创建或读取共享 Web Session / Uses stateless header-token authentication.
+        sessionManager.setSessionValidationSchedulerEnabled(false);
+        sessionManager.setSessionIdCookieEnabled(false);
+        sessionManager.setSessionIdUrlRewritingEnabled(false);
+        return sessionManager;
+    }
 
-  @Bean("securityManager")
-  public SecurityManager securityManager(Oauth2Realm oAuth2Realm, SessionManager sessionManager) {
-    DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-    securityManager.setRealm(oAuth2Realm);
-    securityManager.setSessionManager(sessionManager);
-    DefaultSessionStorageEvaluator storageEvaluator = new DefaultSessionStorageEvaluator();
-    storageEvaluator.setSessionStorageEnabled(false);
-    DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
-    subjectDAO.setSessionStorageEvaluator(storageEvaluator);
-    securityManager.setSubjectDAO(subjectDAO);
+    @Bean("securityManager")
+    public SecurityManager securityManager(Oauth2Realm oAuth2Realm, SessionManager sessionManager) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        securityManager.setRealm(oAuth2Realm);
+        securityManager.setSessionManager(sessionManager);
+        DefaultSessionStorageEvaluator storageEvaluator = new DefaultSessionStorageEvaluator();
+        storageEvaluator.setSessionStorageEnabled(false);
+        DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
+        subjectDAO.setSessionStorageEvaluator(storageEvaluator);
+        securityManager.setSubjectDAO(subjectDAO);
 
-    return securityManager;
-  }
+        return securityManager;
+    }
 
-  @Bean("shiroFilter")
-  public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
-    ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
-    shiroFilter.setSecurityManager(securityManager);
+    @Bean("shiroFilter")
+    public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
+        ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
+        shiroFilter.setSecurityManager(securityManager);
 
-    // oauth过滤
-    Map<String, Filter> filters = new HashMap<>(16);
-    filters.put("oauth2", new Oauth2Filter());
-    shiroFilter.setFilters(filters);
+        // oauth过滤
+        Map<String, Filter> filters = new HashMap<>(16);
+        filters.put("oauth2", new Oauth2Filter());
+        shiroFilter.setFilters(filters);
 
-    Map<String, String> filterMap = new LinkedHashMap<>();
-    filterMap.put("/internal/health/**", "anon");
-    filterMap.put("/druid/**", "noSessionCreation,oauth2");
-    filterMap.put("/sys/login", "anon");
-    filterMap.put("/captcha.jpg", "anon");
-    filterMap.put("/swagger-ui/**", "anon");
-    filterMap.put("/doc.html", "anon");
-    filterMap.put("/favicon.ico", "anon");
-    filterMap.put("/webjars/**", "anon");
-    filterMap.put("/v3/api-docs/**", "anon");
-    filterMap.put("/**", "noSessionCreation,oauth2");
-    shiroFilter.setFilterChainDefinitionMap(filterMap);
+        Map<String, String> filterMap = new LinkedHashMap<>();
+        filterMap.put("/internal/health/**", "anon");
+        filterMap.put("/druid/**", "noSessionCreation,oauth2");
+        filterMap.put("/sys/login", "anon");
+        filterMap.put("/captcha.jpg", "anon");
+        filterMap.put("/swagger-ui/**", "anon");
+        filterMap.put("/doc.html", "anon");
+        filterMap.put("/favicon.ico", "anon");
+        filterMap.put("/webjars/**", "anon");
+        filterMap.put("/v3/api-docs/**", "anon");
+        filterMap.put("/**", "noSessionCreation,oauth2");
+        shiroFilter.setFilterChainDefinitionMap(filterMap);
 
-    return shiroFilter;
-  }
+        return shiroFilter;
+    }
 
-  @Bean("lifecycleBeanPostProcessor")
-  public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
-    return new LifecycleBeanPostProcessor();
-  }
+    @Bean("lifecycleBeanPostProcessor")
+    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+        return new LifecycleBeanPostProcessor();
+    }
 
-  @Bean
-  public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(
-      SecurityManager securityManager) {
-    AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
-    advisor.setSecurityManager(securityManager);
-    return advisor;
-  }
+    @Bean
+    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(
+            SecurityManager securityManager) {
+        AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
+        advisor.setSecurityManager(securityManager);
+        return advisor;
+    }
 }

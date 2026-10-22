@@ -22,11 +22,14 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import jakarta.validation.constraints.NotEmpty;
+
+import lombok.Data;
+
 import java.io.Serializable;
 import java.sql.Time;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 自动回复规则
@@ -37,37 +40,37 @@ import lombok.Data;
 @Data
 @TableName("WX_MSG_REPLY_RULE")
 public class MsgReplyRuleEntity implements Serializable {
-  private static final long serialVersionUID = 1L;
-  @TableId private String ruleId;
-  private String appid;
+    private static final long serialVersionUID = 1L;
+    @TableId private String ruleId;
+    private String appid;
 
-  @NotEmpty(message = "规则名称不得为空")
-  private String ruleName;
+    @NotEmpty(message = "规则名称不得为空")
+    private String ruleName;
 
-  @NotEmpty(message = "匹配的关键词、事件等不能为空")
-  private String matchValue;
+    @NotEmpty(message = "匹配的关键词、事件等不能为空")
+    private String matchValue;
 
-  private boolean exactMatch;
+    private boolean exactMatch;
 
-  @NotEmpty(message = "回复类型不得为空")
-  private String replyType;
+    @NotEmpty(message = "回复类型不得为空")
+    private String replyType;
 
-  @NotEmpty(message = "回复内容不得为空")
-  private String replyContent;
+    @NotEmpty(message = "回复内容不得为空")
+    private String replyContent;
 
-  @TableField(value = "`STATUS`")
-  private boolean status;
+    @TableField(value = "`STATUS`")
+    private boolean status;
 
-  @TableField(value = "`DESC`")
-  private String desc;
+    @TableField(value = "`DESC`")
+    private String desc;
 
-  private Time effectTimeStart;
-  private Time effectTimeEnd;
-  private int priority;
-  private Date updateTime;
+    private Time effectTimeStart;
+    private Time effectTimeEnd;
+    private int priority;
+    private Date updateTime;
 
-  @Override
-  public String toString() {
-    return JSON.toJSONString(this);
-  }
+    @Override
+    public String toString() {
+        return JSON.toJSONString(this);
+    }
 }

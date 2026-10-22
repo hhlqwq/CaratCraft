@@ -20,6 +20,7 @@ package com.platform.modules.sys.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.platform.modules.sys.entity.SysRoleMenuEntity;
+
 import java.util.List;
 
 /**
@@ -29,27 +30,27 @@ import java.util.List;
  */
 public interface SysRoleMenuService extends IService<SysRoleMenuEntity> {
 
-  /**
-   * 保存或更新
-   *
-   * @param roleId 角色ID
-   * @param menuIdList menuIdList
-   */
-  void saveOrUpdate(String roleId, List<String> menuIdList);
+    /**
+     * 保存或更新
+     *
+     * @param roleId 角色ID
+     * @param menuIdList menuIdList
+     */
+    void saveOrUpdate(String roleId, List<String> menuIdList);
 
-  /**
-   * 根据角色ID，获取菜单ID列表
-   *
-   * @param roleId 角色ID
-   * @return List
-   */
-  List<String> queryMenuIdList(String roleId);
+    /**
+     * 根据角色ID，获取菜单ID列表
+     *
+     * @param roleId 角色ID
+     * @return List
+     */
+    List<String> queryMenuIdList(String roleId);
 
-  /**
-   * 根据角色ID数组，批量删除
-   *
-   * @param roleIds roleIds
-   * @return int
-   */
-  int deleteBatch(String[] roleIds);
+    /**
+     * 根据角色ID数组，批量删除
+     *
+     * @param roleIds roleIds
+     * @return int
+     */
+    int deleteBatch(String[] roleIds);
 }

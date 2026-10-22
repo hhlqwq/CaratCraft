@@ -26,13 +26,15 @@ import com.platform.common.utils.RestResponse;
 import com.platform.common.xss.XssHttpServletRequestWrapper;
 import com.platform.modules.gen.entity.ResultMapEntity;
 import com.platform.modules.gen.service.SysGeneratorService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.Map;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.stereotype.Controller;
@@ -40,6 +42,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Date;
+import java.util.Map;
 
 /**
  * 代码生成器
@@ -54,54 +59,55 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/sys/generator")
 public class SysGeneratorController {
 
-  private final SysGeneratorService sysGeneratorService;
+    private final SysGeneratorService sysGeneratorService;
 
-  /**
-   * 分页查询所有表
-   *
-   * @param params 查询参数
-   * @return RestResponse
-   */
-  @Operation(summary = "分页查询所有表", description = "分页查询所有表")
-  @ResponseBody
-  @GetMapping("/list")
-  @RequiresPermissions("sys:generator:list")
-  public RestResponse<Page<ResultMapEntity>> list(@RequestParam Map<String, Object> params) {
-    // 查询列表数据
-    Page<ResultMapEntity> page = sysGeneratorService.queryPage(params);
-    return RestResponse.ok(page);
-  }
+    /**
+     * 分页查询所有表
+     *
+     * @param params 查询参数
+     * @return RestResponse
+     */
+    @Operation(summary = "分页查询所有表", description = "分页查询所有表")
+    @ResponseBody
+    @GetMapping("/list")
+    @RequiresPermissions("sys:generator:list")
+    public RestResponse<Page<ResultMapEntity>> list(@RequestParam Map<String, Object> params) {
+        // 查询列表数据
+        Page<ResultMapEntity> page = sysGeneratorService.queryPage(params);
+        return RestResponse.ok(page);
+    }
 
-  /**
-   * 生成代码
-   *
-   * @param request request
-   * @param response response
-   */
-  @Operation(summary = "生成代码", description = "生成代码")
-  @SysLog("生成代码")
-  @GetMapping("/code")
-  @RequiresPermissions("sys:generator:code")
-  public void code(HttpServletRequest request, HttpServletResponse response) throws Exception {
-    // 获取表名，不进行xss过滤
-    HttpServletRequest orgRequest = XssHttpServletRequestWrapper.getOrgRequest(request);
-    String tables = orgRequest.getParameter("tables");
-    String projectName = orgRequest.getParameter("projectName");
-    String packageName = orgRequest.getParameter("packageName");
-    String author = orgRequest.getParameter("author");
-    String[] tableNames = tables.split(Constant.COMMA);
+    /**
+     * 生成代码
+     *
+     * @param request request
+     * @param response response
+     */
+    @Operation(summary = "生成代码", description = "生成代码")
+    @SysLog("生成代码")
+    @GetMapping("/code")
+    @RequiresPermissions("sys:generator:code")
+    public void code(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        // 获取表名，不进行xss过滤
+        HttpServletRequest orgRequest = XssHttpServletRequestWrapper.getOrgRequest(request);
+        String tables = orgRequest.getParameter("tables");
+        String projectName = orgRequest.getParameter("projectName");
+        String packageName = orgRequest.getParameter("packageName");
+        String author = orgRequest.getParameter("author");
+        String[] tableNames = tables.split(Constant.COMMA);
 
-    byte[] data = sysGeneratorService.generatorCode(tableNames, projectName, packageName, author);
+        byte[] data =
+                sysGeneratorService.generatorCode(tableNames, projectName, packageName, author);
 
-    response.reset();
-    response.setHeader(
-        "Content-Disposition",
-        "attachment; filename=\"AutoCode"
-            + DateUtils.format(new Date(), "yyyyMMddHHmmss")
-            + ".zip\"");
-    response.addHeader("Content-Length", Constant.BLANK + data.length);
-    response.setContentType("application/octet-stream; charset=UTF-8");
+        response.reset();
+        response.setHeader(
+                "Content-Disposition",
+                "attachment; filename=\"AutoCode"
+                        + DateUtils.format(new Date(), "yyyyMMddHHmmss")
+                        + ".zip\"");
+        response.addHeader("Content-Length", Constant.BLANK + data.length);
+        response.setContentType("application/octet-stream; charset=UTF-8");
 
-    IOUtils.write(data, response.getOutputStream());
-  }
+        IOUtils.write(data, response.getOutputStream());
+    }
 }
