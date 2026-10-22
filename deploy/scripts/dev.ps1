@@ -143,11 +143,11 @@ function Invoke-Compose {
 
 # 检查全部运行镜像并核对应用源码标识, 缺失时提示先运行构建脚本.
 function Assert-LocalImages {
-    foreach ($Name in @('mysql:8.0.36', 'redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
+    foreach ($Name in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
         $Metadata = & docker image inspect $Name 2>$null
         if ($LASTEXITCODE -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像, 或使用 .\dev.ps1 -Action build; -NoBuild 无法创建镜像。" }
         $Image = ($Metadata -join "`n") | ConvertFrom-Json
-        if ($Name -in @('mysql:8.0.36', 'redis:7.2-alpine')) { continue }
+        if ($Name -in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine')) { continue }
         $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
         if (-not $Revision -or $Revision -ne $env:BUILD_REVISION) {
             throw "镜像 $Name 的源码标识与当前代码不一致, 请先运行 build-local-test.cmd 更新镜像; -NoBuild 不会更新源码。"
@@ -191,13 +191,13 @@ function Show-StartupDiagnostics {
 # 只构建镜像, 保留原始构建错误, 不操作运行中的容器或数据库.
 function Build-LocalEnvironment {
     try {
-        Write-Host '[1/2] 联网下载MySQL和Redis镜像...'
+        Write-Host '[1/2] 从国内来源下载MySQL和Redis镜像...'
         Invoke-Compose -Arguments @('pull', 'mysql', 'redis')
-        Write-Host '[2/2] 联网获取构建镜像和依赖, 在容器内编译前后端...'
+        Write-Host '[2/2] 从国内来源获取构建镜像和依赖, 在容器内编译前后端...'
         Invoke-Compose -Arguments @('build', '--pull', '--no-cache')
         Write-Host '镜像构建完成, 请运行 start-local-test.cmd 启动环境。'
     } catch {
-        Write-Warning '构建失败, 已停止后续步骤。请查看上方具体错误; 下载失败请检查Docker镜像仓库或Maven/npm依赖仓库网络后重新运行build-local-test.cmd。'
+        Write-Warning '构建失败, 已停止后续步骤。请查看上方具体错误; 下载失败请检查m.daocloud.io、maven.aliyun.com及registry.npmmirror.com的网络访问或限流提示, 然后重新运行build-local-test.cmd。'
         throw
     }
 }

@@ -1,10 +1,10 @@
 <settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
-  <!-- 开发构建统一使用官方仓库, 不依赖旧第三方仓库地址. -->
+  <!-- 客户容器构建统一使用国内公共代理仓库, 不自动回退海外来源. -->
   <mirrors>
     <mirror>
-      <id>central-only</id>
+      <id>aliyun-public</id>
       <mirrorOf>*</mirrorOf>
-      <url>https://repo.maven.apache.org/maven2</url>
+      <url>https://maven.aliyun.com/repository/public</url>
     </mirror>
   </mirrors>
 </settings>

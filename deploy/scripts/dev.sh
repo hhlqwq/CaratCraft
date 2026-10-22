@@ -14,7 +14,7 @@ NO_BUILD="false"
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
-    echo "用法: ./env/dev.sh [build|start|stop|restart|status|logs] [--reset-data] [--no-build]"
+    echo "用法: ./deploy/scripts/dev.sh [build|start|stop|restart|status|logs] [--reset-data] [--no-build]"
 }
 
 # 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
@@ -111,6 +111,7 @@ set_build_revision() {
 
 # 联网构建但不启动服务, 使用公开模板而非私人运行配置.
 build_local_environment() {
+    echo "从m.daocloud.io拉取镜像, Maven和npm依赖使用国内来源。"
     compose pull mysql redis
     compose build --pull --no-cache
     echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
@@ -144,11 +145,11 @@ compose() {
 # 校验免构建镜像的源码标识, 拒绝复用未提供新版探针的历史镜像.
 assert_local_images() {
     local name revision
-    for name in mysql:8.0.36 redis:7.2-alpine carat-craft-backend:local carat-craft-admin-ui:local; do
+    for name in m.daocloud.io/docker.io/library/mysql:8.0.36 m.daocloud.io/docker.io/library/redis:7.2-alpine carat-craft-backend:local carat-craft-admin-ui:local; do
         revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$name" 2>/dev/null)" || {
             echo "缺少镜像 $name, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
-        case "$name" in mysql:*|redis:*) continue ;; esac
+        case "$name" in */mysql:*|*/redis:*) continue ;; esac
         [[ "$revision" == "$BUILD_REVISION" ]] || {
             echo "镜像 $name 与当前源码标识不一致, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
@@ -181,7 +182,7 @@ show_startup_diagnostics() {
     for name in platform-admin platform-api; do
         docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
     done
-    echo "日志: ./env/dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
+    echo "日志: ./deploy/scripts/dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
 }
 
 # 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.

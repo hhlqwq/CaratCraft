@@ -42,7 +42,18 @@ function Assert-Rejected {
     if (-not $Failure -or $Failure -notmatch $Expected) { throw "未按预期拒绝: $Expected, 实际: $Failure" }
 }
 
+# 从真实Compose配置提取镜像名称, 防止国内来源变更后启动校验仍寻找旧名称.
+$PublicCompose = [IO.File]::ReadAllText((Join-Path $Root 'deploy/docker-compose.yml'))
+$ExpectedImages = @([regex]::Matches($PublicCompose, '(?m)^    image: ([^\r\n]+)') |
+    ForEach-Object { $_.Groups[1].Value.Trim() } | Sort-Object -Unique)
+$script:Calls = @()
 Assert-LocalImages
+foreach ($ExpectedImage in $ExpectedImages) {
+    if (-not ($script:Calls | Where-Object { $_.Trim() -eq "image inspect $ExpectedImage" })) {
+        throw "启动镜像校验与Compose不一致: $ExpectedImage"
+    }
+}
+if ($script:Calls.Count -ne $ExpectedImages.Count) { throw '启动镜像校验包含旧来源或遗漏镜像' }
 Assert-DatabaseReady
 $script:Mode = 'old-image'
 Assert-Rejected { Assert-LocalImages } 'NoBuild'

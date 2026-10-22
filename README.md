@@ -31,7 +31,7 @@
 
 环境入口脚本统一放在`deploy/scripts/`目录, 根目录不保留重复入口. Windows客户取得完整项目文件后, 只需安装并启动Docker Desktop(Linux容器及Compose V2), 进入`deploy/scripts/`目录后依次双击构建和启动脚本:
 
-1. `deploy/scripts/build-local-test.cmd`: 联网下载所需镜像, 在容器内安装依赖并编译前后端. 下载或编译失败立即退出, 修复网络或构建问题后重新运行.
+1. `deploy/scripts/build-local-test.cmd`: 从国内镜像及依赖源下载, 在容器内安装依赖并编译前后端. 下载或编译失败立即退出, 修复网络或构建问题后重新运行.
 2. `deploy/scripts/start-local-test.cmd`: 自动生成首次配置, 启动MySQL、Redis、后端和管理端, 初始化空数据库并等待健康检查通过.
 
 不需要在客户电脑安装Git、Node、Java、Maven、pnpm或Codex, 不需要准备本机依赖缓存或编译产物. 管理端默认地址为`http://localhost:8888`. 详细说明见[联网构建与客户启动](docs/项目维护文档.md#联网构建与客户启动). 已有数据须按维护文档备份并增量迁移.

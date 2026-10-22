@@ -1,4 +1,4 @@
-FROM maven:3.9.11-eclipse-temurin-21 AS builder
+FROM m.daocloud.io/docker.io/library/maven:3.9.11-eclipse-temurin-21 AS builder
 
 WORKDIR /workspace/backend
 
@@ -17,7 +17,7 @@ RUN mvn -B -s /workspace/maven-settings.xml -Pdev -pl platform-admin,platform-ap
 COPY deploy/HealthCheck.java /workspace/healthcheck/HealthCheck.java
 RUN javac -d /workspace/healthcheck /workspace/healthcheck/HealthCheck.java
 
-FROM eclipse-temurin:21-jre
+FROM m.daocloud.io/docker.io/library/eclipse-temurin:21-jre
 ARG BUILD_REVISION=workspace
 ENV BUILD_REVISION=${BUILD_REVISION}
 LABEL org.opencontainers.image.revision=${BUILD_REVISION}
