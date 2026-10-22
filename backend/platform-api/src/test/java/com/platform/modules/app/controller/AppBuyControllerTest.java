@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -117,7 +118,7 @@ class AppBuyControllerTest {
         CustomDesignSnapshotEntity design = new CustomDesignSnapshotEntity();
         design.setGoodsId(11);
         design.setStatus("DRAFT");
-        when(designs.getOwned(9L, 7L)).thenReturn(design);
+        doReturn(design).when(designs).getOwned(9L, 7L);
         assertNotEquals(0, controller.addBuy(user, request).getCode());
         design.setGoodsId(10);
         design.setStatus("ORDERED");

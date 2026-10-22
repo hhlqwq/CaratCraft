@@ -1,0 +1,20 @@
+{
+    "date": "2026-10-23",
+    "java": {
+        "tests": 169,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "modules": {"common": 17, "biz": 124, "admin": 3, "api": 25},
+        "database": "caratcraft_init_audit_20261023_06a072",
+        "databaseInitialization": "13份SQL和382个文本列编码检查通过",
+        "redis": "本轮独立容器, 回环16379, 无业务数据卷",
+        "dependencySource": "已有Docker构建层及工作区Maven缓存, 未下载新依赖"
+    },
+    "node": {"businessTests": 102, "httpProbe": 1, "failures": 0, "skipped": 0},
+    "browser": {
+        "goodsEditor": ["加载失败提示及禁止保存", "正常商品读取", "Vue3详情预览"],
+        "data": "隔离固定样例, 不连接业务库"
+    },
+    "limits": ["当前业务容器尚未更新", "未完成全部业务链路人工审阅", "未进行真实微信、支付退款、正式AI及生产验收"]
+}
