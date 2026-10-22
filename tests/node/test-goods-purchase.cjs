@@ -434,3 +434,34 @@ test('定制入口只接受最新配置请求的成功或失败结果', async ()
         assert.equal(page.data.isCustom, latestEnabled);
     }
 });
+
+/** 超过服务端2048编码单元的组合不得成为可提交的购买项. */
+test('超长SKU响应不能通过加购或立即购买发送', async () => {
+    for (const method of ['buyGoods', 'addToCart']) {
+        const {page, calls} = fixture();
+        const groups = Array.from({length: 40}, (_, index) => ({
+            specificationId: index + 1,
+            valueList: [{id: index + 1, value: '白'.repeat(50)}],
+        }));
+        page.data.productList = [{
+            id: 90,
+            goodsSpecificationIds: groups
+                .map((group) => group.specificationId + ':' + group.valueList[0].value)
+                .join('|'),
+            goodsNumber: 2,
+        }];
+        assert.ok(page.data.productList[0].goodsSpecificationIds.length > 2048);
+        page.setDefSpecInfo(groups);
+        page.switchAttrPop();
+        assert.equal(page.data.selectedProduct, null);
+        await page[method]();
+        assert.equal(calls.length, 0);
+    }
+});
+
+/** 畸形库存类型不能被JavaScript隐式转成可销售件数. */
+test('布尔值、数组及对象库存不作为可购买件数', () => {
+    for (const goodsNumber of [true, false, [3], {valueOf: () => 3}]) {
+        assert.equal(sku.availableStock({goodsNumber}), 0);
+    }
+});

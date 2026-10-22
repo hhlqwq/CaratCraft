@@ -1,6 +1,13 @@
+// 与服务端SkuContract保持相同的UTF-16组合长度上限.
+const MAX_KEY_LENGTH = 2048;
+
 /** 读取可购买库存, 异常值视为不可购买, 数量上限与服务端保持一致. */
 function availableStock(product) {
-    const stock = Number(product && product.goodsNumber);
+    const value = product && product.goodsNumber;
+    if (typeof value !== 'number' && typeof value !== 'string') {
+        return 0;
+    }
+    const stock = Number(value);
     return Number.isSafeInteger(stock) && stock > 0 ? Math.min(stock, 9999) : 0;
 }
 
@@ -16,11 +23,11 @@ function prepare(products, specifications) {
     const bySelection = new Map();
     for (const product of products) {
         const text = product.goodsSpecificationIds;
+        if (typeof text !== 'string' || text.length > MAX_KEY_LENGTH) {
+            continue;
+        }
         let ids = [];
         if (groups.length) {
-            if (typeof text !== 'string') {
-                continue;
-            }
             const parts = text.split('|');
             if (parts.length !== groups.length) {
                 continue;
