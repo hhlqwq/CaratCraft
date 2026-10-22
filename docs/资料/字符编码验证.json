@@ -1,0 +1,77 @@
+{
+    "verifiedAt": "2026-10-23",
+    "scope": "本项目可丢弃测试环境全新构建及初始化, 上传卷保留",
+    "rootCause": "官方MySQL客户端默认latin1, 初始化SQL缺少明确UTF-8声明; 旧测试强制UTF-8连接掩盖问题",
+    "baseline": {
+        "textColumnsScanned": 382,
+        "suspectTextColumns": [
+            {"table": "SCHEDULE_JOB", "column": "REMARK", "rows": 1},
+            {"table": "SYS_CONFIG", "column": "REMARK", "rows": 2},
+            {"table": "SYS_DICT", "column": "NAME", "rows": 3},
+            {"table": "SYS_DICT_GROUP", "column": "NAME", "rows": 1},
+            {"table": "SYS_DICT_GROUP", "column": "REMARK", "rows": 1},
+            {"table": "SYS_MENU", "column": "NAME", "rows": 7},
+            {"table": "SYS_USER", "column": "REAL_NAME", "rows": 1},
+            {"table": "sys_region", "column": "name", "rows": 46168}
+        ],
+        "suspectComments": {"column_comments": 152, "table_comments": 30}
+    },
+    "after": {
+        "textColumnsScanned": 382,
+        "suspectTextColumns": [],
+        "suspectComments": {"column_comments": 0, "table_comments": 0},
+        "seedAssertions": {
+            "系统菜单": true,
+            "社区菜单": true,
+            "商家菜单": true,
+            "协议菜单": true,
+            "字典分组": true,
+            "字典备注": true,
+            "订单超时任务": true,
+            "地区字典": true,
+            "字典表注释": true,
+            "字典列注释": true
+        },
+        "ok": true
+    },
+    "verification": {
+        "isolatedDatabase": "caratcraft_init_audit_20261022_815580",
+        "isolatedImportCharset": "latin1",
+        "isolatedDatabaseCleanup": "随本项目已授权测试卷重置清除",
+        "realDockerBuild": "通过, Maven打包及Vite生产构建",
+        "windowsPowerShell51ResetStart": "通过",
+        "healthyContainers": ["platform-mysql", "platform-redis", "platform-admin", "platform-api", "platform-nginx"],
+        "adminHttpStatus": 200,
+        "applicationImageRevision": "da7d345dd43cb40d5941fec81e7a623d1e58fc306aaa65464181382e8a32415e",
+        "pythonTests": {"passed": 20, "skipped": 0},
+        "nodeChecks": {"passed": 13, "skipped": 0},
+        "versionMigrationBytes": "14个V版本保持不变",
+        "projectConventions": "通过",
+        "gitWhitespace": "通过"
+    },
+    "browser": {
+        "url": "http://localhost:8888/",
+        "pages": [
+            {"page": "首页", "result": "三个曾乱码侧栏菜单正常"},
+            {"page": "菜单管理", "result": "9300、9400、9500中文正常", "screenshot": "字符编码验收/菜单管理.png"},
+            {"page": "字典管理", "result": "性别及备注正常, 男/女/未知三个明细正常", "screenshot": "字符编码验收/字典管理.png"},
+            {"page": "定时任务", "result": "订单超时自动关闭(5分钟)正常", "screenshot": "字符编码验收/定时任务.png"},
+            {"page": "组织机构", "result": "表头正常, 空列表"},
+            {"page": "系统参数", "result": "表头正常, 页面空列表; 库内文本另由整库扫描核验"},
+            {"page": "管理员列表", "result": "真实姓名和性别中文正常, 未保留个人信息截图"},
+            {"page": "商品管理", "result": "三个演示商品中文正常"},
+            {"page": "组件库存", "result": "第一页材料中文正常, 全部数据另由整库扫描核验"},
+            {"page": "定制配置", "result": "配置及两个演示商品中文正常"},
+            {"page": "社区管理", "result": "说明和空状态中文正常"},
+            {"page": "商家服务", "result": "说明、表单和空记录中文正常, 未保存配置"},
+            {"page": "协议与隐私", "result": "说明、表单和空记录中文正常, 未发布协议"}
+        ],
+        "interaction": "初次自动点击未生效, 用户确认手动切换正常; 后续自动菜单导航及SEX明细操作成功"
+    },
+    "limits": [
+        "扫描为乱码候选检查及关键种子断言, 不承诺识别所有未知文本损坏形式",
+        "不包含未知商家历史库自动转码",
+        "Docker Maven构建使用skipTests, 未完成全量Java测试",
+        "微信真机、真实支付退款、正式AI及生产验收未包含"
+    ]
+}

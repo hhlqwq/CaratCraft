@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- 旧版按ID段和全表删除的目录清理已撤销, 不再推断商家数据来源或删除业务记录.
 -- 该文件仅保留新建空库所需的项目演示入口, 已有库升级只执行V版本迁移.
-SET NAMES utf8mb4;
+
 
 INSERT INTO mall_ad
 (id, ad_position_id, media_type, name, link, image_url, content, end_time, enabled)

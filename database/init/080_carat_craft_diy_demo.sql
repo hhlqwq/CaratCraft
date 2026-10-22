@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft 独立珠宝 DIY 演示商品迁移 / Dedicated jewelry DIY demo product migration.
 -- 可重复执行, 将旧家纺商品 1006002 的演示配置迁移到珠宝商品 1999105。
-SET NAMES utf8mb4;
+
 
 INSERT INTO `mall_category`
 (`id`, `name`, `keywords`, `front_desc`, `parent_id`, `sort_order`, `show_index`, `is_show`,

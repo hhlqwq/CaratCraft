@@ -1,3 +1,5 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft 定制模块迁移 / Customization module migration.
 CREATE TABLE IF NOT EXISTS `CC_CUSTOM_PRODUCT` (
   `id` bigint NOT NULL AUTO_INCREMENT,

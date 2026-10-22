@@ -1,4 +1,6 @@
-﻿/*
+SET NAMES utf8mb4;
+
+/*
 Navicat MySQL Data Transfer
 
 Source Server         :

@@ -1,4 +1,6 @@
 -- 由tools/database/build-migration-baseline.py生成, 只用于新建空库初始化.
+SET NAMES utf8mb4;
+
 CREATE TABLE IF NOT EXISTS CC_SCHEMA_MIGRATION (
   version VARCHAR(191) PRIMARY KEY, sha256 CHAR(64) NOT NULL,
   applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

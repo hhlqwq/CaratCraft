@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft 项链与耳饰 DIY 拆分迁移。
 -- 可重复执行, 保留历史设计并通过 enabled 隐藏不适用组件。
-SET NAMES utf8mb4;
+
 
 INSERT INTO `mall_goods`
 (`id`, `category_id`, `goods_sn`, `name`, `goods_number`, `keywords`, `goods_brief`,

@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- 迁移 CaratCraft 内置商品图片路径并修复本地磁盘存储配置。
 -- Migrates bundled catalog image paths and repairs local disk storage settings.
-SET NAMES utf8mb4;
+
 
 START TRANSACTION;
 

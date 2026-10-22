@@ -1,5 +1,7 @@
--- 商品三十天回收站迁移，适用于已有数据库并可重复执行。
 SET NAMES utf8mb4;
+
+-- 商品三十天回收站迁移，适用于已有数据库并可重复执行。
+
 
 SET @has_delete_time = (
     SELECT COUNT(*)

@@ -1,8 +1,10 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft 定制模块演示数据 / Demo data for the customization module.
 -- 兼容旧数据库的暂存脚本, 最终由 20260831_fix_diy_demo_product.sql 迁移到珠宝商品 1999105。
 -- Legacy staging data; the dedicated migration rebinds it to jewelry goods 1999105.
 -- 幂等: 先清理同款旧数据再插入 / Idempotent: clears previous demo rows first.
-SET NAMES utf8mb4;
+
 
 DELETE FROM `CC_COMPONENT_STOCK` WHERE `goods_id` = 1006002;
 DELETE FROM `CC_COMPONENT_OPTION` WHERE `goods_id` = 1006002;

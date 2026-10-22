@@ -16,6 +16,7 @@ def main():
     files = sorted(path for path in (ROOT / "migrations").glob("V*.sql")
                    if re.fullmatch(r"V[0-9]{8}_[0-9]+_[a-z0-9_]+\.sql", path.name))
     lines = ["-- 由tools/database/build-migration-baseline.py生成, 只用于新建空库初始化.",
+             "SET NAMES utf8mb4;", "",
              "CREATE TABLE IF NOT EXISTS CC_SCHEMA_MIGRATION (",
              "  version VARCHAR(191) PRIMARY KEY, sha256 CHAR(64) NOT NULL,",
              "  applied_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",

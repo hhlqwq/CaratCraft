@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft 简化项链定制并停用三维配置。
 -- 可重复执行, 保留旧耳饰商品和历史设计数据供追溯。
-SET NAMES utf8mb4;
+
 START TRANSACTION;
 
 UPDATE `CC_CUSTOM_PRODUCT`

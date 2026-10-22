@@ -1,6 +1,8 @@
+SET NAMES utf8mb4;
+
 -- CaratCraft商城结构与项目演示种子, 不包含第三方商品文案或图片.
 -- 只用于新建空库; 不要在有业务数据的数据库执行.
-SET NAMES utf8mb4;
+
 
 CREATE TABLE `mall_ad`
 (
