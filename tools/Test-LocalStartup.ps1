@@ -2,7 +2,7 @@
 $Root = Split-Path $PSScriptRoot -Parent
 $Tokens = $null
 $Errors = $null
-$Ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'dev.ps1'), [ref]$Tokens, [ref]$Errors)
+$Ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'env/dev.ps1'), [ref]$Tokens, [ref]$Errors)
 if ($Errors.Count) { throw ($Errors | Out-String) }
 foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
     . ([scriptblock]::Create($Definition.Extent.Text))
@@ -13,7 +13,6 @@ $global:LocalStartupDockerCalls = New-Object 'System.Collections.Generic.List[st
 $EnvFile = 'unused.env'
 $ComposeFile = 'unused.yml'
 $env:BUILD_REVISION = 'startup-test'
-$OnlineBuild = $true
 
 # 用隔离替身提供Docker响应, 不连接业务容器或修改数据库.
 function docker {
@@ -61,6 +60,9 @@ Assert-Rejected { Assert-DatabaseReady } 'V20261022_01'
 function Invoke-Compose {
     param([string[]]$Arguments)
     $script:Calls += ,($Arguments -join ' ')
+    if ($script:Mode -eq 'pull-error' -and $Arguments[0] -eq 'pull') {
+        throw 'simulated-pull-error'
+    }
     if ($script:Mode -eq 'build-error' -and $Arguments[0] -eq 'build') {
         throw 'simulated-build-error'
     }
@@ -77,7 +79,7 @@ $script:Calls = @()
 $NoBuild = $false
 Start-LocalEnvironment
 if ($script:Calls -contains 'build' -or -not ($script:Calls -match '300 mysql redis') -or
-    $script:Calls[-2] -ne 'up --detach --no-build --wait --wait-timeout 300' -or
+    $script:Calls[-2] -ne 'up --detach --no-build --pull never --wait --wait-timeout 300' -or
     $script:Calls[-1] -ne 'access-ready') { throw '启动顺序错误' }
 $script:Mode = 'partial-database'
 $script:Calls = @()
@@ -86,24 +88,31 @@ if ($script:Calls[-1] -ne 'diagnostics' -or $script:Calls -contains 'access-read
 $script:Mode = 'build-error'
 $script:Calls = @()
 Assert-Rejected { Build-LocalEnvironment } 'simulated-build-error'
-if ($script:Calls.Count -ne 1 -or $script:Calls[0] -ne 'build') { throw '构建失败后仍继续启动或输出后端诊断' }
+if ($script:Calls.Count -ne 2 -or $script:Calls[0] -ne 'pull mysql redis' -or
+    $script:Calls[1] -ne 'build --pull --no-cache') { throw '构建失败后仍继续启动或输出后端诊断' }
+$script:Mode = 'pull-error'
+$script:Calls = @()
+Assert-Rejected { Build-LocalEnvironment } 'simulated-pull-error'
+if ($script:Calls.Count -ne 1 -or $script:Calls[0] -ne 'pull mysql redis') { throw '下载失败后仍继续构建' }
 $script:Mode = 'ready'
 $script:Calls = @()
 Build-LocalEnvironment
-if ($script:Calls.Count -ne 1 -or $script:Calls[0] -ne 'build') { throw '构建操作启动了容器或访问了数据库' }
-$Wrapper = Get-Content (Join-Path $Root 'start-local-test.cmd') -Raw
+if ($script:Calls.Count -ne 2 -or $script:Calls[0] -ne 'pull mysql redis' -or
+    $script:Calls[1] -ne 'build --pull --no-cache') { throw '构建操作启动了容器或访问了数据库' }
+$Wrapper = Get-Content (Join-Path $Root 'env/start-local-test.cmd') -Raw
 if ($Wrapper -notmatch 'dev\.ps1" -Action start %\*' -or $Wrapper -match 'docker compose|Action build') { throw '启动入口未固定为仅启动操作' }
-$BuildWrapper = Get-Content (Join-Path $Root 'build-local-test.cmd') -Raw
+$BuildWrapper = Get-Content (Join-Path $Root 'env/build-local-test.cmd') -Raw
 if ($BuildWrapper -notmatch 'dev\.ps1" -Action build %\*' -or $BuildWrapper -match 'Action start') { throw '构建入口未固定为仅构建操作' }
 $script:Calls = @()
 $global:LocalStartupDockerCalls.Clear()
-& (Join-Path $Root 'dev.ps1') -Action build -OnlineBuild
+& (Join-Path $Root 'env/dev.ps1') -Action build
 $DispatchCalls = $global:LocalStartupDockerCalls.ToArray()
-if ($DispatchCalls.Count -ne 3 -or $DispatchCalls[0] -notmatch 'compose version' -or
-    $DispatchCalls[1].Trim() -ne 'info' -or $DispatchCalls[2] -notmatch ' build\s*$') {
+if ($DispatchCalls.Count -ne 4 -or $DispatchCalls[0] -notmatch 'compose version' -or
+    $DispatchCalls[1].Trim() -ne 'info' -or $DispatchCalls[2] -notmatch ' pull mysql redis\s*$' -or
+    $DispatchCalls[3] -notmatch ' build --pull --no-cache\s*$') {
     throw "构建Action调度出现启动、数据库或其他非构建操作: $($DispatchCalls -join ' | ')"
 }
-Assert-Rejected { & (Join-Path $Root 'dev.ps1') -Action build -NoBuild } 'NoBuild'
+Assert-Rejected { & (Join-Path $Root 'env/dev.ps1') -Action build -NoBuild } 'NoBuild'
 
 # 模拟不存在或不可读取的私有配置, 构建均不得生成、读取或校验运行密钥.
 function Test-Path {
@@ -124,11 +133,10 @@ try {
     foreach ($Exists in @($false, $true)) {
         $global:LocalStartupBuildEnvironmentExists = $Exists
         $global:LocalStartupDockerCalls.Clear()
-        & (Join-Path $Root 'dev.ps1') -Action build -OnlineBuild
+        & (Join-Path $Root 'env/dev.ps1') -Action build
         $BuildCall = $global:LocalStartupDockerCalls.ToArray()[-1]
-        $ExpectedEnvironment = if ($Exists) { '.env' } else { '.env.example' }
-        if ($BuildCall -notmatch ([regex]::Escape($ExpectedEnvironment) + '"?\s+-f\s+') -or $BuildCall -notmatch ' build\s*$') {
-            throw "构建未使用预期配置来源: $ExpectedEnvironment"
+        if ($BuildCall -notmatch '\.env\.example"?\s+-f\s+' -or $BuildCall -notmatch ' build --pull --no-cache\s*$') {
+            throw '构建必须使用公开模板且在容器内联网安装依赖'
         }
     }
 } finally {
@@ -136,4 +144,4 @@ try {
     Remove-Variable LocalStartupBuildEnvironmentExists -Scope Global
 }
 Remove-Variable LocalStartupDockerCalls -Scope Global
-Write-Host '本地启动回归通过: 就绪结构、缺表、旧版本、认证失败、旧镜像、缺镜像、阶段顺序、构建失败诊断、构建启动分离、构建不读取运行密钥及两个脚本入口。'
+Write-Host '本地启动回归通过: 就绪结构、缺表、旧版本、认证失败、旧镜像、缺镜像、阶段顺序、下载失败中止、构建失败诊断、构建启动分离、构建使用公开模板及两个脚本入口。'

@@ -15,7 +15,12 @@
 
 ## 本地入口
 
-Windows先运行`build-local-test.cmd`构建, 再运行`start-local-test.cmd`启动; 无离线缓存可使用`build-local-test.cmd -OnlineBuild`. 管理端默认地址为`http://localhost:8888`. 构建不会自动升级数据库或重启运行服务, 已有数据须按维护文档备份并增量迁移.
+环境入口脚本统一放在`env/`目录, 根目录不保留重复入口. Windows客户取得完整项目文件后, 只需安装并启动Docker Desktop(Linux容器及Compose V2), 进入`env/`目录后依次双击构建和启动脚本:
+
+1. `env/build-local-test.cmd`: 联网下载所需镜像, 在容器内安装依赖并编译前后端. 下载或编译失败立即退出, 修复网络或构建问题后重新运行.
+2. `env/start-local-test.cmd`: 自动生成首次配置, 启动MySQL、Redis、后端和管理端, 初始化空数据库并等待健康检查通过.
+
+不需要在客户电脑安装Git、Node、Java、Maven、pnpm或Codex, 不需要准备本机依赖缓存或编译产物. 管理端默认地址为`http://localhost:8888`. 详细说明见[联网构建与客户启动](docs/项目维护文档.md#联网构建与客户启动). 已有数据须按维护文档备份并增量迁移.
 
 当前提交保存统一4空格、中文文档及商品契约整改进度, 完整回归尚未完成, 不作为正式部署验收版本. 微信真机、真实支付/退款、正式AI和生产验收需要实际账号与环境. 三维颈模仍为另行确认范围.
 

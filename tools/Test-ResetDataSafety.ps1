@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $Script:Invocations = [Collections.Generic.List[string]]::new()
 $Script:Owner = 'caratcraft-test'
 $Script:Confirmation = 'RESET_DATA'
@@ -32,7 +32,7 @@ function Read-Host {
 function Import-ResetFunction {
     $Tokens = $null
     $Errors = $null
-    $Source = Join-Path (Split-Path $PSScriptRoot -Parent) 'dev.ps1'
+    $Source = Join-Path (Split-Path $PSScriptRoot -Parent) 'env/dev.ps1'
     $Ast = [Management.Automation.Language.Parser]::ParseFile($Source, [ref]$Tokens, [ref]$Errors)
     if ($Errors.Count) { throw '启动脚本语法检查失败。' }
     $Definition = $Ast.Find({ param($Node)

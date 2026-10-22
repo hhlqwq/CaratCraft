@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT_DIR="$ROOT_DIR/vendor/platform-wxshop"
 COMPOSE_FILE="$PROJECT_DIR/docker-compose.yml"
 ENV_FILE="$PROJECT_DIR/deploy/.env"
@@ -15,7 +15,7 @@ LEGACY_BUILD="false"
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
-  echo "用法: ./dev.sh [start|stop|restart|status|logs] [--reset-data] [--no-build] [--legacy-build]"
+  echo "用法: ./env/dev.sh [start|stop|restart|status|logs] [--reset-data] [--no-build] [--legacy-build]"
 }
 
 # 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
@@ -135,7 +135,7 @@ show_startup_diagnostics() {
   for name in platform-admin platform-api; do
     docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
   done
-  echo "日志: ./dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
+  echo "日志: ./env/dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
 }
 
 # 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.
@@ -146,7 +146,7 @@ start_local_environment() {
   else
     compose build || result=$?
     if [[ "$result" != 0 ]]; then
-      echo "镜像构建失败, 请查看上方Docker构建错误并检查镜像或依赖仓库网络。已有当前源码镜像可使用./dev.sh --no-build启动。"
+      echo "镜像构建失败, 请查看上方Docker构建错误并检查镜像或依赖仓库网络。已有当前源码镜像可使用./env/dev.sh --no-build启动。"
       return "$result"
     fi
   fi

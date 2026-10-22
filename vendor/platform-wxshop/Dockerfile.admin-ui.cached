@@ -1,8 +1,0 @@
-FROM nginx:1.27-alpine
-ARG BUILD_REVISION=workspace
-LABEL org.opencontainers.image.revision=${BUILD_REVISION}
-COPY default.conf /etc/nginx/conf.d/default.conf
-COPY dist/ /usr/share/nginx/html/
-COPY images/ /usr/share/nginx/html/static/images/
-COPY legal/ /usr/share/nginx/html/legal/
-EXPOSE 80

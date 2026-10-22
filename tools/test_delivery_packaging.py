@@ -33,8 +33,8 @@ class DeliveryPackagingTest(unittest.TestCase):
         selected = {path.relative_to(ROOT).as_posix() for path in DELIVERY.source_files()}
         self.assertIn(".prettierrc.json", selected)
         self.assertIn(".editorconfig", selected)
-        self.assertIn("build-local-test.cmd", selected)
-        self.assertIn("start-local-test.cmd", selected)
+        self.assertIn("env/build-local-test.cmd", selected)
+        self.assertIn("env/start-local-test.cmd", selected)
 
     def test_application_excludes_private_and_development_files(self):
         """已忽略的私人配置即使存在磁盘上也不能进入应用归档."""

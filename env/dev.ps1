@@ -3,15 +3,12 @@ param(
     [ValidateSet('build', 'start', 'stop', 'restart', 'status', 'logs')]
     [string]$Action = 'start',
     [switch]$ResetData,
-    [switch]$NoBuild,
-    [switch]$LegacyBuild,
-    [switch]$OnlineBuild,
-    [string]$NodePath,
-    [string]$MavenCache
+    [switch]$NoBuild
 )
 
 $ErrorActionPreference = 'Stop'
-$ProjectRoot = Join-Path $PSScriptRoot 'vendor\platform-wxshop'
+$WorkspaceRoot = Split-Path $PSScriptRoot -Parent
+$ProjectRoot = Join-Path $WorkspaceRoot 'vendor\platform-wxshop'
 $ComposeFile = Join-Path $ProjectRoot 'docker-compose.yml'
 $EnvFile = Join-Path $ProjectRoot 'deploy\.env'
 $EnvExample = Join-Path $ProjectRoot 'deploy\.env.example'
@@ -61,13 +58,52 @@ function Assert-StartupConfiguration {
     if ($Values['MYSQL_APP_USER'] -eq 'root') { throw '应用账号不得使用root。' }
 }
 
-# 单独记录源码版本, 构建不依赖数据库、Redis或JWT运行密钥.
+# 根据交付源码计算稳定摘要, ZIP解压环境无需安装Git且修改源码后必须重新构建.
 function Set-BuildRevision {
-    $Revision = & git -C $PSScriptRoot rev-parse --short HEAD 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        $env:BUILD_REVISION = $Revision.Trim()
-        $Dirty = & git -C $PSScriptRoot status --porcelain --untracked-files=normal 2>$null
-        if ($Dirty) { $env:BUILD_REVISION += '-dirty' }
+    Write-Host '正在计算项目源码标识...'
+    $Inputs = @('pom.xml', 'Dockerfile.backend', 'Dockerfile.admin-ui', '.dockerignore',
+        'docker-compose.yml', 'deploy/.env.example', 'deploy/maven-settings.xml',
+        'deploy/HealthCheck.java', 'deploy/nginx', '_sql', 'legal', 'wx-mall/static/images',
+        'platform-common/pom.xml', 'platform-common/src', 'platform-biz/pom.xml', 'platform-biz/src',
+        'platform-admin/pom.xml', 'platform-admin/src', 'platform-api/pom.xml', 'platform-api/src',
+        'platform-admin-ui')
+    $Files = foreach ($Relative in $Inputs) {
+        Get-BuildSourceFiles -Path (Join-Path $ProjectRoot $Relative)
+    }
+    $Files += Get-Item -LiteralPath (Join-Path $PSScriptRoot 'dev.ps1')
+    $Manifest = New-Object Text.StringBuilder
+    $Hasher = [Security.Cryptography.SHA256]::Create()
+    try {
+        foreach ($File in ($Files | Sort-Object FullName -Unique)) {
+            $Stream = [IO.File]::OpenRead($File.FullName)
+            try { $Digest = [BitConverter]::ToString($Hasher.ComputeHash($Stream)).Replace('-', '') }
+            finally { $Stream.Dispose() }
+            $Relative = $File.FullName.Substring($WorkspaceRoot.Length + 1).Replace('\', '/')
+            [void]$Manifest.Append($Relative).Append(':').Append($Digest).Append("`n")
+        }
+        $Bytes = [Text.Encoding]::UTF8.GetBytes($Manifest.ToString())
+        $env:BUILD_REVISION = [BitConverter]::ToString($Hasher.ComputeHash($Bytes)).Replace('-', '').ToLowerInvariant()
+    } finally {
+        $Hasher.Dispose()
+    }
+}
+
+# 递归收集构建输入, 在进入目录前排除本机依赖、输出、私人配置和开发工具缓存.
+function Get-BuildSourceFiles {
+    param([string]$Path)
+    $Item = Get-Item -LiteralPath $Path -Force
+    if ($Item.PSIsContainer -and
+        $Item.Name -in @('node_modules', 'target', 'dist', '.git', '.idea', '.vite', '.cache', 'coverage')) { return }
+    if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw "构建输入不允许使用链接文件或目录: $Path"
+    }
+    if ($Item.PSIsContainer) {
+        foreach ($Child in (Get-ChildItem -LiteralPath $Path -Force)) {
+            Get-BuildSourceFiles -Path $Child.FullName
+        }
+    } elseif ($Item.Name -notmatch '^(application-local.*|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
+        $Item.FullName -eq $EnvExample) {
+        $Item
     }
 }
 
@@ -94,13 +130,6 @@ function Reset-TestDataVolumes {
     }
 }
 
-# 启用传统构建器兼容模式 / Enables legacy builder compatibility mode.
-function Enable-LegacyBuild {
-    $env:COMPOSE_BAKE = 'false'
-    $env:DOCKER_BUILDKIT = '0'
-    Write-Warning '已启用传统构建器兼容模式：本次构建不会使用 BuildKit 缓存。'
-}
-
 # 执行统一的 Compose 命令 / Runs a unified Compose command.
 function Invoke-Compose {
     param([Parameter(Mandatory = $true)][string[]]$Arguments)
@@ -111,12 +140,13 @@ function Invoke-Compose {
     }
 }
 
-# 核对免构建模式的镜像来源, 拒绝缺少新版探针的历史镜像.
+# 检查全部运行镜像并核对应用源码标识, 缺失时提示先运行构建脚本.
 function Assert-LocalImages {
-    foreach ($Name in @('carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
+    foreach ($Name in @('mysql:8.0.36', 'redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
         $Metadata = & docker image inspect $Name 2>$null
         if ($LASTEXITCODE -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像, 或使用 .\dev.ps1 -Action build; -NoBuild 无法创建镜像。" }
         $Image = ($Metadata -join "`n") | ConvertFrom-Json
+        if ($Name -in @('mysql:8.0.36', 'redis:7.2-alpine')) { continue }
         $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
         if (-not $Revision -or $Revision -ne $env:BUILD_REVISION) {
             throw "镜像 $Name 的源码标识与当前代码不一致, 请先运行 build-local-test.cmd 更新镜像; -NoBuild 不会更新源码。"
@@ -160,17 +190,13 @@ function Show-StartupDiagnostics {
 # 只构建镜像, 保留原始构建错误, 不操作运行中的容器或数据库.
 function Build-LocalEnvironment {
     try {
-        if ($OnlineBuild -or $LegacyBuild) {
-            Invoke-Compose -Arguments @('build')
-        } else {
-            $Options = @{Root = $PSScriptRoot; Revision = $env:BUILD_REVISION}
-            if ($NodePath) { $Options.NodePath = $NodePath }
-            if ($MavenCache) { $Options.MavenCache = $MavenCache }
-            & (Join-Path $PSScriptRoot 'tools/Build-CachedImages.ps1') @Options
-        }
+        Write-Host '[1/2] 联网下载MySQL和Redis镜像...'
+        Invoke-Compose -Arguments @('pull', 'mysql', 'redis')
+        Write-Host '[2/2] 联网获取构建镜像和依赖, 在容器内编译前后端...'
+        Invoke-Compose -Arguments @('build', '--pull', '--no-cache')
         Write-Host '镜像构建完成, 请运行 start-local-test.cmd 启动环境。'
     } catch {
-        Write-Warning '镜像构建失败, 请查看上方具体错误. 默认使用本机缓存, 缺少缓存时请联网准备依赖或运行build-local-test.cmd -OnlineBuild. 本操作未启动或重启服务, 请修复构建错误后重试。'
+        Write-Warning '构建失败, 已停止后续步骤。请查看上方具体错误; 下载失败请检查Docker镜像仓库或Maven/npm依赖仓库网络后重新运行build-local-test.cmd。'
         throw
     }
 }
@@ -178,10 +204,13 @@ function Build-LocalEnvironment {
 # 只启动已校验的本地镜像, 检查数据服务与结构并等待全部应用就绪.
 function Start-LocalEnvironment {
     try {
+        Write-Host '[1/3] 检查已构建镜像与源码标识...'
         Assert-LocalImages
-        Invoke-Compose -Arguments @('up', '--detach', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
+        Write-Host '[2/3] 启动MySQL和Redis, 首次启动自动初始化空数据库...'
+        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
         Assert-DatabaseReady
-        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--wait', '--wait-timeout', '300')
+        Write-Host '[3/3] 启动后端和管理端, 等待健康检查通过...'
+        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300')
         Show-AccessInfo
     } catch {
         Show-StartupDiagnostics
@@ -204,19 +233,13 @@ function Show-AccessInfo {
 }
 
 if ($Action -eq 'build' -and $NoBuild) { throw 'build 不能与 -NoBuild 同时使用。' }
-if ($LegacyBuild -and $Action -ne 'build') { throw '-LegacyBuild 仅用于构建, 请运行 build-local-test.cmd -LegacyBuild。' }
-if (($OnlineBuild -or $NodePath -or $MavenCache) -and $Action -ne 'build') { throw '构建参数只能与 -Action build 一起使用。' }
 
 Assert-DockerReady
 if ($Action -eq 'build') {
     # Compose构建只需要变量模板, 不为编译生成或校验本机运行秘密.
-    if (-not (Test-Path -LiteralPath $EnvFile)) { $EnvFile = $EnvExample }
+    $EnvFile = $EnvExample
 } else {
     Initialize-Environment
-}
-
-if ($LegacyBuild) {
-    Enable-LegacyBuild
 }
 
 if ($ResetData -and $Action -notin @('start', 'restart')) {

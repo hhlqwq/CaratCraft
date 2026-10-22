@@ -7,3 +7,14 @@ deploy/data
 deploy/packages
 platform-admin-ui/dist
 platform-admin-ui/node_modules
+**/application-local*
+**/.env
+**/.env.*
+!deploy/.env.example
+deploy/secrets
+**/*.key
+**/*.pem
+**/*.p12
+**/.vite
+**/.cache
+**/coverage

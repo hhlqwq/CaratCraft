@@ -8,7 +8,7 @@ set "EXIT_CODE=%ERRORLEVEL%"
 
 if not "%EXIT_CODE%"=="0" (
   echo.
-  echo Build failed. Please check the Docker build output above.
+  echo Build failed. Check the errors above and network access to image and dependency registries, then retry.
 ) else (
   echo.
   echo Build completed. Run start-local-test.cmd to start the environment.
