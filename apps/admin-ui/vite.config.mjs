@@ -17,14 +17,11 @@ function distribution() {
                 {tag: 'script', attrs: {src: './static/config/index.js'}, injectTo: 'head-prepend'},
             ];
         },
+        /** 复制唯一静态资源目录, 不额外生成运行配置副本. */
         closeBundle() {
             fs.cpSync(path.join(root, 'static'), path.join(output, 'static'), {recursive: true});
-            fs.mkdirSync(path.join(output, 'config'), {recursive: true});
-            fs.copyFileSync(
-                path.join(root, 'static/config/index.js'),
-                path.join(output, 'config/index.js')
-            );
         },
+        /** 输出实际模块清单用于许可核验. */
         generateBundle() {
             if (process.env.CARATCRAFT_UI_STATS) {
                 const modules = [...this.getModuleIds()]

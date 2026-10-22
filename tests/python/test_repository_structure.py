@@ -5,6 +5,8 @@ import importlib.util
 import json
 from pathlib import Path
 import re
+import subprocess
+import sys
 import unittest
 
 
@@ -44,7 +46,7 @@ class RepositoryStructureTest(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_initialization_keeps_order_and_resolvable_sources(self):
-        """数字前缀保持原初始化顺序, 显式SOURCE仍指向随包存在的历史辅助SQL."""
+        """数字前缀保持原初始化顺序, 初始化不再依赖历史SOURCE或目录."""
         record = json.loads((ROOT / "docs/资料/仓库结构.json").read_text("utf-8"))
         mapping = sorted((old, new) for old, new in record["files"].items()
                          if new.startswith("database/init/"))
@@ -53,19 +55,29 @@ class RepositoryStructureTest(unittest.TestCase):
                         for file in (ROOT / "database/init").iterdir() if file.is_file())
         self.assertEqual(expected, actual)
         for name in actual:
-            for source in re.findall(r"(?im)^SOURCE[ \t]+([^\r\n;]+);[ \t]*$",
-                                     (ROOT / name).read_text("utf-8-sig")):
-                locations = {
-                    "/docker-entrypoint-initdb.d/": "database/init",
-                    "/opt/caratcraft/legacy/": "database/legacy",
-                }
-                matches = [(prefix, directory) for prefix, directory in locations.items()
-                           if source.startswith(prefix)]
-                self.assertEqual(len(matches), 1, source)
-                prefix, directory = matches[0]
-                target = ROOT / directory / source[len(prefix):]
-                self.assertTrue(target.resolve().is_relative_to((ROOT / "database").resolve()))
-                self.assertTrue(target.is_file(), target)
+            self.assertNotRegex((ROOT / name).read_text("utf-8-sig"), r"(?im)^\s*SOURCE\s+[^\r\n;]+;")
+        self.assertFalse((ROOT / "database/legacy").exists())
+
+    def test_generated_migrations_match_unique_sources(self):
+        """只读生成校验必须覆盖全部迁移且不改写初始化文件."""
+        target = ROOT / "database/init/130_schema_versions.sql"
+        before = target.read_bytes()
+        subprocess.run([sys.executable, str(ROOT / "tools/database/build-migration-baseline.py"),
+                        "--check"], check=True, capture_output=True)
+        self.assertEqual(before, target.read_bytes())
+
+    def test_runtime_configuration_and_assets_have_one_source(self):
+        """运行配置和素材台账不得重新引入已删除的备用入口或无用副本."""
+        configuration = ROOT / "apps/admin-ui/static/config"
+        self.assertEqual(["index.js"], sorted(file.name for file in configuration.iterdir()))
+        vite = (ROOT / "apps/admin-ui/vite.config.mjs").read_text("utf-8")
+        self.assertNotIn("path.join(output, 'config')", vite)
+        self.assertIn("./static/config/index.js", vite)
+        records = json.loads((ROOT / "legal/project-assets.json").read_text("utf-8"))
+        for record in records:
+            file = ROOT / record["file"]
+            self.assertEqual(record["sha256"], hashlib.sha256(file.read_bytes()).hexdigest(), file)
+        self.assertFalse((ROOT / "data").exists())
 
     def test_compose_preserves_project_identity_and_build_context(self):
         """配置迁移不能默默更换默认卷归属或丢失根目录构建上下文."""
@@ -73,7 +85,7 @@ class RepositoryStructureTest(unittest.TestCase):
         self.assertRegex(compose, r"(?m)^name: platform-wxshop$")
         self.assertEqual(compose.count("context: .."), 3)
         self.assertIn("../database/init:/docker-entrypoint-initdb.d:ro", compose)
-        self.assertIn("../database/legacy:/opt/caratcraft/legacy:ro", compose)
+        self.assertNotIn("/opt/caratcraft/legacy", compose)
         self.assertIn("./secrets:/run/secrets:ro", compose)
 
 

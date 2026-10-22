@@ -41,6 +41,9 @@ function businessFiles() {
             if (name.startsWith('tools/') || name.startsWith('tests/')) {
                 return /\.(js|cjs|mjs)$/.test(name);
             }
+            if (name.startsWith('apps/admin-ui/static/config/')) {
+                return name.endsWith('.js');
+            }
             if (name.startsWith('apps/admin-ui/src/')) {
                 return (
                     !/\/(third-party|element-ui-theme)\//.test(name) &&

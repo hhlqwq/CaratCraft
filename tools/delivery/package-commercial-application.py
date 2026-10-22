@@ -26,8 +26,8 @@ def source_files():
             continue
         if path.name.lower() == "agents.md":
             continue
-        if relative.startswith(("backend/", "apps/", "database/", "deploy/", "env/",
-                                "tools/", "tests/", "legal/", "data/", "docs/")):
+        if relative.startswith(("backend/", "apps/", "database/", "deploy/",
+                                "tools/", "tests/", "legal/", "docs/")):
             selected.append(path)
         elif relative in {"README.md", ".gitignore", ".dockerignore", ".gitattributes",
                           ".editorconfig", ".prettierrc.json"}:

@@ -166,7 +166,7 @@ def write_bitmap(path, size):
     draw = ImageDraw.Draw(image)
     if is_layer or is_demo:
         draw_jewelry(image, path.name, is_layer)
-    elif path.name in {"logo.png", "caratcraft-emblem.png", "favicon.ico"}:
+    elif path.name in {"logo.png", "favicon.ico"}:
         draw.rounded_rectangle((0, 0, *canvas_size), radius=min(canvas_size) * .2, fill=INK)
         draw_icon(draw, "diamond", canvas_size, "#d7b574")
     elif "bg_mobile_head" in path.name:
@@ -238,7 +238,7 @@ def main():
     files = [path for path in WX_IMAGES.rglob("*") if path.suffix.lower() in
              {".png", ".webp", ".svg"}]
     files += list((UI / "src/icons/svg").glob("*.svg"))
-    files += [ROOT / "data/caratcraft-emblem.png", UI / "static/img/favicon.ico",
+    files += [UI / "static/img/favicon.ico",
               ROOT / "backend/platform-api/src/main/resources/favicon.ico",
               ROOT / "backend/platform-admin/src/main/resources/favicon.ico"]
     files += list((UI / "src/assets/img").glob("*"))

@@ -7,7 +7,7 @@ export default [
     js.configs.recommended,
     ...vue.configs['flat/essential'],
     {
-        files: ['src/**/*.{js,vue}'],
+        files: ['src/**/*.{js,vue}', 'static/config/*.js'],
         languageOptions: {
             globals: Object.fromEntries(
                 [

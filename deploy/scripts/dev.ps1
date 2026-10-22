@@ -7,7 +7,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$WorkspaceRoot = Split-Path $PSScriptRoot -Parent
+$WorkspaceRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $ProjectRoot = $WorkspaceRoot
 $ComposeFile = Join-Path $ProjectRoot 'deploy/docker-compose.yml'
 $EnvFile = Join-Path $ProjectRoot 'deploy\.env'
@@ -61,17 +61,14 @@ function Assert-StartupConfiguration {
 # 根据交付源码计算稳定摘要, ZIP解压环境无需安装Git且修改源码后必须重新构建.
 function Set-BuildRevision {
     Write-Host '正在计算项目源码标识...'
-    $Inputs = @('backend', 'apps/admin-ui', 'apps/miniapp/static/images',
-        'deploy/Dockerfile.backend', 'deploy/Dockerfile.admin-ui', '.dockerignore',
-        'deploy/docker-compose.yml', 'deploy/.env.example', 'deploy/maven-settings.xml',
-        'deploy/HealthCheck.java', 'deploy/nginx', 'database', 'legal')
+    $Inputs = [IO.File]::ReadAllLines((Join-Path $ProjectRoot 'deploy/build-inputs.txt'))
     $Files = foreach ($Relative in $Inputs) {
         Get-BuildSourceFiles -Path (Join-Path $ProjectRoot $Relative)
     }
-    $Files += Get-Item -LiteralPath (Join-Path $PSScriptRoot 'dev.ps1')
     $Manifest = New-Object Text.StringBuilder
     $Hasher = [Security.Cryptography.SHA256]::Create()
     $BuildFiles = @($Files | Sort-Object FullName -Unique)
+    [Array]::Sort($BuildFiles, [System.Comparison[object]]{ param($Left, $Right) [StringComparer]::Ordinal.Compare($Left.FullName, $Right.FullName) })
     $Processed = 0
     try {
         foreach ($File in $BuildFiles) {

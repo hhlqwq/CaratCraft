@@ -29,8 +29,10 @@ def expand_sql(file, parents=()):
     text = file.read_text("utf-8-sig")
     if re.search(r"(?im)^\s*(USE|CREATE\s+DATABASE|DROP\s+DATABASE)\b", text):
         raise ValueError("初始化脚本不得切换或删除其他数据库: " + file.name)
-    pattern = r"(?im)^\s*SOURCE\s+(/docker-entrypoint-initdb.d/|/opt/caratcraft/legacy/)([a-zA-Z0-9_./-]+\.sql);\s*$"
-    return re.sub(pattern, lambda match: expand_sql((ROOT.parent / "legacy" if match.group(1).startswith("/opt/") else ROOT) / match.group(2), parents + (file,)), text)
+    if re.search(r"(?im)^\s*SOURCE\s+[^\r\n;]+;", text):
+        raise ValueError("初始化必须使用独立SQL, 不允许SOURCE: " + file.name)
+    return text
+
 
 
 def main():

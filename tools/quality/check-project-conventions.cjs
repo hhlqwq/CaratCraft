@@ -33,6 +33,21 @@ function filesAt(directory) {
 /** 验证唯一文档入口、链接、4空格配置及已统一的源码约定. */
 function check(root) {
     const errors = [];
+    for (const retired of [
+        'env',
+        'database/legacy',
+        'data/caratcraft-emblem.png',
+        'apps/admin-ui/static/config/init.js',
+        'apps/admin-ui/static/config/index-prod.js',
+        'tools/maintenance/migrate-admin-slots.cjs',
+        'tools/database/prepare-integration-database.py',
+        'tools/delivery/build-jars.sh',
+        'tools/delivery/build-admin-ui.sh',
+    ]) {
+        if (fs.existsSync(path.join(root, retired))) {
+            errors.push(retired + ': 已收敛的历史入口不得恢复');
+        }
+    }
     const directory = path.join(root, 'docs');
     const markdown = filesAt(directory).filter((file) => file.endsWith('.md'));
     const actual = markdown.map((file) => path.relative(directory, file)).sort();
@@ -71,7 +86,7 @@ function check(root) {
             errors.push('Prettier须使用4个空格');
         }
     }
-    const owned = ['backend', 'apps', 'tools', 'tests', 'env', 'deploy'];
+    const owned = ['backend', 'apps', 'tools', 'tests', 'deploy'];
     const editors = [
         path.join(root, '.editorconfig'),
         ...owned.flatMap((name) =>

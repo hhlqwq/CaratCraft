@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PROJECT_DIR="$ROOT_DIR"
 COMPOSE_FILE="$PROJECT_DIR/deploy/docker-compose.yml"
 ENV_FILE="$PROJECT_DIR/deploy/.env"
@@ -14,7 +14,7 @@ NO_BUILD="false"
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
-    echo "用法: ./env/dev.sh [start|stop|restart|status|logs] [--reset-data] [--no-build]"
+    echo "用法: ./env/dev.sh [build|start|stop|restart|status|logs] [--reset-data] [--no-build]"
 }
 
 # 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
@@ -58,9 +58,62 @@ assert_startup_configuration() {
     done
     value="$(sed -n 's/^MYSQL_APP_USER=//p' "$ENV_FILE" | tail -n 1)"
     [[ "$value" != root ]] || { echo "应用账号不得使用root"; exit 1; }
-    BUILD_REVISION="$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo workspace)"
-    [[ -z "$(git -C "$ROOT_DIR" status --porcelain --untracked-files=normal 2>/dev/null)" ]] || BUILD_REVISION="${BUILD_REVISION}-dirty"
+}
+
+
+# 计算单个文件的SHA256, 兼容Linux及macOS自带工具.
+sha256_file() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum | awk '{print toupper($1)}'
+    else
+        shasum -a 256 | awk '{print toupper($1)}'
+    fi
+}
+
+# 收集唯一清单中的构建输入, 拒绝链接且排除缓存及私人配置.
+build_source_files() {
+    local item="$1" name child
+    [[ ! -L "$item" ]] || { echo "构建输入不允许链接: $item" >&2; return 1; }
+    if [[ -d "$item" ]]; then
+        while IFS= read -r -d '' child; do
+            [[ ! -L "$child" ]] || { echo "构建输入不允许链接: $child" >&2; return 1; }
+            name="${child##*/}"
+            case "$name" in
+                application-local*|.env|.env.*|*.log|*.tmp|*.key|*.pem|*.p12)
+                    [[ "$child" == "$ENV_EXAMPLE" ]] || continue ;;
+            esac
+            printf '%s\n' "${child#"$ROOT_DIR/"}"
+        done < <(find "$item" \( -type d \( -name node_modules -o -name target -o -name dist -o -name .git -o -name .idea -o -name .vite -o -name .cache -o -name coverage \) \) -prune -o \( -type f -o -type l \) -print0)
+    else
+        [[ -f "$item" ]] || { echo "构建输入缺失: $item" >&2; return 1; }
+        printf '%s\n' "${item#"$ROOT_DIR/"}"
+    fi
+}
+
+# 根据输入路径和文件摘要计算源码标识, 不依赖Git元数据.
+set_build_revision() {
+    local relative files name manifest
+    files="$(while IFS= read -r relative || [[ -n "$relative" ]]; do
+        relative="${relative%$'\r'}"
+        build_source_files "$ROOT_DIR/$relative" || exit 1
+    done < "$ROOT_DIR/deploy/build-inputs.txt")" || return 1
+    files="$(printf '%s\n' "$files" | LC_ALL=C sort -u)"
+    manifest="$(while IFS= read -r name; do
+        printf '%s\0' "$ROOT_DIR/$name"
+    done <<< "$files" | if command -v sha256sum >/dev/null 2>&1; then
+        xargs -0 sha256sum
+    else
+        xargs -0 shasum -a 256
+    fi | awk -v root="$ROOT_DIR/" '{print substr($0, 67 + length(root)) ":" toupper(substr($0, 1, 64))}')" || return 1
+    BUILD_REVISION="$(printf '%s\n' "$manifest" | sha256_file | tr 'A-F' 'a-f')"
     export BUILD_REVISION
+}
+
+# 联网构建但不启动服务, 使用公开模板而非私人运行配置.
+build_local_environment() {
+    compose pull mysql redis
+    compose build --pull --no-cache
+    echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
 }
 
 # 仅删除当前项目的MySQL和Redis卷, 不删除上传卷, 并要求执行者确认.
@@ -91,12 +144,13 @@ compose() {
 # 校验免构建镜像的源码标识, 拒绝复用未提供新版探针的历史镜像.
 assert_local_images() {
     local name revision
-    for name in carat-craft-backend:local carat-craft-admin-ui:local; do
+    for name in mysql:8.0.36 redis:7.2-alpine carat-craft-backend:local carat-craft-admin-ui:local; do
         revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$name" 2>/dev/null)" || {
-            echo "缺少镜像 $name, 请移除--no-build重新运行。"; return 1;
+            echo "缺少镜像 $name, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
+        case "$name" in mysql:*|redis:*) continue ;; esac
         [[ "$revision" == "$BUILD_REVISION" ]] || {
-            echo "镜像 $name 与当前源码标识不一致, 请移除--no-build重新构建。"; return 1;
+            echo "镜像 $name 与当前源码标识不一致, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
     done
 }
@@ -133,21 +187,13 @@ show_startup_diagnostics() {
 # 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.
 start_local_environment() {
     local result=0
-    if [[ "$NO_BUILD" == true ]]; then
-        assert_local_images || result=$?
-    else
-        compose build || result=$?
-        if [[ "$result" != 0 ]]; then
-            echo "镜像构建失败, 请查看上方Docker构建错误并检查镜像或依赖仓库网络。已有当前源码镜像可使用./env/dev.sh --no-build启动。"
-            return "$result"
-        fi
-    fi
+    assert_local_images || result=$?
     if [[ "$result" == 0 ]]; then
-        compose up --detach --wait --wait-timeout 300 mysql redis || result=$?
+        compose up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis || result=$?
     fi
     if [[ "$result" == 0 ]]; then assert_database_ready || result=$?; fi
     if [[ "$result" == 0 ]]; then
-        compose up --detach --no-build --wait --wait-timeout 300 || result=$?
+        compose up --detach --no-build --pull never --wait --wait-timeout 300 || result=$?
     fi
     if [[ "$result" != 0 ]]; then show_startup_diagnostics; return "$result"; fi
     show_access_info
@@ -182,7 +228,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$ACTION" in
-    start|stop|restart|status|logs) ;;
+    build|start|stop|restart|status|logs) ;;
     *) echo "未知操作: $ACTION"; usage; exit 1 ;;
 esac
 
@@ -191,10 +237,17 @@ if [[ "$RESET_DATA" == "true" && "$ACTION" != "start" && "$ACTION" != "restart" 
     exit 1
 fi
 
+if [[ "$ACTION" == build && "$NO_BUILD" == true ]]; then
+    echo "build不能与--no-build同时使用。"; exit 1
+fi
 assert_docker_ready
-initialize_environment
+if [[ "$ACTION" == build ]]; then ENV_FILE="$ENV_EXAMPLE"; else initialize_environment; fi
 
 case "$ACTION" in
+    build)
+        set_build_revision
+        build_local_environment
+        ;;
     stop)
         compose down --remove-orphans
         ;;
@@ -206,11 +259,14 @@ case "$ACTION" in
         ;;
     restart)
         assert_startup_configuration
+        set_build_revision
+        assert_local_images
         if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; else compose down --remove-orphans; fi
         start_local_environment
         ;;
     start)
         assert_startup_configuration
+        set_build_revision
         if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; fi
         start_local_environment
         ;;

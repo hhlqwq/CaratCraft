@@ -445,38 +445,7 @@
         </dependency>
     </dependencies>
 
-    <!-- maven仓库 -->
-    <repositories>
-        <repository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>nexus-public</id>
-            <name>nexus</name>
-            <url>https://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+    <!-- 依赖及插件统一使用Maven默认的官方Central仓库. -->
     <build>
         <plugins>
             <plugin>

@@ -188,5 +188,57 @@
         "environmentSetupOwner": "user",
         "downloadedBytesIncludingChecksums": 17738567,
         "dockerImageBuild": "not_run"
+    },
+    "consolidation": {
+        "baseline": "dd6a93a",
+        "date": "2026-10-22",
+        "historicalMappingNote": "prefixes和files保留第一次目录迁移证据, 后续删除及入口调整以consolidation为准.",
+        "environmentEntry": "deploy/scripts/",
+        "buildInputs": "deploy/build-inputs.txt",
+        "deletedFiles": [
+            "apps/admin-ui/static/config/index-prod.js",
+            "apps/admin-ui/static/config/init.js",
+            "data/caratcraft-emblem.png",
+            "database/legacy/20260831_fix_diy_demo_product.sql",
+            "database/legacy/20260831_goods_recycle_bin.sql",
+            "database/legacy/20260831_split_necklace_earring_diy.sql",
+            "database/legacy/20260901_cleanup_legacy_catalog.sql",
+            "database/legacy/20260901_migrate_catalog_images_to_webp.sql",
+            "database/legacy/20260901_simplify_necklace_diy.sql",
+            "database/legacy/carat_craft_customization_v2.sql",
+            "database/legacy/carat_craft_demo_components_v2.sql",
+            "database/legacy/carat_craft_demo_jewelry_v1.sql",
+            "database/legacy/carat_craft_stability_v1.sql",
+            "tools/database/prepare-integration-database.py",
+            "tools/delivery/build-admin-ui.sh",
+            "tools/delivery/build-jars.sh",
+            "tools/maintenance/migrate-admin-slots.cjs"
+        ],
+        "movedFiles": {
+            "env/dev.ps1": "deploy/scripts/dev.ps1",
+            "env/dev.sh": "deploy/scripts/dev.sh",
+            "env/build-local-test.cmd": "deploy/scripts/build-local-test.cmd",
+            "env/start-local-test.cmd": "deploy/scripts/start-local-test.cmd"
+        },
+        "inlinedSql": {
+            "database/init/100_carat_craft_catalog_cleanup.sql": {
+                "previousSource": "database/legacy/20260901_cleanup_legacy_catalog.sql",
+                "sha256Lf": "3be88b2be91087df445b6771ce598ad812743fc9c5e7bebb311188f9d16f7092"
+            },
+            "database/init/120_carat_craft_image_urls.sql": {
+                "previousSource": "database/legacy/20260901_migrate_catalog_images_to_webp.sql",
+                "sha256Lf": "fc597bf117678167192b6d5f7129257c211c85f375f58ecce00d20680d10af5f"
+            }
+        },
+        "localVendorCleanup": {
+            "date": "2026-10-22",
+            "removedDirectory": "vendor/",
+            "regularFilesRemoved": 15170,
+            "linksRemoved": 469,
+            "bytesRemoved": 502465433,
+            "privateConfigurationPreserved": ".tools/local-legacy/vendor/deploy/.env",
+            "configurationBytesVerified": true,
+            "dockerMountInspection": "Docker引擎不可连接, 未核验历史容器挂载, 未启停服务或删除数据卷"
+        }
     }
 }

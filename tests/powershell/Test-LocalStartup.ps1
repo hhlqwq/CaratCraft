@@ -2,7 +2,7 @@
 $Root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $Tokens = $null
 $Errors = $null
-$Ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'env/dev.ps1'), [ref]$Tokens, [ref]$Errors)
+$Ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $Root 'deploy/scripts/dev.ps1'), [ref]$Tokens, [ref]$Errors)
 if ($Errors.Count) { throw ($Errors | Out-String) }
 foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
     . ([scriptblock]::Create($Definition.Extent.Text))
@@ -99,20 +99,20 @@ $script:Calls = @()
 Build-LocalEnvironment
 if ($script:Calls.Count -ne 2 -or $script:Calls[0] -ne 'pull mysql redis' -or
     $script:Calls[1] -ne 'build --pull --no-cache') { throw '构建操作启动了容器或访问了数据库' }
-$Wrapper = Get-Content (Join-Path $Root 'env/start-local-test.cmd') -Raw
+$Wrapper = Get-Content (Join-Path $Root 'deploy/scripts/start-local-test.cmd') -Raw
 if ($Wrapper -notmatch 'dev\.ps1" -Action start %\*' -or $Wrapper -match 'docker compose|Action build') { throw '启动入口未固定为仅启动操作' }
-$BuildWrapper = Get-Content (Join-Path $Root 'env/build-local-test.cmd') -Raw
+$BuildWrapper = Get-Content (Join-Path $Root 'deploy/scripts/build-local-test.cmd') -Raw
 if ($BuildWrapper -notmatch 'dev\.ps1" -Action build %\*' -or $BuildWrapper -match 'Action start') { throw '构建入口未固定为仅构建操作' }
 $script:Calls = @()
 $global:LocalStartupDockerCalls.Clear()
-& (Join-Path $Root 'env/dev.ps1') -Action build
+& (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build
 $DispatchCalls = $global:LocalStartupDockerCalls.ToArray()
 if ($DispatchCalls.Count -ne 4 -or $DispatchCalls[0] -notmatch 'compose version' -or
     $DispatchCalls[1].Trim() -ne 'info' -or $DispatchCalls[2] -notmatch ' pull mysql redis\s*$' -or
     $DispatchCalls[3] -notmatch ' build --pull --no-cache\s*$') {
     throw "构建Action调度出现启动、数据库或其他非构建操作: $($DispatchCalls -join ' | ')"
 }
-Assert-Rejected { & (Join-Path $Root 'env/dev.ps1') -Action build -NoBuild } 'NoBuild'
+Assert-Rejected { & (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build -NoBuild } 'NoBuild'
 
 # 模拟不存在或不可读取的私有配置, 构建均不得生成、读取或校验运行密钥.
 function Test-Path {
@@ -133,7 +133,7 @@ try {
     foreach ($Exists in @($false, $true)) {
         $global:LocalStartupBuildEnvironmentExists = $Exists
         $global:LocalStartupDockerCalls.Clear()
-        & (Join-Path $Root 'env/dev.ps1') -Action build
+        & (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build
         $BuildCall = $global:LocalStartupDockerCalls.ToArray()[-1]
         if ($BuildCall -notmatch '\.env\.example"?\s+-f\s+' -or $BuildCall -notmatch ' build --pull --no-cache\s*$') {
             throw '构建必须使用公开模板且在容器内联网安装依赖'

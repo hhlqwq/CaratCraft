@@ -7,6 +7,6 @@
 - `platform-admin`: 商家管理API.
 - `platform-api`: 小程序公开及本人API.
 
-两个API依赖业务模块, 业务模块依赖公共模块. 业务编排逐步集中在服务层, Controller保持薄层. Java测试随模块源码维护. 管理端和小程序分别位于`../apps/admin-ui/`和`../apps/miniapp/`, 数据库位于`../database/`, 环境入口位于`../env/`.
+两个API依赖业务模块, 业务模块依赖公共模块. 业务编排逐步集中在服务层, Controller保持薄层. Java测试随模块源码维护. 管理端和小程序分别位于`../apps/admin-ui/`和`../apps/miniapp/`, 数据库位于`../database/`, 环境入口位于`../deploy/scripts/`.
 
 原底座许可原文保存在[UPSTREAM-LICENSE](../legal/UPSTREAM-LICENSE), 其余版权与对应源码见[发布许可](../legal/README.md). 目录迁移不改变源码版权或重新署名.

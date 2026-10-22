@@ -51,7 +51,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw '小程序规范检查失败' }
     Push-Location $taskUi
     try {
-        node node_modules/eslint/bin/eslint.js src --max-warnings 0
+        node node_modules/eslint/bin/eslint.js src static/config --max-warnings 0
         if ($LASTEXITCODE -ne 0) { throw '业务前端规范检查失败' }
     } finally { Pop-Location }
     if ($taskHasGit) {

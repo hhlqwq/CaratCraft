@@ -87,3 +87,13 @@ test('规范门禁阻止星号导入和that别名回归', (context) => {
     fs.writeFileSync(script, 'const that = this;');
     assert.equal(check(root).length, 2);
 });
+
+/** 已收敛的SQL、部署和管理端历史入口不得重新进入仓库. */
+test('规范门禁拒绝恢复已删除的备用实现', (context) => {
+    const root = fixture(context);
+    fs.mkdirSync(path.join(root, 'env'));
+    fs.mkdirSync(path.join(root, 'database/legacy'), {recursive: true});
+    const errors = check(root);
+    assert.ok(errors.some((message) => message.startsWith('env:')));
+    assert.ok(errors.some((message) => message.startsWith('database/legacy:')));
+});

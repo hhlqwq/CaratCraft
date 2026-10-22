@@ -32,7 +32,7 @@ function Read-Host {
 function Import-ResetFunction {
     $Tokens = $null
     $Errors = $null
-    $Source = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'env/dev.ps1'
+    $Source = Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'deploy/scripts/dev.ps1'
     $Ast = [Management.Automation.Language.Parser]::ParseFile($Source, [ref]$Tokens, [ref]$Errors)
     if ($Errors.Count) { throw '启动脚本语法检查失败。' }
     $Definition = $Ast.Find({ param($Node)
