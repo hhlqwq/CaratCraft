@@ -6,6 +6,14 @@
             show-icon
             title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 配件和二维图层。"
         ></el-alert>
+        <el-alert
+            v-if="readErrors.goods || readErrors.products || readErrors.options"
+            type="error"
+            :closable="false"
+            :title="readErrors.goods || readErrors.products || readErrors.options"
+        >
+            <el-button @click="retryReads">重新加载</el-button>
+        </el-alert>
         <div class="toolbar">
             <el-upload
                 v-if="isAuth('custom:config:update')"
@@ -14,6 +22,7 @@
                 :auto-upload="false"
                 :show-file-list="false"
                 :on-change="importConfiguration"
+                :disabled="writing"
             >
                 <el-button type="success">导入商品配件 JSON</el-button>
             </el-upload>
@@ -22,7 +31,7 @@
 
         <el-card class="card" shadow="never">
             <template #header><div>定制商品</div></template>
-            <el-form label-width="110px">
+            <el-form :inert="writing" label-width="110px">
                 <el-row :gutter="18">
                     <el-col :xs="24" :sm="24" :lg="12">
                         <el-form-item label="商城商品">
@@ -134,7 +143,11 @@
                         </p>
                     </div>
                 </el-form-item>
-                <el-button v-if="isAuth('custom:config:update')" type="primary" @click="saveProduct"
+                <el-button
+                    v-if="isAuth('custom:config:update')"
+                    type="primary"
+                    :loading="writing"
+                    @click="saveProduct"
                     >保存商品配置</el-button
                 >
                 <el-button @click="resetProduct">新建配置</el-button>
@@ -184,7 +197,7 @@
                 type="warning"
                 :closable="false"
             ></el-alert>
-            <el-form label-width="105px">
+            <el-form :inert="writing" label-width="105px">
                 <el-row :gutter="18">
                     <el-col :xs="24" :sm="12" :lg="12">
                         <el-form-item label="组件类型">
@@ -338,7 +351,8 @@
                 <el-button
                     v-if="isAuth('custom:config:update')"
                     type="primary"
-                    :disabled="!selectedGoodsId"
+                    :disabled="!selectedGoodsId || reading.options || !!readErrors.options"
+                    :loading="writing"
                     @click="saveOption"
                     >保存配件</el-button
                 >
@@ -374,6 +388,7 @@
 </template>
 
 <script>
+/** 创建未发布的独立商品配置, 制作规则保持未填写状态. */
 const createProduct = () => ({
     goodsId: null,
     templateCode: 'necklace-v1',
@@ -383,6 +398,7 @@ const createProduct = () => ({
     enabled: 0,
     lengthRules: '',
 });
+/** 创建独立配件表单, 不继承上一个商品的选项身份. */
 const createOption = () => ({
     id: null,
     componentType: '',
@@ -397,6 +413,11 @@ const createOption = () => ({
 export default {
     data() {
         return {
+            pageActive: true,
+            pageEpoch: 0,
+            writing: false,
+            reading: {goods: false, products: false, options: false},
+            readErrors: {goods: '', products: '', options: ''},
             goods: [],
             products: [],
             options: [],
@@ -459,10 +480,123 @@ export default {
         },
     },
     activated() {
+        this.pageActive = true;
+        this.pageEpoch++;
         this.loadGoods();
         this.loadProducts();
+        this.loadOptions();
+    },
+    /** 离页后废弃当前所有读取和写入回调. */
+    deactivated() {
+        this.pageActive = false;
+        this.pageEpoch++;
+    },
+    /** 销毁时隔离尚未完成的接口响应. */
+    beforeUnmount() {
+        this.pageActive = false;
+        this.pageEpoch++;
     },
     methods: {
+        /** 捕获当前商品编辑上下文, 不让回调切换或重置其他商品. */
+        configurationContext(option) {
+            return {
+                epoch: this.pageEpoch,
+                product: this.product,
+                goodsId: this.product.goodsId,
+                selectedGoodsId: this.selectedGoodsId,
+                option,
+            };
+        },
+        /** 同一商品同一页面代次才可接收写入结果. */
+        isConfigurationCurrent(context) {
+            return (
+                this.pageActive &&
+                context.epoch === this.pageEpoch &&
+                context.product === this.product &&
+                context.goodsId === this.product.goodsId &&
+                context.selectedGoodsId === this.selectedGoodsId &&
+                (!context.option || context.option === this.option)
+            );
+        },
+        /** 写操作串行化, 失败保留编辑内容, 不自动重放请求. */
+        async writeConfiguration(url, payload, context, message, afterSave, params) {
+            if (this.writing || !this.isConfigurationCurrent(context)) {
+                return;
+            }
+            this.writing = true;
+            try {
+                const {data} = await this.$http({
+                    url,
+                    method: 'post',
+                    data: payload,
+                    params,
+                    showError: false,
+                });
+                if (!this.isConfigurationCurrent(context)) {
+                    return;
+                }
+                if (!data || data.code !== 0) {
+                    throw new Error(data?.msg || '配置操作失败');
+                }
+                this.$message.success(typeof message === 'function' ? message(data) : message);
+                afterSave();
+            } catch (error) {
+                if (this.isConfigurationCurrent(context)) {
+                    this.$message.error(error.message || '配置操作失败, 请重试');
+                }
+            } finally {
+                this.writing = false;
+            }
+        },
+        /** 按读取类型隔离乱序响应, 配件列表还须核对商品归属. */
+        async readConfiguration(name, field, params) {
+            this._readVersions = this._readVersions || {};
+            const version = (this._readVersions[name] = (this._readVersions[name] || 0) + 1);
+            const epoch = this.pageEpoch;
+            const goodsId = this.selectedGoodsId;
+            const current = () =>
+                this.pageActive &&
+                epoch === this.pageEpoch &&
+                version === this._readVersions[name] &&
+                (name !== 'options' || goodsId === this.selectedGoodsId);
+            this.reading[name] = true;
+            this.readErrors[name] = '';
+            try {
+                const {data} = await this.$http({
+                    url: `/custom/configuration/${name}`,
+                    method: 'get',
+                    params,
+                });
+                if (!current()) {
+                    return;
+                }
+                if (!data || data.code !== 0 || !Array.isArray(data.data)) {
+                    throw new Error('配置读取失败');
+                }
+                this[field] = data.data;
+            } catch (error) {
+                if (current()) {
+                    this[field] = [];
+                    this.readErrors[name] = '配置读取失败, 请重新加载';
+                }
+            } finally {
+                if (current()) {
+                    this.reading[name] = false;
+                }
+            }
+        },
+        /** 只重试失败的读取, 保留尚未提交的表单. */
+        retryReads() {
+            if (this.readErrors.goods) {
+                this.loadGoods();
+            }
+            if (this.readErrors.products) {
+                this.loadProducts();
+            }
+            if (this.readErrors.options) {
+                this.loadOptions();
+            }
+        },
         /** 显式开启时所有毫米参数保持未知, 不用零值替代商家真实数据. */
         toggleLengthRules(enabled) {
             this.product.lengthRules = enabled
@@ -503,15 +637,11 @@ export default {
         },
         // 加载商城商品 / Loads mall products.
         loadGoods() {
-            this.$http({url: '/custom/configuration/goods', method: 'get'}).then(({data}) => {
-                this.goods = data && data.code === 0 ? data.data : [];
-            });
+            return this.readConfiguration('goods', 'goods');
         },
         // 加载定制商品配置 / Loads custom product configurations.
         loadProducts() {
-            this.$http({url: '/custom/configuration/products', method: 'get'}).then(({data}) => {
-                this.products = data && data.code === 0 ? data.data : [];
-            });
+            return this.readConfiguration('products', 'products');
         },
         // 获取商品显示名称 / Resolves a product display name.
         goodsName(goodsId) {
@@ -534,31 +664,34 @@ export default {
                 this.$message.error('请完整填写制作规则, 最小长度不能大于最大长度');
                 return;
             }
-            this.$http({
-                url: '/custom/configuration/product/save',
-                method: 'post',
-                data: this.product,
-                showError: false,
-            }).then(({data}) => {
-                if (!data || data.code !== 0) {
-                    this.$message.error((data && data.msg) || '商品配置保存失败');
-                    return;
+            if (!this.product.goodsId || this.readErrors.goods || this.readErrors.products) {
+                return this.$message.error('请选择实际商品, 读取失败时请先重新加载');
+            }
+            const payload = {...this.product};
+            return this.writeConfiguration(
+                '/custom/configuration/product/save',
+                payload,
+                this.configurationContext(),
+                '商品配置已保存',
+                () => {
+                    this.selectedGoodsId = payload.goodsId;
+                    this.loadProducts();
+                    this.loadOptions();
                 }
-                this.$message.success('商品配置已保存');
-                this.selectedGoodsId = this.product.goodsId;
-                this.loadProducts();
-                this.loadOptions();
-            });
+            );
         },
         // 重置商品编辑表单 / Resets the product editor.
         resetProduct() {
             this.product = createProduct();
             this.selectedGoodsId = null;
             this.options = [];
+            this.reading.options = false;
+            this.readErrors.options = '';
             this.resetOption();
         },
         // 选择待配置商品 / Selects a product for component configuration.
         selectProduct(row) {
+            this.options = [];
             this.selectedGoodsId = row.goodsId;
             this.product = Object.assign(createProduct(), row);
             this.resetOption();
@@ -569,13 +702,7 @@ export default {
             if (!this.selectedGoodsId) {
                 return;
             }
-            this.$http({
-                url: '/custom/configuration/options',
-                method: 'get',
-                params: {goodsId: this.selectedGoodsId},
-            }).then(({data}) => {
-                this.options = data && data.code === 0 ? data.data : [];
-            });
+            return this.readConfiguration('options', 'options', {goodsId: this.selectedGoodsId});
         },
         // 重置配件编辑表单 / Resets the component editor.
         resetOption() {
@@ -616,6 +743,9 @@ export default {
         },
         // 保存配件 / Saves a component option.
         saveOption() {
+            if (!this.selectedGoodsId || this.reading.options || this.readErrors.options) {
+                return;
+            }
             let payload;
             try {
                 const rules = Object.assign({}, JSON.parse(this.option.materialParams || '{}'), {
@@ -642,24 +772,24 @@ export default {
             } catch (error) {
                 return this.$message.error(error.message || '材料规则格式无法读取');
             }
-            this.$http({
-                url: '/custom/configuration/option/save',
-                method: 'post',
-                data: payload,
-                showError: false,
-            }).then(({data}) => {
-                if (!data || data.code !== 0) {
-                    this.$message.error((data && data.msg) || '配件保存失败');
-                    return;
+            return this.writeConfiguration(
+                '/custom/configuration/option/save',
+                payload,
+                this.configurationContext(this.option),
+                '配件已保存',
+                () => {
+                    this.resetOption();
+                    this.loadOptions();
                 }
-                this.$message.success('配件已保存');
-                this.resetOption();
-                this.loadOptions();
-            });
+            );
         },
         // 停用配件并保留历史库存 / Deletes a component option and its stock.
         deleteOption(row) {
-            this.$confirm(
+            if (this.writing) {
+                return;
+            }
+            const context = this.configurationContext();
+            return this.$confirm(
                 `确定删除“${row.name}”吗？材料将停用, 历史订单和库存会保留。`,
                 '删除配件',
                 {
@@ -667,33 +797,41 @@ export default {
                 }
             )
                 .then(() =>
-                    this.$http({
-                        url: '/custom/configuration/option/delete',
-                        method: 'post',
-                        params: {id: row.id},
-                        showError: false,
-                    })
+                    this.writeConfiguration(
+                        '/custom/configuration/option/delete',
+                        undefined,
+                        context,
+                        '配件已停用',
+                        () => {
+                            if (this.option.id === row.id) {
+                                this.resetOption();
+                            }
+                            this.loadOptions();
+                        },
+                        {id: row.id}
+                    )
                 )
-                .then(({data}) => {
-                    if (!data || data.code !== 0) {
-                        throw new Error((data && data.msg) || '删除失败');
-                    }
-                    this.$message.success('配件已停用');
-                    if (this.option.id === row.id) {
-                        this.resetOption();
-                    }
-                    this.loadOptions();
-                })
                 .catch((error) => {
-                    if (error !== 'cancel' && error !== 'close') {
+                    if (
+                        this.isConfigurationCurrent(context) &&
+                        error !== 'cancel' &&
+                        error !== 'close'
+                    ) {
                         this.$message.error(`删除失败：${error.message || error}`);
                     }
                 });
         },
         // 导入完整定制商品配件配置 / Imports a complete customization configuration.
         importConfiguration(file) {
+            if (this.writing) {
+                return;
+            }
+            const context = this.configurationContext();
             const reader = new FileReader();
             reader.onload = (event) => {
+                if (!this.isConfigurationCurrent(context)) {
+                    return;
+                }
                 try {
                     const payload = JSON.parse(event.target.result);
                     if (
@@ -707,25 +845,27 @@ export default {
                         type: 'warning',
                     })
                         .then(() =>
-                            this.$http({
-                                url: '/custom/configuration/import',
-                                method: 'post',
-                                data: payload,
-                                showError: false,
-                            })
+                            this.writeConfiguration(
+                                '/custom/configuration/import',
+                                payload,
+                                context,
+                                (data) => `导入成功，共 ${data.data.optionCount} 个配件`,
+                                () => {
+                                    this.selectedGoodsId = payload.product.goodsId;
+                                    this.product = Object.assign(createProduct(), payload.product);
+                                    this.resetOption();
+                                    this.options = [];
+                                    this.loadProducts();
+                                    this.loadOptions();
+                                }
+                            )
                         )
-                        .then(({data}) => {
-                            if (!data || data.code !== 0) {
-                                throw new Error((data && data.msg) || '导入失败');
-                            }
-                            this.$message.success(`导入成功，共 ${data.data.optionCount} 个配件`);
-                            this.selectedGoodsId = payload.product.goodsId;
-                            this.product = Object.assign(createProduct(), payload.product);
-                            this.loadProducts();
-                            this.loadOptions();
-                        })
                         .catch((error) => {
-                            if (error !== 'cancel' && error !== 'close') {
+                            if (
+                                this.isConfigurationCurrent(context) &&
+                                error !== 'cancel' &&
+                                error !== 'close'
+                            ) {
                                 this.$message.error(`导入失败：${error.message || error}`);
                             }
                         });
@@ -733,7 +873,11 @@ export default {
                     this.$message.error(`JSON 解析失败：${error.message}`);
                 }
             };
-            reader.onerror = () => this.$message.error('无法读取所选 JSON 文件');
+            reader.onerror = () => {
+                if (this.isConfigurationCurrent(context)) {
+                    this.$message.error('无法读取所选 JSON 文件');
+                }
+            };
             reader.readAsText(file.raw, 'UTF-8');
         },
         // 下载配件导入模板 / Downloads the component import template.

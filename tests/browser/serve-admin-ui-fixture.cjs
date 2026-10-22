@@ -184,12 +184,22 @@ const routes = {
         workMaking: 5,
         stockOut: 2,
     },
-    '/custom/configuration/goods': [{id: 900001, name: '隔离测试珍珠项链'}],
+    '/custom/configuration/goods': [
+        {id: 900001, name: '隔离测试珍珠项链'},
+        {id: 900002, name: '隔离配件读取失败样例'},
+    ],
     '/custom/configuration/products': [
         {
             goodsId: 900001,
             enabled: 0,
             requiredComponentTypes: 'pearl,chain,clasp',
+            previewWidth: 600,
+            previewHeight: 600,
+        },
+        {
+            goodsId: 900002,
+            enabled: 0,
+            requiredComponentTypes: 'pearl',
             previewWidth: 600,
             previewHeight: 600,
         },
@@ -252,6 +262,12 @@ function serve(request, response) {
         if (request.method !== 'GET') {
             response.writeHead(405);
             return response.end(JSON.stringify({code: 405, msg: '隔离界面回归不执行业务写入'}));
+        }
+        if (
+            endpoint === '/custom/configuration/options' &&
+            url.searchParams.get('goodsId') === '900002'
+        ) {
+            return response.end(JSON.stringify({code: 503, msg: '隔离模拟配件读取失败'}));
         }
         return response.end(
             JSON.stringify({code: 0, data: routes[endpoint] || {records: [], total: 0, list: []}})
