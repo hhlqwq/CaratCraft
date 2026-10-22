@@ -6,7 +6,20 @@
         v-model="visible"
         width="90%"
     >
-        <el-tabs v-model="activeTab" type="border-card">
+        <el-alert
+            v-if="loadError || optionsError"
+            :title="loadError || optionsError"
+            type="error"
+            :closable="false"
+        >
+            <el-button :disabled="loading || optionsLoading" @click="retryLoad">重新加载</el-button>
+        </el-alert>
+        <el-tabs
+            v-loading="loading"
+            :inert="saving || loading"
+            v-model="activeTab"
+            type="border-card"
+        >
             <el-tab-pane label="基础信息" name="base">
                 <el-form :model="form.goods" :rules="dataRule" ref="dataForm" label-width="120px">
                     <el-row :gutter="20">
@@ -479,7 +492,10 @@
                 <el-button
                     v-if="!disabled"
                     type="primary"
-                    :disabled="videoUploading"
+                    :disabled="
+                        videoUploading || loading || optionsLoading || !!loadError || !!optionsError
+                    "
+                    :loading="saving"
                     @click="dataFormSubmit"
                     >保存</el-button
                 >
@@ -489,12 +505,18 @@
 </template>
 
 <script>
+import {h} from 'vue';
 import DOMPurify from '@/third-party/dompurify/purify.es.mjs';
 
 export default {
     data() {
         return {
             disabled: false,
+            loading: false,
+            optionsLoading: false,
+            loadError: '',
+            optionsError: '',
+            saving: false,
             videoUploading: false,
             videoProgress: 0,
             visible: false,
@@ -522,7 +544,12 @@ export default {
             },
         };
     },
+    /** 卸载时使所有读取及提交回调失效. */
+    beforeUnmount() {
+        this._editorVersion = (this._editorVersion || 0) + 1;
+    },
     methods: {
+        /** 为每次打开创建独立表单, 保留空值语义. */
         getDefaultForm() {
             return {
                 goods: {
@@ -570,7 +597,13 @@ export default {
                 skuList: [],
             };
         },
+        /** 每次打开隔离旧商品的读取和保存结果. */
         init(id, disabled) {
+            const version = (this._editorVersion = (this._editorVersion || 0) + 1);
+            this.loading = !!id;
+            this.loadError = '';
+            this.optionsError = '';
+            this.saving = false;
             this.disabled = !!disabled;
             this.visible = true;
             this.activeTab = 'base';
@@ -580,46 +613,93 @@ export default {
             this.form.goods.id = id || '';
 
             this.$nextTick(() => {
+                if (!this.isEditorCurrent(version)) {
+                    return;
+                }
                 this.$refs.dataForm && this.$refs.dataForm.resetFields();
-                this.loadOptions();
+                this.loadOptions(version);
                 if (id) {
-                    this.loadAggregate(id);
+                    this.loadAggregate(id, version);
                 }
             });
         },
-        // 商品详情以清洗后的HTML展示, 弹层宽度适应窄窗口.
+        /** 使用Vue3公开渲染接口预览清洗后的商品详情. */
         openDetail() {
-            const content = this.$createElement('div', {
+            const content = h('div', {
                 style: {maxHeight: '65vh', overflow: 'auto', overflowWrap: 'anywhere'},
-                domProps: {innerHTML: DOMPurify.sanitize(this.form.goods.goodsDesc || '')},
+                innerHTML: DOMPurify.sanitize(this.form.goods.goodsDesc || ''),
             });
             this.$alert(content, this.form.goods.name, {closeOnClickModal: true});
         },
-        loadOptions() {
-            this.$http({url: '/mall/category/queryAll', method: 'get'}).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.categoryOptions = data.data || [];
-                }
-            });
-            this.$http({url: '/mall/brand/queryAll', method: 'get'}).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.brandOptions = data.data || [];
-                }
-            });
-            this.$http({url: '/mall/attribute/queryAll', method: 'get'}).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.attributeOptions = data.data || [];
-                }
-            });
-            this.$http({url: '/mall/specification/queryAll', method: 'get'}).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.specificationOptions = data.data || [];
-                }
-            });
+        /** 仅当前可见编辑会话接收异步结果. */
+        isEditorCurrent(version) {
+            return this.visible && version === this._editorVersion;
         },
-        loadAggregate(id) {
-            this.$http({url: `/mall/goods/aggregate/${id}`, method: 'get'}).then(({data}) => {
-                if (data && data.code === 0 && data.data) {
+        /** 读取失败可原地重试, 选项失败不清空已填写的商品正文. */
+        retryLoad() {
+            if (this.loading || this.optionsLoading || this.saving) {
+                return;
+            }
+            if (this.loadError) {
+                this.loadAggregate(this.form.goods.id);
+            }
+            if (this.optionsError) {
+                this.loadOptions();
+            }
+        },
+        /** 完整读取商品选项, 失败时阻止在缺少选项的情况下保存. */
+        async loadOptions(version = this._editorVersion) {
+            this.optionsLoading = true;
+            this.optionsError = '';
+            const options = [
+                ['category', 'categoryOptions'],
+                ['brand', 'brandOptions'],
+                ['attribute', 'attributeOptions'],
+                ['specification', 'specificationOptions'],
+            ];
+            try {
+                const responses = await Promise.all(
+                    options.map(([name]) =>
+                        this.$http({url: `/mall/${name}/queryAll`, method: 'get'})
+                    )
+                );
+                if (!this.isEditorCurrent(version)) {
+                    return;
+                }
+                if (responses.some(({data}) => !data || data.code !== 0)) {
+                    throw new Error('商品选项加载失败');
+                }
+                options.forEach(([, field], index) => {
+                    this[field] = responses[index].data.data || [];
+                });
+            } catch (error) {
+                if (this.isEditorCurrent(version)) {
+                    this.optionsError = '商品选项加载失败, 请重新加载后再保存';
+                }
+            } finally {
+                if (this.isEditorCurrent(version)) {
+                    this.optionsLoading = false;
+                }
+            }
+        },
+        /** 读取完整聚合, 失败时禁止用默认空白表单覆盖已有商品. */
+        async loadAggregate(id, version = this._editorVersion) {
+            this.loading = true;
+            this.loadError = '';
+            try {
+                const {data} = await this.$http({
+                    url: `/mall/goods/aggregate/${id}`,
+                    method: 'get',
+                });
+                if (!this.isEditorCurrent(version)) {
+                    return;
+                }
+                if (
+                    data &&
+                    data.code === 0 &&
+                    data.data &&
+                    String(data.data.goods?.id) === String(id)
+                ) {
                     this.form = Object.assign(this.getDefaultForm(), data.data);
                     this.form.goods = Object.assign(
                         this.getDefaultForm().goods,
@@ -634,8 +714,18 @@ export default {
                         ...item,
                         specLabel: item.goodsSpecificationIds,
                     }));
+                } else {
+                    throw new Error('商品详情加载失败');
                 }
-            });
+            } catch (error) {
+                if (this.isEditorCurrent(version)) {
+                    this.loadError = '商品详情加载失败, 请重新加载后再保存';
+                }
+            } finally {
+                if (this.isEditorCurrent(version)) {
+                    this.loading = false;
+                }
+            }
         },
         addAttribute() {
             this.form.attributes.push({attributeId: '', attributeName: '', value: ''});
@@ -860,13 +950,24 @@ export default {
             }));
             return payload;
         },
-        /** 上传过程中禁止保存, 表单及珍珠参数均通过校验后再提交商品聚合数据. */
-        dataFormSubmit() {
-            if (this.videoUploading) {
+        /** 从校验开始锁定提交, 失败保留表单, 旧会话结果不得关闭新商品. */
+        async dataFormSubmit() {
+            if (
+                this.disabled ||
+                this.videoUploading ||
+                this.loading ||
+                this.optionsLoading ||
+                this.loadError ||
+                this.optionsError ||
+                this.saving
+            ) {
                 return;
             }
-            this.$refs.dataForm.validate((valid) => {
-                if (!valid) {
+            const version = this._editorVersion;
+            this.saving = true;
+            try {
+                const valid = await this.$refs.dataForm.validate().catch(() => false);
+                if (!valid || !this.isEditorCurrent(version)) {
                     return;
                 }
                 let payload;
@@ -883,18 +984,29 @@ export default {
                     this.activeTab = 'sku';
                     return;
                 }
-                this.$http({
+                const {data} = await this.$http({
                     url: `/mall/goods/aggregate/${!payload.goods.id ? 'save' : 'update'}`,
                     method: 'post',
                     data: payload,
-                }).then(({data}) => {
-                    if (data && data.code === 0) {
-                        this.$message({message: '操作成功', type: 'success', duration: 1500});
-                        this.visible = false;
-                        this.$emit('refreshDataList');
-                    }
                 });
-            });
+                if (!this.isEditorCurrent(version)) {
+                    return;
+                }
+                if (!data || data.code !== 0) {
+                    throw new Error(data?.msg || '商品保存失败, 请重试');
+                }
+                this.$message({message: '操作成功', type: 'success', duration: 1500});
+                this.visible = false;
+                this.$emit('refreshDataList');
+            } catch (error) {
+                if (this.isEditorCurrent(version)) {
+                    this.$message.error(error.message || '商品保存失败, 请重试');
+                }
+            } finally {
+                if (version === this._editorVersion) {
+                    this.saving = false;
+                }
+            }
         },
     },
 };

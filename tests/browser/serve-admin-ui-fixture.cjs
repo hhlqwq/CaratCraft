@@ -32,6 +32,8 @@ const permissions = [
     'mall:order:update',
     'mall:goods:list',
     'mall:goods:save',
+    'mall:goods:info',
+    'mall:goods:update',
     'custom:config:list',
     'custom:config:update',
     'custom:work:list',
@@ -63,6 +65,43 @@ const routes = {
         {id: 1001, parentId: 10, name: '隔离淡水珠', level: 2, isShow: 1},
     ],
     '/mall/ad/queryAll': [],
+    '/mall/brand/queryAll': [],
+    '/mall/attribute/queryAll': [],
+    '/mall/specification/queryAll': [],
+    '/mall/goods/list': {
+        records: [
+            {
+                id: 900001,
+                name: '隔离编辑商品',
+                goodsSn: 'EDITOR-001',
+                goodsNumber: 8,
+                retailPrice: 100,
+            },
+            {
+                id: 900002,
+                name: '隔离读取失败样例',
+                goodsSn: 'EDITOR-002',
+                goodsNumber: 1,
+                retailPrice: 100,
+            },
+        ],
+        total: 2,
+    },
+    '/mall/goods/aggregate/900001': {
+        goods: {
+            id: 900001,
+            name: '隔离编辑商品',
+            goodsSn: 'EDITOR-001',
+            categoryId: 10,
+            goodsNumber: 8,
+            retailPrice: 100,
+            goodsDesc: '<p>隔离商品详情预览</p>',
+        },
+        specs: [],
+        skuList: [],
+        gallery: [],
+        attributes: [],
+    },
     '/mall/address/list': {
         records: [
             {
