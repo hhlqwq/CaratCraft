@@ -116,8 +116,12 @@ function Reset-TestDataVolumes {
     $Volumes = @($Config.volumes.'mysql-data'.name, $Config.volumes.'redis-data'.name)
     foreach ($Volume in $Volumes) {
         if (-not $Volume -or $Volume -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_.-]*$') { throw '数据卷名称不合法。' }
-        $Owner = & docker volume inspect --format '{{index .Labels "com.docker.compose.project"}}' $Volume 2>$null
-        if ($LASTEXITCODE -eq 0 -and $Owner.Trim() -ne $Config.name) { throw '拒绝操作其他项目的数据卷。' }
+        # 完整JSON避免Windows PowerShell5.1剥离Go模板中的双引号, 读取失败不得继续删除.
+        $Metadata = & docker volume inspect $Volume
+        if ($LASTEXITCODE -ne 0) { throw "无法核对数据卷归属: $Volume" }
+        $Details = ($Metadata -join "`n") | ConvertFrom-Json
+        $Owner = $Details[0].Labels.'com.docker.compose.project'
+        if ($Owner -cne $Config.name) { throw '拒绝操作其他项目的数据卷。' }
     }
     Write-Warning "将删除数据库和缓存卷: $($Volumes -join ', '), 上传图片卷保留。请先完成备份。"
     if ((Read-Host '输入 RESET_DATA 确认删除数据库和缓存') -cne 'RESET_DATA') { throw '已取消数据重置。' }

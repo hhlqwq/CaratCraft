@@ -34,6 +34,8 @@ CREATE TABLE `sys_region` (
 -- ----------------------------
 -- Records of sys_region
 -- ----------------------------
+-- 首次初始化批量提交地区字典, 避免每条记录独立刷盘延长就绪等待.
+START TRANSACTION;
 INSERT INTO `sys_region` VALUES ('1', '0', '中国', '0', '0');
 INSERT INTO `sys_region` VALUES ('2', '1', '北京市', '1', '11');
 INSERT INTO `sys_region` VALUES ('3', '2', '市辖区', '2', '1101');
@@ -46215,3 +46217,4 @@ INSERT INTO `sys_region` VALUES ('46178', '46176', '双丰镇', '4', '659006101'
 INSERT INTO `sys_region` VALUES ('46179', '1', '台湾省', '1', '71');
 INSERT INTO `sys_region` VALUES ('46180', '1', '香港特别行政区', '1', '81');
 INSERT INTO `sys_region` VALUES ('46181', '1', '澳门特别行政区', '1', '82');
+COMMIT;

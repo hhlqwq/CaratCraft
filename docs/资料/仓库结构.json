@@ -239,6 +239,23 @@
             "privateConfigurationPreserved": ".tools/local-legacy/vendor/deploy/.env",
             "configurationBytesVerified": true,
             "dockerMountInspection": "Docker引擎不可连接, 未核验历史容器挂载, 未启停服务或删除数据卷"
+        },
+        "freshStartupValidation": {
+            "date": "2026-10-22",
+            "runningImageSource": "2279cd3",
+            "resetVolumes": [
+                "platform-wxshop_mysql-data",
+                "platform-wxshop_redis-data"
+            ],
+            "preservedVolume": "platform-wxshop_upload-data",
+            "migrationCount": 14,
+            "latestSkuMigrationCount": 1,
+            "regionCount": 46181,
+            "healthyContainers": 5,
+            "adminHttpStatus": 200,
+            "regionTransactionIsolatedDatabaseSeconds": 7.38,
+            "regionRowsSha256Lf": "5f3b819f643df2737199eca18a4872018d14a012a0b46d57d476a337d61008b3",
+            "rebuildRequiredForSourceChanges": true
         }
     }
 }

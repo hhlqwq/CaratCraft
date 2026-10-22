@@ -2,6 +2,7 @@
 $Script:Invocations = [Collections.Generic.List[string]]::new()
 $Script:Owner = 'caratcraft-test'
 $Script:Confirmation = 'RESET_DATA'
+$Script:InspectFailure = $false
 $EnvFile = 'FAKE-ENV'
 $ComposeFile = 'FAKE-COMPOSE'
 
@@ -13,7 +14,10 @@ function docker {
     if (($Arguments -join ' ') -match 'config --format json') {
         return '{"name":"caratcraft-test","volumes":{"mysql-data":{"name":"test_mysql"},"redis-data":{"name":"test_redis"},"upload-data":{"name":"test_upload"}}}'
     }
-    if ($Arguments -contains '--format') { return $Script:Owner }
+    if (($Arguments -join ' ') -match '^volume inspect ') {
+        if ($Script:InspectFailure) { $global:LASTEXITCODE = 1; return }
+        return ('[{"Labels":{"com.docker.compose.project":"' + $Script:Owner + '"}}]')
+    }
 }
 
 # 只记录停机意图, 不执行任何程序控制动作.
@@ -56,6 +60,15 @@ Assert-True ($Deletes.Count -eq 2) '重置必须只删除两个数据卷。'
 Assert-True ($Deletes -contains 'volume rm test_mysql') '缺少MySQL卷。'
 Assert-True ($Deletes -contains 'volume rm test_redis') '缺少Redis卷。'
 Assert-True (-not ($Deletes -match 'upload')) '不得删除上传卷。'
+
+# 无法读取卷归属时必须在任何停机或删除之前失败, 不当作无主数据卷处理.
+$Script:Invocations.Clear()
+$Script:InspectFailure = $true
+$Rejected = $false
+try { Reset-TestDataVolumes } catch { $Rejected = $true }
+Assert-True $Rejected '无法读取卷归属时必须拒绝重置。'
+Assert-True (-not ($Script:Invocations -match 'COMPOSE down|volume rm')) '卷元数据读取失败后不得停机或删卷。'
+$Script:InspectFailure = $false
 
 $Script:Invocations.Clear()
 $Script:Owner = 'another-project'
