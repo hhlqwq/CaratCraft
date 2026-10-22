@@ -36,8 +36,8 @@ const permissions = [
     'mall:goods:update',
     'custom:config:list',
     'custom:config:update',
-    'custom:work:list',
-    'custom:work:update',
+    'custom:work-order:list',
+    'custom:work-order:update',
     'custom:stock:list',
     'custom:stock:update',
     'sys:monitor:server',
@@ -205,6 +205,30 @@ const routes = {
         },
     ],
     '/custom/configuration/options': [],
+    '/custom/work-order/list': {
+        records: [
+            {
+                id: 900001,
+                workOrderNo: 'ISOLATED-WORK-001',
+                orderId: 900001,
+                snapshotId: 900001,
+                status: 'PENDING_REVIEW',
+                allowedActions: ['REVIEWED'],
+                craftJson: JSON.stringify({
+                    components: [{name: '隔离测试白珠', quantity: 20, unit: '颗'}],
+                }),
+            },
+        ],
+        total: 1,
+    },
+    '/custom/work-order/log/900001': [
+        {
+            operatorName: '隔离操作员',
+            fromStatus: 'PENDING_REVIEW',
+            toStatus: 'REVIEWED',
+            remark: '隔离日志样例, 非真实生产记录',
+        },
+    ],
     '/community/posts/list': {
         records: [
             {

@@ -1,6 +1,6 @@
 <template>
     <div class="mod-custom-work-order">
-        <el-form :inline="true" @keyup.enter="loadWorkOrders">
+        <el-form :inline="true" @keyup.enter="loadWorkOrders(1)">
             <el-form-item>
                 <el-select v-model="status" placeholder="工单状态" clearable>
                     <el-option
@@ -12,11 +12,14 @@
                 </el-select>
             </el-form-item>
             <el-form-item>
-                <el-button type="primary" @click="loadWorkOrders">查询</el-button>
+                <el-button type="primary" :loading="loading" @click="loadWorkOrders(1)"
+                    >查询</el-button
+                >
             </el-form-item>
         </el-form>
 
-        <el-table :data="workOrders" border style="width: 100%">
+        <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
+        <el-table v-loading="loading" :data="workOrders" border style="width: 100%">
             <el-table-column prop="workOrderNo" label="工单号" min-width="150"></el-table-column>
             <el-table-column prop="orderId" label="订单 ID" width="100"></el-table-column>
             <el-table-column prop="snapshotId" label="设计快照 ID" width="120"></el-table-column>
@@ -62,6 +65,7 @@
             <el-table-column fixed="right" label="操作" width="200">
                 <template #default="scope">
                     <el-dropdown
+                        :disabled="updating || loading || !!listError"
                         v-if="
                             isAuth('custom:work-order:update') && allowedActions(scope.row).length
                         "
@@ -101,7 +105,10 @@
         />
 
         <el-dialog title="工单操作日志" v-model="logVisible" width="min(94vw, 900px)">
-            <el-table :data="logs" border size="small">
+            <el-alert v-if="logError" :title="logError" type="error" :closable="false">
+                <el-button @click="showLogs({id: logWorkOrderId})">重新加载</el-button>
+            </el-alert>
+            <el-table v-loading="logsLoading" :data="logs" border size="small">
                 <el-table-column prop="createTime" label="时间" min-width="150"></el-table-column>
                 <el-table-column prop="operatorName" label="操作人" width="110"></el-table-column>
                 <el-table-column label="状态流转" min-width="180">
@@ -125,6 +132,14 @@
 export default {
     data() {
         return {
+            pageActive: true,
+            pageEpoch: 0,
+            loading: false,
+            updating: false,
+            listError: '',
+            logsLoading: false,
+            logError: '',
+            logWorkOrderId: null,
             status: '',
             workOrders: [],
             page: 1,
@@ -142,7 +157,20 @@ export default {
         };
     },
     activated() {
+        this.pageActive = true;
+        this.pageEpoch++;
         this.loadWorkOrders();
+    },
+    /** 离页时废弃在途读取, 关闭旧日志弹窗. */
+    deactivated() {
+        this.pageActive = false;
+        this.pageEpoch++;
+        this.logVisible = false;
+    },
+    /** 销毁后不允许异步回调再更新页面. */
+    beforeUnmount() {
+        this.pageActive = false;
+        this.pageEpoch++;
     },
     methods: {
         // 显示下单时逐个材料的冻结顺序和尺寸, 不按当前配置重建.
@@ -158,19 +186,39 @@ export default {
         },
         // 切换有限页数据.
         changePage(page) {
-            this.page = page;
-            this.loadWorkOrders();
+            return this.loadWorkOrders(page);
         },
         // 加载生产工单 / Loads production work orders.
-        loadWorkOrders() {
-            this.$http({
-                url: '/custom/work-order/list',
-                method: 'get',
-                params: {status: this.status, page: this.page, limit: 20},
-            }).then(({data}) => {
-                this.workOrders = data && data.code === 0 ? data.data.records : [];
-                this.total = data && data.code === 0 ? data.data.total : 0;
-            });
+        async loadWorkOrders(page = this.page) {
+            const version = (this._listVersion = (this._listVersion || 0) + 1);
+            const epoch = this.pageEpoch;
+            this.loading = true;
+            this.listError = '';
+            try {
+                const {data} = await this.$http({
+                    url: '/custom/work-order/list',
+                    method: 'get',
+                    params: {status: this.status, page, limit: 20},
+                    showError: false,
+                });
+                if (!this.pageActive || epoch !== this.pageEpoch || version !== this._listVersion) {
+                    return;
+                }
+                if (!data || data.code !== 0 || !Array.isArray(data.data?.records)) {
+                    throw new Error(data?.msg || '工单读取失败, 请重试查询');
+                }
+                this.workOrders = data.data.records;
+                this.total = data.data.total;
+                this.page = page;
+            } catch (error) {
+                if (this.pageActive && epoch === this.pageEpoch && version === this._listVersion) {
+                    this.listError = error.message || '工单读取失败, 请重试查询';
+                }
+            } finally {
+                if (epoch === this.pageEpoch && version === this._listVersion) {
+                    this.loading = false;
+                }
+            }
         },
         // 只展示下一步合法动作, 取消必须由订单售后流程处理.
         allowedActions(row) {
@@ -240,32 +288,65 @@ export default {
             }
         },
         // 每次审核、开工和质检必须录入操作备注并确认.
-        updateStatus(id, status) {
-            this.$prompt(
-                `确认执行“${this.statusText(status)}”, 请填写审核、制作或质检记录`,
-                '工单流转',
-                {
-                    inputType: 'textarea',
-                    inputValidator: (value) =>
-                        value && value.trim().length > 0 && value.length <= 500
-                            ? true
-                            : '请填写1到500字的备注',
-                }
-            )
-                .then(({value}) =>
-                    this.$http({
-                        url: '/custom/work-order/status',
-                        method: 'post',
-                        params: {id: id, status: status, remark: value},
-                    })
-                )
-                .then(({data}) => {
-                    if (data && data.code === 0) {
-                        this.$message.success('工单状态已更新');
-                        this.loadWorkOrders();
+        async updateStatus(id, status) {
+            if (this.updating || this.loading || this.listError || !this.pageActive) {
+                return;
+            }
+            const row = this.workOrders.find((item) => item.id === id);
+            if (!row || !this.allowedActions(row).some((item) => item.value === status)) {
+                return;
+            }
+            const epoch = this.pageEpoch;
+            this.updating = true;
+            try {
+                const {value} = await this.$prompt(
+                    `确认执行“${this.statusText(status)}”, 请填写审核、制作或质检记录`,
+                    '工单流转',
+                    {
+                        inputType: 'textarea',
+                        inputValidator: (value) =>
+                            value && value.trim().length > 0 && value.length <= 500
+                                ? true
+                                : '请填写1到500字的备注',
                     }
-                })
-                .catch(() => {});
+                );
+                if (!this.pageActive || epoch !== this.pageEpoch) {
+                    return;
+                }
+                const current = this.workOrders.find((item) => item.id === id);
+                if (
+                    !current ||
+                    !this.allowedActions(current).some((item) => item.value === status)
+                ) {
+                    throw new Error('工单列表已更新, 请重新选择流转操作');
+                }
+                const {data} = await this.$http({
+                    url: '/custom/work-order/status',
+                    method: 'post',
+                    params: {id: id, status: status, remark: value},
+                    showError: false,
+                });
+                if (!this.pageActive || epoch !== this.pageEpoch) {
+                    return;
+                }
+                if (data && data.code === 0) {
+                    this.$message.success('工单状态已更新');
+                    await this.loadWorkOrders();
+                } else {
+                    throw new Error(data?.msg || '工单流转失败');
+                }
+            } catch (error) {
+                if (
+                    this.pageActive &&
+                    epoch === this.pageEpoch &&
+                    error !== 'cancel' &&
+                    error !== 'close'
+                ) {
+                    this.$message.error(error.message || '工单流转失败');
+                }
+            } finally {
+                this.updating = false;
+            }
         },
         // 获取状态中文名称 / Gets a localized status label.
         statusText(status) {
@@ -273,18 +354,46 @@ export default {
             return option ? option.label : status;
         },
         // 查看工单操作日志 / Shows the work order operation logs.
-        showLogs(row) {
-            this.$http({
-                url: `/custom/work-order/log/${row.id}`,
-                method: 'get',
-            }).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.logs = data.data || [];
-                    this.logVisible = true;
-                } else {
-                    this.$message.error(data.msg || '日志查询失败');
+        async showLogs(row) {
+            const version = (this._logVersion = (this._logVersion || 0) + 1);
+            const epoch = this.pageEpoch;
+            this.logWorkOrderId = row.id;
+            this.logVisible = true;
+            this.logs = [];
+            this.logError = '';
+            this.logsLoading = true;
+            try {
+                const {data} = await this.$http({
+                    url: `/custom/work-order/log/${row.id}`,
+                    method: 'get',
+                    showError: false,
+                });
+                if (
+                    !this.pageActive ||
+                    epoch !== this.pageEpoch ||
+                    version !== this._logVersion ||
+                    !this.logVisible
+                ) {
+                    return;
                 }
-            });
+                if (!data || data.code !== 0 || !Array.isArray(data.data)) {
+                    throw new Error(data?.msg || '日志查询失败');
+                }
+                this.logs = data.data;
+            } catch (error) {
+                if (
+                    this.pageActive &&
+                    epoch === this.pageEpoch &&
+                    version === this._logVersion &&
+                    this.logVisible
+                ) {
+                    this.logError = error.message || '日志查询失败';
+                }
+            } finally {
+                if (epoch === this.pageEpoch && version === this._logVersion) {
+                    this.logsLoading = false;
+                }
+            }
         },
     },
 };

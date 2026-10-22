@@ -11,10 +11,11 @@
         "redis": "本轮独立容器, 回环16379, 无业务数据卷",
         "dependencySource": "已有Docker构建层及工作区Maven缓存, 未下载新依赖"
     },
-    "node": {"businessTests": 111, "httpProbe": 1, "failures": 0, "skipped": 0},
+    "node": {"businessTests": 117, "httpProbe": 1, "failures": 0, "skipped": 0},
     "browser": {
         "goodsEditor": ["加载失败提示及禁止保存", "正常商品读取", "Vue3详情预览"],
         "customConfiguration": ["配件读取失败提示", "禁止保存配件", "显式重试", "切换正常商品恢复"],
+        "workOrder": ["冻结材料内容", "工单日志", "仅显示合法下一状态"],
         "data": "隔离固定样例, 不连接业务库"
     },
     "limits": ["当前业务容器尚未更新", "未完成全部业务链路人工审阅", "未进行真实微信、支付退款、正式AI及生产验收"]
