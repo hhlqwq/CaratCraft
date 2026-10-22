@@ -8,8 +8,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $WorkspaceRoot = Split-Path $PSScriptRoot -Parent
-$ProjectRoot = Join-Path $WorkspaceRoot 'vendor\platform-wxshop'
-$ComposeFile = Join-Path $ProjectRoot 'docker-compose.yml'
+$ProjectRoot = $WorkspaceRoot
+$ComposeFile = Join-Path $ProjectRoot 'deploy/docker-compose.yml'
 $EnvFile = Join-Path $ProjectRoot 'deploy\.env'
 $EnvExample = Join-Path $ProjectRoot 'deploy\.env.example'
 
@@ -61,25 +61,29 @@ function Assert-StartupConfiguration {
 # 根据交付源码计算稳定摘要, ZIP解压环境无需安装Git且修改源码后必须重新构建.
 function Set-BuildRevision {
     Write-Host '正在计算项目源码标识...'
-    $Inputs = @('pom.xml', 'Dockerfile.backend', 'Dockerfile.admin-ui', '.dockerignore',
-        'docker-compose.yml', 'deploy/.env.example', 'deploy/maven-settings.xml',
-        'deploy/HealthCheck.java', 'deploy/nginx', '_sql', 'legal', 'wx-mall/static/images',
-        'platform-common/pom.xml', 'platform-common/src', 'platform-biz/pom.xml', 'platform-biz/src',
-        'platform-admin/pom.xml', 'platform-admin/src', 'platform-api/pom.xml', 'platform-api/src',
-        'platform-admin-ui')
+    $Inputs = @('backend', 'apps/admin-ui', 'apps/miniapp/static/images',
+        'deploy/Dockerfile.backend', 'deploy/Dockerfile.admin-ui', '.dockerignore',
+        'deploy/docker-compose.yml', 'deploy/.env.example', 'deploy/maven-settings.xml',
+        'deploy/HealthCheck.java', 'deploy/nginx', 'database', 'legal')
     $Files = foreach ($Relative in $Inputs) {
         Get-BuildSourceFiles -Path (Join-Path $ProjectRoot $Relative)
     }
     $Files += Get-Item -LiteralPath (Join-Path $PSScriptRoot 'dev.ps1')
     $Manifest = New-Object Text.StringBuilder
     $Hasher = [Security.Cryptography.SHA256]::Create()
+    $BuildFiles = @($Files | Sort-Object FullName -Unique)
+    $Processed = 0
     try {
-        foreach ($File in ($Files | Sort-Object FullName -Unique)) {
+        foreach ($File in $BuildFiles) {
             $Stream = [IO.File]::OpenRead($File.FullName)
             try { $Digest = [BitConverter]::ToString($Hasher.ComputeHash($Stream)).Replace('-', '') }
             finally { $Stream.Dispose() }
             $Relative = $File.FullName.Substring($WorkspaceRoot.Length + 1).Replace('\', '/')
             [void]$Manifest.Append($Relative).Append(':').Append($Digest).Append("`n")
+            $Processed++
+            if ($Processed % 250 -eq 0 -or $Processed -eq $BuildFiles.Count) {
+                Write-Host "源码摘要进度: $Processed/$($BuildFiles.Count)"
+            }
         }
         $Bytes = [Text.Encoding]::UTF8.GetBytes($Manifest.ToString())
         $env:BUILD_REVISION = [BitConverter]::ToString($Hasher.ComputeHash($Bytes)).Replace('-', '').ToLowerInvariant()

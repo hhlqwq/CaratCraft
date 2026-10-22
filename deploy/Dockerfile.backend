@@ -1,0 +1,41 @@
+FROM maven:3.9.11-eclipse-temurin-21 AS builder
+
+WORKDIR /workspace/backend
+
+COPY backend/pom.xml ./
+COPY backend/platform-common/pom.xml platform-common/pom.xml
+COPY backend/platform-biz/pom.xml platform-biz/pom.xml
+COPY backend/platform-admin/pom.xml platform-admin/pom.xml
+COPY backend/platform-api/pom.xml platform-api/pom.xml
+COPY backend/platform-common/src platform-common/src
+COPY backend/platform-biz/src platform-biz/src
+COPY backend/platform-admin/src platform-admin/src
+COPY backend/platform-api/src platform-api/src
+COPY deploy/maven-settings.xml /workspace/maven-settings.xml
+
+RUN mvn -B -s /workspace/maven-settings.xml -Pdev -pl platform-admin,platform-api -am package -DskipTests
+COPY deploy/HealthCheck.java /workspace/healthcheck/HealthCheck.java
+RUN javac -d /workspace/healthcheck /workspace/healthcheck/HealthCheck.java
+
+FROM eclipse-temurin:21-jre
+ARG BUILD_REVISION=workspace
+ENV BUILD_REVISION=${BUILD_REVISION}
+LABEL org.opencontainers.image.revision=${BUILD_REVISION}
+
+WORKDIR /app
+
+RUN groupadd --system caratcraft \
+    && useradd --system --gid caratcraft --home-dir /app caratcraft \
+    && mkdir -p /data/uploads \
+    && chown -R caratcraft:caratcraft /app /data/uploads
+
+COPY --from=builder --chown=caratcraft:caratcraft \
+    /workspace/backend/platform-admin/target/platform-admin.jar /app/platform-admin.jar
+COPY --from=builder --chown=caratcraft:caratcraft \
+    /workspace/backend/platform-api/target/platform-api.jar /app/platform-api.jar
+COPY --chown=caratcraft:caratcraft legal/ /app/legal/
+COPY --from=builder --chown=caratcraft:caratcraft /workspace/healthcheck/HealthCheck.class /app/healthcheck/HealthCheck.class
+
+USER caratcraft
+
+EXPOSE 8080 8081
