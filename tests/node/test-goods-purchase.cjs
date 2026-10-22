@@ -415,3 +415,22 @@ test('512组合的规格联动复用一次解析结果', () => {
     }
     assert.equal(reads, 512);
 });
+
+/** 同一账号连续刷新定制配置时, 较旧成功或失败结果不得覆盖新结果. */
+test('定制入口只接受最新配置请求的成功或失败结果', async () => {
+    for (const latestEnabled of [true, false]) {
+        const {page, calls} = fixture();
+        const first = page.loadCustomization();
+        const second = page.loadCustomization();
+        if (latestEnabled) {
+            calls[1].resolve({code: 0});
+        } else {
+            calls[1].reject(new Error('最新配置不可用'));
+        }
+        await second;
+        assert.equal(page.data.isCustom, latestEnabled);
+        calls[0].resolve({code: latestEnabled ? 400 : 0});
+        await first;
+        assert.equal(page.data.isCustom, latestEnabled);
+    }
+});

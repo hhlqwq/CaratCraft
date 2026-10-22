@@ -152,13 +152,14 @@ Page({
             // 辅助统计失败不改变购物车内容, 不阻断当前商品浏览.
         }
     },
-    /** 定制配置不可用时隐藏入口, 普通商品仍可正常购买. */
+    /** 定制入口仅接收最新配置结果, 失败时隐藏且不影响普通商品购买. */
     async loadCustomization() {
         const context = this.requestContext();
+        const version = (this._customizationVersion = (this._customizationVersion || 0) + 1);
         this.setData({isCustom: false});
         try {
             const res = await util.request(api.CustomizationConfig, {goodsId: this.data.id}, 'GET');
-            if (this.isCurrent(context)) {
+            if (this.isCurrent(context) && version === this._customizationVersion) {
                 this.setData({isCustom: res.code === 0});
             }
         } catch (error) {
