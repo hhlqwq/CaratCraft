@@ -2,8 +2,36 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const {execFileSync} = require('node:child_process');
 const {start} = require('./serve-admin-ui-fixture.cjs');
 const root = path.resolve(__dirname, '../..');
+
+/** 在已有前端镜像内读取编译器结果或Vue运行时, 避免宿主机复制符号链接依赖. */
+function frontendArtifact(relative) {
+    const script = relative
+        ? "const fs=require('fs');const {parse}=require('@vue/compiler-sfc');const {descriptor}=parse(fs.readFileSync('/source/apps/admin-ui/src/components/'+process.argv[1],'utf8'));process.stdout.write(JSON.stringify({script:descriptor.script.content,template:descriptor.template.content}));"
+        : "process.stdout.write(require('fs').readFileSync(require.resolve('vue/dist/vue.global.prod.js')));";
+    return execFileSync(
+        'docker',
+        [
+            'run',
+            '--rm',
+            '--pull=never',
+            '--network',
+            'none',
+            '--mount',
+            'type=bind,source=' + root + ',target=/source,readonly',
+            '--workdir',
+            '/workspace',
+            process.env.CARATCRAFT_FRONTEND_DOCKER_IMAGE,
+            'node',
+            '-e',
+            script,
+            ...(relative ? [relative] : []),
+        ],
+        {encoding: 'utf8', maxBuffer: 8 * 1024 * 1024}
+    );
+}
 
 /** 允许通过环境变量选择浏览器测试库, 不将本机绝对依赖路径写入项目配置. */
 function browserTools() {
@@ -14,13 +42,21 @@ function browserTools() {
 /** 加载实际业务组件的脚本和模板, 基础控件用原生输入替身观察绑定契约. */
 function subject(relative) {
     const ui = path.join(root, 'apps/admin-ui');
-    const {parse} = require(path.join(ui, 'node_modules/@vue/compiler-sfc'));
-    const {descriptor} = parse(fs.readFileSync(path.join(ui, 'src/components', relative), 'utf8'));
-    const script = descriptor.script.content
+    let source;
+    if (process.env.CARATCRAFT_FRONTEND_DOCKER_IMAGE) {
+        source = JSON.parse(frontendArtifact(relative));
+    } else {
+        const {parse} = require(path.join(ui, 'node_modules/@vue/compiler-sfc'));
+        const {descriptor} = parse(
+            fs.readFileSync(path.join(ui, 'src/components', relative), 'utf8')
+        );
+        source = {script: descriptor.script.content, template: descriptor.template.content};
+    }
+    const script = source.script
         .replace(/^import .*;$/gm, '')
         .replace('export function sanitizeHtml', 'function sanitizeHtml')
         .replace('export default {', 'const Subject = {');
-    return {script, template: descriptor.template.content};
+    return {script, template: source.template};
 }
 
 /** 校验截图中的深色菜单可读性和真实折叠行为, 不连接业务菜单接口. */
@@ -240,9 +276,16 @@ async function main() {
             const fixture = subject(relative);
             await page.goto('http://127.0.0.1:' + server.address().port + '/empty-binding-fixture');
             await page.setContent('<div id="binding-root"></div>');
-            await page.addScriptTag({
-                path: path.join(root, 'apps/admin-ui/node_modules/vue/dist/vue.global.prod.js'),
-            });
+            await page.addScriptTag(
+                process.env.CARATCRAFT_FRONTEND_DOCKER_IMAGE
+                    ? {content: frontendArtifact()}
+                    : {
+                          path: path.join(
+                              root,
+                              'apps/admin-ui/node_modules/vue/dist/vue.global.prod.js'
+                          ),
+                      }
+            );
             await page.evaluate(
                 ({script, template, relative}) => {
                     const create = new Function(
