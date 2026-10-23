@@ -29,6 +29,8 @@ function docker {
         if ($script:Mode -eq 'query-error') { $global:LASTEXITCODE = 1; return }
         if ($script:Mode -ne 'partial-database') { 'sys_region' }
         'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION'
+    } elseif ($Sql.Trim() -eq 'SELECT 1;') {
+        '1'
     } elseif ($Sql -match 'SELECT COUNT') {
         if ($script:Mode -eq 'old-schema') { '0' } else { '1' }
     }
@@ -79,6 +81,9 @@ function Invoke-Compose {
     }
 }
 
+# 开发重建只记录动作, 不删除真实卷.
+function Reset-TestDataVolumes { param([switch]$Development) $script:Calls += 'reset-development' }
+
 # 启动成功只记录展示动作, 不读取本机私有配置.
 function Show-AccessInfo { $script:Calls += 'access-ready' }
 
@@ -95,6 +100,7 @@ if ($script:Calls -contains 'build' -or -not ($script:Calls -match '300 mysql re
 $script:Mode = 'partial-database'
 $script:Calls = @()
 Assert-Rejected { Start-LocalEnvironment } 'sys_region'
+if (@($script:Calls | Where-Object { $_ -eq 'reset-development' }).Count -ne 1) { throw '开发库持续失败时必须只重建一次' }
 if ($script:Calls[-1] -ne 'diagnostics' -or $script:Calls -contains 'access-ready') { throw '失败诊断或退出错误' }
 $script:Mode = 'build-error'
 $script:Calls = @()

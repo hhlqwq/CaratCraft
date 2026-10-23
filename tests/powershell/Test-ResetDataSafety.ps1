@@ -85,3 +85,16 @@ try { Reset-TestDataVolumes } catch { $Rejected = $true }
 Assert-True $Rejected '取消确认后必须拒绝重置。'
 Assert-True (-not ($Script:Invocations -match 'COMPOSE down|volume rm')) '确认前不得停机或删卷。'
 Write-Host '数据重置安全回归通过: 上传卷保留、跨项目拒绝、取消确认无副作用. Docker调用全部使用替身.'
+
+# 用户已确认开发数据可丢弃, 自动恢复不再提示确认, 但仍只操作归属正确的两个卷.
+$Script:Invocations.Clear()
+Reset-TestDataVolumes -Development
+$Deletes = @($Script:Invocations | Where-Object { $_ -like 'volume rm *' })
+Assert-True ($Deletes.Count -eq 2 -and -not ($Deletes -match 'upload')) '开发自动恢复必须只重建本项目MySQL和Redis卷。'
+$Script:Invocations.Clear()
+$Script:Owner = 'another-project'
+$Rejected = $false
+try { Reset-TestDataVolumes -Development } catch { $Rejected = $true }
+Assert-True $Rejected '开发自动恢复也必须拒绝其他项目卷。'
+Assert-True (-not ($Script:Invocations -match 'COMPOSE down|volume rm')) '开发自动恢复不得绕过卷归属检查。'
+Write-Host '开发自动重建回归通过: 无需重复确认, 不触及上传卷或其他项目. 全部为替身.'

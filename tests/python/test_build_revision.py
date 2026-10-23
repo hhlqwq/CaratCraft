@@ -133,7 +133,74 @@ start_local_environment
         result = subprocess.run([bash, "-c", prefix + functions], cwd=ROOT,
                                 capture_output=True, text=True, encoding="utf-8")
         self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip().splitlines()[-1], "failed")
+        self.assertEqual(result.stdout.strip().splitlines()[-1], "ready")
+        self.assertNotIn("failed", result.stdout)
+
+    def test_bash_development_recovery_is_bounded(self):
+        """开发库失配只重建一次, SQL错误不清库, 卷归属失败不得删除."""
+        bash = os.environ.get("CARATCRAFT_BASH")
+        if not bash:
+            self.skipTest("需要已有Bash以验证开发恢复")
+        prefix = "source <(sed '/^if \\[\\[ \\$# -gt 0/,$d' deploy/scripts/dev.sh); "
+        command = r'''
+compose() { printf '%s\n' "$*"; }
+assert_local_images() { return 0; }
+checks=0
+assert_database_ready() { checks=$((checks+1)); if [[ "$checks" == 1 ]]; then return 42; fi; }
+reset_test_data_volumes() { [[ "$1" == development ]] || return 1; echo reset; }
+show_access_info() { echo ready; }
+show_startup_diagnostics() { echo failed; }
+start_local_environment
+'''
+        result = subprocess.run([bash, "-c", prefix + command], cwd=ROOT,
+                                capture_output=True, text=True, encoding="utf-8", check=True)
+        actions = [line for line in result.stdout.splitlines()
+                   if line.startswith("up ") or line in {"reset", "ready"}]
+        self.assertEqual(actions, [
+            "up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis",
+            "reset", "up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis",
+            "up --detach --no-build --pull never --wait --wait-timeout 300", "ready"])
+        command += "assert_database_ready() { return 42; }; start_local_environment\n"
+        result = subprocess.run([bash, "-c", prefix + command], cwd=ROOT,
+                                capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(result.returncode, 42)
+        self.assertEqual(result.stdout.splitlines().count("reset"), 2)
+        for code, expected in ((1045, 42), (1064, 1)):
+            command = f"compose() {{ echo 'ERROR {code}: fixture error' >&2; return 1; }}; database_query 'SELECT 1;'"
+            result = subprocess.run([bash, "-c", prefix + command], cwd=ROOT,
+                                    capture_output=True, text=True, encoding="utf-8")
+            self.assertEqual(result.returncode, expected)
+        command = r'''
+python3() { python "$@"; }
+compose() {
+    if [[ "$1" == config ]]; then
+        echo '{"name":"test","volumes":{"mysql-data":{"name":"test_mysql"},"redis-data":{"name":"test_redis"}}}'
+    else
+        echo "UNEXPECTED_DOWN"
+    fi
+}
+docker() { echo '[{"Labels":{"com.docker.compose.project":"another-project"}}]'; }
+reset_test_data_volumes development
+'''
+        result = subprocess.run([bash, "-c", prefix + command], cwd=ROOT,
+                                capture_output=True, text=True, encoding="utf-8")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("UNEXPECTED_DOWN", result.stdout)
+        command = command.replace('else\n        echo "UNEXPECTED_DOWN"', 'else\n        echo "DOWN"')
+        command = command.replace(
+            "docker() { echo '[{\"Labels\":{\"com.docker.compose.project\":\"another-project\"}}]'; }",
+            """docker() {
+    if [[ "$1 $2" == 'volume inspect' ]]; then
+        echo '[{"Labels":{"com.docker.compose.project":"test"}}]'
+    else
+        echo "DELETE $3"
+    fi
+}""")
+        result = subprocess.run([bash, "-c", prefix + command], cwd=ROOT,
+                                capture_output=True, text=True, encoding="utf-8", check=True)
+        self.assertEqual([line for line in result.stdout.splitlines() if line.startswith("DELETE ")],
+                         ["DELETE test_mysql", "DELETE test_redis"])
+        self.assertEqual(result.stdout.splitlines().count("DOWN"), 1)
 
 
 if __name__ == "__main__":

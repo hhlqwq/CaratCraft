@@ -54,7 +54,7 @@ assert_startup_configuration() {
     local key value
     for key in MYSQL_ROOT_PASSWORD MYSQL_APP_PASSWORD REDIS_PASSWORD JWT_SECRET; do
         value="$(sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1)"
-        [[ ${#value} -ge 24 ]] || { echo "$key 缺失或过弱, 请先按迁移说明配置独立应用账号和强密钥"; exit 1; }
+        [[ ${#value} -ge 24 ]] || { echo "$key 缺失或过弱, 请按当前模板配置本地开发密钥"; exit 1; }
     done
     value="$(sed -n 's/^MYSQL_APP_USER=//p' "$ENV_FILE" | tail -n 1)"
     [[ "$value" != root ]] || { echo "应用账号不得使用root"; exit 1; }
@@ -117,23 +117,27 @@ build_local_environment() {
     echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
 }
 
-# 仅删除当前项目的MySQL和Redis卷, 不删除上传卷, 并要求执行者确认.
+# 仅重建归属核对通过的本项目开发卷, 自动恢复不重复确认, 上传卷保留.
 reset_test_data_volumes() {
-    local mysql_volume redis_volume project_name volume owner confirmation
-    mysql_volume="$(compose config --format json | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["mysql-data"]["name"])')"
-    redis_volume="$(compose config --format json | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["redis-data"]["name"])')"
-    project_name="$(compose config --format json | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])')"
+    local mysql_volume redis_volume project_name volume owner confirmation config metadata
+    config="$(compose config --format json)" || return 1
+    mysql_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["mysql-data"]["name"])')" || return 1
+    redis_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["redis-data"]["name"])')" || return 1
+    project_name="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])')" || return 1
     for volume in "$mysql_volume" "$redis_volume"; do
-        [[ "$volume" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || exit 1
-        owner="$(docker volume inspect --format '{{index .Labels "com.docker.compose.project"}}' "$volume" 2>/dev/null || true)"
-        [[ -z "$owner" || "$owner" == "$project_name" ]] || exit 1
+        [[ "$volume" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || return 1
+        metadata="$(docker volume inspect "$volume" 2>/dev/null)" || return 1
+        owner="$(printf '%s' "$metadata" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0].get("Labels",{}).get("com.docker.compose.project",""))')" || return 1
+        [[ -n "$owner" && "$owner" == "$project_name" ]] || return 1
     done
-    echo "仅删除数据库和缓存卷: $mysql_volume, $redis_volume; 上传卷保留。请先备份。"
-    read -r -p "输入 RESET_DATA 确认删除数据库和缓存: " confirmation
-    [[ "$confirmation" == RESET_DATA ]] || { echo "已取消数据重置"; exit 1; }
-    compose down --remove-orphans
+    echo "仅重建本项目MySQL及Redis开发数据, 上传卷保留。"
+    if [[ "${1:-manual}" != development ]]; then
+        read -r -p "输入 RESET_DATA 确认重建开发库和缓存: " confirmation
+        [[ "$confirmation" == RESET_DATA ]] || { echo "已取消数据重置"; return 1; }
+    fi
+    compose down --remove-orphans || return 1
     for volume in "$mysql_volume" "$redis_volume"; do
-        if docker volume inspect "$volume" >/dev/null 2>&1; then docker volume rm "$volume"; fi
+        docker volume rm "$volume" || return 1
     done
 }
 
@@ -158,21 +162,34 @@ assert_local_images() {
 
 # 使用数据库容器自身凭据查询结构, 不输出密码或业务行.
 database_query() {
-    compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1"
+    local output result=0
+    if [[ "${2:-root}" == application ]]; then
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysql -u"$MYSQL_USER" --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+    else
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+    fi
+    if [[ "$result" != 0 ]]; then
+        printf '%s\n' "$output" >&2
+        if grep -Eq 'ERROR[[:space:]]+(1044|1045|1049)([^0-9]|$)' <<< "$output"; then return 42; fi
+        return 1
+    fi
+    printf '%s\n' "$output"
 }
 
 # 在应用启动前识别部分初始化及缺少迁移的旧数据库.
 assert_database_ready() {
     local tables name version
-    tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');")" || return 1
+    tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');")" || return $?
     for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_MIGRATION; do
         if ! grep -Fxq "$name" <<< "$tables"; then
-            echo "数据库初始化或升级不完整, 缺少$name。请先备份并按docs/项目维护文档.md修复, 不要直接重置数据卷。"
-            return 1
+            echo "本地开发库不是当前结构, 缺少$name。"
+            return 42
         fi
     done
-    version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';")" || return 1
-    [[ "$version" == 1 ]] || { echo "请先按docs/项目维护文档.md备份并完成V20261022_01迁移。"; return 1; }
+    version="$(database_query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';")" || return $?
+    [[ "$version" == 1 ]] || { echo "本地开发库未包含当前结构。"; return 42; }
+    version="$(database_query "SELECT 1;" application)" || return $?
+    [[ "$version" == 1 ]] || return 1
 }
 
 # 输出有限的容器状态和健康检查结果, 保留启动失败退出码.
@@ -182,22 +199,33 @@ show_startup_diagnostics() {
     for name in platform-admin platform-api; do
         docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
     done
-    echo "日志: ./deploy/scripts/dev.sh logs。缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。"
+    echo "日志: ./deploy/scripts/dev.sh logs。请按实际失败阶段排查本地开发环境。"
 }
 
 # 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.
 start_local_environment() {
-    local result=0
+    local result=0 rebuilt=false
     assert_local_images || result=$?
-    if [[ "$result" == 0 ]]; then
+    if [[ "$result" != 0 ]]; then return "$result"; fi
+    while true; do
+        result=0
         compose up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis || result=$?
-    fi
-    if [[ "$result" == 0 ]]; then assert_database_ready || result=$?; fi
-    if [[ "$result" == 0 ]]; then
-        compose up --detach --no-build --pull never --wait --wait-timeout 300 || result=$?
-    fi
-    if [[ "$result" != 0 ]]; then show_startup_diagnostics; return "$result"; fi
-    show_access_info
+        if [[ "$result" == 0 ]]; then
+            assert_database_ready || result=$?
+            if [[ "$result" == 42 && "$rebuilt" == false ]]; then
+                rebuilt=true
+                echo "当前为未发布的本地开发环境, 重新初始化本项目MySQL及Redis数据后重试一次。"
+                reset_test_data_volumes development || return $?
+                continue
+            fi
+        fi
+        if [[ "$result" == 0 ]]; then
+            compose up --detach --no-build --pull never --wait --wait-timeout 300 || result=$?
+        fi
+        if [[ "$result" != 0 ]]; then show_startup_diagnostics; return "$result"; fi
+        show_access_info
+        return 0
+    done
 }
 
 # 输出本地访问地址 / Prints local access URLs.

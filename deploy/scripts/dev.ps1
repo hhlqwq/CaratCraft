@@ -47,7 +47,7 @@ function Initialize-Environment {
     }
 }
 
-# 启动前检查秘密配置, 已有数据库需要人工创建/授权应用账号而不是直接改旧卷密码.
+# 校验当前本地开发配置, 旧开发卷的凭据或结构失配由启动恢复统一处理.
 function Assert-StartupConfiguration {
     $Values = @{}
     foreach ($Line in (Get-Content -LiteralPath $EnvFile -Encoding UTF8)) {
@@ -55,10 +55,10 @@ function Assert-StartupConfiguration {
     }
     foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
         if (-not $Values.ContainsKey($Key)) {
-            throw "本机配置文件 $EnvFile 缺少配置项 $Key。此检查尚未连接数据库; 已有数据卷的凭据须与库内账号匹配, 不自动覆盖配置或重置数据。"
+            throw "本机配置文件 $EnvFile 缺少配置项 $Key。请按当前模板补齐开发配置; 此检查尚未连接数据库。"
         }
         if (-not $Values[$Key] -or $Values[$Key].Length -lt 24) {
-            throw "$Key 至少需要24个字符, 请检查本机配置文件 $EnvFile。此检查尚未连接数据库; 已有数据卷请核对原凭据, 不直接更换密码或重置数据。"
+            throw "$Key 至少需要24个字符, 请检查本机配置文件 $EnvFile。请使用符合要求的开发密钥; 此检查尚未连接数据库。"
         }
     }
     if ($Values['MYSQL_APP_USER'] -eq 'root') { throw '应用账号不得使用root。' }
@@ -114,8 +114,9 @@ function Get-BuildSourceFiles {
     }
 }
 
-# 只删除当前项目的数据库和Redis卷, 上传卷始终保留, 执行前要求明确确认.
+# 仅重建本项目数据库和Redis卷, 手动操作需确认, 开发自动恢复沿用可丢弃规则.
 function Reset-TestDataVolumes {
+    param([switch]$Development)
     $ConfigText = & docker compose --env-file $EnvFile -f $ComposeFile config --format json
     if ($LASTEXITCODE -ne 0) { throw '无法解析Compose数据卷。' }
     $Config = ($ConfigText -join "`n") | ConvertFrom-Json
@@ -129,8 +130,8 @@ function Reset-TestDataVolumes {
         $Owner = $Details[0].Labels.'com.docker.compose.project'
         if ($Owner -cne $Config.name) { throw '拒绝操作其他项目的数据卷。' }
     }
-    Write-Warning "将删除数据库和缓存卷: $($Volumes -join ', '), 上传图片卷保留。请先完成备份。"
-    if ((Read-Host '输入 RESET_DATA 确认删除数据库和缓存') -cne 'RESET_DATA') { throw '已取消数据重置。' }
+    Write-Warning "将删除数据库和缓存卷: $($Volumes -join ', '), 上传图片卷保留。此入口仅用于当前可丢弃的本地开发数据。"
+    if (-not $Development -and (Read-Host '输入 RESET_DATA 确认删除数据库和缓存') -cne 'RESET_DATA') { throw '已取消数据重置。' }
     Invoke-Compose -Arguments @('down', '--remove-orphans')
     foreach ($Volume in $Volumes) {
         & docker volume inspect $Volume 2>$null | Out-Null
@@ -174,12 +175,33 @@ function Assert-LocalImages {
     }
 }
 
-# 经标准输入传递只读SQL, 避免Windows PowerShell 5.1丢失原生命令参数中的引号.
+# 标记本地开发库需要重建, 不为未发布开发环境迁移旧数据.
+function Throw-DevelopmentDataRebuild {
+    param([string]$Message)
+    $Failure = [InvalidOperationException]::new($Message)
+    $Failure.Data['RebuildDevelopmentData'] = $true
+    throw $Failure
+}
+
+# 经标准输入传递只读SQL, 仅认证失败可触发一次开发库重建.
 function Invoke-DatabaseQuery {
-    param([string]$Query)
-    $Command = 'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql -uroot --batch --skip-column-names --database=$MYSQL_DATABASE'
-    $Query | & docker compose --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c $Command
-    if ($LASTEXITCODE -ne 0) { throw '无法检查数据库结构, 请检查MySQL认证和日志。' }
+    param([string]$Query, [switch]$ApplicationUser)
+    $ErrorActionPreference = 'Continue'
+    $Command = if ($ApplicationUser) {
+        'export MYSQL_PWD=$MYSQL_PASSWORD; exec mysql -u$MYSQL_USER --batch --skip-column-names --database=$MYSQL_DATABASE'
+    } else {
+        'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql -uroot --batch --skip-column-names --database=$MYSQL_DATABASE'
+    }
+    $Text = @($Query | & docker compose --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c $Command 2>&1)
+    if ($LASTEXITCODE -ne 0) {
+        if (($Text -join "`n") -match 'ERROR\s+(1044|1045|1049)\b') {
+            Throw-DevelopmentDataRebuild '本地开发库凭据与当前配置不一致, 需要重新初始化开发数据。'
+        }
+        $Detail = ($Text -join ' ')
+        if ($Detail.Length -gt 500) { $Detail = $Detail.Substring(0, 500) }
+        throw "无法检查MySQL开发库: $Detail。本次不自动重建, 请检查连接或SQL执行错误。"
+    }
+    return $Text
 }
 
 # 在启动应用前检查基础表和迁移版本, 不以MySQL可连接代替初始化完成.
@@ -190,11 +212,15 @@ function Assert-DatabaseReady {
     $Missing = @('sys_region', 'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION') |
         Where-Object { $_ -cnotin $Tables }
     if ($Missing) {
-        throw "数据库初始化或升级不完整, 缺少: $($Missing -join ', ')。请先备份并按docs/项目维护文档.md修复, 不要直接重置数据卷。"
+        Throw-DevelopmentDataRebuild "本地开发库结构不是当前版本, 缺少: $($Missing -join ', ')。"
     }
     $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';"
     if ($LASTEXITCODE -ne 0 -or ($Version -join '').Trim() -ne '1') {
-        throw '数据库尚未完成V20261022_01迁移, 请先按docs/项目维护文档.md备份并执行版本迁移。'
+        Throw-DevelopmentDataRebuild '本地开发库尚未包含当前V20261022_01结构。'
+    }
+    $Application = Invoke-DatabaseQuery -Query 'SELECT 1;' -ApplicationUser
+    if (($Application -join '').Trim() -ne '1') {
+        throw 'MySQL应用账号连通性检查未返回预期结果。'
     }
 }
 
@@ -238,26 +264,39 @@ function Build-LocalEnvironment {
 # 只启动已校验的本地镜像, 检查数据服务与结构并等待全部应用就绪.
 function Start-LocalEnvironment {
     $Stage = '镜像检查'
-    try {
-        Write-Host '[1/3] 检查已构建镜像与源码标识...'
-        Assert-LocalImages
-        $Stage = 'MySQL和Redis启动'
-        Write-Host '[2/3] 启动MySQL和Redis, 首次启动自动初始化空数据库...'
-        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
-        $Stage = '数据库结构检查'
-        Assert-DatabaseReady
-        $Stage = '后端和管理端启动'
-        Write-Host '[3/3] 启动后端和管理端, 等待健康检查通过...'
-        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300')
-        Show-AccessInfo
-    } catch {
-        $StartupFailure = $_
-        Write-Warning "启动失败阶段: $Stage。"
-        if ($Stage -ne '镜像检查') {
-            try { Show-StartupDiagnostics }
-            catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
+    $Rebuilt = $false
+    while ($true) {
+        try {
+            Write-Host '[1/3] 检查已构建镜像与源码标识...'
+            Assert-LocalImages
+            $Stage = 'MySQL和Redis启动'
+            Write-Host '[2/3] 启动MySQL和Redis, 首次启动自动初始化空数据库...'
+            Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
+            $Stage = '数据库结构及账号检查'
+            Assert-DatabaseReady
+            $Stage = '后端和管理端启动'
+            Write-Host '[3/3] 启动后端和管理端, 等待健康检查通过...'
+            Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300')
+            Show-AccessInfo
+            return
+        } catch {
+            $StartupFailure = $_
+            if (-not $Rebuilt -and $Stage -eq '数据库结构及账号检查' -and
+                $StartupFailure.Exception.Data['RebuildDevelopmentData']) {
+                $Rebuilt = $true
+                Write-Warning '当前为未发布的本地开发环境, 将重新初始化本项目MySQL及Redis开发数据, 然后重试一次。'
+                try { Reset-TestDataVolumes -Development }
+                catch { throw }
+                $Stage = '镜像检查'
+                continue
+            }
+            Write-Warning "启动失败阶段: $Stage。"
+            if ($Stage -ne '镜像检查') {
+                try { Show-StartupDiagnostics }
+                catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
+            }
+            throw $StartupFailure
         }
-        throw $StartupFailure
     }
 }
 
