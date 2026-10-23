@@ -151,11 +151,20 @@ function Invoke-Compose {
     }
 }
 
+# 捕获短小的只读Docker元数据, 按退出码处理原生stderr而不是让5.1提前抛错.
+function Invoke-DockerMetadata {
+    param([Parameter(Mandatory = $true)][string[]]$Arguments)
+    $ErrorActionPreference = 'Continue'
+    $Text = @(& docker @Arguments 2>$null)
+    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $Text }
+}
+
 # 检查全部运行镜像并核对应用源码标识, 缺失时提示先运行构建脚本.
 function Assert-LocalImages {
     foreach ($Name in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
-        $Metadata = & docker image inspect $Name 2>$null
-        if ($LASTEXITCODE -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像, 或使用 .\dev.ps1 -Action build; -NoBuild 无法创建镜像。" }
+        $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Name)
+        $Metadata = $Result.Output
+        if ($Result.ExitCode -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像, 或使用 .\dev.ps1 -Action build; -NoBuild 无法创建镜像。" }
         $Image = ($Metadata -join "`n") | ConvertFrom-Json
         if ($Name -in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine')) { continue }
         $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
@@ -191,11 +200,25 @@ function Assert-DatabaseReady {
 
 # 汇总有限的状态与健康探针错误, 保留原始启动异常供调用者判断失败.
 function Show-StartupDiagnostics {
-    & docker compose --env-file $EnvFile -f $ComposeFile ps --all
-    foreach ($Name in @('platform-admin', 'platform-api')) {
-        & docker inspect --format '{{json .State.Health}}' $Name 2>$null
+    try {
+        $Result = Invoke-DockerMetadata -Arguments @('compose', '--env-file', $EnvFile, '-f', $ComposeFile, 'ps', '--all')
+        if ($Result.ExitCode -eq 0) { $Result.Output | Write-Host }
+        else { Write-Warning '暂时无法读取Compose状态, 原始启动错误仍保留。' }
+    } catch { Write-Warning 'Compose诊断不可用, 原始启动错误仍保留。' }
+    foreach ($Name in @('platform-mysql', 'platform-redis', 'platform-admin', 'platform-api', 'platform-nginx')) {
+        try {
+            $Result = Invoke-DockerMetadata -Arguments @('container', 'inspect', $Name)
+            if ($Result.ExitCode -ne 0) {
+                Write-Host "$Name 尚未创建或状态暂不可读, 跳过健康检查。"
+                continue
+            }
+            $Metadata = ($Result.Output -join "`n") | ConvertFrom-Json
+            $State = $Metadata[0].State
+            $Health = if ($State.Health) { $State.Health.Status } else { '未配置健康检查' }
+            Write-Host "$Name 状态: $($State.Status), 健康: $Health"
+        } catch { Write-Warning "$Name 状态诊断不可用, 原始启动错误仍保留。" }
     }
-    Write-Warning '后端日志: .\dev.ps1 -Action logs. 缺表请先备份, 旧镜像请重新构建, 详见docs/项目维护文档.md。'
+    Write-Warning '后端日志: .\dev.ps1 -Action logs. 按原始失败阶段排查, 详见docs/项目维护文档.md。'
 }
 
 # 只构建镜像, 保留原始构建错误, 不操作运行中的容器或数据库.
@@ -214,18 +237,27 @@ function Build-LocalEnvironment {
 
 # 只启动已校验的本地镜像, 检查数据服务与结构并等待全部应用就绪.
 function Start-LocalEnvironment {
+    $Stage = '镜像检查'
     try {
         Write-Host '[1/3] 检查已构建镜像与源码标识...'
         Assert-LocalImages
+        $Stage = 'MySQL和Redis启动'
         Write-Host '[2/3] 启动MySQL和Redis, 首次启动自动初始化空数据库...'
         Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
+        $Stage = '数据库结构检查'
         Assert-DatabaseReady
+        $Stage = '后端和管理端启动'
         Write-Host '[3/3] 启动后端和管理端, 等待健康检查通过...'
         Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300')
         Show-AccessInfo
     } catch {
-        Show-StartupDiagnostics
-        throw
+        $StartupFailure = $_
+        Write-Warning "启动失败阶段: $Stage。"
+        if ($Stage -ne '镜像检查') {
+            try { Show-StartupDiagnostics }
+            catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
+        }
+        throw $StartupFailure
     }
 }
 

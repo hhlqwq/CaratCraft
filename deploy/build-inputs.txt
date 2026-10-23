@@ -9,7 +9,6 @@ deploy/.env.example
 deploy/maven-settings.xml
 deploy/HealthCheck.java
 deploy/nginx
-deploy/scripts
 deploy/build-inputs.txt
 database
 legal

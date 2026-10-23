@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,6 +13,59 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class BuildRevisionTest(unittest.TestCase):
     """以真实源码和独立计算验证两个入口执行同一摘要契约."""
+
+    def test_operational_scripts_do_not_change_image_revision(self):
+        """实际摘要忽略宿主机脚本, 仍对后端、Dockerfile和SQL变更敏感."""
+        powershell = shutil.which("pwsh") or shutil.which("powershell")
+        if not powershell:
+            self.skipTest("需要已有PowerShell以执行真实摘要函数")
+        roots = (ROOT / "deploy/build-inputs.txt").read_text("utf-8").splitlines()
+        self.assertIn("deploy/build-inputs.txt text eol=lf",
+                      (ROOT / ".gitattributes").read_text("utf-8"))
+        self.assertFalse(any(Path("deploy/scripts/dev.ps1").is_relative_to(Path(root))
+                             for root in roots), "宿主机操作脚本不能成为镜像构建输入")
+        temporary = Path("D:/tmp/hailongcodex/2026-10-23")
+        temporary.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="image-inputs-", dir=temporary) as directory:
+            fixture = Path(directory)
+            for relative in roots:
+                path = fixture / relative
+                if (ROOT / relative).is_dir():
+                    path = path / "fixture.txt"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("public build input\n", "utf-8")
+            (fixture / "deploy/build-inputs.txt").write_text("\n".join(roots) + "\n", "utf-8")
+            script = fixture / "deploy/scripts/dev.ps1"
+            script.parent.mkdir(parents=True, exist_ok=True)
+            script.write_text("host operation\n", "utf-8")
+            command = r'''$ErrorActionPreference = 'Stop'
+$WorkspaceRoot = $env:CARATCRAFT_REVISION_FIXTURE
+$ProjectRoot = $WorkspaceRoot
+$EnvExample = Join-Path $ProjectRoot 'deploy/.env.example'
+$Tokens = $null; $Errors = $null
+$Ast = [Management.Automation.Language.Parser]::ParseFile($env:CARATCRAFT_REVISION_SOURCE, [ref]$Tokens, [ref]$Errors)
+foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
+    . ([scriptblock]::Create($Definition.Extent.Text))
+}
+Set-BuildRevision
+$Results = @($env:BUILD_REVISION)
+foreach ($Relative in @('deploy/scripts/dev.ps1', 'backend/fixture.txt', 'deploy/Dockerfile.backend', 'database/fixture.txt')) {
+    [IO.File]::AppendAllText((Join-Path $ProjectRoot $Relative), 'changed')
+    Set-BuildRevision
+    $Results += $env:BUILD_REVISION
+}
+Write-Output ('RESULT=' + ($Results -join ','))
+'''
+            environment = dict(os.environ, CARATCRAFT_REVISION_FIXTURE=str(fixture),
+                               CARATCRAFT_REVISION_SOURCE=str(ROOT / "deploy/scripts/dev.ps1"))
+            result = subprocess.run([powershell, "-NoProfile", "-Command", command],
+                                    capture_output=True, text=True, encoding="utf-8",
+                                    env=environment, check=True)
+            revisions = result.stdout.strip().splitlines()[-1].removeprefix("RESULT=").split(",")
+            self.assertEqual(len(revisions), 5)
+            self.assertEqual(revisions[0], revisions[1])
+            for before, after in zip(revisions[1:], revisions[2:]):
+                self.assertNotEqual(before, after)
 
     def test_platform_revisions_match_independent_manifest(self):
         """两个脚本的摘要须与独立清单算法一致, 包括Unicode路径和LF分隔."""
