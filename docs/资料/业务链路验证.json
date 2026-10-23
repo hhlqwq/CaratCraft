@@ -82,5 +82,35 @@
         "browserVerification": "not_run_for_this_continuation",
         "newDependenciesDownloaded": false,
         "next": "商品聚合真实MyBatis端到端及跨层库存验证, 配套功能和跨链路收尾"
+    },
+    "goodsAggregateMybatis": {
+        "date": "2026-10-23",
+        "baselineCommit": "5ab5d29",
+        "java": {
+            "tests": 30,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "realMySqlTests": 6
+        },
+        "miniappPurchaseScriptTests": 17,
+        "database": {
+            "engine": "MySQL 8.0.36",
+            "storage": "isolated_tmpfs",
+            "businessDatabaseAccessed": false
+        },
+        "coverage": [
+            "default_sku_primary_reference",
+            "named_combination_identity",
+            "preserve_latest_stock_when_omitted",
+            "current_price_and_sale_state",
+            "stock_limit_and_goods_ownership",
+            "concurrent_deduction",
+            "reject_orphan_children",
+            "real_child_failure_transaction_rollback"
+        ],
+        "newDependenciesDownloaded": false,
+        "httpBrowserOrWeChatEndToEnd": "not_run",
+        "productionAcceptance": false
     }
 }

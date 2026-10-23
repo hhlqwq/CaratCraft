@@ -188,6 +188,14 @@ public class MallGoodsAggregateServiceImpl implements MallGoodsAggregateService 
         validateAggregate(aggregateDTO, true);
 
         MallGoodsEntity goods = aggregateDTO.getGoods();
+        MallGoodsEntity current =
+                mallGoodsService.getOne(
+                        new QueryWrapper<MallGoodsEntity>()
+                                .eq("id", goods.getId())
+                                .last("FOR UPDATE"));
+        if (current == null || Integer.valueOf(1).equals(current.getIsDelete())) {
+            throw new BusinessException("商品不存在或已进入回收站, 请重新查询");
+        }
         goods.setUpdateTime(new Date());
         mallGoodsService.update(goods);
 

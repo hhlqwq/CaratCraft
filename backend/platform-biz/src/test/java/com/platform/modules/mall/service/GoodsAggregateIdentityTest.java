@@ -72,6 +72,7 @@ class GoodsAggregateIdentityTest {
         item.setRetailPrice(new BigDecimal("80.00"));
         item.setGoodsNumber(50);
         aggregate.setGoods(item);
+        when(goods.getOne(any())).thenReturn(item);
         GoodsAggregateDTO.SpecGroup group = new GoodsAggregateDTO.SpecGroup();
         group.setSpecificationId(7);
         GoodsAggregateDTO.SpecValue value = new GoodsAggregateDTO.SpecValue();
@@ -113,5 +114,17 @@ class GoodsAggregateIdentityTest {
         aggregate.getSkuList().get(0).setGoodsSpecificationIds("7:金色");
         assertThrows(BusinessException.class, () -> service.updateAggregate(aggregate));
         verifyNoInteractions(goods, products, specifications);
+    }
+
+    /** 不存在或已回收的商品不得写入子项, 防止孤儿SKU和迟到编辑恢复商品. */
+    @Test
+    void missingOrRecycledGoodsNeverWritesChildren() {
+        when(goods.getOne(any())).thenReturn(null);
+        assertThrows(BusinessException.class, () -> service.updateAggregate(aggregate));
+        aggregate.getGoods().setIsDelete(1);
+        when(goods.getOne(any())).thenReturn(aggregate.getGoods());
+        assertThrows(BusinessException.class, () -> service.updateAggregate(aggregate));
+        verify(goods, never()).update(any(MallGoodsEntity.class));
+        verifyNoInteractions(products, specifications);
     }
 }
