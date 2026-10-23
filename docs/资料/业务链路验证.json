@@ -5,18 +5,82 @@
         "failures": 0,
         "errors": 0,
         "skipped": 0,
-        "modules": {"common": 17, "biz": 124, "admin": 3, "api": 25},
+        "modules": {
+            "common": 17,
+            "biz": 124,
+            "admin": 3,
+            "api": 25
+        },
         "database": "caratcraft_init_audit_20261023_06a072",
         "databaseInitialization": "13份SQL和382个文本列编码检查通过",
         "redis": "本轮独立容器, 回环16379, 无业务数据卷",
         "dependencySource": "已有Docker构建层及工作区Maven缓存, 未下载新依赖"
     },
-    "node": {"businessTests": 117, "httpProbe": 1, "failures": 0, "skipped": 0},
+    "node": {
+        "businessTests": 146,
+        "httpProbe": 1,
+        "failures": 0,
+        "skipped": 0
+    },
     "browser": {
-        "goodsEditor": ["加载失败提示及禁止保存", "正常商品读取", "Vue3详情预览"],
-        "customConfiguration": ["配件读取失败提示", "禁止保存配件", "显式重试", "切换正常商品恢复"],
-        "workOrder": ["冻结材料内容", "工单日志", "仅显示合法下一状态"],
+        "goodsEditor": [
+            "加载失败提示及禁止保存",
+            "正常商品读取",
+            "Vue3详情预览"
+        ],
+        "customConfiguration": [
+            "配件读取失败提示",
+            "禁止保存配件",
+            "显式重试",
+            "切换正常商品恢复"
+        ],
+        "workOrder": [
+            "冻结材料内容",
+            "工单日志",
+            "仅显示合法下一状态"
+        ],
         "data": "隔离固定样例, 不连接业务库"
     },
-    "limits": ["当前业务容器尚未更新", "未完成全部业务链路人工审阅", "未进行真实微信、支付退款、正式AI及生产验收"]
+    "limits": [
+        "当前业务容器尚未更新",
+        "未完成全部业务链路人工审阅",
+        "未进行真实微信、支付退款、正式AI及生产验收"
+    ],
+    "continuation": {
+        "baselineCommit": "85c2a4f",
+        "date": "2026-10-23",
+        "componentStock": {
+            "newTests": 8,
+            "status": "passed"
+        },
+        "orderFulfillment": {
+            "newTests": 13,
+            "status": "passed"
+        },
+        "refundPanel": {
+            "newTests": 8,
+            "status": "passed"
+        },
+        "python": {
+            "tests": 20,
+            "passed": 18,
+            "skipped": 2,
+            "reason": "CARATCRAFT_BASH未配置, 跨平台摘要及Bash启动替身未执行"
+        },
+        "frontendBuild": "passed_using_existing_local_dependencies",
+        "eslint": [
+            "admin-ui/src",
+            "admin-ui/static/config",
+            "miniapp",
+            "tools",
+            "tests"
+        ],
+        "formattedFrontendAndJavaScriptFiles": 342,
+        "javaRerun": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "browserVerification": "not_run_for_this_continuation",
+        "newDependenciesDownloaded": false,
+        "next": "商品聚合真实MyBatis端到端及跨层库存验证, 配套功能和跨链路收尾"
+    }
 }
