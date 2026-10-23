@@ -1,4 +1,7 @@
 <view class="add-address">
+    <view wx:if="{{loading}}">正在加载地址...</view>
+    <view wx:if="{{loadError}}" bindtap="getAddressDetail">{{loadError}}</view>
+    <view wx:if="{{saveUncertain}}">保存结果未确认, 请返回地址列表核对.</view>
     <view class="add-form">
         <view class="form-item">
             <input class="input" bindinput="bindinputName" placeholder="姓名" value="{{address.userName}}" auto-focus/>
@@ -19,7 +22,7 @@
 
     <view class="btns">
         <button class="cannel" bindtap="cancelAddress">取消</button>
-        <button class="save" bindtap="saveAddress">保存</button>
+        <button loading="{{saving}}" disabled="{{saving || loading || loadError || saveUncertain}}" class="save" bindtap="saveAddress">保存</button>
     </view>
 
     <view class="region-select" wx:if="{{openSelectRegion}}">
@@ -31,6 +34,8 @@
       </view>
       <scroll-view scroll-y class="bd">
         <view class="region-list">
+          <view wx:if="{{regionLoading}}">正在加载地区...</view>
+          <view wx:if="{{regionError}}" bindtap="retryRegions">{{regionError}}</view>
           <view class="item {{item.selected ? 'selected' : ''}}" bindtap="selectRegion" data-region-index="{{index}}" wx:for="{{regionList}}" wx:key="id">{{item.name}}</view>
         </view>
       </scroll-view>
