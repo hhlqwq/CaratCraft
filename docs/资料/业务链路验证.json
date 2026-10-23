@@ -213,7 +213,7 @@
             "skipped": 0
         },
         "style": {
-            "javaFiles": 646,
+            "javaFiles": 644,
             "frontendFiles": 350,
             "javaAosp": true,
             "chineseFunctionDescriptions": true,
@@ -235,7 +235,6 @@
         },
         "cleanup": "所有本轮MySQL、Redis、API、管理服务及Nginx测试容器已清理; 业务五个容器保持运行; 临时样本已清理",
         "remaining": [
-            "自动审批拒绝的无调用方旧Redis锁、规格工具及模拟XML删除, 正等待用户单独授权",
             "联网依赖下载的客户全新Docker构建路径未重跑, 本轮为禁网编译与运行时封装",
             "微信真机、真实支付退款、正式AI及生产发布需实际账号和环境"
         ],
@@ -267,27 +266,74 @@
             "scope": "真实HTTP、认证器、MyBatis、MySQL、Redis与实际小程序SKU模块; 合成身份, 不调用真实微信或支付"
         },
         "images": {
-            "sourceRevision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+            "sourceRevision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
             "images": {
-                "carat-craft-backend:verified-20261024-07ee6ba": {
-                    "id": "sha256:f665cb4a4492ff2ff2ee8f2aeb5c0ef59a551b43ab7d8142f23b330a8d1ff9a4",
-                    "revision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+                "carat-craft-backend:verified-20261024-cleanup": {
+                    "id": "sha256:b825a38b646b037acff8266ff187f889c2655410be4e95e4d26a91fe8ee3e44c",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
                     "user": "caratcraft"
                 },
-                "carat-craft-admin-ui:verified-20261024-07ee6ba": {
-                    "id": "sha256:9a13d68bcae8af2ce44c3cef30e88331b1d3f69dcf13c3b96b4e750b625f3d87",
-                    "revision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+                "carat-craft-admin-ui:verified-20261024-cleanup": {
+                    "id": "sha256:574b8ad4f65773eb063bc8d483ac86f563dfc8c625fad29071d7a90a42d2813a",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
                     "user": "",
-                    "httpStaticAssetsChecked": 18
+                    "httpStaticAssetsChecked": 19
                 }
             },
             "backendJarSha256": {
-                "admin": "fd7a4e8a534e760b13b70680b4ae455ddd1f4dbdd915861aafbb9c2d2f7a8dce",
-                "api": "8b0ecee432e2ce2f04683d7c77be0e78c82adc7afb206b042a2a2b0ce600b1e5"
+                "admin": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                "api": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0"
             },
             "networkDownloads": false,
             "productionServicesChanged": false,
-            "scope": "已有运行时镜像+当前产物的禁网封装, 非联网依赖下载重建"
+            "scope": "授权删除后新JAR及最新许可材料的禁网运行时封装"
+        },
+        "authorizedLegacyCleanup": {
+            "date": "2026-10-24",
+            "authorizedByUser": true,
+            "deleted": [
+                "RedisLock.java",
+                "RedisTemplateUtil.setIfAbsent",
+                "SkuCartesianHelper.java",
+                "AppPayController.callbakcXml"
+            ],
+            "artifactChecks": [
+                {
+                    "module": "platform-admin",
+                    "sha256": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                },
+                {
+                    "module": "platform-api",
+                    "sha256": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                }
+            ],
+            "realPaymentXmlResponseRetained": true,
+            "cleanBuild": "离线缺少maven-clean-plugin, 核对路径后只删除四模块target并重新package成功, 未下载依赖",
+            "java": {
+                "tests": 200,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 0,
+                "modules": {
+                    "common": 17,
+                    "biz": 155,
+                    "admin": 3,
+                    "api": 25
+                }
+            },
+            "databaseCases": 41,
+            "redisCases": 1,
+            "httpBusinessChecks": 7,
+            "javaDescriptionFiles": 644,
+            "distributionLicenseErrors": [],
+            "nodePythonPowerShellBrowser": "沿用前批验证结果, 本批无对应源码变更, 未重复运行",
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
         }
     }
 }

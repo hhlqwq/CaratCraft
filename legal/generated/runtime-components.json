@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "92d75f6642de8d38d128d146a0c97c174e9226034f1b192d63b072e4322a098d",
+      "sha256": "cee6dd0007dabdec0ee81e3d3f8e70345ad3096e382cc7354644434c13fdda88",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -143,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "edcd5e37cb97c8271743c354ddd25249460d09db6c5ed9b8c0011ddd9e1731f3",
+      "sha256": "36fb92350a0b03317d32251c6de7b5a639153c259404d5ab1b88972d75dbae3f",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
