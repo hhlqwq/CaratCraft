@@ -1,13 +1,16 @@
 <template>
     <el-dialog
-        :title="!dataForm.id ? '新建订单' : '订单详情'"
+        title="订单详情"
         :close-on-click-modal="false"
         :lock-scroll="false"
         v-model="visible"
         width="980px"
         class="order-detail-dialog"
     >
-        <div class="order-hero">
+        <el-alert v-if="readError" :title="readError" type="error" :closable="false">
+            <el-button @click="init(currentId)">重新读取</el-button>
+        </el-alert>
+        <div v-loading="loading" class="order-hero">
             <div class="hero-main">
                 <div class="hero-label">订单编号</div>
                 <div class="hero-sn">{{ dataForm.orderSn || '-' }}</div>
@@ -25,13 +28,7 @@
             </div>
         </div>
 
-        <el-form
-            :model="dataForm"
-            :rules="dataRule"
-            ref="dataForm"
-            @keyup.enter="dataFormSubmit()"
-            label-width="110px"
-        >
+        <el-form :model="dataForm" :rules="dataRule" ref="dataForm" label-width="110px">
             <section class="section-card">
                 <h3 class="section-title">基础信息</h3>
                 <div class="form-grid">
@@ -266,9 +263,6 @@
         <template #footer
             ><span class="dialog-footer">
                 <el-button @click="visible = false">取消</el-button>
-                <el-button v-if="!disabled && !dataForm.id" type="primary" @click="dataFormSubmit()"
-                    >确定</el-button
-                >
             </span></template
         >
     </el-dialog>
@@ -276,9 +270,13 @@
 
 <script>
 export default {
+    /** 详情只读, 打开新订单前清空旧内容. */
     data() {
         return {
-            disabled: false,
+            disabled: true,
+            currentId: null,
+            loading: false,
+            readError: '',
             visible: false,
             orderGoodsList: [],
             dataForm: {
@@ -324,39 +322,59 @@ export default {
             },
         };
     },
+    /** 缓存页离开时关闭详情并废弃在途读取. */
+    deactivated() {
+        this.close();
+    },
+    /** 销毁时不允许旧请求继续回填. */
+    beforeUnmount() {
+        this.close();
+    },
     methods: {
-        init(id, disabled) {
-            this.disabled = !!id || disabled;
-            this.dataForm.id = id || '';
+        /** 明确关闭当前详情, 新打开操作使用新的请求代次. */
+        close() {
+            this.visible = false;
+            this._readVersion = (this._readVersion || 0) + 1;
+            this.loading = false;
+        },
+        /** 同一次打开并行读取详情与商品, 只有全部成功才展示订单. */
+        async init(id) {
+            const version = (this._readVersion = (this._readVersion || 0) + 1);
+            this.currentId = id;
             this.visible = true;
+            this.loading = true;
+            this.readError = '';
+            this.dataForm = {};
             this.orderGoodsList = [];
-            this.$nextTick(() => {
-                this.$refs.dataForm.resetFields();
-                if (this.dataForm.id) {
-                    this.$http({
-                        url: `/mall/order/info/${this.dataForm.id}`,
-                        method: 'get',
-                    }).then(({data}) => {
-                        if (data && data.code === 0) {
-                            this.dataForm = data.data;
-                            this.loadOrderGoods(this.dataForm.id);
-                        }
-                    });
+            try {
+                const [detail, goods] = await Promise.all([
+                    this.$http({url: `/mall/order/info/${id}`, method: 'get', showError: false}),
+                    this.$http({url: `/mall/order/goods/${id}`, method: 'get', showError: false}),
+                ]);
+                if (!this.visible || version !== this._readVersion) {
+                    return;
                 }
-            });
-        },
-        loadOrderGoods(orderId) {
-            this.$http({
-                url: `/mall/order/goods/${orderId}`,
-                method: 'get',
-            }).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.orderGoodsList = data.data || [];
-                } else {
-                    this.orderGoodsList = [];
+                if (
+                    detail.data?.code !== 0 ||
+                    !detail.data.data ||
+                    goods.data?.code !== 0 ||
+                    !Array.isArray(goods.data.data)
+                ) {
+                    throw new Error(detail.data?.msg || goods.data?.msg || '订单详情读取失败');
                 }
-            });
+                this.dataForm = detail.data.data;
+                this.orderGoodsList = goods.data.data;
+            } catch (error) {
+                if (this.visible && version === this._readVersion) {
+                    this.readError = error.message || '订单详情读取失败';
+                }
+            } finally {
+                if (version === this._readVersion) {
+                    this.loading = false;
+                }
+            }
         },
+        /** 展示服务端订单状态. */
         orderStatusText(status) {
             const map = {
                 0: '待付款',
@@ -375,6 +393,7 @@ export default {
             };
             return map[status] || `状态${status}`;
         },
+        /** 按订单状态选择提示色. */
         orderStatusType(status) {
             const map = {
                 0: 'warning',
@@ -393,38 +412,25 @@ export default {
             };
             return map[status] || 'info';
         },
+        /** 展示实际支付状态. */
         payStatusText(status) {
             const map = {0: '未支付', 1: '预支付已创建', 2: '已支付', 3: '退款中', 4: '已退款'};
             return map[status] || `状态${status}`;
         },
+        /** 按支付状态选择提示色. */
         payStatusType(status) {
             const map = {0: 'warning', 1: 'warning', 2: 'success', 3: 'danger', 4: 'danger'};
             return map[status] || 'info';
         },
+        /** 展示实际发货状态. */
         shippingStatusText(status) {
             const map = {0: '未发货', 1: '已发货', 2: '已收货'};
             return map[status] || `状态${status}`;
         },
+        /** 按发货状态选择提示色. */
         shippingStatusType(status) {
             const map = {0: 'info', 1: 'success', 2: 'success'};
             return map[status] || 'info';
-        },
-        dataFormSubmit() {
-            this.$refs.dataForm.validate((valid) => {
-                if (valid) {
-                    this.$http({
-                        url: `/mall/order/${!this.dataForm.id ? 'save' : 'update'}`,
-                        method: 'post',
-                        data: this.dataForm,
-                    }).then(({data}) => {
-                        if (data && data.code === 0) {
-                            this.$message({message: '操作成功', type: 'success', duration: 1500});
-                            this.visible = false;
-                            this.$emit('refreshDataList');
-                        }
-                    });
-                }
-            });
         },
     },
 };
