@@ -55,18 +55,22 @@ public interface MallCartDao extends BaseMapper<MallCartEntity> {
     List<MallCartEntity> selectMallCartPage(
             Page<MallCartEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按用户和规格条件更新购物车勾选状态. */
     void updateCheck(
             @Param("productIds") String[] productIds,
             @Param("isChecked") Integer isChecked,
             @Param("userId") Long userId);
 
+    /** 仅删除指定用户拥有的给定规格购物车行. */
     void deleteByUserAndProductIds(
             @Param("userId") Long userId, @Param("productIds") String[] productIds);
 
+    /** 按给定购物车上下文删除符合条件的记录. */
     void deleteByCart(
             @Param("userId") Long userId,
             @Param("sessionId") Integer sessionId,
             @Param("checked") Integer checked);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCartEntity> queryList(Map<String, Object> param);
 }

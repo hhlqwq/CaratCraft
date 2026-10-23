@@ -116,6 +116,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataForm: {
@@ -130,6 +131,7 @@ export default {
             addOrUpdateVisible: false,
         };
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -201,6 +203,7 @@ export default {
                 });
             });
         },
+        /** 将表格中的JSON内容转换为可读显示文本. */
         tableJsonFormat(row, column, cellValue) {
             if (!cellValue) {
                 return '';

@@ -120,12 +120,15 @@ public class WxUserEntity implements Serializable {
     /** 最后登录IP */
     private String lastLoginIp;
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxUserEntity() {}
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxUserEntity(String openid) {
         this.openid = openid;
     }
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxUserEntity(WxMpUser wxMpUser) {
         this.openid = wxMpUser.getOpenId();
         this.subscribe = wxMpUser.getSubscribe();

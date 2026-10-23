@@ -29,6 +29,7 @@ import java.util.Map;
 @RequestMapping("/app/region")
 public class AppRegionController extends AppBaseController {
 
+    /** 按当前接口参数查询对应的业务列表. */
     @Operation(summary = "地区列表")
     @IgnoreAuth
     @PostMapping("list")
@@ -43,6 +44,7 @@ public class AppRegionController extends AppBaseController {
         return RestResponse.ok(regionVoList);
     }
 
+    /** 读取地区数据中的省级列表. */
     @Operation(summary = "省份列表")
     @IgnoreAuth
     @PostMapping("provinceList")
@@ -57,6 +59,7 @@ public class AppRegionController extends AppBaseController {
         return RestResponse.ok(regionVoList);
     }
 
+    /** 根据省份名称读取城市列表. */
     @Operation(summary = "根据省查市")
     @IgnoreAuth
     @PostMapping("cityList")
@@ -71,6 +74,7 @@ public class AppRegionController extends AppBaseController {
         return RestResponse.ok(regionVoList);
     }
 
+    /** 根据省市名称读取区县列表. */
     @Operation(summary = "根据省市查区")
     @IgnoreAuth
     @PostMapping("distinctList")
@@ -86,6 +90,7 @@ public class AppRegionController extends AppBaseController {
         return RestResponse.ok(regionVoList);
     }
 
+    /** 按标识读取当前接口对应的记录详情. */
     @Operation(summary = "地区详情")
     @IgnoreAuth
     @PostMapping("info")
@@ -94,6 +99,7 @@ public class AppRegionController extends AppBaseController {
         return RestResponse.ok(new RegionVo(regionEntity));
     }
 
+    /** 根据明确的省市区名称查找地区标识. */
     @Operation(summary = "区域名称转区域ID")
     @IgnoreAuth
     @PostMapping("regionIdsByNames")

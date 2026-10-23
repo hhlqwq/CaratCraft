@@ -25,6 +25,7 @@ public class CustomProductServiceImpl implements CustomProductService {
     private final MallGoodsService mallGoodsService;
     private final MallProductService mallProductService;
 
+    /** 注入定制商品配置及其商品和库存查询依赖. */
     public CustomProductServiceImpl(
             CustomProductDao customProductDao,
             CustomComponentOptionDao componentOptionDao,

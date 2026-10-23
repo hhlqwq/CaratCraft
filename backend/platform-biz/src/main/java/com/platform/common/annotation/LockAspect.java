@@ -50,6 +50,7 @@ public class LockAspect {
     @Pointcut("@annotation(com.platform.common.annotation.ServiceLock)")
     public void lockAspect() {}
 
+    /** 拦截目标方法并执行当前切面的前后置处理. */
     @Around("lockAspect()")
     public Object around(ProceedingJoinPoint joinPoint) {
         Object obj;

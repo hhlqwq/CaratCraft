@@ -167,6 +167,7 @@ import WxUserTagging from './wx-user-tagging';
 import {mapState} from 'vuex';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             showWxUserTagsEditor: false,
@@ -189,6 +190,7 @@ export default {
         WxUserTagsManager,
         WxUserTagging,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -240,6 +242,7 @@ export default {
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },
+        /** 将用户性别编码转换为明确的显示文本. */
         sexFormat(row, column, cellValue) {
             const sexType = {
                 0: '未知',
@@ -248,10 +251,12 @@ export default {
             };
             return sexType[cellValue];
         },
+        /** 根据标签标识查找显示名称, 未找到时保留未知状态. */
         getTagName(tagid) {
             const tag = this.wxUserTags.find((item) => item.id === tagid);
             return tag ? tag.name : '?';
         },
+        /** 将公众号关注来源编码映射为显示名称. */
         getSubscribeScene(subscribeScene) {
             switch (subscribeScene) {
                 case 'ADD_SCENE_SEARCH':

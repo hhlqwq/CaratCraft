@@ -33,20 +33,28 @@ import java.util.Map;
  * @since 2026-03-15 13:45:28
  */
 public interface MallCommentPictureService extends IService<MallCommentPictureEntity> {
+    /** 按给定条件读取当前领域全部匹配记录. */
     List<MallCommentPictureEntity> queryAll(Map<String, Object> params);
 
+    /** 根据显式查询条件读取当前领域记录. */
     List<MallCommentPictureEntity> queryAllByWrapper(
             QueryWrapper<MallCommentPictureEntity> queryWrapper);
 
+    /** 按查询条件和分页参数返回当前领域记录. */
     Page<MallCommentPictureEntity> queryPage(Map<String, Object> params);
 
+    /** 保存当前领域的新记录并返回处理结果. */
     boolean add(MallCommentPictureEntity mallCommentPicture);
 
+    /** 接收当前接口的修改请求并委托业务服务更新. */
     boolean update(MallCommentPictureEntity mallCommentPicture);
 
+    /** 按当前接口身份和参数删除目标业务记录. */
     boolean delete(Integer id);
 
+    /** 在事务中批量删除给定标识对应的记录. */
     boolean deleteBatch(Integer[] ids);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCommentPictureEntity> queryList(Map<String, Object> paramPicture);
 }

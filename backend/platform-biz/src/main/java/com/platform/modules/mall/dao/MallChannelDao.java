@@ -55,5 +55,6 @@ public interface MallChannelDao extends BaseMapper<MallChannelEntity> {
     List<MallChannelEntity> selectMallChannelPage(
             Page<MallChannelEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallChannelEntity> queryList(Map<String, Object> param);
 }

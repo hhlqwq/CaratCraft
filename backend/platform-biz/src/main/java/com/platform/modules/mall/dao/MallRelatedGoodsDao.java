@@ -34,5 +34,6 @@ import java.util.Map;
  */
 @Mapper
 public interface MallRelatedGoodsDao extends BaseMapper<MallRelatedGoodsEntity> {
+    /** 按给定条件查询当前领域记录列表. */
     List<MallRelatedGoodsEntity> queryList(Map<String, Object> params);
 }

@@ -49,9 +49,7 @@ export function treeDataTranslate(data, id = 'id', pid = 'parentId', childrenKey
     return res;
 }
 
-/**
- * @param date
- */
+/** 按指定格式显示秒时间戳, 空值保留占位状态. */
 export function transDate(date, fmt) {
     if (!date) {
         return '--';
@@ -80,6 +78,7 @@ export function transDate(date, fmt) {
     return fmt;
 }
 
+/** 将日期中的数字分量补齐为至少两位, 空值保持为空. */
 function getFormatDate(arg) {
     if (arg === undefined || arg === '') {
         return '';
@@ -150,6 +149,7 @@ export function transUser(userId) {
     return userId;
 }
 
+/** 按字典编码查找显示名称, 无值时保留占位状态. */
 export function transDict(code, value) {
     if (!value && value !== 0) {
         return '--';

@@ -33,6 +33,7 @@ public class AppTopicController extends AppBaseController {
     @Autowired private MallTopicService topicService;
 
     /** */
+    /** 按当前接口参数查询对应的业务列表. */
     @Operation(summary = "专题列表")
     @IgnoreAuth
     @PostMapping("list")
@@ -53,6 +54,7 @@ public class AppTopicController extends AppBaseController {
     }
 
     /** */
+    /** 读取当前接口目标记录的详情数据. */
     @Operation(summary = "专题详情")
     @IgnoreAuth
     @PostMapping("detail")
@@ -62,6 +64,7 @@ public class AppTopicController extends AppBaseController {
     }
 
     /** */
+    /** 按当前商品查询关联展示内容. */
     @Operation(summary = "关联专题")
     @IgnoreAuth
     @PostMapping("related")

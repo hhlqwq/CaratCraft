@@ -89,6 +89,7 @@ export default {
     components: {
         wxMenuButtonEditor: () => import('./wx-menu-button-editor'),
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             // 当前菜单
@@ -105,6 +106,7 @@ export default {
             onDragOverMenu: '',
         };
     },
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.getWxMenu();
     },
@@ -119,6 +121,7 @@ export default {
             }
             this.selectedButton = button;
         },
+        /** 读取公众号当前菜单并恢复编辑状态. */
         getWxMenu() {
             this.$http({
                 url: '/manage/wxMenu/getMenu',
@@ -175,6 +178,7 @@ export default {
                 this.unSelectMenu();
             }
         },
+        /** 清除当前公众号菜单节点的选中状态. */
         unSelectMenu() {
             // 不选中任何菜单
             this.selectedMenuLevel = 0;
@@ -182,6 +186,7 @@ export default {
             this.selectedSubMenuIndex = '';
             this.selectedButton = '';
         },
+        /** 将当前菜单编辑结果提交到公众号菜单接口. */
         updateWxMenu() {
             this.$http({
                 url: '/manage/wxMenu/updateMenu',
@@ -193,6 +198,7 @@ export default {
                 }
             });
         },
+        /** 根据拖放目标调整公众号菜单节点的位置. */
         onDrop(i, i2) {
             // 拖拽移动位置
             this.onDragOverMenu = '';

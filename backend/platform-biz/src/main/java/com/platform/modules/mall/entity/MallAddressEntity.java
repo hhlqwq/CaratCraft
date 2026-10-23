@@ -81,6 +81,7 @@ public class MallAddressEntity implements Serializable {
     @TableField(exist = false)
     private String fullRegion;
 
+    /** 按当前地址的省市区名称组合完整地区显示文本. */
     public String getFullRegion() {
         if (StringUtils.isEmpty(this.fullRegion)) {
             this.fullRegion = this.provinceName + this.cityName + this.countyName;

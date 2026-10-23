@@ -34,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FilterConfig {
 
+    /** 注册针对当前路径范围的XSS请求过滤器. */
     @Bean
     public FilterRegistrationBean<XssFilter> xssFilterRegistration() {
         FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
@@ -45,6 +46,7 @@ public class FilterConfig {
         return registration;
     }
 
+    /** 注册针对当前路径范围的SQL注入输入过滤器. */
     @Bean
     public FilterRegistrationBean<AntiSqlInjectionFilter> antiSqlInjectionFilterRegistration() {
         FilterRegistrationBean<AntiSqlInjectionFilter> registration =

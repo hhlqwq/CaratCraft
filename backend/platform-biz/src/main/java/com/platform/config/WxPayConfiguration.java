@@ -43,6 +43,7 @@ import org.springframework.context.annotation.Configuration;
 public class WxPayConfiguration {
     private final WxPayProperties properties;
 
+    /** 提供当前微信账号对应的SDK服务. */
     @Bean
     @ConditionalOnMissingBean
     public WxPayService wxService() {
@@ -51,6 +52,7 @@ public class WxPayConfiguration {
         return wxPayService;
     }
 
+    /** 构建当前商户的微信支付配置. */
     @Bean
     public WxPayConfig wxPayConfig() {
         WxPayConfig payConfig = new WxPayConfig();

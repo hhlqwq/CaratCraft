@@ -51,6 +51,7 @@ public class SwaggerConfig {
     @Value("${projectVersion}")
     private String projectVersion;
 
+    /** 构建当前应用的OpenAPI文档元数据. */
     @Bean
     public OpenAPI openApi() {
         return new OpenAPI().info(apiInfo());

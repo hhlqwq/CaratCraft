@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CacheConfig {
 
+    /** 装配地区查询和缓存工具. */
     @Bean
     public RegionCacheUtil regionCacheUtil() {
         return new RegionCacheUtil();

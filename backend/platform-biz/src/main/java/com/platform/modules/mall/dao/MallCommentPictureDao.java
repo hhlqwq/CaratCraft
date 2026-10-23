@@ -37,10 +37,13 @@ import java.util.Map;
  */
 @Mapper
 public interface MallCommentPictureDao extends BaseMapper<MallCommentPictureEntity> {
+    /** 按给定条件读取当前领域全部匹配记录. */
     List<MallCommentPictureEntity> queryAll(@Param("params") Map<String, Object> params);
 
+    /** 按查询条件分页读取评价图片. */
     List<MallCommentPictureEntity> selectMallCommentPicturePage(
             Page<MallCommentPictureEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCommentPictureEntity> queryList(Map<String, Object> param);
 }

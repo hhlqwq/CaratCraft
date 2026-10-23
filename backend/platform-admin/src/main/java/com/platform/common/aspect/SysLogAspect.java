@@ -51,9 +51,11 @@ import java.lang.reflect.Method;
 public class SysLogAspect {
     private final SysLogService sysLogService;
 
+    /** 声明需要记录操作日志的方法切点. */
     @Pointcut("@annotation(com.platform.common.annotation.SysLog)")
     public void logPointCut() {}
 
+    /** 拦截目标方法并执行当前切面的前后置处理. */
     @Around("logPointCut()")
     public Object around(ProceedingJoinPoint point) throws Throwable {
         long beginTime = System.currentTimeMillis();
@@ -68,6 +70,7 @@ public class SysLogAspect {
         return result;
     }
 
+    /** 从当前调用上下文构建并保存操作审计记录. */
     private void saveSysLog(ProceedingJoinPoint joinPoint, long time) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();

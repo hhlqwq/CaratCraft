@@ -253,6 +253,7 @@ public class AppCouponController extends AppBaseController {
         }
     }
 
+    /** 读取当前用户持有的优惠券. */
     private List<Map<String, Object>> queryUserCoupons(
             Long userId, Integer couponStatus, Integer sendType, String sourceKey) {
         QueryWrapper<MallUserCouponEntity> userCouponQueryWrapper = new QueryWrapper<>();

@@ -30,12 +30,14 @@ import java.util.UUID;
  */
 public class TokenGenerator {
 
+    /** 生成用于会话或标识的随机令牌值. */
     public static String generateValue() {
         return generateValue(UUID.randomUUID().toString());
     }
 
     private static final char[] HEX_CODE = "0123456789abcdef".toCharArray();
 
+    /** 将字节序列编码为十六进制文本. */
     public static String toHexString(byte[] data) {
         if (data == null) {
             return null;
@@ -48,6 +50,7 @@ public class TokenGenerator {
         return r.toString();
     }
 
+    /** 生成用于会话或标识的随机令牌值. */
     public static String generateValue(String param) {
         try {
             MessageDigest algorithm = MessageDigest.getInstance("MD5");

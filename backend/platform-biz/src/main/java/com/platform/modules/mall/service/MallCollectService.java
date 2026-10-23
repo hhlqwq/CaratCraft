@@ -96,5 +96,6 @@ public interface MallCollectService extends IService<MallCollectEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCollectEntity> queryList(Map<String, Object> param);
 }

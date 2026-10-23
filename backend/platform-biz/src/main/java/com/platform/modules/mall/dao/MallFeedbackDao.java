@@ -55,5 +55,6 @@ public interface MallFeedbackDao extends BaseMapper<MallFeedbackEntity> {
     List<MallFeedbackEntity> selectMallFeedbackPage(
             Page<MallFeedbackEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallFeedbackEntity> queryList(Map<String, Object> param);
 }

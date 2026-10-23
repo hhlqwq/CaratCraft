@@ -59,8 +59,10 @@ public class WxQrCodeEntity implements Serializable {
     /** 该二维码创建时间 */
     private Date createTime;
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxQrCodeEntity() {}
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxQrCodeEntity(WxQrCodeForm form) {
         this.isTemp = form.getIsTemp();
         this.sceneStr = form.getSceneStr();

@@ -105,6 +105,8 @@ public class RedisTemplateUtil {
     }
 
     /**
+     * 仅在Redis键不存在时写入值并返回是否成功.
+     *
      * @param key key
      * @param value value
      * @return boolean

@@ -509,6 +509,7 @@ import {h} from 'vue';
 import DOMPurify from '@/third-party/dompurify/purify.es.mjs';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             disabled: false,
@@ -727,16 +728,20 @@ export default {
                 }
             }
         },
+        /** 在商品表单中增加一条待填写的属性. */
         addAttribute() {
             this.form.attributes.push({attributeId: '', attributeName: '', value: ''});
         },
+        /** 从当前商品表单移除指定属性行. */
         removeAttribute(index) {
             this.form.attributes.splice(index, 1);
         },
+        /** 根据选中的属性标识同步其显示名称. */
         onAttributeChange(row) {
             const hit = this.attributeOptions.find((item) => item.id === row.attributeId);
             row.attributeName = hit ? hit.name : '';
         },
+        /** 增加一条待填写的商品相册记录. */
         addGallery() {
             this.form.gallery.push({
                 imgUrl: '',
@@ -744,9 +749,11 @@ export default {
                 sortOrder: this.form.gallery.length + 1,
             });
         },
+        /** 从当前表单移除指定相册记录. */
         removeGallery(index) {
             this.form.gallery.splice(index, 1);
         },
+        /** 增加一组待配置的商品规格. */
         addSpecGroup() {
             this.form.specs.push({
                 specificationId: '',
@@ -754,22 +761,27 @@ export default {
                 values: [{value: '', picUrl: ''}],
             });
         },
+        /** 移除指定规格组并更新SKU组合. */
         removeSpecGroup(index) {
             this.form.specs.splice(index, 1);
             this.rebuildSkuList();
         },
+        /** 同步当前规格定义并更新关联组合. */
         onSpecificationChange(row) {
             const hit = this.specificationOptions.find((item) => item.id === row.specificationId);
             row.specificationName = hit ? hit.name : '';
             this.rebuildSkuList();
         },
+        /** 为指定规格组增加一个候选值. */
         addSpecValue(row) {
             row.values.push({value: '', picUrl: ''});
         },
+        /** 移除指定规格值并更新SKU组合. */
         removeSpecValue(row, valueIndex) {
             row.values.splice(valueIndex, 1);
             this.rebuildSkuList();
         },
+        /** 提取已填写完整且可用于组合生成的规格组. */
         getValidSpecs() {
             return this.form.specs
                 .map((spec) => ({
@@ -810,6 +822,7 @@ export default {
             });
             return combos;
         },
+        /** 根据有效规格重建SKU组合并保留可匹配的编辑值. */
         rebuildSkuList() {
             const specs = this.getValidSpecs();
             const combinations = this.buildSpecCombinations(specs);

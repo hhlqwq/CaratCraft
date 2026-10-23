@@ -52,74 +52,92 @@ public class ColumnEntity {
     /** 属性的get方法 */
     private String getMethod;
 
+    /** 读取当前对象的GetMethod属性. */
     public String getGetMethod() {
         return getMethod;
     }
 
+    /** 更新当前对象的GetMethod属性. */
     public void setGetMethod(String getMethod) {
         this.getMethod = getMethod;
     }
 
+    /** 读取当前对象的ColumnName属性. */
     public String getColumnName() {
         return columnName;
     }
 
+    /** 更新当前对象的ColumnName属性. */
     public void setColumnName(String columnName) {
         this.columnName = columnName;
     }
 
+    /** 读取当前对象的DataType属性. */
     public String getDataType() {
         return dataType;
     }
 
+    /** 更新当前对象的DataType属性. */
     public void setDataType(String dataType) {
         this.dataType = dataType;
     }
 
+    /** 读取当前对象的Comments属性. */
     public String getComments() {
         return comments;
     }
 
+    /** 更新当前对象的Comments属性. */
     public void setComments(String comments) {
         this.comments = comments;
     }
 
+    /** 读取当前对象的Attrname属性. */
     public String getAttrname() {
         return attrname;
     }
 
+    /** 更新当前对象的Attrname属性. */
     public void setAttrname(String attrname) {
         this.attrname = attrname;
     }
 
+    /** 读取当前对象的AttrName属性. */
     public String getAttrName() {
         return attrName;
     }
 
+    /** 更新当前对象的AttrName属性. */
     public void setAttrName(String attrName) {
         this.attrName = attrName;
     }
 
+    /** 读取当前对象的AttrType属性. */
     public String getAttrType() {
         return attrType;
     }
 
+    /** 更新当前对象的AttrType属性. */
     public void setAttrType(String attrType) {
         this.attrType = attrType;
     }
 
+    /** 读取当前对象的Extra属性. */
     public String getExtra() {
         return extra;
     }
 
+    /** 更新当前对象的Extra属性. */
     public void setExtra(String extra) {
         this.extra = extra;
     }
 
+    /** 读取当前对象的ColumnKey属性. */
     public String getColumnKey() {
         return columnKey;
     }
 
+    /** 更新当前对象的ColumnKey属性. */
     public void setColumnKey(String columnKey) {
         this.columnKey = columnKey;
     }

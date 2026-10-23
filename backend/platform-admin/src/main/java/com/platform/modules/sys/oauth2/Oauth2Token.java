@@ -28,6 +28,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 public class Oauth2Token implements AuthenticationToken {
     private String token;
 
+    /** 封装当前认证请求携带的访问令牌. */
     public Oauth2Token(String token) {
         this.token = token;
     }

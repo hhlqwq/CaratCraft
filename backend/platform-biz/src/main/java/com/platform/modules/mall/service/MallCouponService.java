@@ -90,7 +90,9 @@ public interface MallCouponService extends IService<MallCouponEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 查询当前用户在给定条件下可用的最大优惠券. */
     MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> couponParam);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCouponEntity> queryList(Map<String, Object> couponParam);
 }

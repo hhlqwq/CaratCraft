@@ -90,6 +90,7 @@ public class SysOrgServiceImpl extends ServiceImpl<SysOrgDao, SysOrgEntity>
         return baseMapper.selectChildrensByOrgNo(orgNo);
     }
 
+    /** 读取当前对象的OrgType属性. */
     private int getOrgType(String orgNo) {
         int two = 2;
         int four = 4;

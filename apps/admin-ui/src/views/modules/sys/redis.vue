@@ -57,6 +57,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataListSelections: [],
@@ -66,6 +67,7 @@ export default {
             },
         };
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -74,6 +76,7 @@ export default {
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },
+        /** 按当前筛选和分页条件读取业务列表. */
         getDataList(page) {
             if (page) {
                 this.pageIndex = page;
@@ -90,6 +93,7 @@ export default {
                 }
             });
         },
+        /** 确认后删除指定或勾选的业务记录. */
         deleteHandle(id) {
             console.log(id);
             const ids = id

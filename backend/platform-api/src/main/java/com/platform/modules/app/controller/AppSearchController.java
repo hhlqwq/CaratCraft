@@ -38,6 +38,7 @@ public class AppSearchController extends AppBaseController {
     @Autowired private MallSearchHistoryService searchHistoryService;
 
     /** index */
+    /** 汇总当前入口所需的首页展示数据. */
     @Operation(summary = "搜索商品列表")
     @PostMapping("index")
     public RestResponse<Object> index(@LoginUser WxUserEntity loginUser) {
@@ -89,7 +90,7 @@ public class AppSearchController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
-    /** 　　helper */
+    /** 按输入前缀查询最多十个不同的搜索关键词建议. */
     @Operation(summary = "搜索商品")
     @IgnoreAuth
     @PostMapping("helper")
@@ -113,7 +114,7 @@ public class AppSearchController extends AppBaseController {
         return RestResponse.ok(keys);
     }
 
-    /** 　　clearhistory */
+    /** 清除当前用户的搜索历史记录. */
     @Operation(summary = "清空搜索记录")
     @PostMapping("clearhistory")
     public RestResponse<Object> clearhistory(@LoginUser WxUserEntity loginUser) {

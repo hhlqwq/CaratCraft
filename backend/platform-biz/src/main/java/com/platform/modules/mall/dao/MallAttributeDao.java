@@ -55,5 +55,6 @@ public interface MallAttributeDao extends BaseMapper<MallAttributeEntity> {
     List<MallAttributeEntity> selectMallAttributePage(
             Page<MallAttributeEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallAttributeEntity> queryList(Map<String, Object> ngaParam);
 }

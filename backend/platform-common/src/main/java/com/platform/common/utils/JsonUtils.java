@@ -25,6 +25,7 @@ import com.google.gson.GsonBuilder;
  * @author 何海龙
  */
 public class JsonUtils {
+    /** 将当前对象转换为JSON文本. */
     public static String toJson(Object obj) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(obj);

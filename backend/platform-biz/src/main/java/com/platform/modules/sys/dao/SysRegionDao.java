@@ -16,7 +16,9 @@ import java.util.Map;
 @Mapper
 public interface SysRegionDao extends BaseMapper<SysRegionEntity> {
 
+    /** 按给定条件查询当前领域记录列表. */
     List<SysRegionEntity> queryList(Map<String, Object> map);
 
+    /** 统计符合当前查询条件的记录数量. */
     int queryTotal(Map<String, Object> map);
 }

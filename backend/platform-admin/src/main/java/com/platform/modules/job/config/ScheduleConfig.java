@@ -34,6 +34,7 @@ import javax.sql.DataSource;
 @Configuration
 public class ScheduleConfig {
 
+    /** 配置定时任务调度器及其持久化和线程资源. */
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource) {
         SchedulerFactoryBean factory = new SchedulerFactoryBean();

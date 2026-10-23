@@ -27,8 +27,10 @@ import java.util.List;
  */
 public final class SkuCartesianHelper {
 
+    /** 禁止实例化只提供静态组合计数方法的工具类. */
     private SkuCartesianHelper() {}
 
+    /** 按输入维度累计组合数, 空维度返回零; 调用方须另行控制数量及溢出边界. */
     public static long countCartesian(List<? extends List<?>> dimensions) {
         if (dimensions == null || dimensions.isEmpty()) {
             return 0L;

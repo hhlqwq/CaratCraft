@@ -55,5 +55,6 @@ public interface MallKeywordsDao extends BaseMapper<MallKeywordsEntity> {
     List<MallKeywordsEntity> selectMallKeywordsPage(
             Page<MallKeywordsEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallKeywordsEntity> queryList(Map<String, Object> param);
 }

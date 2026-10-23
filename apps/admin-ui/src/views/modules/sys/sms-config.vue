@@ -51,6 +51,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             visible: false,
@@ -76,6 +77,7 @@ export default {
         };
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init() {
             this.visible = true;
             this.$nextTick(() => {

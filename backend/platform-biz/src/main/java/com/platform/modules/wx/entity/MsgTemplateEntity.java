@@ -65,8 +65,10 @@ public class MsgTemplateEntity implements Serializable {
 
     private Date updateTime;
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public MsgTemplateEntity() {}
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public MsgTemplateEntity(WxMpTemplate mpTemplate) {
         this.templateId = mpTemplate.getTemplateId();
         this.title = mpTemplate.getTitle();

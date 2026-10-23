@@ -134,10 +134,12 @@ public class Constant {
 
         private int value;
 
+        /** 保存当前枚举值及其对应的协议编码. */
         ScheduleStatus(int value) {
             this.value = value;
         }
 
+        /** 读取当前对象的Value属性. */
         public int getValue() {
             return value;
         }
@@ -160,10 +162,12 @@ public class Constant {
 
         private int value;
 
+        /** 保存当前枚举值及其对应的协议编码. */
         CloudService(int value) {
             this.value = value;
         }
 
+        /** 读取当前对象的Value属性. */
         public int getValue() {
             return value;
         }
@@ -177,10 +181,12 @@ public class Constant {
 
         private final Integer value;
 
+        /** 保存当前枚举值及其对应的协议编码. */
         SmsType(Integer value) {
             this.value = value;
         }
 
+        /** 读取当前对象的Value属性. */
         public Integer getValue() {
             return value;
         }

@@ -61,6 +61,7 @@ public class AppOrderController extends AppBaseController {
     @Autowired private CustomDesignSnapshotDao customDesignSnapshotDao;
 
     /** */
+    /** 汇总当前入口所需的首页展示数据. */
     @Operation(summary = "订单首页")
     @IgnoreAuth
     @PostMapping("index")
@@ -194,6 +195,7 @@ public class AppOrderController extends AppBaseController {
         return customization;
     }
 
+    /** 拒绝客户端直接修改支付状态, 要求通过支付查询或签名回调确认. */
     @Operation(summary = "修改订单")
     @PostMapping("updateSuccess")
     public RestResponse<Object> updateSuccess(Integer orderId, @LoginUser WxUserEntity loginUser) {

@@ -57,6 +57,7 @@ public interface MallUserCouponDao extends BaseMapper<MallUserCouponEntity> {
     List<MallUserCouponEntity> selectMallUserCouponPage(
             Page<MallUserCouponEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallUserCouponEntity> queryList(Map<String, Object> param);
 
     /** 原子占用用户优惠券 / Atomically claims a user coupon. */

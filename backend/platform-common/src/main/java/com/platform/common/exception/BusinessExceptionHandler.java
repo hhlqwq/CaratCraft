@@ -75,12 +75,14 @@ public class BusinessExceptionHandler {
         return RestResponse.fail(HttpStatus.NOT_FOUND.value(), "路径不存在，请检查路径是否正确");
     }
 
+    /** 将数据库唯一约束冲突映射为明确的业务错误. */
     @ExceptionHandler(DuplicateKeyException.class)
     public RestResponse<String> handleDuplicateKeyException(DuplicateKeyException e) {
         log.error(e.getMessage(), e);
         return RestResponse.fail("数据库中已存在该记录");
     }
 
+    /** 将权限校验失败映射为协议错误响应. */
     @ExceptionHandler(AuthorizationException.class)
     public RestResponse<String> handleAuthorizationException(AuthorizationException e) {
         log.error(e.getMessage(), e);
@@ -117,12 +119,14 @@ public class BusinessExceptionHandler {
         return RestResponse.fail(409, error.getMessage());
     }
 
+    /** 将未处理异常转换为统一错误响应, 不向客户端暴露堆栈. */
     @ExceptionHandler(Exception.class)
     public RestResponse<String> handleException(Exception e) {
         log.error("未处理异常: ", e);
         return RestResponse.fail(500, "服务器内部错误，请稍后再试");
     }
 
+    /** 将微信SDK异常转换为当前接口的错误响应. */
     @ExceptionHandler(WxErrorException.class)
     public RestResponse<String> handleWxErrorException(WxErrorException e) {
         log.error(e.getMessage(), e);

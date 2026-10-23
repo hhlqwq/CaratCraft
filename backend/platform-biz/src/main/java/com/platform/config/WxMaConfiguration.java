@@ -58,6 +58,7 @@ public class WxMaConfiguration {
     @Autowired private final WxMaProperties properties;
     @Autowired private StringRedisTemplate stringRedisTemplate;
 
+    /** 装配小程序SDK服务及当前账号配置. */
     @Bean
     public WxMaService wxMaService() {
         WxMaService wxMaService = new WxMaServiceImpl();
@@ -65,21 +66,25 @@ public class WxMaConfiguration {
         return wxMaService;
     }
 
+    /** 提供小程序二维码相关SDK能力. */
     @Bean
     public WxMaQrcodeService wxMaQrcodeService() {
         return wxMaService().getQrcodeService();
     }
 
+    /** 提供小程序数据分析相关SDK能力. */
     @Bean
     public WxMaAnalysisService wxMaAnalysisService() {
         return wxMaService().getAnalysisService();
     }
 
+    /** 提供小程序消息相关SDK能力. */
     @Bean
     public WxMaMsgService wxMaMsgService(WxMaService service) {
         return new WxMaMsgServiceImpl(service);
     }
 
+    /** 构建小程序SDK账号配置. */
     @Bean
     public WxMaRedisBetterConfigImpl wxMaConfig() {
         WxMaRedisBetterConfigImpl wxMaRedisBetterConfig =
@@ -93,6 +98,7 @@ public class WxMaConfiguration {
         return wxMaRedisBetterConfig;
     }
 
+    /** 构建当前微信消息处理路由. */
     @Bean
     public WxMaMessageRouter newRouter(WxMaService service) {
         final WxMaMessageRouter router = new WxMaMessageRouter(service);

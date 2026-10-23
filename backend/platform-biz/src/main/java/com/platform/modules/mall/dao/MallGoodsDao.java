@@ -107,9 +107,12 @@ public interface MallGoodsDao extends BaseMapper<MallGoodsEntity> {
      */
     int permanentlyDeleteGoods(@Param("ids") List<Integer> ids);
 
+    /** 按目录筛选条件查询商品列表. */
     List<MallGoodsEntity> queryCatalogProductList(Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallGoodsEntity> queryList(Map<String, Object> param);
 
+    /** 统计符合当前查询条件的记录数量. */
     int queryTotal(Map<String, Object> map);
 }

@@ -90,5 +90,6 @@ public interface MallGoodsIssueService extends IService<MallGoodsIssueEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallGoodsIssueEntity> queryList(Map<String, Object> issueParam);
 }

@@ -17,6 +17,7 @@ public class OrderPaymentServiceImpl implements OrderPaymentService {
     private final MallOrderService orderService;
     private final CustomDesignService customDesignService;
 
+    /** 注入订单服务及支付完成后的定制生产服务. */
     public OrderPaymentServiceImpl(
             MallOrderService orderService, CustomDesignService customDesignService) {
         this.orderService = orderService;

@@ -63,6 +63,7 @@ public class AppCatalogController extends AppBaseController {
     }
 
     /** */
+    /** 返回指定分类及其当前目录上下文. */
     @Operation(summary = "分类目录当前分类数据接口")
     @IgnoreAuth
     @PostMapping("current")

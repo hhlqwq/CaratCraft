@@ -47,6 +47,7 @@ public class LimitAspect {
     @Pointcut("@annotation(com.platform.common.annotation.ServiceLimit)")
     public void serviceAspect() {}
 
+    /** 拦截目标方法并执行当前切面的前后置处理. */
     @Around("serviceAspect()")
     public Object around(ProceedingJoinPoint joinPoint) throws Throwable {
         if (!rateLimiter.tryAcquire()) {

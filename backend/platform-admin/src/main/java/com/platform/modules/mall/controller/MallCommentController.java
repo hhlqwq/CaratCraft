@@ -60,6 +60,7 @@ public class MallCommentController extends AbstractController {
 
     private final MallCommentService mallCommentService;
 
+    /** 按给定条件读取当前领域全部匹配记录. */
     @Operation(summary = "查看所有列表", description = "查看所有列表")
     @GetMapping("/queryAll")
     @RequiresPermissions("mall:comment:list")
@@ -68,6 +69,7 @@ public class MallCommentController extends AbstractController {
         return RestResponse.ok(mallCommentService.queryAll(params));
     }
 
+    /** 按当前接口参数查询对应的业务列表. */
     @Operation(summary = "分页查询", description = "分页查询")
     @GetMapping("/list")
     @RequiresPermissions("mall:comment:list")
@@ -75,6 +77,7 @@ public class MallCommentController extends AbstractController {
         return RestResponse.ok(mallCommentService.queryPage(params));
     }
 
+    /** 按标识读取当前接口对应的记录详情. */
     @Operation(
             summary = "根据主键查询详情",
             description = "根据主键查询详情",
@@ -98,6 +101,7 @@ public class MallCommentController extends AbstractController {
         return RestResponse.ok(list.get(0));
     }
 
+    /** 接收当前接口的新增请求并委托业务服务保存. */
     @Operation(summary = "新增", description = "新增")
     @SysLog("新增评论")
     @PostMapping("/save")
@@ -107,6 +111,7 @@ public class MallCommentController extends AbstractController {
         return RestResponse.ok();
     }
 
+    /** 接收当前接口的修改请求并委托业务服务更新. */
     @Operation(summary = "修改", description = "修改")
     @SysLog("修改评论")
     @PostMapping("/update")
@@ -116,6 +121,7 @@ public class MallCommentController extends AbstractController {
         return RestResponse.ok();
     }
 
+    /** 按当前接口身份和参数删除目标业务记录. */
     @Operation(summary = "删除", description = "删除")
     @SysLog("删除评论")
     @PostMapping("/delete")

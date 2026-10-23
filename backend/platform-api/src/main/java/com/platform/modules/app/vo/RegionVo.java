@@ -23,6 +23,7 @@ public class RegionVo {
     // 区域代理Id
     private Integer agencyId;
 
+    /** 根据地区实体构建对外地区数据. */
     public RegionVo(SysRegionEntity regionEntity) {
         id = regionEntity.getId();
         parentId = regionEntity.getParentId();

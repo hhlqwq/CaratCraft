@@ -55,6 +55,7 @@ import java.util.zip.ZipOutputStream;
  */
 public class GenUtils {
 
+    /** 读取代码生成所需的模板清单. */
     private static List<String> getTemplates() {
         List<String> templates = new ArrayList<String>();
         templates.add("gen/template/Entity.java.vm");
@@ -159,6 +160,7 @@ public class GenUtils {
                 zip);
     }
 
+    /** 装配代码生成工具使用的数据库适配工厂. */
     private static void codeFactory(
             String tablePrefix,
             TableEntity tableEntity,

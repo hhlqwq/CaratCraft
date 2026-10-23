@@ -90,6 +90,7 @@ public interface MallAddressService extends IService<MallAddressEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallAddressEntity> queryList(Map<String, Object> param);
 
     /** 按当前用户保存地址, 串行维护默认地址并拒绝跨用户更新. */

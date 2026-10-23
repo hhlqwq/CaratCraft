@@ -31,6 +31,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 @Configuration
 public class FilterConfig {
 
+    /** 注册当前应用的Shiro安全过滤器. */
     @Bean
     public FilterRegistrationBean<DelegatingFilterProxy> shiroFilterRegistration() {
         FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();

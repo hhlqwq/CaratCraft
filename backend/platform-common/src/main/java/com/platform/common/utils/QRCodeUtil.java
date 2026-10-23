@@ -92,6 +92,7 @@ public class QRCodeUtil {
         return null;
     }
 
+    /** 启动当前应用或工具入口并传递命令行参数. */
     public static void main(String[] args) throws Exception {
         String file = "D:/qrcode.jpg";
         byte[] qrcodeData =

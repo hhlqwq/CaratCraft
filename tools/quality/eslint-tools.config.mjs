@@ -1,3 +1,4 @@
+import functionDescription from './function-description-rule.mjs';
 import {createRequire} from 'node:module';
 
 const require = createRequire(new URL('../../apps/admin-ui/package.json', import.meta.url));
@@ -29,7 +30,9 @@ export default [
                 ].map((name) => [name, 'readonly'])
             ),
         },
+        plugins: {project: {rules: {'function-description': functionDescription}}},
         rules: {
+            'project/function-description': 'error',
             curly: ['error', 'all'],
             'no-var': 'error',
             'prefer-const': 'error',

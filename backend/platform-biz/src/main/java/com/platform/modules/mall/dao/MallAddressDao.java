@@ -55,5 +55,6 @@ public interface MallAddressDao extends BaseMapper<MallAddressEntity> {
     List<MallAddressEntity> selectMallAddressPage(
             Page<MallAddressEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallAddressEntity> queryList(Map<String, Object> param);
 }

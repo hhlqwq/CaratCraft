@@ -129,6 +129,7 @@ import AddOrUpdate from './msg-template-add-or-update';
 import TemplateMsgTask from '@/components/template-msg-task';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataForm: {
@@ -149,6 +150,7 @@ export default {
         AddOrUpdate,
         TemplateMsgTask,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -227,6 +229,7 @@ export default {
                 });
             });
         },
+        /** 同步公众号模板消息定义并阻止重复同步. */
         syncWxTemplate() {
             if (this.synchonizingWxTemplate) {
                 return;
@@ -251,12 +254,14 @@ export default {
                     this.synchonizingWxTemplate = false;
                 });
         },
+        /** 为当前选中模板打开发送任务配置界面. */
         templateMsgTaskHandle() {
             this.templateMsgTaskVisible = true;
             this.$nextTick(() => {
                 this.$refs.templateMsgTask.init(this.dataListSelections[0]);
             });
         },
+        /** 依次复制选中消息模板并管理操作中的加载提示. */
         async copyHandle() {
             let loading;
             for (let i = 0; i < this.dataListSelections.length; i++) {
@@ -276,9 +281,11 @@ export default {
             this.closeLoding(loading);
             this.getDataList();
         },
+        /** 关闭当前模板复制操作的加载提示. */
         closeLoding(loading) {
             loading.close();
         },
+        /** 提交一条消息模板并返回可等待的请求结果. */
         addMsgTemplate(msgTemplate) {
             return new Promise((resolve, reject) => {
                 this.$http({

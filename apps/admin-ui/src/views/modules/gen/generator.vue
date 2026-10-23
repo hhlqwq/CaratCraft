@@ -77,6 +77,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -92,10 +93,12 @@ export default {
             dataListSelections: [],
         };
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
     methods: {
+        /** 校验已选数据表并请求生成对应代码文件. */
         generator: function () {
             if (!this.dataListSelections.length) {
                 this.$message({
@@ -118,6 +121,7 @@ export default {
         },
         // 获取数据列表
 
+        /** 按当前筛选和分页条件读取业务列表. */
         getDataList(page) {
             if (page) {
                 this.pageIndex = page;
@@ -140,6 +144,7 @@ export default {
                 }
             });
         },
+        /** 保存表格当前勾选项以供后续批量操作. */
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },

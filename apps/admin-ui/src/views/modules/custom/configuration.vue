@@ -411,6 +411,7 @@ const createOption = () => ({
 });
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             pageActive: true,
@@ -473,12 +474,14 @@ export default {
                 return {invalid: true};
             }
         },
+        /** 显示当前选中商品名称和标识, 未选择时保持提示状态. */
         selectedGoodsName() {
             return this.selectedGoodsId
                 ? `${this.goodsName(this.selectedGoodsId)}（ID: ${this.selectedGoodsId}）`
                 : '未选择';
         },
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.pageActive = true;
         this.pageEpoch++;

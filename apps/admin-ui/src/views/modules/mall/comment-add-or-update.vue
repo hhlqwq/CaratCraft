@@ -75,6 +75,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             disabled: false,
@@ -99,6 +100,7 @@ export default {
         };
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init(id, disabled) {
             this.disabled = disabled;
             this.dataForm.id = id || '';
@@ -121,6 +123,7 @@ export default {
                 }
             });
         },
+        /** 读取指定商品评价的附图列表. */
         loadPictures(commentId) {
             this.$http({
                 url: '/mall/commentpicture/queryAll',
@@ -136,6 +139,7 @@ export default {
                 }
             });
         },
+        /** 校验当前表单并提交新增或修改请求. */
         dataFormSubmit() {
             this.$refs.dataForm.validate((valid) => {
                 if (valid) {
@@ -156,6 +160,7 @@ export default {
                 }
             });
         },
+        /** 将有效日期转换为接口要求的时间戳, 空值保持为空. */
         toTimestamp(value) {
             if (!value) {
                 return null;

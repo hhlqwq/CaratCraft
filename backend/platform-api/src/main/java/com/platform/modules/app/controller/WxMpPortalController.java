@@ -54,6 +54,7 @@ public class WxMpPortalController {
     private final WxMpService wxService;
     private final WxMpMessageRouter messageRouter;
 
+    /** 处理微信公众号服务端验证请求. */
     @Operation(summary = "认证公众号服务器配置", description = "认证公众号服务器配置")
     @GetMapping(produces = "text/plain;charset=utf-8")
     public String authMpGet(
@@ -79,6 +80,7 @@ public class WxMpPortalController {
         return "非法请求";
     }
 
+    /** 接收当前服务端回调并委托对应的消息处理流程. */
     @Operation(hidden = true)
     @PostMapping(produces = "application/xml; charset=UTF-8")
     public String post(
@@ -141,6 +143,7 @@ public class WxMpPortalController {
         return out;
     }
 
+    /** 将微信消息交给当前配置的消息路由处理. */
     private WxMpXmlOutMessage route(WxMpXmlMessage message) {
         try {
             return this.messageRouter.route(message);

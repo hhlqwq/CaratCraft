@@ -56,6 +56,7 @@ public class PlatformApiApplication extends SpringBootServletInitializer
         implements ApplicationRunner {
     private final ServerProperties serverProperties;
 
+    /** 启动当前应用或工具入口并传递命令行参数. */
     public static void main(String[] args) {
         SpringApplication.run(PlatformApiApplication.class, args);
     }

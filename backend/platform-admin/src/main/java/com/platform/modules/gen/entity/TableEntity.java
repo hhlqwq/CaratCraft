@@ -46,50 +46,62 @@ public class TableEntity {
     /** 类名(第一个字母小写)，如：sys_user => sysUser */
     private String classname;
 
+    /** 读取当前对象的TableName属性. */
     public String getTableName() {
         return tableName;
     }
 
+    /** 更新当前对象的TableName属性. */
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
 
+    /** 读取当前对象的Comments属性. */
     public String getComments() {
         return comments;
     }
 
+    /** 更新当前对象的Comments属性. */
     public void setComments(String comments) {
         this.comments = comments;
     }
 
+    /** 读取当前对象的Pk属性. */
     public ColumnEntity getPk() {
         return pk;
     }
 
+    /** 更新当前对象的Pk属性. */
     public void setPk(ColumnEntity pk) {
         this.pk = pk;
     }
 
+    /** 读取当前对象的Columns属性. */
     public List<ColumnEntity> getColumns() {
         return columns;
     }
 
+    /** 更新当前对象的Columns属性. */
     public void setColumns(List<ColumnEntity> columns) {
         this.columns = columns;
     }
 
+    /** 读取当前对象的ClassName属性. */
     public String getClassName() {
         return className;
     }
 
+    /** 更新当前对象的ClassName属性. */
     public void setClassName(String className) {
         this.className = className;
     }
 
+    /** 读取当前对象的Classname属性. */
     public String getClassname() {
         return classname;
     }
 
+    /** 更新当前对象的Classname属性. */
     public void setClassname(String classname) {
         this.classname = classname;
     }

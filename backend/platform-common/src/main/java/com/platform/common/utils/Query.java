@@ -43,6 +43,7 @@ public class Query<T> extends LinkedHashMap<String, Object> {
 
     private static final String ASC = "asc";
 
+    /** 解析分页及排序参数并构建当前查询上下文. */
     public Query(Map<String, Object> params) {
 
         String strPage = "page";
@@ -80,14 +81,17 @@ public class Query<T> extends LinkedHashMap<String, Object> {
         }
     }
 
+    /** 读取当前对象的Page属性. */
     public Page<T> getPage() {
         return page;
     }
 
+    /** 读取当前对象的CurrPage属性. */
     public int getCurrPage() {
         return currPage;
     }
 
+    /** 读取当前对象的Limit属性. */
     public int getLimit() {
         return limit;
     }

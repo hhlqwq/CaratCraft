@@ -40,6 +40,7 @@ public class QiniuCloudStorageService extends AbstractCloudStorageService {
     private UploadManager uploadManager;
     private String token;
 
+    /** 按传入的存储配置初始化当前云存储客户端. */
     public QiniuCloudStorageService(CloudStorageConfig config) {
         this.config = config;
 
@@ -47,6 +48,7 @@ public class QiniuCloudStorageService extends AbstractCloudStorageService {
         init();
     }
 
+    /** 初始化当前组件的运行配置或依赖资源. */
     private void init() {
         uploadManager = new UploadManager(new Configuration(Region.region0()));
         token =

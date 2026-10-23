@@ -29,6 +29,7 @@ import SubMenu from './main-sidebar-sub-menu';
 import {isURL} from '@/utils/validate';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dynamicMenuRoutes: [],
@@ -39,43 +40,53 @@ export default {
     },
     computed: {
         sidebarLayoutSkin: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.sidebarLayoutSkin;
             },
         },
         sidebarFold: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.sidebarFold;
             },
         },
         menuList: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.menuList;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMenuList', val);
             },
         },
         menuActiveName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.menuActiveName;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMenuActiveName', val);
             },
         },
         mainTabs: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.mainTabs;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMainTabs', val);
             },
         },
         mainTabsActiveName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.mainTabsActiveName;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMainTabsActiveName', val);
             },
@@ -84,6 +95,7 @@ export default {
     watch: {
         $route: 'routeHandle',
     },
+    /** 创建组件时准备所需的依赖数据. */
     created() {
         this.menuList = JSON.parse(sessionStorage.getItem('menuList') || '[]');
         this.dynamicMenuRoutes = JSON.parse(sessionStorage.getItem('dynamicMenuRoutes') || '[]');

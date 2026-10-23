@@ -34,14 +34,17 @@ import java.util.regex.Pattern;
  */
 public class StringUtils {
 
+    /** 按当前工具约定检查值是否为空. */
     public static boolean isEmpty(Object str) {
         return str == null || str.toString().length() == 0;
     }
 
+    /** 判断文本是否包含非空白内容. */
     public static boolean isNotBlank(String str) {
         return !StringUtils.isBlank(str);
     }
 
+    /** 判断文本是否为空或仅包含空白. */
     public static boolean isBlank(String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
@@ -174,6 +177,7 @@ public class StringUtils {
         return timeStr + CharUtil.getRandomNum(6);
     }
 
+    /** 将来源类型编码映射为显示说明. */
     public static String transFromType(Integer fromType) {
         String result;
         switch (fromType) {

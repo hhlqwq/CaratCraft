@@ -38,6 +38,7 @@ public class AppFootprintController extends AppBaseController {
     @Autowired private MallFootprintService footprintService;
 
     /** */
+    /** 按当前接口身份和参数删除目标业务记录. */
     @Operation(summary = "删除足迹")
     @PostMapping("delete")
     public RestResponse<Map<String, Object>> delete(
@@ -64,6 +65,7 @@ public class AppFootprintController extends AppBaseController {
     }
 
     /** */
+    /** 按当前接口参数查询对应的业务列表. */
     @Operation(summary = "获取足迹列表")
     @PostMapping("list")
     public RestResponse<Map<String, Object>> list(
@@ -122,6 +124,7 @@ public class AppFootprintController extends AppBaseController {
     }
 
     /** */
+    /** 按当前用户和筛选条件返回分享记录. */
     @Operation(summary = "分享足迹")
     @PostMapping("sharelist")
     public RestResponse<Map<String, List<MallFootprintEntity>>> sharelist(

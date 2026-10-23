@@ -12,6 +12,13 @@ Push-Location $taskRoot
 try {
     node tools/quality/check-project-conventions.cjs
     if ($LASTEXITCODE -ne 0) { throw '项目统一约定检查失败' }
+    # 普通Java声明使用真实语法树检查职责注释, 重写方法按清楚的继承契约人工复核.
+    if ($Docker) {
+        & docker run --rm --pull=never --network none --mount "type=bind,source=$taskRoot,target=/workspace,readonly" --workdir /workspace maven:3.9.11-eclipse-temurin-21 java /workspace/tools/quality/CheckFunctionDescriptions.java /workspace
+    } else {
+        & $taskJava (Join-Path $taskRoot 'tools/quality/CheckFunctionDescriptions.java') $taskRoot
+    }
+    if ($LASTEXITCODE -ne 0) { throw 'Java职责注释检查失败' }
     $taskHasGit = Test-Path -LiteralPath (Join-Path $taskRoot '.git')
     if (-not $taskHasGit) {
         if ($Incremental) { throw '无Git源码包只支持全量检查' }

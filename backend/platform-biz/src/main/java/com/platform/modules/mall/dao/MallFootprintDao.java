@@ -55,9 +55,12 @@ public interface MallFootprintDao extends BaseMapper<MallFootprintEntity> {
     List<MallFootprintEntity> selectMallFootprintPage(
             Page<MallFootprintEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按条件读取可展示的分享列表. */
     List<MallFootprintEntity> shareList(Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallFootprintEntity> queryList(Map<String, Object> param);
 
+    /** 按用户及分页条件查询浏览足迹. */
     List<MallFootprintEntity> queryListFootprint(String userId);
 }

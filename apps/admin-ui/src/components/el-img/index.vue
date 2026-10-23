@@ -77,6 +77,7 @@ export default {
     emits: ['update:modelValue', 'change'],
     name: 'el-img',
     componentName: 'ElImg',
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataList: [],
@@ -124,6 +125,7 @@ export default {
                 this.$refs.upload.init();
             });
         },
+        /** 应用选中的图片地址并关闭图片选择窗口. */
         selectImg(url) {
             this.imageUrl = url;
             this.visible = false;

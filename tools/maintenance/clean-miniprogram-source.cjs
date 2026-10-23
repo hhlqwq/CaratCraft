@@ -28,6 +28,7 @@ const cleanup = {
     create(context) {
         const source = context.sourceCode;
         return {
+            /** 只移除Page对象中语法树证明为空的指定生命周期方法. */
             'CallExpression[callee.name="Page"] > ObjectExpression > Property'(node) {
                 const value = node.value;
                 if (
@@ -50,6 +51,7 @@ const cleanup = {
                     },
                 });
             },
+            /** 根据引用次数删除无副作用且未使用的局部绑定. */
             VariableDeclaration(node) {
                 if (node.declarations.length !== 1) {
                     return;

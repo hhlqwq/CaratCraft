@@ -71,8 +71,10 @@ public class WxMsgEntity implements Serializable {
         static final byte OUT = 1;
     }
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxMsgEntity() {}
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public WxMsgEntity(WxMpXmlMessage wxMessage) {
         this.openid = wxMessage.getFromUser();
         this.inOut = WxMsgInOut.IN;
@@ -107,6 +109,7 @@ public class WxMsgEntity implements Serializable {
         }
     }
 
+    /** 根据当前处理结果构建微信回复消息. */
     public static WxMsgEntity buildOutMsg(String msgType, String openid, JSONObject detail) {
         WxMsgEntity wxMsg = new WxMsgEntity();
         wxMsg.msgType = msgType;

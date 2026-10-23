@@ -83,6 +83,7 @@ public class MallCouponServiceImpl extends ServiceImpl<MallCouponDao, MallCoupon
         return this.removeByIds(Arrays.asList(ids));
     }
 
+    /** 查询当前用户在给定条件下可用的最大优惠券. */
     public MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> map) {
         return baseMapper.queryMaxUserEnableCoupon(map);
     }

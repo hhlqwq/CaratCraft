@@ -68,10 +68,12 @@ public class LatLgtUtils {
         return pointsList;
     }
 
+    /** 将角度转换为弧度以供距离计算. */
     private static double rad(double d) {
         return d * Math.PI / 180.0;
     }
 
+    /** 将弧度转换为角度. */
     private static double degrees(double d) {
         return d * (180 / Math.PI);
     }

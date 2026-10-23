@@ -34,6 +34,7 @@ import java.util.Properties;
 @Configuration
 public class KaptchaConfig {
 
+    /** 配置验证码图像生成器及其显示参数. */
     @Bean
     public DefaultKaptcha producer() {
         Properties properties = new Properties();

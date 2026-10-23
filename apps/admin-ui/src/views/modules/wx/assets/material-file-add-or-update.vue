@@ -54,6 +54,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             visible: false,
@@ -71,6 +72,7 @@ export default {
         };
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init(fileType) {
             if (fileType) {
                 this.dataForm.mediaType = fileType;
@@ -113,6 +115,7 @@ export default {
                 }
             });
         },
+        /** 从选中文件同步文件对象及其名称. */
         onFileChange(event) {
             const file = event.currentTarget.files[0];
             this.dataForm.file = file;

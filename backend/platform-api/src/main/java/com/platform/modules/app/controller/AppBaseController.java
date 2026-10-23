@@ -43,6 +43,7 @@ public class AppBaseController {
 
     @Autowired private WxUserService userService;
 
+    /** 读取当前对象的Attribute属性. */
     protected Object getAttribute(String param) {
         return request.getAttribute(param);
     }

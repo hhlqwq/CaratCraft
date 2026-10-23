@@ -120,6 +120,7 @@ export default {
     components: {
         AssetsSelector: () => import('./assets/assets-selector'),
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             tableName: '0',
@@ -144,6 +145,7 @@ export default {
         };
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init() {
             this.tableName = '0';
             this.visible = true;
@@ -164,6 +166,7 @@ export default {
                 ],
             };
         },
+        /** 关闭草稿编辑前提示用户确认未保存的修改. */
         handleClose(done) {
             const _this = this;
             this.$confirm('系统可能不会保存您所做的更改。', '关闭此窗口？', {
@@ -175,6 +178,7 @@ export default {
                 done();
             });
         },
+        /** 在当前草稿中增加一篇待编辑图文. */
         addDraftRow() {
             this.dataForm.articles.push({
                 title: '标题',
@@ -189,6 +193,7 @@ export default {
                 thumbUrl: '',
             });
         },
+        /** 接收素材选择结果并写入当前编辑内容. */
         onAssetsSelect(assetsInfo) {
             this.dataForm.articles[this.tableName].thumbUrl = assetsInfo.url;
             this.dataForm.articles[this.tableName].thumbMediaId = assetsInfo.mediaId;

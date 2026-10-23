@@ -169,6 +169,7 @@ public class DateUtils {
         }
     }
 
+    /** 将约定格式的日期文本转换为秒时间戳. */
     public static long strToTime(String timeStr) {
         Date time = strToDate(timeStr);
         return time.getTime() / 1000;
@@ -408,6 +409,7 @@ public class DateUtils {
         return System.currentTimeMillis() / 1000;
     }
 
+    /** 将秒时间戳按指定格式转换为日期显示文本. */
     public static String timeToStr(Long addTime, String datePattern) {
         return DateUtils.format(new Date(addTime * 1000L), datePattern);
     }

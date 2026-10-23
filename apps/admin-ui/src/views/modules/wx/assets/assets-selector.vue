@@ -19,6 +19,7 @@
 <script>
 export default {
     name: 'assets-selector',
+    /** 初始化当前组件的响应式界面和表单状态. */
     data: function () {
         return {
             dataVisible: this.visible,
@@ -40,9 +41,11 @@ export default {
         },
     },
     methods: {
+        /** 应用当前选择结果并同步到所属表单. */
         onSelect(itemInfo) {
             this.$emit('selected', itemInfo);
         },
+        /** 关闭当前素材编辑界面并通知父组件. */
         onClose() {
             this.$emit('onClose');
         },

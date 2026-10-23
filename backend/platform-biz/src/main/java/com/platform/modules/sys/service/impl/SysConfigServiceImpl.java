@@ -116,6 +116,7 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigDao, SysConfigEnt
         }
     }
 
+    /** 将当前配置同步保存或更新到Redis. */
     private void saveOrUpdateFromRedis(SysConfigEntity config) {
         if (config == null) {
             return;
@@ -133,11 +134,13 @@ public class SysConfigServiceImpl extends ServiceImpl<SysConfigDao, SysConfigEnt
         return value;
     }
 
+    /** 从Redis删除指定配置或上下文. */
     private void deleteFromRedis(String configKey) {
         String key = Constant.SYS_CACHE + configKey;
         redisTemplateUtils.del(key);
     }
 
+    /** 从Redis读取指定配置或上下文. */
     private SysConfigEntity getFromRedis(String configKey) {
         String key = Constant.SYS_CACHE + configKey;
         return (SysConfigEntity) redisTemplateUtils.get(key);

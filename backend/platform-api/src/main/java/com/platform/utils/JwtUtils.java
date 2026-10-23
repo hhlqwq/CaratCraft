@@ -72,6 +72,7 @@ public class JwtUtils {
                 .compact();
     }
 
+    /** 验证JWT签名并提取声明, 无效令牌返回空值. */
     public Claims getClaimByToken(String token) {
         try {
             return Jwts.parserBuilder()
@@ -111,26 +112,32 @@ public class JwtUtils {
         return expiration.before(new Date());
     }
 
+    /** 读取当前对象的Secret属性. */
     public String getSecret() {
         return secret;
     }
 
+    /** 更新当前对象的Secret属性. */
     public void setSecret(String secret) {
         this.secret = secret;
     }
 
+    /** 读取当前对象的Expire属性. */
     public long getExpire() {
         return expire;
     }
 
+    /** 更新当前对象的Expire属性. */
     public void setExpire(long expire) {
         this.expire = expire;
     }
 
+    /** 读取当前对象的Header属性. */
     public String getHeader() {
         return header;
     }
 
+    /** 更新当前对象的Header属性. */
     public void setHeader(String header) {
         this.header = header;
     }

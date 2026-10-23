@@ -32,34 +32,42 @@ import org.apache.shiro.subject.Subject;
  */
 public class ShiroUtils {
 
+    /** 读取当前认证主体的会话. */
     public static Session getSession() {
         return SecurityUtils.getSubject().getSession();
     }
 
+    /** 取得Shiro管理的当前认证主体. */
     public static Subject getSubject() {
         return SecurityUtils.getSubject();
     }
 
+    /** 读取当前认证主体关联的系统用户. */
     public static SysUserEntity getUserEntity() {
         return (SysUserEntity) SecurityUtils.getSubject().getPrincipal();
     }
 
+    /** 从当前认证主体读取用户标识. */
     public static String getUserId() {
         return getUserEntity().getUserId();
     }
 
+    /** 在当前认证会话中保存指定属性. */
     public static void setSessionAttribute(Object key, Object value) {
         getSession().setAttribute(key, value);
     }
 
+    /** 读取当前认证会话中的指定属性. */
     public static Object getSessionAttribute(Object key) {
         return getSession().getAttribute(key);
     }
 
+    /** 判断当前主体是否已通过认证. */
     public static boolean isLogin() {
         return SecurityUtils.getSubject().getPrincipal() != null;
     }
 
+    /** 读取并移除当前会话中的验证码以避免重放. */
     public static String getKaptcha(String key) {
         Object kaptcha = getSessionAttribute(key);
         if (kaptcha == null) {

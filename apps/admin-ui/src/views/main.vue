@@ -21,6 +21,7 @@ import MainSidebar from './main-sidebar';
 import MainContent from './main-content';
 
 export default {
+    /** 向后代组件提供主界面的刷新能力. */
     provide() {
         return {
             // 刷新
@@ -32,6 +33,7 @@ export default {
             },
         };
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             loading: true,
@@ -44,41 +46,51 @@ export default {
     },
     computed: {
         documentClientHeight: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.documentClientHeight;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateDocumentClientHeight', val);
             },
         },
         sidebarFold: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.sidebarFold;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateSidebarFold', val);
             },
         },
         userId: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.user.id;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('user/updateId', val);
             },
         },
         userName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.user.name;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('user/updateName', val);
             },
         },
     },
+    /** 创建组件时准备所需的依赖数据. */
     created() {
         this.getUserInfo();
     },
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.resetDocumentClientHeight();
     },

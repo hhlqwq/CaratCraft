@@ -92,6 +92,7 @@
 import DictAddOrUpdate from './dict-add-or-update';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {

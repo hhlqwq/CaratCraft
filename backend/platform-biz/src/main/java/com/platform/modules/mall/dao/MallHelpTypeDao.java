@@ -55,5 +55,6 @@ public interface MallHelpTypeDao extends BaseMapper<MallHelpTypeEntity> {
     List<MallHelpTypeEntity> selectMallHelpTypePage(
             Page<MallHelpTypeEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallHelpTypeEntity> queryList(Map<String, Object> param);
 }

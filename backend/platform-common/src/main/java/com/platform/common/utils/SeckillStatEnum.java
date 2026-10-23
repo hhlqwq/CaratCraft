@@ -32,19 +32,23 @@ public enum SeckillStatEnum {
     private int state;
     private String info;
 
+    /** 保存秒杀状态编码和显示说明. */
     SeckillStatEnum(int state, String info) {
         this.state = state;
         this.info = info;
     }
 
+    /** 读取当前对象的State属性. */
     public int getState() {
         return state;
     }
 
+    /** 读取当前对象的Info属性. */
     public String getInfo() {
         return info;
     }
 
+    /** 按状态码查找对应的秒杀状态枚举. */
     public static SeckillStatEnum stateOf(int index) {
         for (SeckillStatEnum state : values()) {
             if (state.getState() == index) {

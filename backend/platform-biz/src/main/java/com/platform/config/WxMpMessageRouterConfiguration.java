@@ -59,6 +59,7 @@ public class WxMpMessageRouterConfiguration {
     private final SubscribeHandler subscribeHandler;
     private final ScanHandler scanHandler;
 
+    /** 装配微信公众号消息路由及处理器. */
     @Bean
     public WxMpMessageRouter messageRouter(WxMpService wxMpService) {
         final WxMpMessageRouter newRouter = new WxMpMessageRouter(wxMpService);

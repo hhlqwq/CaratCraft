@@ -57,6 +57,7 @@ public class WxMaPortalController {
     private final WxMaService wxMaService;
     private final WxMaMessageRouter wxMaMessageRouter;
 
+    /** 处理微信小程序服务端验证请求. */
     @Operation(summary = "认证小程序服务器配置", description = "认证小程序服务器配置")
     @GetMapping(produces = "text/plain;charset=utf-8")
     public String authMaGet(
@@ -89,6 +90,7 @@ public class WxMaPortalController {
         return "非法请求";
     }
 
+    /** 接收当前服务端回调并委托对应的消息处理流程. */
     @Operation(hidden = true)
     @PostMapping(produces = "application/xml; charset=UTF-8")
     public String post(
@@ -152,6 +154,7 @@ public class WxMaPortalController {
         throw new RuntimeException("不可识别的加密类型：" + encryptType);
     }
 
+    /** 将微信消息交给当前配置的消息路由处理. */
     private void route(WxMaMessage message) {
         try {
             this.wxMaMessageRouter.route(message);

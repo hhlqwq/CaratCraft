@@ -134,6 +134,7 @@ import AddOrUpdate from './comment-add-or-update';
 import GoodsDetail from './goods-add-or-update';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -150,10 +151,12 @@ export default {
         };
     },
     components: {AddOrUpdate, GoodsDetail},
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
     methods: {
+        /** 按当前筛选和分页条件读取业务列表. */
         getDataList(page) {
             if (page) {
                 this.pageIndex = page;
@@ -177,30 +180,36 @@ export default {
                 }
             });
         },
+        /** 调整每页数量并重新读取列表. */
         sizeChangeHandle(val) {
             this.pageSize = val;
             this.pageIndex = 1;
             this.getDataList();
         },
+        /** 切换当前页码并读取对应列表. */
         currentChangeHandle(val) {
             this.pageIndex = val;
             this.getDataList();
         },
+        /** 保存表格当前勾选项以供后续批量操作. */
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },
+        /** 以只读方式打开指定记录的详情. */
         showDetails(id) {
             this.addOrUpdateVisible = true;
             this.$nextTick(() => {
                 this.$refs.addOrUpdate.init(id, true);
             });
         },
+        /** 打开新增或编辑弹窗并传入目标记录. */
         addOrUpdateHandle(id) {
             this.addOrUpdateVisible = true;
             this.$nextTick(() => {
                 this.$refs.addOrUpdate.init(id);
             });
         },
+        /** 核对商品标识后打开关联商品的只读详情. */
         showGoodsDetails(goodsId) {
             if (!goodsId) {
                 this.$message.warning('未关联商品');
@@ -211,6 +220,7 @@ export default {
                 this.$refs.goodsDetail.init(goodsId, true);
             });
         },
+        /** 确认后删除指定或勾选的业务记录. */
         deleteHandle(id) {
             const ids = id ? [id] : this.dataListSelections.map((item) => item.id);
             this.$confirm('确定对所选项进行[删除]操作?', '提示', {
