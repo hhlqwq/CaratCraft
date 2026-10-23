@@ -443,13 +443,15 @@ test('超长SKU响应不能通过加购或立即购买发送', async () => {
             specificationId: index + 1,
             valueList: [{id: index + 1, value: '白'.repeat(50)}],
         }));
-        page.data.productList = [{
-            id: 90,
-            goodsSpecificationIds: groups
-                .map((group) => group.specificationId + ':' + group.valueList[0].value)
-                .join('|'),
-            goodsNumber: 2,
-        }];
+        page.data.productList = [
+            {
+                id: 90,
+                goodsSpecificationIds: groups
+                    .map((group) => group.specificationId + ':' + group.valueList[0].value)
+                    .join('|'),
+                goodsNumber: 2,
+            },
+        ];
         assert.ok(page.data.productList[0].goodsSpecificationIds.length > 2048);
         page.setDefSpecInfo(groups);
         page.switchAttrPop();
