@@ -35,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** 定制设计流程测试 / Custom design workflow tests. */
@@ -57,8 +58,7 @@ class CustomDesignServiceImplTest {
         service =
                 new CustomDesignServiceImpl(
                         snapshotDao, bindingDao, workOrderDao, quoteService, stockDao);
-        when(stockDao.deductByOptionId(any(), any(), anyInt())).thenReturn(1);
-        when(stockDao.restoreByOptionId(any(), any(), anyInt())).thenReturn(1);
+        when(stockDao.restoreStock(any(), any(), any(), anyInt())).thenReturn(1);
         when(stockDao.deductStock(any(), any(), any(), anyInt())).thenReturn(1);
         when(stockDao.logMovement(any(), any(), any(), anyInt(), any(), any())).thenReturn(1);
         when(snapshotDao.insert(any(CustomDesignSnapshotEntity.class))).thenReturn(1);
@@ -72,6 +72,16 @@ class CustomDesignServiceImplTest {
         request.setOptionIds(Collections.singletonList(1L));
         Map<String, Object> quote = new LinkedHashMap<>();
         quote.put("totalPrice", new BigDecimal("219.00"));
+        quote.put(
+                "components",
+                List.of(
+                        Map.of(
+                                "componentType",
+                                "pearl",
+                                "optionCode",
+                                "test-pearl",
+                                "quantity",
+                                3)));
         quote.put("checkoutReady", true);
         when(quoteService.quote(any())).thenReturn(quote);
         org.mockito.Mockito.doAnswer(
@@ -263,7 +273,7 @@ class CustomDesignServiceImplTest {
         assertEquals("DRAFT", draft.getValue().getStatus());
         org.junit.jupiter.api.Assertions.assertNull(draft.getValue().getId());
         // 取消时应恢复组件库存 / Component stock must be restored on cancellation.
-        verify(stockDao).restoreByOptionId(10, 1L, 1);
+        verify(stockDao).restoreStock(10, "pearl", "test-pearl", 3);
     }
 
     /** 验证已支付退款取消不释放设计 / Verifies paid refunds do not release the design. */
@@ -283,7 +293,7 @@ class CustomDesignServiceImplTest {
         assertEquals("ORDERED", snapshot.getStatus());
         verify(snapshotDao, times(0)).updateById(snapshot);
         // 已支付退款同样恢复组件库存 / Paid refunds restore component stock too.
-        verify(stockDao).restoreByOptionId(10, 1L, 1);
+        verify(stockDao).restoreStock(10, "pearl", "test-pearl", 3);
     }
 
     /** 验证重复取消不会二次恢复库存 / Verifies repeated cancellation does not restore stock twice. */
@@ -299,7 +309,7 @@ class CustomDesignServiceImplTest {
         service.cancelOrder(100);
         service.cancelOrder(100);
 
-        verify(stockDao, times(1)).restoreByOptionId(10, 1L, 1);
+        verify(stockDao, times(1)).restoreStock(10, "pearl", "test-pearl", 3);
     }
 
     /** 已取消绑定即使数据库更新返回成功也不得再次恢复库存. */
@@ -311,7 +321,7 @@ class CustomDesignServiceImplTest {
         when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
         service.cancelOrder(100);
         verify(bindingDao, times(0)).update(any(), any(Wrapper.class));
-        verify(stockDao, times(0)).restoreByOptionId(any(), any(), anyInt());
+        verify(stockDao, times(0)).restoreStock(any(), any(), any(), anyInt());
     }
 
     /** 验证组件库存不足时绑定失败并抛异常 / Verifies binding fails when component stock is insufficient. */
@@ -322,6 +332,16 @@ class CustomDesignServiceImplTest {
         request.setOptionIds(Collections.singletonList(1L));
         Map<String, Object> quote = new LinkedHashMap<>();
         quote.put("totalPrice", new BigDecimal("219.00"));
+        quote.put(
+                "components",
+                List.of(
+                        Map.of(
+                                "componentType",
+                                "pearl",
+                                "optionCode",
+                                "test-pearl",
+                                "quantity",
+                                3)));
         when(quoteService.quote(any())).thenReturn(quote);
         org.mockito.Mockito.doAnswer(
                         invocation -> {
@@ -338,7 +358,7 @@ class CustomDesignServiceImplTest {
         CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
         snapshot.setStatus("LOCKED");
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
-        when(stockDao.deductByOptionId(10, 1L, 1)).thenReturn(0);
+        when(stockDao.deductStock(10, "pearl", "test-pearl", 3)).thenReturn(0);
 
         org.junit.jupiter.api.Assertions.assertThrows(
                 IllegalStateException.class, () -> service.bindOrder(88L, 7L, 100, 101));
@@ -352,6 +372,8 @@ class CustomDesignServiceImplTest {
         snapshot.setId(88L);
         snapshot.setGoodsId(10);
         snapshot.setConfigurationJson("{\"goodsId\":10,\"optionIds\":[1]}");
+        snapshot.setPriceBreakdownJson(
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"test-pearl\",\"quantity\":3}]}");
         snapshot.setStatus("ORDERED");
         return snapshot;
     }

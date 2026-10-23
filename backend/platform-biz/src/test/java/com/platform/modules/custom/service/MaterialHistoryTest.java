@@ -3,12 +3,12 @@ package com.platform.modules.custom.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.platform.modules.custom.dao.ComponentStockDao;
@@ -23,6 +23,8 @@ import com.platform.modules.custom.service.impl.CustomDesignServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -103,7 +105,34 @@ class MaterialHistoryTest {
                 .thenReturn(1);
         designs.cancelOrder(100);
         verify(stock).restoreStock(10, "pearl", "old-pearl", 3);
-        verify(stock, never()).restoreByOptionId(any(), any(), anyInt());
+    }
+
+    /** 清单缺失或损坏时拒绝旧ID回退和隐式数量转换, 不触发任何库存写入. */
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "null",
+                "{}",
+                "{\"components\":[]}",
+                "{\"components\":\"[]\"}",
+                "{\"components\":[null]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\"}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":1.5}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":\"3\"}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":-1}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":10001}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\""
+                        + " \",\"quantity\":1}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":1},{\"componentType\":\"pearl\",\"optionCode\":\"p\",\"quantity\":1}]}",
+                "{\"components\":[{\"componentType\":\"pearl\",\"optionCode\":\"valid\",\"quantity\":1},{\"componentType\":\"pearl\",\"optionCode\":\"invalid\",\"quantity\":false}]}",
+                "invalid-json"
+            })
+    void invalidFrozenComponentsNeverMoveStock(String frozen) {
+        draft.setStatus("LOCKED");
+        draft.setConfigurationJson("{\"goodsId\":10,\"optionIds\":[1]}");
+        draft.setPriceBreakdownJson(frozen);
+        assertThrows(IllegalStateException.class, () -> designs.bindOrder(88L, 7L, 100, 101));
+        verifyNoInteractions(stock, bindings);
     }
 
     /** 商家互斥与依赖规则实际在服务端执行, 不依赖UI禁用按钮. */

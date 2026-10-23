@@ -1,6 +1,9 @@
 package com.platform.modules.custom.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.platform.modules.custom.dao.ComponentStockDao;
@@ -18,8 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +42,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     @org.springframework.beans.factory.annotation.Autowired
     private com.platform.modules.custom.dao.WorkOrderLogDao workOrderLogDao;
 
+    /** 注入草稿、订单、工单、报价和库存的唯一持久化来源. */
     public CustomDesignServiceImpl(
             CustomDesignSnapshotDao snapshotDao,
             CustomOrderCustomizationDao orderCustomizationDao,
@@ -283,58 +289,76 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         moveStock(snapshot, true);
     }
 
-    /** 新快照使用BOM, 老订单保留旧ID回退且恢复失败明确中止, 不猜测缺失材料. */
+    /** 仅按完整冻结清单扣补实际用量, 不回退到可变选项或猜测单位数量. */
     private void moveStock(CustomDesignSnapshotEntity snapshot, boolean restore) {
-        com.alibaba.fastjson.JSONObject quote = JSON.parseObject(snapshot.getPriceBreakdownJson());
-        com.alibaba.fastjson.JSONArray components =
-                quote == null ? null : quote.getJSONArray("components");
-        if (components != null) {
-            for (int i = 0; i < components.size(); i++) {
-                com.alibaba.fastjson.JSONObject line = components.getJSONObject(i);
-                int quantity = line.getIntValue("quantity");
-                if (quantity == 0) {
-                    continue;
-                }
-                if (quantity < 0 || quantity > 10000) {
-                    throw new IllegalStateException("快照用量无效");
-                }
-                String type = line.getString("componentType");
-                String code = line.getString("optionCode");
-                int updated =
-                        restore
-                                ? componentStockDao.restoreStock(
-                                        snapshot.getGoodsId(), type, code, quantity)
-                                : componentStockDao.deductStock(
-                                        snapshot.getGoodsId(), type, code, quantity);
-                if (updated != 1
-                        || componentStockDao.logMovement(
-                                        snapshot.getGoodsId(),
-                                        type,
-                                        code,
-                                        restore ? quantity : -quantity,
-                                        "订单库存服务",
-                                        "设计快照: " + snapshot.getId())
-                                != 1) {
-                    throw new IllegalStateException("材料库存或流水更新失败, 本次交易回滚");
-                }
+        for (FrozenStockLine line : frozenStockLines(snapshot)) {
+            if (line.quantity() == 0) {
+                continue;
             }
-            return;
-        }
-        CustomQuoteRequest request =
-                JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
-        if (request == null || request.getOptionIds() == null) {
-            return;
-        }
-        for (Long id : request.getOptionIds()) {
             int updated =
                     restore
-                            ? componentStockDao.restoreByOptionId(snapshot.getGoodsId(), id, 1)
-                            : componentStockDao.deductByOptionId(snapshot.getGoodsId(), id, 1);
-            if (updated != 1) {
-                throw new IllegalStateException("历史材料信息缺失, 需人工核对库存, 本次交易回滚");
+                            ? componentStockDao.restoreStock(
+                                    snapshot.getGoodsId(),
+                                    line.type(),
+                                    line.code(),
+                                    line.quantity())
+                            : componentStockDao.deductStock(
+                                    snapshot.getGoodsId(),
+                                    line.type(),
+                                    line.code(),
+                                    line.quantity());
+            if (updated != 1
+                    || componentStockDao.logMovement(
+                                    snapshot.getGoodsId(),
+                                    line.type(),
+                                    line.code(),
+                                    restore ? line.quantity() : -line.quantity(),
+                                    "订单库存服务",
+                                    "设计快照: " + snapshot.getId())
+                            != 1) {
+                throw new IllegalStateException("材料库存或流水更新失败, 本次交易回滚");
             }
         }
     }
+
+    /** 库存变动前校验完整清单, 拒绝缺项、隐式数值转换和重复材料身份. */
+    private List<FrozenStockLine> frozenStockLines(CustomDesignSnapshotEntity snapshot) {
+        JSONObject quote;
+        try {
+            quote = JSON.parseObject(snapshot.getPriceBreakdownJson());
+        } catch (JSONException error) {
+            throw new IllegalStateException("冻结材料清单无效, 请重新生成设计快照");
+        }
+        if (quote == null
+                || !(quote.get("components") instanceof JSONArray components)
+                || components.isEmpty()) {
+            throw new IllegalStateException("冻结材料清单缺失, 请重新生成设计快照");
+        }
+        var result = new ArrayList<FrozenStockLine>();
+        var identities = new HashSet<List<String>>();
+        for (Object value : components) {
+            if (!(value instanceof JSONObject line)
+                    || !(line.get("quantity") instanceof Integer quantity)
+                    || quantity < 0
+                    || quantity > 10000
+                    || !(line.get("componentType") instanceof String type)
+                    || type.isBlank()
+                    || !type.equals(type.trim())
+                    || type.length() > 32
+                    || !(line.get("optionCode") instanceof String code)
+                    || code.isBlank()
+                    || !code.equals(code.trim())
+                    || code.length() > 64
+                    || !identities.add(List.of(type, code))) {
+                throw new IllegalStateException("冻结材料身份或用量无效, 本次交易回滚");
+            }
+            result.add(new FrozenStockLine(type, code, quantity));
+        }
+        return List.copyOf(result);
+    }
+
+    /** 表示经过完整校验的冻结材料身份及整数用量. */
+    private record FrozenStockLine(String type, String code, int quantity) {}
 
     /** 幂等更新定制状态并创建待生产工单 / Idempotently marks paid and creates a work order. */
     @Override
@@ -418,27 +442,28 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (updated != 1) {
             return;
         }
-        if (binding.getSnapshotId() != null) {
-            CustomDesignSnapshotEntity snapshot = snapshotDao.selectById(binding.getSnapshotId());
-            if (snapshot != null) {
-                // 恢复组件库存 / Restore component stock.
-                restoreComponentStock(snapshot);
-                // 保留已取消订单的原快照, 复制一个新草稿用于再次购买.
-                if (wasUnpaid && "ORDERED".equals(snapshot.getStatus())) {
-                    CustomDesignSnapshotEntity draft = new CustomDesignSnapshotEntity();
-                    org.springframework.beans.BeanUtils.copyProperties(snapshot, draft);
-                    draft.setId(null);
-                    draft.setStatus("DRAFT");
-                    draft.setCreateTime(new Date());
-                    draft.setUpdateTime(new Date());
-                    if (snapshotDao.insert(draft) != 1) {
-                        throw new IllegalStateException("取消后的设计草稿复制失败");
-                    }
-                    snapshot.setStatus("CANCELLED");
-                    snapshot.setUpdateTime(new Date());
-                    snapshotDao.updateById(snapshot);
-                }
+        if (binding.getSnapshotId() == null) {
+            throw new IllegalStateException("定制设计快照标识缺失, 本次取消回滚");
+        }
+        CustomDesignSnapshotEntity snapshot = snapshotDao.selectById(binding.getSnapshotId());
+        if (snapshot == null) {
+            throw new IllegalStateException("定制设计快照缺失, 本次取消回滚");
+        }
+        restoreComponentStock(snapshot);
+        // 保留已取消订单的原快照, 复制一个新草稿用于再次购买.
+        if (wasUnpaid && "ORDERED".equals(snapshot.getStatus())) {
+            CustomDesignSnapshotEntity draft = new CustomDesignSnapshotEntity();
+            org.springframework.beans.BeanUtils.copyProperties(snapshot, draft);
+            draft.setId(null);
+            draft.setStatus("DRAFT");
+            draft.setCreateTime(new Date());
+            draft.setUpdateTime(new Date());
+            if (snapshotDao.insert(draft) != 1) {
+                throw new IllegalStateException("取消后的设计草稿复制失败");
             }
+            snapshot.setStatus("CANCELLED");
+            snapshot.setUpdateTime(new Date());
+            snapshotDao.updateById(snapshot);
         }
         ProductionWorkOrderEntity workOrder =
                 workOrderDao.selectOne(

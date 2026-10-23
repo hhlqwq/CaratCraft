@@ -112,5 +112,28 @@
         "newDependenciesDownloaded": false,
         "httpBrowserOrWeChatEndToEnd": "not_run",
         "productionAcceptance": false
+    },
+    "customFrozenStock": {
+        "date": "2026-10-23",
+        "baselineCommit": "0ae87fe",
+        "java": {
+            "tests": 53,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "realMySqlTests": 4,
+            "invalidFrozenInputCases": 14
+        },
+        "contract": "frozen_components_only_no_option_id_fallback",
+        "coverage": [
+            "frozen_quantity_deduction_and_restore",
+            "one_restore_on_repeated_cancel",
+            "later_material_failure_rolls_back_balance_and_ledger",
+            "malformed_or_missing_snapshot_rolls_back_cancel_state"
+        ],
+        "newDependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "productionAcceptance": false
     }
 }
