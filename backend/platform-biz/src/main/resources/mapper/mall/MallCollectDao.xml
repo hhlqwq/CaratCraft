@@ -42,7 +42,7 @@
         <if test="valueId != null and valueId != ''">
             and c.value_id = #{valueId}
         </if>
-        <if test="typeId != null and typeId != ''">
+        <if test="typeId != null">
             and c.type_id = #{typeId}
         </if>
         <choose>

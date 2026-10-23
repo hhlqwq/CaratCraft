@@ -135,5 +135,17 @@
         "businessDatabaseAccessed": false,
         "businessServicesUpdated": false,
         "productionAcceptance": false
+    },
+    "favoriteService": {
+        "date": "2026-10-23",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "framework": "JUnit Platform, explicit current-source javac compilation",
+        "persistence": "mock",
+        "contract": "authenticated_owner_goods_type_zero_transactional_user_lock",
+        "realDatabaseConcurrencyTest": false,
+        "clientApiChanged": false
     }
 }

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,56 +31,27 @@ import java.util.Map;
 public class AppCollectController extends AppBaseController {
     @Autowired private MallCollectService collectService;
 
-    /** 获取用户收藏 */
+    /** 查询当前认证用户的商品收藏. */
     @Operation(summary = "获取用户收藏")
     @PostMapping("list")
     public RestResponse<List<MallCollectEntity>> list(
             @LoginUser WxUserEntity loginUser, Integer typeId) {
 
-        Map<String, Object> param = new HashMap<>();
-        param.put("userId", loginUser.getId());
-        param.put("typeId", typeId);
-        List<MallCollectEntity> collectEntities = collectService.queryList(param);
-
-        return RestResponse.ok(collectEntities);
+        return RestResponse.ok(collectService.listOwned(loginUser.getId(), typeId));
     }
 
-    /** 获取用户收藏 */
+    /** 切换当前认证用户的商品收藏, 事务及归属规则由业务服务执行. */
     @Operation(summary = "添加取消收藏")
     @PostMapping("addordelete")
     public RestResponse<Map<String, Object>> addordelete(
             @LoginUser WxUserEntity loginUser, @RequestBody ApiCollectToggleRequest request) {
-        Integer typeId = request.getTypeId();
-        Integer valueId = request.getValueId();
-
-        Map<String, Object> param = new HashMap<>();
-        param.put("userId", loginUser.getId());
-        param.put("typeId", typeId);
-        param.put("valueId", valueId);
-        List<MallCollectEntity> collectEntities = collectService.queryList(param);
-        //
-        boolean collectRes = false;
-        String handleType = "add";
-        if (null == collectEntities || collectEntities.isEmpty()) {
-            MallCollectEntity collectEntity = new MallCollectEntity();
-            collectEntity.setAddTime(System.currentTimeMillis() / 1000);
-            collectEntity.setTypeId(typeId);
-            collectEntity.setValueId(valueId);
-            collectEntity.setIsAttention(0);
-            collectEntity.setUserId(loginUser.getId());
-            // 添加收藏
-            collectRes = collectService.save(collectEntity);
-        } else {
-            // 取消收藏
-            collectRes = collectService.delete(collectEntities.get(0).getId());
-            handleType = "delete";
+        if (request == null) {
+            throw new IllegalArgumentException("收藏参数不能为空");
         }
-
-        if (collectRes) {
-            Map<String, Object> data = new HashMap<>();
-            data.put("type", handleType);
-            return RestResponse.ok(data);
-        }
-        return RestResponse.fail("操作失败");
+        return RestResponse.ok(
+                Map.of(
+                        "type",
+                        collectService.toggleOwned(
+                                loginUser.getId(), request.getTypeId(), request.getValueId())));
     }
 }

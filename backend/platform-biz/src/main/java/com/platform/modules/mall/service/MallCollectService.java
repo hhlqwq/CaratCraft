@@ -34,6 +34,12 @@ import java.util.Map;
  */
 public interface MallCollectService extends IService<MallCollectEntity> {
 
+    /** 查询本人商品收藏, 不接收客户端提供的用户归属. */
+    List<MallCollectEntity> listOwned(Long userId, Integer typeId);
+
+    /** 串行切换本人商品收藏, 返回已完成的add或delete操作. */
+    String toggleOwned(Long userId, Integer typeId, Integer goodsId);
+
     /**
      * 查询所有列表
      *
