@@ -147,5 +147,48 @@
         "contract": "authenticated_owner_goods_type_zero_transactional_user_lock",
         "realDatabaseConcurrencyTest": false,
         "clientApiChanged": false
+    },
+    "currentOfflineGate": {
+        "date": "2026-10-23",
+        "java": {
+            "distinctTestsPassed": 200,
+            "mavenDiscovery": {
+                "tests": 194,
+                "passed": 152,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 42
+            },
+            "skippedCasesActuallyRunSeparately": 42,
+            "additionalFavoriteTestsPassed": 6,
+            "realMySqlCasesPassed": 41,
+            "realRedisCasesPassed": 1,
+            "deduplication": "152 + 10 previously executed new database cases + 21 remaining service cases + 11 account/legal rerun + 6 new favorites",
+            "accountLegalInitialBlockedCases": 11,
+            "accountLegalRerunPassed": 11,
+            "accountLegalGuardChange": "optional allowPublicKeyRetrieval=true only; loopback and random database restriction retained"
+        },
+        "node": {
+            "tests": 147,
+            "passed": 147,
+            "failures": 0,
+            "skipped": 0
+        },
+        "javaFormatting": "Google Java Format 1.28.0 --aosp",
+        "projectConventions": "passed",
+        "gitWhitespace": "passed",
+        "rawLogsDirectory": ".tools/restructure",
+        "dependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "realHttpBrowserChain": "not_run",
+        "fullFinalDeliveryAndLicenseVerification": "not_run",
+        "productionAcceptance": false,
+        "remaining": [
+            "real_page_and_cross_feature_review",
+            "N05_N06_semantic_and_convention_closure",
+            "final_delivery_build_and_license_gate",
+            "real_WeChat_payment_refund_AI_and_production_acceptance"
+        ]
     }
 }

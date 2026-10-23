@@ -41,7 +41,7 @@ class AccountLoginDatabaseTest {
         String url = System.getenv("CARATCRAFT_DATABASE_TEST_URL");
         if (url == null
                 || !url.matches(
-                        "jdbc:mariadb://127\\.0\\.0\\.1:[0-9]+/caratcraft_init_audit_[0-9]{8}_[a-f0-9]{6}")) {
+                        "jdbc:mariadb://127\\.0\\.0\\.1:[0-9]+/caratcraft_init_audit_[0-9]{8}_[a-f0-9]{6}(\\?allowPublicKeyRetrieval=true)?")) {
             throw new IllegalStateException("仅允许随机隔离库");
         }
         var source =
