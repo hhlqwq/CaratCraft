@@ -1,6 +1,6 @@
 {
     "date": "2026-10-24",
-    "database": "caratcraft_init_audit_20261024_390039",
+    "database": "caratcraft_init_audit_20261024_b6e19f",
     "checks": [
         "真实认证器拒绝无令牌请求",
         "后台具名组合经真实HTTP由小程序SKU模块唯一选择",
@@ -11,5 +11,6 @@
         "下架后旧购物车结算重新复核可售状态"
     ],
     "passed": true,
+    "backendImage": "carat-craft-backend:verified-20261024-07ee6ba",
     "scope": "最新两应用真实HTTP、认证器、MyBatis/MySQL及Redis; 合成身份, 不调用微信或支付"
 }

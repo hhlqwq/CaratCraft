@@ -180,6 +180,7 @@ def main():
     """只管理本轮创建的容器, 完成或失败均清理, 输出不含令牌的机器证据."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", required=True, help="客户端日期, YYYY-MM-DD")
+    parser.add_argument("--backend-image", help="验证已封装镜像中的应用JAR, 不挂载宿主机JAR")
     args = parser.parse_args()
     day = datetime.strptime(args.date, "%Y-%m-%d").strftime("%Y%m%d")
     suffix = secrets.token_hex(3)
@@ -216,11 +217,13 @@ def main():
             if not jar.is_file():
                 raise FileNotFoundError("需要先构建最新应用JAR: " + str(jar))
             command = ["run", "--detach", "--rm", "--pull=never", "--network", "container:" + mysql,
-                       "--name", "caratcraft-http-" + module + "-" + suffix,
-                       "--mount", f"type=bind,source={jar},target=/verify/application.jar,readonly"]
+                       "--name", "caratcraft-http-" + module + "-" + suffix]
+            if not args.backend_image:
+                command.extend(["--mount", f"type=bind,source={jar},target=/verify/application.jar,readonly"])
             for key in ("MYSQL_DATABASE", "MYSQL_USERNAME", "MYSQL_PASSWORD", "MYSQL_HOST", "REDIS_HOST", "REDIS_PASSWORD", "JWT_SECRET", "SPRING_PROFILES_ACTIVE"):
                 command.extend(["--env", key])
-            command.extend(["carat-craft-backend:local", "java", "-Xmx384m", "-jar", "/verify/application.jar"])
+            command.extend([args.backend_image or "carat-craft-backend:local", "java", "-Xmx384m", "-jar",
+                            f"/app/platform-{module}.jar" if args.backend_image else "/verify/application.jar"])
             containers.append(docker(*command, environment=env))
             mapping = docker("port", mysql, str(port) + "/tcp")
             if not re.fullmatch(r"127\.0\.0\.1:[0-9]+", mapping):
@@ -231,6 +234,7 @@ def main():
         checks = verify_chain(bases["admin"], bases["api"], admin_token,
                               user_token(900001, secret), user_token(900002, secret), category_id)
         evidence = {"date": args.date, "database": database, "checks": checks, "passed": True,
+                    "backendImage": args.backend_image,
                     "scope": "最新两应用真实HTTP、认证器、MyBatis/MySQL及Redis; 合成身份, 不调用微信或支付"}
         output = ROOT / "docs/资料/HTTP业务链路验证.json"
         output.write_text(json.dumps(evidence, ensure_ascii=False, indent=4) + "\n", encoding="utf-8", newline="\n")

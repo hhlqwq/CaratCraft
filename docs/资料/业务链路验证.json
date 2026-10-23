@@ -198,20 +198,31 @@
             "failures": 0,
             "errors": 0,
             "skipped": 0,
-            "method": "全量离线package及独立tmpfs MySQL和无持久化Redis补测, 汇总最新Surefire报告"
+            "modules": {
+                "common": 17,
+                "biz": 155,
+                "admin": 3,
+                "api": 25
+            },
+            "method": "最终源码全量package及全新tmpfs MySQL/独立Redis补测, 最新Surefire报告去重汇总"
         },
         "node": {
-            "businessTests": 164,
+            "businessTests": 171,
             "httpProbe": 1,
             "failures": 0,
             "skipped": 0
         },
-        "pythonReadOnly": {
-            "tests": 15,
-            "failures": 0,
-            "scope": "编码3、仓库结构6、地区初始化2、前端许可构建图4"
+        "style": {
+            "javaFiles": 646,
+            "frontendFiles": 350,
+            "javaAosp": true,
+            "chineseFunctionDescriptions": true,
+            "frontendAndToolsEslint": true,
+            "newRuleTests": {
+                "node": 7,
+                "python": 4
+            }
         },
-        "style": "全仓Java AOSP、347个前端文件格式、两端及工具ESLint通过; 新增快照及浏览器工具另行格式与ESLint通过",
         "build": "最新两应用JAR及管理端生产包构建通过",
         "browser": "最新生产包及独立HTTP夹具的既有浏览器回归通过, 不连接业务接口",
         "license": {
@@ -222,14 +233,61 @@
             "sourceBundles": 13,
             "errors": []
         },
-        "cleanup": "本轮独立MySQL和Redis容器已停止并自动移除, 依赖复制失败的本次node_modules副本已清理",
+        "cleanup": "所有本轮MySQL、Redis、API、管理服务及Nginx测试容器已清理; 业务五个容器保持运行; 临时样本已清理",
         "remaining": [
-            "外部临时目录授权后执行剩余Python及PowerShell回归",
-            "真实HTTP串联后台商品编辑到客户端购买",
-            "N06注释及类型覆盖差距继续审阅",
-            "最终Docker镜像及干净提交交付包",
-            "微信真机、真实支付退款、正式AI和生产验收"
+            "自动审批拒绝的无调用方旧Redis锁、规格工具及模拟XML删除, 正等待用户单独授权",
+            "联网依赖下载的客户全新Docker构建路径未重跑, 本轮为禁网编译与运行时封装",
+            "微信真机、真实支付退款、正式AI及生产发布需实际账号和环境"
         ],
-        "deployed": false
+        "deployed": false,
+        "python": {
+            "tests": 30,
+            "failures": 0,
+            "skipped": 0,
+            "switches": "显式启用Git Bash完整摘要对照和已有JDK镜像职责回归"
+        },
+        "powershell": {
+            "groups": 5,
+            "shells": [
+                "Windows PowerShell5.1",
+                "PowerShell7"
+            ],
+            "failed": 0,
+            "scope": "全部为隔离文件或替身, 不操作业务服务"
+        },
+        "commentSemantics": {
+            "javaAstFiles": 145,
+            "vueAstTemplateStyleFiles": 128,
+            "differences": 0
+        },
+        "httpBusiness": {
+            "checks": 7,
+            "passed": true,
+            "evidence": "docs/资料/HTTP业务链路验证.json",
+            "scope": "真实HTTP、认证器、MyBatis、MySQL、Redis与实际小程序SKU模块; 合成身份, 不调用真实微信或支付"
+        },
+        "images": {
+            "sourceRevision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+            "images": {
+                "carat-craft-backend:verified-20261024-07ee6ba": {
+                    "id": "sha256:f665cb4a4492ff2ff2ee8f2aeb5c0ef59a551b43ab7d8142f23b330a8d1ff9a4",
+                    "revision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+                    "user": "caratcraft"
+                },
+                "carat-craft-admin-ui:verified-20261024-07ee6ba": {
+                    "id": "sha256:9a13d68bcae8af2ce44c3cef30e88331b1d3f69dcf13c3b96b4e750b625f3d87",
+                    "revision": "a37f60ae85be144f48d5e4be9da095acfac452a2c9ea748905fbbf0ec70f5d81",
+                    "user": "",
+                    "httpStaticAssetsChecked": 18
+                }
+            },
+            "backendJarSha256": {
+                "admin": "fd7a4e8a534e760b13b70680b4ae455ddd1f4dbdd915861aafbb9c2d2f7a8dce",
+                "api": "8b0ecee432e2ce2f04683d7c77be0e78c82adc7afb206b042a2a2b0ce600b1e5"
+            },
+            "networkDownloads": false,
+            "productionServicesChanged": false,
+            "scope": "已有运行时镜像+当前产物的禁网封装, 非联网依赖下载重建"
+        }
     }
 }
