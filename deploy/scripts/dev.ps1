@@ -31,13 +31,16 @@ function Assert-DockerReady {
 # 创建本地环境变量文件 / Creates the local environment file.
 function Initialize-Environment {
     if (-not (Test-Path -LiteralPath $EnvFile)) {
-        $Template = Get-Content -LiteralPath $EnvExample -Raw
+        $Template = Get-Content -LiteralPath $EnvExample -Raw -Encoding UTF8
         foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
+            if ([regex]::Matches($Template, "(?m)^$Key=[^\r\n]*").Count -ne 1) {
+                throw "环境模板 $EnvExample 必须且只能包含一项 $Key=, 未生成本机配置。"
+            }
             $RandomBytes = New-Object byte[] 32
             $Generator = [Security.Cryptography.RandomNumberGenerator]::Create()
             try { $Generator.GetBytes($RandomBytes) } finally { $Generator.Dispose() }
             $Secret = [Convert]::ToBase64String($RandomBytes)
-            $Template = [regex]::Replace($Template, "(?m)^$Key=.*$", "$Key=$Secret")
+            $Template = [regex]::Replace($Template, "(?m)^$Key=[^\r\n]*", "$Key=$Secret")
         }
         [IO.File]::WriteAllText($EnvFile, $Template, [Text.UTF8Encoding]::new($false))
         Write-Host "已生成本机独立随机配置：$EnvFile, 密钥不在终端输出。"
@@ -47,12 +50,15 @@ function Initialize-Environment {
 # 启动前检查秘密配置, 已有数据库需要人工创建/授权应用账号而不是直接改旧卷密码.
 function Assert-StartupConfiguration {
     $Values = @{}
-    foreach ($Line in (Get-Content -LiteralPath $EnvFile)) {
-        if ($Line -match '^([A-Z_]+)=(.*)$') { $Values[$Matches[1]] = $Matches[2].Trim() }
+    foreach ($Line in (Get-Content -LiteralPath $EnvFile -Encoding UTF8)) {
+        if ($Line -match '^([A-Z_][A-Z0-9_]*)=(.*)$') { $Values[$Matches[1]] = $Matches[2].Trim() }
     }
     foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
-        if (-not $Values[$Key] -or $Values[$Key].Length -lt 24 -or $Values[$Key] -in @('REDACTED_CREDENTIAL', '123456')) {
-            throw "$Key 缺失或过弱。已有数据卷请先按迁移说明建立独立应用账号和轮换密码, 不要直接重置数据。"
+        if (-not $Values.ContainsKey($Key)) {
+            throw "本机配置文件 $EnvFile 缺少配置项 $Key。此检查尚未连接数据库; 已有数据卷的凭据须与库内账号匹配, 不自动覆盖配置或重置数据。"
+        }
+        if (-not $Values[$Key] -or $Values[$Key].Length -lt 24) {
+            throw "$Key 至少需要24个字符, 请检查本机配置文件 $EnvFile。此检查尚未连接数据库; 已有数据卷请核对原凭据, 不直接更换密码或重置数据。"
         }
     }
     if ($Values['MYSQL_APP_USER'] -eq 'root') { throw '应用账号不得使用root。' }
@@ -225,7 +231,7 @@ function Start-LocalEnvironment {
 
 # 输出本地访问地址 / Prints local access URLs.
 function Show-AccessInfo {
-    $PortLine = Get-Content -LiteralPath $EnvFile |
+    $PortLine = Get-Content -LiteralPath $EnvFile -Encoding UTF8 |
         Where-Object { $_ -match '^NGINX_PORT=' } |
         Select-Object -Last 1
     $Port = if ($PortLine) { ($PortLine -split '=', 2)[1] } else { '8888' }
