@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "fd5992c38483279a003c1b6622a4e2165ea45fd37bb9f6e24b1fa316e5872d78",
+      "sha256": "ad3b440518e11685c9407353e6f2990137a9bd04b28437f2d8f476d05019d1b9",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -133,7 +133,7 @@
         "legal/SOURCE-NOTICES.txt"
       ],
       "sourceUrl": "https://gitee.com/hhlqwq/carat-craft/tree/master/backend/platform-biz",
-      "status": "项目模块, 保留根LICENSE及源码原有声明",
+      "status": "项目模块, 保留UPSTREAM-LICENSE及源码原有声明",
       "coordinates": "com.platform:platform-biz:2.0.0",
       "selectedLicense": "Apache-2.0"
     },
@@ -143,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "6ab2c432947ff8ca7df7f4d391bc4d2e70bb8da3b0ef769e23391f2258266ad9",
+      "sha256": "14ba4566ab5ee4a63162b562d767d41cf46c3103e11a4cddeba22b1eac15c8d5",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -158,7 +158,7 @@
         "legal/SOURCE-NOTICES.txt"
       ],
       "sourceUrl": "https://gitee.com/hhlqwq/carat-craft/tree/master/backend/platform-common",
-      "status": "项目模块, 保留根LICENSE及源码原有声明",
+      "status": "项目模块, 保留UPSTREAM-LICENSE及源码原有声明",
       "coordinates": "com.platform:platform-common:2.0.0",
       "selectedLicense": "Apache-2.0"
     },
