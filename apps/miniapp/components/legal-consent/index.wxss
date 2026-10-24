@@ -4,7 +4,7 @@
     line-height: 1.7;
     color: #183d35;
 }
-navigator {
+.legal-link {
     text-decoration: underline;
     margin-bottom: 12rpx;
 }

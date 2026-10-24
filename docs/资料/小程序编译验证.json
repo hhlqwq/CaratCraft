@@ -15,7 +15,7 @@
         "rendered": true,
         "errors": 0,
         "warnings": 5,
-        "warningDetailsVerified": false,
+        "warningDetailsVerified": true,
         "verifiedFourMaterialCopy": true
     },
     "regressionTests": {
@@ -30,7 +30,47 @@
         "javascriptSyntax": 58,
         "passed": true,
         "temporaryFilesCleaned": true,
-        "ideWarningInspection": "窗口截图接口两次超时且可访问树无调试器内容; 未重新取得警告明细, 已请求用户提供文字",
+        "ideWarningInspection": "已从用户截图及更新后IDE可访问树核实全部五项; 当前重新编译0错误、5提示",
         "uploaded": false
+    },
+    "warningDetails": [
+        {
+            "kind": "全局组件性能提示",
+            "detail": "merchant-contact在app.json全局注册, 40个页面均使用同一客服入口",
+            "action": "保留统一入口, 不声称已消除性能提示"
+        },
+        {
+            "kind": "灰度基础库提示",
+            "detail": "当前调试基础库3.17.5处于灰度",
+            "action": "记录工具环境, 未修改基础库设置"
+        },
+        {
+            "kind": "本机域名校验提示",
+            "detail": "本机调试未校验合法域名、web-view、TLS和HTTPS证书",
+            "action": "保留现有开发设置, 正式账号另行验收"
+        },
+        {
+            "kind": "工具内部资源预加载提示",
+            "detail": "WAAutoService.js未及时使用预加载资源",
+            "action": "微信工具内部资源, 不修改SDK"
+        },
+        {
+            "kind": "工具内部资源预加载提示",
+            "detail": "WAServiceMainContext.js未及时使用预加载资源",
+            "action": "微信工具内部资源, 不修改SDK"
+        }
+    ],
+    "httpAndStyleFix": {
+        "publicReadMethod": "GET",
+        "calls": [
+            "珍珠目录",
+            "客服资料",
+            "当前/历史协议及本人确认记录"
+        ],
+        "componentSelector": ".legal-link",
+        "nodeBusinessTests": 174,
+        "eslintPassed": true,
+        "officialCompilePassed": true,
+        "evidence": "小程序接口验证.json"
     }
 }

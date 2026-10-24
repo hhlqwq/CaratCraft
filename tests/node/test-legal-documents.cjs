@@ -90,7 +90,10 @@ function consentFixture() {
         'components/legal-consent/index.js',
         {
             '../../utils/util.js': {
-                request: () => new Promise((resolve) => requests.push(resolve)),
+                request(url, params, method) {
+                    assert.equal(method, 'GET', '读取公开协议只允许GET');
+                    return new Promise((resolve) => requests.push(resolve));
+                },
             },
             '../../config/api.js': {LegalDocuments: '/legal'},
         },
@@ -164,7 +167,10 @@ test('协议历史在离页及账号切换后不回填', async () => {
         'pages/ucenter/legal/index.js',
         {
             '../../../utils/util.js': {
-                request: () => new Promise((resolve) => requests.push(resolve)),
+                request(url, params, method) {
+                    assert.equal(method, 'GET', '读取协议和本人历史只允许GET');
+                    return new Promise((resolve) => requests.push(resolve));
+                },
             },
             '../../../config/api.js': {LegalDocuments: '/legal'},
         },

@@ -376,7 +376,7 @@
             "javascriptSyntax": 58,
             "ideErrors": 0,
             "ideWarnings": 5,
-            "warningDetailsVerified": false,
+            "warningDetailsVerified": true,
             "uploaded": false
         },
         "candidateCatalog": {
@@ -388,11 +388,11 @@
         "adminProductionBuild": "passed",
         "adminBrowserFixture": "passed",
         "artifactLicense": "passed, 256 backend / 28 frontend inventory / 25 actual npm / 160 assets / 13 source bundles",
-        "deployed": false,
+        "deployed": true,
         "currentRoundVerificationImagesBuilt": true,
         "remaining": [
-            "正式商家摄影、价格库存、工艺、客服及协议资料需维护",
-            "5条IDE警告未逐条核实; 真机、微信登录、真实支付退款及正式AI另行验收",
+            "正式商家摄影、价格库存、工艺、客服及协议资料需维护; 候选及旧分类模板停用, 不能直接下单",
+            "真机、微信登录、真实支付退款及正式AI另行验收",
             "客户联网从零Docker依赖下载构建未重跑"
         ],
         "verificationImages": {
@@ -404,6 +404,21 @@
             "dependenciesDownloaded": false,
             "businessServicesChanged": false,
             "testContainersCleaned": true
+        },
+        "localDeployment": {
+            "evidence": "本机部署验证.json",
+            "backupSkippedByUser": true,
+            "missingMigrationApplied": "V20261024_01_material_catalog.sql",
+            "allServicesHealthy": true,
+            "mysqlRedisNotRestarted": true
+        },
+        "publicReadFix": {
+            "evidence": "小程序接口验证.json",
+            "realHttpCallsPassed": 4,
+            "nodeBusinessTests": 174,
+            "ideErrors": 0,
+            "ideWarnings": 5,
+            "warningDetailsVerified": true
         }
     }
 }

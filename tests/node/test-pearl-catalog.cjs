@@ -11,7 +11,8 @@ function fixture() {
     const calls = [];
     let page;
     const util = {
-        request(url, params) {
+        request(url, params, method) {
+            assert.equal(method, 'GET', '公共珍珠目录只允许GET');
             return new Promise((resolve, reject) => calls.push({params, resolve, reject}));
         },
     };

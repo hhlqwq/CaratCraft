@@ -1,0 +1,101 @@
+{
+    "date": "2026-10-24",
+    "backupSkippedByUser": true,
+    "buildRevision": "858273ab7fd2bbb90e19a334090dff426b3437f999ac1fd962031eebc38cc78e",
+    "appliedMigrations": [
+        "V20261024_01_material_catalog.sql"
+    ],
+    "migrationCount": 15,
+    "before": {
+        "platform-mysql": {
+            "id": "3956883bd621ccdc00272bfe39ca9dbc5c623063f65996443616797acc2b4050",
+            "image": "sha256:a532724022429812ec797c285c1b540a644c15e248579c6bfdf12a8fbaab4964",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-redis": {
+            "id": "69ffb26e8befeb45ffa0a2e8b2d9496c0a277c21416f773dd3a0e54dbe89d2ae",
+            "image": "sha256:f8548b29a1f1cb358b5fcfec1e0126beab57ad15776c1e87623f865579f16c5a",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-admin": {
+            "id": "2b9271856de189beae5de951bf6e6c8e75495cef52bbb2b27917a101b97ea05d",
+            "image": "sha256:238f62af8a6a2d6b245056a86d0e8683e76ad6ce640fd1436dc13437bd0bfc63",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-api": {
+            "id": "91c1f93f3995cbfe073eccb9ffeee9d3956340b1340813f0b878cc24da0afee3",
+            "image": "sha256:238f62af8a6a2d6b245056a86d0e8683e76ad6ce640fd1436dc13437bd0bfc63",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-nginx": {
+            "id": "1beb4abc9b8bb26de7b3f55162b565ccd30deb6b726d2a19cf2fd6dbeb48995c",
+            "image": "sha256:e4da5382b680f51fe624079d4860a7c942b971088c8425e5e9acb1355aab81ae",
+            "status": "running",
+            "health": "healthy"
+        }
+    },
+    "after": {
+        "platform-mysql": {
+            "id": "3956883bd621ccdc00272bfe39ca9dbc5c623063f65996443616797acc2b4050",
+            "image": "sha256:a532724022429812ec797c285c1b540a644c15e248579c6bfdf12a8fbaab4964",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-redis": {
+            "id": "69ffb26e8befeb45ffa0a2e8b2d9496c0a277c21416f773dd3a0e54dbe89d2ae",
+            "image": "sha256:f8548b29a1f1cb358b5fcfec1e0126beab57ad15776c1e87623f865579f16c5a",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-admin": {
+            "id": "67bc91f473024341b9313722b9aa04039370265fb7b73b4b8cbd65c79d580ce0",
+            "image": "sha256:6157b9a17b38e870b78f629e4d6aac6a099d30e172fcfdfcb142b10c7bd80e2e",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-api": {
+            "id": "478bcf4b22fdffa68a463133e6274d9629328ef0e8dfcb4652decab4d66c8138",
+            "image": "sha256:6157b9a17b38e870b78f629e4d6aac6a099d30e172fcfdfcb142b10c7bd80e2e",
+            "status": "running",
+            "health": "healthy"
+        },
+        "platform-nginx": {
+            "id": "52b2a70e55e03d19ecbfcaeb2a8acbd2dca50c390e8bffb320f5df6a9fa8f21e",
+            "image": "sha256:5a832f7280d2b2c4e31ad41b3ef7f9708047f707868d34eb5da89ae5a50fb209",
+            "status": "running",
+            "health": "healthy"
+        }
+    },
+    "mysqlRedisNotRestarted": true,
+    "publicGetRequests": {
+        "catalog": {
+            "http": 200,
+            "code": 0
+        },
+        "legal": {
+            "http": 200,
+            "code": 0
+        },
+        "merchant": {
+            "http": 200,
+            "code": 0
+        },
+        "configuration": {
+            "http": 400,
+            "expected": "旧分类模板受控停用, 返回该商品暂未开放定制; 需维护真实材料后发布"
+        },
+        "aiStatus": {
+            "path": "/app/customization/ai/status",
+            "http": 200,
+            "code": 0
+        }
+    },
+    "candidateEnabled": false,
+    "note": "候选默认停用且旧分类模板停用; 不补造真实材料参数或商家资料",
+    "candidateRows": 112,
+    "enabledCandidateRows": 0
+}

@@ -26,7 +26,12 @@ function moduleAt(relative, dependencies, extras = {}) {
 test('客服请求合并并在缓存到期后更新', async () => {
     let now = 0;
     const calls = [];
-    const util = {request: () => new Promise((resolve, reject) => calls.push({resolve, reject}))};
+    const util = {
+        request(url, params, method) {
+            assert.equal(method, 'GET', '公开客服资料只允许GET');
+            return new Promise((resolve, reject) => calls.push({resolve, reject}));
+        },
+    };
     const contacts = moduleAt(
         'services/merchant-contact.js',
         {'../utils/util.js': util, '../config/api.js': {}},
