@@ -45,6 +45,8 @@ public class CustomConfigurationService {
         if (product.getTemplateCode() == null || product.getTemplateCode().isBlank()) {
             throw new IllegalArgumentException("模板代码不能为空");
         }
+        product.setRequiredComponentTypes(
+                MaterialTypes.required(product.getRequiredComponentTypes()));
         product.setPreviewWidth(dimension(product.getPreviewWidth()));
         FinishedLengthRules.parse(product.getLengthRules());
         product.setPreviewHeight(dimension(product.getPreviewHeight()));
@@ -164,6 +166,7 @@ public class CustomConfigurationService {
 
     /** 规范稳定标识和规则, 名称及价格有明确边界. */
     private void normalize(CustomComponentOptionEntity row) {
+        MaterialTypes.require(row.getComponentType());
         if (row.getComponentType() == null
                 || !row.getComponentType().matches("[A-Za-z0-9_-]{1,32}")
                 || row.getOptionCode() == null
@@ -174,6 +177,13 @@ public class CustomConfigurationService {
             throw new IllegalArgumentException("材料类型/代码须为有效英文标识, 名称须为1到100字");
         }
         ComponentRules.parse(row.getMaterialParams());
+        if ("accessory".equals(row.getComponentType())
+                && !Integer.valueOf(0).equals(row.getEnabled())) {
+            var params = com.alibaba.fastjson.JSON.parseObject(row.getMaterialParams());
+            if (params == null || params.getString("lengthRole") == null) {
+                throw new IllegalArgumentException("启用配饰前请明确串接计长或悬挂不计长");
+            }
+        }
         if (row.getAssetUrl() != null
                 && !row.getAssetUrl().isBlank()
                 && (!row.getAssetUrl().matches("^(https://[^\\s]+|/(?!/)[^\\s]*)$")

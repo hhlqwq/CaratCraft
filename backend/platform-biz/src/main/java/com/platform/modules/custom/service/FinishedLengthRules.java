@@ -91,7 +91,7 @@ public final class FinishedLengthRules {
         return result;
     }
 
-    /** 扣件及连接按规则计入, 悬挂配件和款式不占项链周长, 未知串珠或链长拒绝猜测. */
+    /** 扣件按工艺规则计入, 配饰明确串接或悬挂后再计算周长, 未知归属拒绝猜测. */
     private static BigDecimal materialLength(JSONObject rules, Map<String, Object> arrangement) {
         BigDecimal chain = BigDecimal.ZERO;
         BigDecimal beads = BigDecimal.ZERO;
@@ -105,8 +105,16 @@ public final class FinishedLengthRules {
         for (var item : items) {
             String type =
                     String.valueOf(item.get("componentType")).toLowerCase(java.util.Locale.ROOT);
-            if (List.of("clasp", "fitting", "pendant", "gem", "style", "length").contains(type)) {
+            if ("clasp".equals(type)) {
                 continue;
+            }
+            if ("accessory".equals(type)) {
+                if ("HANGING".equals(item.get("lengthRole"))) {
+                    continue;
+                }
+                if (!"INLINE".equals(item.get("lengthRole"))) {
+                    return null;
+                }
             }
             if (item.get("sizeMm") == null) {
                 return null;

@@ -173,6 +173,23 @@ def verify_chain(admin, api, admin_token, token_a, token_b, category_id):
     request(admin, "/mall/goods/aggregate/update", admin_token, payload=updated)
     request(api, "/app/cart/checkout", token_a, form={"type": "cart"}, success=False)
     checks.append("下架后旧购物车结算重新复核可售状态")
+    request(admin, f"/custom/configuration/catalog-template?goodsId={goods_id}", method="GET", success=False)
+    template = request(admin, f"/custom/configuration/catalog-template?goodsId={goods_id}", admin_token, method="GET")
+    assert len(template["options"]) == 112
+    assert {row["componentType"] for row in template["options"]} == {"pearl", "clasp", "accessory", "chain"}
+    assert all(row["enabled"] == 0 and Decimal(str(row["priceDelta"])) == 0 for row in template["options"])
+    imported = request(admin, "/custom/configuration/import", admin_token, payload=template)
+    assert imported["optionCount"] == 112
+    options = request(admin, f"/custom/configuration/options?goodsId={goods_id}", admin_token, method="GET")
+    assert len(options) == 112 and all(row["enabled"] == 0 for row in options)
+    checks.append("真实权限下下载112项客户四类目录并以停用状态完整导入")
+    legacy = dict(template["options"][0], componentType="material", optionCode="http-legacy-type")
+    request(admin, "/custom/configuration/option/save", admin_token, payload=legacy, success=False)
+    unconfirmed_accessory = dict(next(row for row in template["options"] if row["componentType"] == "accessory"), enabled=1)
+    request(admin, "/custom/configuration/option/save", admin_token, payload=unconfirmed_accessory, success=False)
+    product = dict(template["product"], enabled=1)
+    request(admin, "/custom/configuration/product/save", admin_token, payload=product, success=False)
+    checks.append("HTTP拒绝旧材料分类、未确认计长的配饰及未补齐真实材料库存的候选发布")
     return checks
 
 

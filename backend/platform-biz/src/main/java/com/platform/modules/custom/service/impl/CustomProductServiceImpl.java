@@ -87,6 +87,9 @@ public class CustomProductServiceImpl implements CustomProductService {
                 new LambdaQueryWrapper<CustomComponentOptionEntity>()
                         .eq(CustomComponentOptionEntity::getGoodsId, goodsId)
                         .eq(CustomComponentOptionEntity::getEnabled, 1)
+                        .in(
+                                CustomComponentOptionEntity::getComponentType,
+                                com.platform.modules.custom.service.MaterialTypes.ALL)
                         .orderByAsc(CustomComponentOptionEntity::getZIndex));
     }
 }

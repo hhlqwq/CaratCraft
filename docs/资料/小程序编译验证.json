@@ -15,7 +15,8 @@
         "rendered": true,
         "errors": 0,
         "warnings": 5,
-        "warningDetailsVerified": false
+        "warningDetailsVerified": false,
+        "verifiedFourMaterialCopy": true
     },
     "regressionTests": {
         "tests": 2,

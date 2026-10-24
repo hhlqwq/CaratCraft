@@ -170,17 +170,19 @@ class CustomDesignServiceImplTest {
         CustomProductEntity product = new CustomProductEntity();
         product.setGoodsId(1999105);
         product.setEnabled(1);
-        product.setRequiredComponentTypes("style,pearl");
+        product.setRequiredComponentTypes("accessory,pearl");
         product.setLengthRules(
                 "{\"mode\":\"SUM\",\"claspMm\":0,\"connectionMm\":0,\"lossMm\":0,"
                         + "\"toleranceMm\":1,\"minLengthMm\":300,\"maxLengthMm\":700}");
         when(productDao.selectOne(any())).thenReturn(product);
-        CustomComponentOptionEntity style = workflowOption(1L, "style", "style-solitaire", "0.00");
+        CustomComponentOptionEntity accessory =
+                workflowOption(1L, "accessory", "inline-charm", "0.00");
+        accessory.setMaterialParams("{\"spanMm\":2,\"lengthRole\":\"INLINE\"}");
         CustomComponentOptionEntity pearl = workflowOption(2L, "pearl", "pearl-akoya", "660.00");
         pearl.setMaterialParams("{\"diameterMm\":10}");
         CustomComponentOptionEntity chain = workflowOption(3L, "chain", "chain-test", "0.00");
-        chain.setMaterialParams("{\"lengthMm\":440}");
-        when(optionDao.selectList(any())).thenReturn(Arrays.asList(style, pearl, chain));
+        chain.setMaterialParams("{\"lengthMm\":438}");
+        when(optionDao.selectList(any())).thenReturn(Arrays.asList(accessory, pearl, chain));
         ComponentStockEntity stock = new ComponentStockEntity();
         stock.setStock(100);
         when(stockDao.selectOne(any())).thenReturn(stock);

@@ -366,7 +366,7 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
         data: {
             product: {
                 goodsId: 2,
-                requiredComponentTypes: 'length',
+                requiredComponentTypes: 'chain',
                 previewWidth: 500,
                 previewHeight: 750,
             },
@@ -374,7 +374,7 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
             options: [
                 {
                     id: 2,
-                    componentType: 'length',
+                    componentType: 'chain',
                     name: '链长',
                     assetUrl: '/merchant-layer.png',
                     zIndex: 4,

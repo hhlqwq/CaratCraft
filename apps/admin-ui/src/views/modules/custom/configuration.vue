@@ -7,6 +7,11 @@
             title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 配件和二维图层。"
         ></el-alert>
         <el-alert
+            type="warning"
+            :closable="false"
+            title="DIY仅使用珍珠、尾扣、配饰、链条四类. 客户112项候选默认停用, 价格、实测尺寸、图片及库存须自行核对; 14项配饰为暂定拆分名称. 旧分类仅保留历史记录, 请停用后新建四类材料."
+        ></el-alert>
+        <el-alert
             v-if="readErrors.goods || readErrors.products || readErrors.options"
             type="error"
             :closable="false"
@@ -26,7 +31,9 @@
             >
                 <el-button type="success">导入商品配件 JSON</el-button>
             </el-upload>
-            <el-button type="text" @click="downloadTemplate">下载配件导入模板</el-button>
+            <el-button type="text" :loading="catalogDownloading" @click="downloadTemplate"
+                >下载客户112项候选模板</el-button
+            >
         </div>
 
         <el-card class="card" shadow="never">
@@ -204,9 +211,8 @@
                             <el-select
                                 v-model="option.componentType"
                                 filterable
-                                allow-create
                                 default-first-option
-                                placeholder="请选择或输入类型"
+                                placeholder="请选择四类材料"
                                 class="full-width"
                             >
                                 <el-option
@@ -326,6 +332,18 @@
                                 clearable
                                 placeholder="实测尺寸, 未知留空" /></el-form-item
                     ></el-col>
+                    <el-col v-if="option.componentType === 'accessory'" :xs="24" :sm="12" :lg="12">
+                        <el-form-item label="配饰计长位置">
+                            <el-select
+                                v-model="ruleForm.lengthRole"
+                                clearable
+                                placeholder="请按实际工艺确认"
+                            >
+                                <el-option value="INLINE" label="串接, 按实测跨度计长" />
+                                <el-option value="HANGING" label="悬挂, 不占项链周长" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
                     <el-col :xs="24" :sm="12" :lg="12"
                         ><el-form-item label="形状"
                             ><el-input
@@ -417,6 +435,7 @@ export default {
             pageActive: true,
             pageEpoch: 0,
             writing: false,
+            catalogDownloading: false,
             reading: {goods: false, products: false, options: false},
             readErrors: {goods: '', products: '', options: ''},
             goods: [],
@@ -441,21 +460,16 @@ export default {
                 diameterMm: null,
                 spanMm: null,
                 lengthMm: null,
+                lengthRole: null,
                 shape: '近正圆',
                 luster: '极光',
                 blemish: '微瑕',
             },
             componentTypes: [
+                {value: 'pearl', label: '珍珠（pearl）'},
                 {value: 'clasp', label: '尾扣（clasp）'},
                 {value: 'accessory', label: '配饰（accessory）'},
-                {value: 'pearl', label: '珍珠种类与规格（pearl）'},
-                {value: 'material', label: '贵金属材质（material）'},
-                {value: 'gem', label: '钻石与宝石（gem）'},
-                {value: 'fitting', label: '搭配配件（fitting）'},
-                {value: 'length', label: '长度（length）'},
-                {value: 'style', label: '款式（style）'},
-                {value: 'chain', label: '链条材质（chain）'},
-                {value: 'pendant', label: '吊坠款式（pendant）'},
+                {value: 'chain', label: '链条（chain）'},
             ],
         };
     },
@@ -718,6 +732,7 @@ export default {
                 diameterMm: null,
                 spanMm: null,
                 lengthMm: null,
+                lengthRole: null,
                 shape: '近正圆',
                 luster: '极光',
                 blemish: '微瑕',
@@ -725,6 +740,10 @@ export default {
         },
         // 编辑配件 / Edits a component option.
         editOption(row) {
+            if (!this.componentTypes.some((type) => type.value === row.componentType)) {
+                this.$message.error('旧分类仅可停用, 请按四类材料新建配置');
+                return;
+            }
             this.option = Object.assign(createOption(), row);
             try {
                 const rules = JSON.parse(row.materialParams || '{}');
@@ -736,6 +755,7 @@ export default {
                     diameterMm: rules.diameterMm || null,
                     spanMm: rules.spanMm || null,
                     lengthMm: rules.lengthMm || null,
+                    lengthRole: rules.lengthRole || null,
                     shape: rules.shape || '近正圆',
                     luster: rules.luster || '极光',
                     blemish: rules.blemish || '微瑕',
@@ -757,6 +777,7 @@ export default {
                     diameterMm: this.measuredSize(this.ruleForm.diameterMm),
                     spanMm: this.measuredSize(this.ruleForm.spanMm),
                     lengthMm: this.measuredSize(this.ruleForm.lengthMm),
+                    lengthRole: this.ruleForm.lengthRole || null,
                     shape: this.ruleForm.shape,
                     luster: this.ruleForm.luster,
                     blemish: this.ruleForm.blemish,
@@ -844,9 +865,15 @@ export default {
                     ) {
                         throw new Error('JSON 必须包含 product.goodsId 和 options 数组');
                     }
-                    this.$confirm('导入将覆盖该商品现有配件，是否继续？', '导入确认', {
-                        type: 'warning',
-                    })
+                    this.$confirm(
+                        payload.replaceOptions === false
+                            ? '导入会更新模板及同代码材料, 保留其他材料和已有库存; 候选须核对后单独启用。是否继续？'
+                            : '导入将停用未出现的旧配件并更新同代码材料, 保留已有库存。是否继续？',
+                        '导入确认',
+                        {
+                            type: 'warning',
+                        }
+                    )
                         .then(() =>
                             this.writeConfiguration(
                                 '/custom/configuration/import',
@@ -883,53 +910,44 @@ export default {
             };
             reader.readAsText(file.raw, 'UTF-8');
         },
-        // 下载配件导入模板 / Downloads the component import template.
-        downloadTemplate() {
-            if (!this.selectedGoodsId) {
-                return this.$message.warning('请先选择实际商城商品再下载模板');
+        /** 下载单一客户目录的完整停用模板, 商品切换或离页后不触发旧下载. */
+        async downloadTemplate() {
+            if (!this.selectedGoodsId || this.catalogDownloading) {
+                return;
             }
-            const payload = {
-                product: Object.assign(createProduct(), {
-                    goodsId: this.selectedGoodsId,
-                    enabled: 0,
-                    requiredComponentTypes: 'pearl,chain,clasp',
-                }),
-                replaceOptions: true,
-                options: [
-                    Object.assign(createOption(), {
-                        componentType: 'pearl',
-                        optionCode: 'sample-pearl',
-                        name: '示例珍珠, 请替换实物规格',
-                        materialParams: JSON.stringify({
-                            stockQuantity: 1,
-                            stockUnit: '颗',
-                            shape: '近正圆',
-                            luster: '极光',
-                            blemish: '微瑕',
-                        }),
-                    }),
-                    Object.assign(createOption(), {
-                        componentType: 'chain',
-                        optionCode: 'sample-chain',
-                        name: '示例链材, 请填写材质和用量',
-                        materialParams: JSON.stringify({stockQuantity: 400, stockUnit: '毫米'}),
-                    }),
-                    Object.assign(createOption(), {
-                        componentType: 'clasp',
-                        optionCode: 'sample-clasp',
-                        name: '示例尾扣, 请填写实物规格',
-                        materialParams: JSON.stringify({stockQuantity: 1, stockUnit: '件'}),
-                    }),
-                ],
-            };
-            const blob = new Blob([JSON.stringify(payload, null, 2)], {
-                type: 'application/json;charset=utf-8',
-            });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '定制商品配件导入模板.json';
-            link.click();
-            URL.revokeObjectURL(link.href);
+            const context = this.configurationContext();
+            this.catalogDownloading = true;
+            try {
+                const {data} = await this.$http({
+                    url: '/custom/configuration/catalog-template',
+                    method: 'get',
+                    params: {goodsId: this.selectedGoodsId},
+                });
+                if (!this.isConfigurationCurrent(context)) {
+                    return;
+                }
+                if (!data || data.code !== 0 || !Array.isArray(data.data?.options)) {
+                    throw new Error('客户候选目录读取失败');
+                }
+                const blob = new Blob([JSON.stringify(data.data, null, 4)], {
+                    type: 'application/json;charset=utf-8',
+                });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                try {
+                    link.href = url;
+                    link.download = '客户材料候选导入模板.json';
+                    link.click();
+                } finally {
+                    URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                if (this.isConfigurationCurrent(context)) {
+                    this.$message.error(error.message || '客户候选目录读取失败, 请重试');
+                }
+            } finally {
+                this.catalogDownloading = false;
+            }
         },
     },
 };

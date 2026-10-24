@@ -2,7 +2,7 @@
     <view class="home-hero">
         <view class="brand-kicker">CARAT CRAFT · 克拉匠造</view>
         <view class="hero-title">找到一件属于你的<text>珠宝作品</text></view>
-        <view class="hero-copy">浏览商家成品，或从材质、长度、款式和珍珠开始自由设计。</view>
+        <view class="hero-copy">浏览商家成品，或从珍珠、尾扣、配饰和链条开始自由设计。</view>
         <view class="search-box">
             <view class="search-symbol"></view>
             <input class="search-input" value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="submitSearch"
@@ -43,7 +43,7 @@
         <view class="atelier-content">
             <text class="atelier-kicker">DIY ATELIER</text>
             <text class="atelier-title">进入珠宝设计工坊</text>
-            <text class="atelier-copy">组合材质、尺寸、款式与珍珠，价格随选择实时更新。</text>
+            <text class="atelier-copy">排列珍珠、尾扣、配饰与链条，价格随选择实时更新。</text>
         </view>
         <view class="atelier-arrow">→</view>
     </navigator>

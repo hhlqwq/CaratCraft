@@ -94,6 +94,55 @@ class FinishedLengthRulesTest {
                                 RULES, request("350.0001", "450"), arrangement("200", "240")));
     }
 
+    /** 四类中的配饰跨度必须有实测依据, 不再按旧款式类别静默忽略. */
+    @Test
+    void accessorySpanIsMeasuredAndUnknownSpanPreventsCheckout() {
+        var measured =
+                Map.<String, Object>of(
+                        "arrangement",
+                        List.of(
+                                item("pearl", "200"),
+                                item("chain", "235"),
+                                item("accessory", "5")));
+        assertEquals(
+                true,
+                FinishedLengthRules.evaluate(RULES, request("350", "450"), measured).get("ready"));
+        var unknown =
+                Map.<String, Object>of(
+                        "arrangement",
+                        List.of(
+                                item("pearl", "200"),
+                                item("chain", "235"),
+                                item("accessory", null)));
+        assertEquals(
+                false,
+                FinishedLengthRules.evaluate(RULES, request("350", "450"), unknown).get("ready"));
+    }
+
+    /** 悬挂配饰不占周长, 未确认位置则阻止生产, 不根据名称推断. */
+    @Test
+    void hangingAccessoryRequiresExplicitLengthRole() {
+        var accessory = new LinkedHashMap<String, Object>();
+        accessory.put("componentType", "accessory");
+        accessory.put("lengthRole", "HANGING");
+        var arrangement =
+                Map.<String, Object>of(
+                        "arrangement",
+                        List.of(item("pearl", "200"), item("chain", "240"), accessory));
+        assertEquals(
+                true,
+                FinishedLengthRules.evaluate(RULES, request("350", "450"), arrangement)
+                        .get("ready"));
+        accessory.remove("lengthRole");
+        assertEquals(
+                false,
+                FinishedLengthRules.evaluate(RULES, request("350", "450"), arrangement)
+                        .get("ready"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> ComponentRules.parse("{\"lengthRole\":\"guess\"}"));
+    }
+
     /** 创建实测输入, 不使用任何AI估计字段. */
     private CustomQuoteRequest request(String neck, String target) {
         var request = new CustomQuoteRequest();
@@ -106,11 +155,7 @@ class FinishedLengthRulesTest {
     private Map<String, Object> arrangement(String pearl, String chain) {
         return Map.of(
                 "arrangement",
-                List.of(
-                        item("pearl", pearl),
-                        item("chain", chain),
-                        item("clasp", null),
-                        item("pendant", null)));
+                List.of(item("pearl", pearl), item("chain", chain), item("clasp", null)));
     }
 
     /** 未知尺寸使用null保留原义, 不转换为零. */
@@ -118,6 +163,9 @@ class FinishedLengthRulesTest {
         var item = new LinkedHashMap<String, Object>();
         item.put("componentType", type);
         item.put("sizeMm", size == null ? null : new BigDecimal(size));
+        if ("accessory".equals(type)) {
+            item.put("lengthRole", "INLINE");
+        }
         return item;
     }
 }

@@ -60,6 +60,13 @@ public record ComponentRules(
                     throw new IllegalArgumentException();
                 }
             }
+            JsonNode role = root.path("lengthRole");
+            if (!role.isMissingNode()
+                    && !role.isNull()
+                    && (!role.isTextual()
+                            || !List.of("INLINE", "HANGING").contains(role.asText()))) {
+                throw new IllegalArgumentException();
+            }
             return new ComponentRules(
                     quantity,
                     unit,
@@ -104,6 +111,7 @@ public record ComponentRules(
                     || !value.asText().matches("[A-Za-z0-9_-]{1,32}:[A-Za-z0-9_.-]{1,64}")) {
                 throw new IllegalArgumentException();
             }
+            MaterialTypes.require(value.asText().split(":", 2)[0]);
             result.add(value.asText());
         }
         return Set.copyOf(result);
