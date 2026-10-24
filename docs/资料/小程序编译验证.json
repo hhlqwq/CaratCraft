@@ -23,5 +23,14 @@
         "failures": 0,
         "skipped": 0
     },
-    "cliServicePort": "仍关闭; 本轮通过官方核心编译器及现有IDE重新编译, 未更改工具安全设置"
+    "cliServicePort": "仍关闭; 本轮通过官方核心编译器及现有IDE重新编译, 未更改工具安全设置",
+    "continuationVerification": {
+        "officialWxml": 43,
+        "officialWxss": 48,
+        "javascriptSyntax": 58,
+        "passed": true,
+        "temporaryFilesCleaned": true,
+        "ideWarningInspection": "窗口截图接口两次超时且可访问树无调试器内容; 未重新取得警告明细, 已请求用户提供文字",
+        "uploaded": false
+    }
 }

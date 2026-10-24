@@ -389,11 +389,21 @@
         "adminBrowserFixture": "passed",
         "artifactLicense": "passed, 256 backend / 28 frontend inventory / 25 actual npm / 160 assets / 13 source bundles",
         "deployed": false,
-        "currentRoundVerificationImagesBuilt": false,
+        "currentRoundVerificationImagesBuilt": true,
         "remaining": [
             "正式商家摄影、价格库存、工艺、客服及协议资料需维护",
             "5条IDE警告未逐条核实; 真机、微信登录、真实支付退款及正式AI另行验收",
             "客户联网从零Docker依赖下载构建未重跑"
-        ]
+        ],
+        "verificationImages": {
+            "backend": "carat-craft-backend:verified-20261024-materials",
+            "adminUi": "carat-craft-admin-ui:verified-20261024-materials",
+            "evidence": "交付镜像验证.json",
+            "imageInternalJarHttpChecks": 9,
+            "staticResourcesChecked": 19,
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
+        }
     }
 }
