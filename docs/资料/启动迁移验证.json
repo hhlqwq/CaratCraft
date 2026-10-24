@@ -1,0 +1,35 @@
+{
+    "date": "2026-10-24",
+    "previousGap": "启动只检查V20261022_01, 未覆盖后续迁移",
+    "expectedMigrations": "database/migrations/V*.sql",
+    "allVersionsAndSha256Checked": true,
+    "missingVersion": "仅适用未发布开发库一次恢复",
+    "unknownDuplicateOrShaConflict": "停止, 不自动重建数据",
+    "powershellVersions": [
+        "5.1",
+        "7"
+    ],
+    "powershellSuitesPerVersion": 5,
+    "python": {
+        "tests": 35,
+        "failures": 0,
+        "skipped": 0
+    },
+    "bashSyntheticCases": [
+        "完整",
+        "缺旧版",
+        "缺材料版",
+        "缺未来新增版",
+        "空台账",
+        "SHA冲突",
+        "未知版",
+        "重复版"
+    ],
+    "liveDatabaseReadOnlyChecks": {
+        "powershell": true,
+        "bash": true,
+        "versions": 15
+    },
+    "businessServicesRestartedThisChange": false,
+    "dependenciesDownloaded": false
+}

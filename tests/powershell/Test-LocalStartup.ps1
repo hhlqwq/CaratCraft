@@ -12,6 +12,7 @@ $script:Calls = @()
 $global:LocalStartupDockerCalls = New-Object 'System.Collections.Generic.List[string]'
 $EnvFile = 'unused.env'
 $ComposeFile = 'unused.yml'
+$ProjectRoot = $Root
 $env:BUILD_REVISION = 'startup-test'
 
 # 用隔离替身提供Docker响应, 不连接业务容器或修改数据库.
@@ -31,8 +32,14 @@ function docker {
         'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION'
     } elseif ($Sql.Trim() -eq 'SELECT 1;') {
         '1'
-    } elseif ($Sql -match 'SELECT COUNT') {
-        if ($script:Mode -eq 'old-schema') { '0' } else { '1' }
+    } elseif ($Sql -match 'SELECT version,sha256') {
+        foreach ($File in (Get-ChildItem -LiteralPath (Join-Path $Root 'database/migrations') -Filter 'V*.sql' -File)) {
+            if ($script:Mode -eq 'old-schema' -and $File.Name -eq 'V20261024_01_material_catalog.sql') { continue }
+            $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($script:Mode -eq 'hash-conflict') { $Hash = '0' * 64 }
+            $File.Name + "`t" + $Hash
+        }
+        if ($script:Mode -eq 'unknown-version') { "V20990101_01_unknown.sql`t$('0' * 64)" }
     }
 }
 
@@ -67,7 +74,11 @@ if ($script:Calls[-1] -notmatch 'SELECT TABLE_NAME') { throw '缺基础表后仍
 $script:Mode = 'query-error'
 Assert-Rejected { Assert-DatabaseReady } 'MySQL'
 $script:Mode = 'old-schema'
-Assert-Rejected { Assert-DatabaseReady } 'V20261022_01'
+Assert-Rejected { Assert-DatabaseReady } 'V20261024_01'
+$script:Mode = 'hash-conflict'
+Assert-Rejected { Assert-DatabaseReady } 'SHA256'
+$script:Mode = 'unknown-version'
+Assert-Rejected { Assert-DatabaseReady } '未知'
 
 # 替换外部副作用, 检查完整启动阶段的先后顺序和失败退出.
 function Invoke-Compose {

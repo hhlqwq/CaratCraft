@@ -204,7 +204,34 @@ function Invoke-DatabaseQuery {
     return $Text
 }
 
-# 在启动应用前检查基础表和迁移版本, 不以MySQL可连接代替初始化完成.
+# 核对全部迁移及原始SHA, 缺版本触发开发恢复而冲突直接停止.
+function Assert-DatabaseMigrations {
+    $Files = @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'database/migrations') -Filter 'V*.sql' -File)
+    if (-not $Files.Count) { throw '本地迁移文件为空, 停止启动。' }
+    $Expected = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+    foreach ($File in $Files) {
+        if ($File.Name -cnotmatch '^V[0-9]{8}_[0-9]+_[a-z0-9_]+\.sql$' -or
+            ($File.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw "迁移文件名称或类型不合法: $($File.Name)"
+        }
+        $Expected.Add($File.Name, (Get-FileHash -LiteralPath $File.FullName -Algorithm SHA256).Hash.ToLowerInvariant())
+    }
+    $Recorded = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+    $Rows = @(Invoke-DatabaseQuery -Query 'SELECT version,sha256 FROM CC_SCHEMA_MIGRATION ORDER BY version;')
+    foreach ($Row in $Rows) {
+        $Parts = ([string]$Row).Split("`t")
+        if ($Parts.Count -ne 2 -or -not $Expected.ContainsKey($Parts[0]) -or
+            $Recorded.ContainsKey($Parts[0])) { throw '迁移台账包含未知、重复或格式异常的版本, 停止启动。' }
+        if ($Parts[1] -cne $Expected[$Parts[0]]) { throw "迁移SHA256冲突: $($Parts[0]), 停止启动。" }
+        $Recorded.Add($Parts[0], $Parts[1])
+    }
+    $Missing = @($Files | Where-Object { -not $Recorded.ContainsKey($_.Name) })
+    if ($Missing.Count) {
+        Throw-DevelopmentDataRebuild "本地开发库缺少迁移: $(($Missing.Name | Sort-Object) -join ', ')。"
+    }
+}
+
+# 在启动应用前检查基础表和全部迁移, 不以MySQL可连接代替初始化完成.
 function Assert-DatabaseReady {
     $Query = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');"
     $Tables = Invoke-DatabaseQuery -Query $Query
@@ -214,10 +241,7 @@ function Assert-DatabaseReady {
     if ($Missing) {
         Throw-DevelopmentDataRebuild "本地开发库结构不是当前版本, 缺少: $($Missing -join ', ')。"
     }
-    $Version = Invoke-DatabaseQuery -Query "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION WHERE version='V20261022_01_sku_contract.sql';"
-    if ($LASTEXITCODE -ne 0 -or ($Version -join '').Trim() -ne '1') {
-        Throw-DevelopmentDataRebuild '本地开发库尚未包含当前V20261022_01结构。'
-    }
+    Assert-DatabaseMigrations
     $Application = Invoke-DatabaseQuery -Query 'SELECT 1;' -ApplicationUser
     if (($Application -join '').Trim() -ne '1') {
         throw 'MySQL应用账号连通性检查未返回预期结果。'
