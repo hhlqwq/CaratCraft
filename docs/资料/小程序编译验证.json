@@ -1,0 +1,26 @@
+{
+    "pages": 40,
+    "wxml": 43,
+    "wxss": 48,
+    "javascriptSyntax": 58,
+    "officialWxmlWxssCompilePassed": true,
+    "scope": "已有微信开发者工具官方WCC/WCSC编译, JS为Node语法检查; 不替代IDE运行、真机、微信登录或支付验收",
+    "temporaryFilesCleaned": true,
+    "uploaded": false,
+    "date": "2026-10-24",
+    "ideVersion": "Stable 2.02.2608060",
+    "ideRecompile": {
+        "method": "现有开发者工具Ctrl+B重新编译并读取窗口可访问文本",
+        "page": "pages/index/index",
+        "rendered": true,
+        "errors": 0,
+        "warnings": 5,
+        "warningDetailsVerified": false
+    },
+    "regressionTests": {
+        "tests": 2,
+        "failures": 0,
+        "skipped": 0
+    },
+    "cliServicePort": "仍关闭; 本轮通过官方核心编译器及现有IDE重新编译, 未更改工具安全设置"
+}

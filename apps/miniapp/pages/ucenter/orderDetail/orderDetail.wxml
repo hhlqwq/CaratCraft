@@ -55,7 +55,7 @@
 
     <view class="customization" wx:if="{{legalDocuments.length}}">
         <view class="customization-text">下单时已确认的协议版本</view>
-        <navigator wx:for="{{legalDocuments}}" wx:key="kind" url="/pages/ucenter/legal/index?kind={{item.kind}}&amp;version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
+        <navigator wx:for="{{legalDocuments}}" wx:key="kind" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
     </view>
     <view class="order-bottom">
         <view class="total" wx:if="{{refund.label}}">售后进度: {{refund.label}}</view>
