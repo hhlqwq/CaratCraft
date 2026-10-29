@@ -190,5 +190,50 @@
             "final_delivery_build_and_license_gate",
             "real_WeChat_payment_refund_AI_and_production_acceptance"
         ]
+    },
+    "v1Reference": {
+        "date": "2026-10-29",
+        "java": {
+            "tests": 198,
+            "passed": 198,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 162,
+                "admin": 3,
+                "api": 16
+            }
+        },
+        "node": {
+            "tests": 143,
+            "passed": 143,
+            "failed": 0,
+            "skipped": 0
+        },
+        "pythonFixtureGuards": {
+            "tests": 3,
+            "passed": 3
+        },
+        "format": {
+            "javaFiles": 644,
+            "frontendFiles": 339,
+            "passed": true
+        },
+        "aiRuntimeRemoved": true,
+        "ruleVersion": "necklace-reference-v1",
+        "dependenciesDownloaded": false,
+        "businessServicesUpdated": false,
+        "realHttp": "pending",
+        "package": "pending",
+        "productionAcceptance": false,
+        "pythonFullSuite": {
+            "tests": 25,
+            "passed": 14,
+            "errors": 8,
+            "skipped": 3,
+            "errorCause": "Sandbox denied writes to preconfigured external D:/tmp/hailongcodex directories; no permissions expanded"
+        }
     }
 }

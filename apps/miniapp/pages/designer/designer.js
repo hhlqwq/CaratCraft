@@ -1,6 +1,5 @@
 const util = require('../../utils/util.js');
 const api = require('../../config/api.js');
-const aiRecommendation = require('../../services/ai-recommendation.js');
 const arrangement = require('../../services/necklace-arrangement.js');
 
 const DEFAULT_GOODS_ID = 1999105;
@@ -35,199 +34,113 @@ function initialDesignerState() {
         loadingConfig: false,
         configError: '',
         showOptional: false,
-        aiStatus: {},
-        aiDiagnostics: {},
-        aiStatusError: '',
-        aiHeight: '',
-        aiWeight: '',
-        aiNeck: '',
-        aiPreferences: ['贴颈', '锁骨位置', '稍长'],
-        aiPreferenceIndex: 1,
-        aiConsent: false,
-        aiLoading: false,
-        aiError: '',
-        aiResult: null,
+        referencePreferences: ['较短', '中等', '较长'],
+        referencePreferenceIndex: 1,
+        referenceLoading: false,
+        referenceError: '',
+        referenceResult: null,
     };
 }
 
 Page({
     data: initialDesignerState(),
 
-    /** 获取功能开关与数据用途, 配置缺失不影响手动设计. */
-    loadAiStatus() {
-        return util
-            .request(api.AiRecommendationStatus, {}, 'GET')
-            .then((res) => {
-                if (this._unloaded) {
-                    return;
-                }
-                if (res.code !== 0) {
-                    throw new Error('AI功能状态加载失败');
-                }
-                const unavailable = aiRecommendation.availability();
-                const diagnostics =
-                    typeof aiRecommendation.diagnostics === 'function'
-                        ? aiRecommendation.diagnostics()
-                        : {};
-                this.setData({aiDiagnostics: diagnostics});
-                this.setData({
-                    aiStatus: Object.assign({}, res.data, {
-                        enabled: res.data.enabled === true && !unavailable,
-                        unavailableReason: unavailable,
-                    }),
-                    aiStatusError: '',
-                });
-            })
-            .catch(() => {
-                if (!this._unloaded) {
-                    this.setData({aiStatusError: 'AI功能状态加载失败, 可重试或手动设计'});
-                }
-            });
-    },
-
-    /** 更新身体参数时立即废弃旧建议, 不将身体参数写入本地存储. */
-    changeAiInput(event) {
-        const field = event.currentTarget.dataset.field;
-        if (['aiHeight', 'aiWeight', 'aiNeck'].indexOf(field) < 0) {
+    /** 偏好仅映射固定比较组, 不将用户文本拼成提示词或公式. */
+    changeReferencePreference(event) {
+        const index = Number(event.detail.value);
+        if (!Number.isInteger(index) || index < 0 || index > 2) {
             return;
         }
-        this.invalidateAi();
-        const values = {};
-        values[field] = event.detail.value;
-        this.setData(values);
+        this.invalidateReference();
+        this.setData({referencePreferenceIndex: index});
     },
 
-    /** 使用固定偏好选项, 不向模型发送任意提示词. */
-    changeAiPreference(event) {
-        this.invalidateAi();
-        this.setData({aiPreferenceIndex: Number(event.detail.value)});
+    /** 参数、商品或账号变化时废弃参考, 保留用户正在编辑的设计. */
+    invalidateReference() {
+        this._referenceSeq = (this._referenceSeq || 0) + 1;
+        this.setData({referenceResult: null, referenceError: '', referenceLoading: false});
     },
 
-    /** 同意状态变更时废弃在途结果, 不默认勾选数据提交同意. */
-    changeAiConsent(event) {
-        this.invalidateAi();
-        this.setData({aiConsent: event.detail.value.indexOf('agree') >= 0});
-    },
-
-    /** 递增请求序号, 阻止参数修改或切换商品后迟到的建议覆盖页面. */
-    invalidateAi() {
-        this._aiSeq = (this._aiSeq || 0) + 1;
-        this.setData({aiResult: null, aiError: '', aiLoading: false});
-    },
-
-    /** 用户主动同意后请求AI建议, 失败保留手动设计能力. */
-    requestAiRecommendation() {
-        if (this.data.aiLoading) {
-            return Promise.resolve();
-        }
-        if (!this.data.aiConsent) {
-            this.setData({aiError: '请先阅读并勾选AI推荐的数据使用说明'});
-            return Promise.resolve();
-        }
-        const height = Number(this.data.aiHeight);
-        const weight = Number(this.data.aiWeight);
-        const neck = this.data.aiNeck === '' ? null : Number(this.data.aiNeck);
+    /** 请求第一方规则参考, 不发送身高体重, 不自动采用长度或材料. */
+    requestReference() {
         if (
-            !isFinite(height) ||
-            height < 80 ||
-            height > 250 ||
-            !isFinite(weight) ||
-            weight < 20 ||
-            weight > 300 ||
-            (neck !== null && (!isFinite(neck) || neck < 20 || neck > 80))
+            this.data.referenceLoading ||
+            this.data.loadingConfig ||
+            this.data.saving ||
+            this.data.configError
         ) {
-            this.setData({aiError: '请填写有效的身高、体重和选填颈围'});
             return Promise.resolve();
         }
-
-        const seq = (this._aiSeq = (this._aiSeq || 0) + 1);
+        const text = String(this.data.neckCircumferenceMm).trim();
+        const neck = text === '' ? null : Number(text);
+        if (
+            neck !== null &&
+            (!/^\d+(\.\d)?$/.test(text) || !Number.isFinite(neck) || neck < 200 || neck > 800)
+        ) {
+            this.setData({referenceError: '实测颈围须为200到800mm, 最多1位小数; 未知请留空'});
+            return Promise.resolve();
+        }
+        const seq = (this._referenceSeq = (this._referenceSeq || 0) + 1);
         const goodsId = this.data.goodsId;
-        this.setData({aiLoading: true, aiError: '', aiResult: null});
-        return aiRecommendation
-            .recommend(
+        const token = wx.getStorageSync('token') || '';
+        const current = () =>
+            seq === this._referenceSeq &&
+            goodsId === this.data.goodsId &&
+            !this._unloaded &&
+            token === (wx.getStorageSync('token') || '');
+        this.setData({referenceLoading: true, referenceError: '', referenceResult: null});
+        return util
+            .request(
+                api.CustomizationReference,
                 {
-                    goodsId: goodsId,
-                    heightCm: height,
-                    weightKg: weight,
-                    neckCm: neck,
-                    preference: this.data.aiPreferences[this.data.aiPreferenceIndex],
-                    consent: true,
+                    goodsId,
+                    neckCircumferenceMm: neck,
+                    preference: ['SHORT', 'MEDIUM', 'LONG'][this.data.referencePreferenceIndex],
                 },
-                () => {
-                    return seq === this._aiSeq && goodsId === this.data.goodsId && !this._unloaded;
-                }
+                'POST',
+                'application/json'
             )
             .then((res) => {
-                if (seq !== this._aiSeq || goodsId !== this.data.goodsId || this._unloaded) {
+                if (!current()) {
                     return;
                 }
-                if (res.code !== 0) {
-                    throw new Error(res.msg || 'AI推荐失败');
-                }
-                this.setData({aiResult: res.data, aiLoading: false});
-            })
-            .catch((error) => {
-                if (seq !== this._aiSeq || this._unloaded) {
-                    return;
+                if (
+                    res.code !== 0 ||
+                    !res.data ||
+                    res.data.goodsId !== goodsId ||
+                    !Array.isArray(res.data.lengthsMm)
+                ) {
+                    throw new Error(res.msg || '参考结果不可用, 请重试');
                 }
                 this.setData({
-                    aiLoading: false,
-                    aiError: error.message || 'AI暂不可用, 可继续手动设计',
+                    referenceLoading: false,
+                    referenceResult: {
+                        ...res.data,
+                        lengthsLabel: res.data.lengthsMm
+                            .map((length) => Number(length) / 10)
+                            .join(' / '),
+                        materialNames: (res.data.materials || [])
+                            .slice(0, 12)
+                            .map((material) => material.name)
+                            .join('、'),
+                        materialCount: (res.data.materials || []).length,
+                    },
                 });
-            });
-    },
-
-    /** 采用仍属于当前商品的材料建议, 成品长度由商家选项确认, 重新获取可信报价. */
-    applyAiRecommendation() {
-        const result = this.data.aiResult;
-        if (
-            !result ||
-            result.goodsId !== this.data.goodsId ||
-            this.data.loadingConfig ||
-            this.data.saving
-        ) {
-            return;
-        }
-        const selected = result.optionIds.map(Number);
-        const allIds = [];
-        const valid = this.data.componentGroups.every(function (group) {
-            let count = 0;
-            group.options.forEach(function (option) {
-                allIds.push(Number(option.id));
-                if (selected.indexOf(Number(option.id)) >= 0) {
-                    count++;
+            })
+            .catch((error) => {
+                if (current()) {
+                    this.setData({
+                        referenceLoading: false,
+                        referenceError: error.message || '参考暂不可用, 可继续手动设计',
+                    });
                 }
             });
-            return count <= 1 && (!group.required || count === 1);
-        });
-        if (
-            !valid ||
-            selected.some(function (id) {
-                return allIds.indexOf(id) < 0;
-            })
-        ) {
-            this.setData({aiError: '材料配置已变化, 请重新推荐', aiResult: null});
-            return;
-        }
-
-        return new Promise((resolve) => {
-            wx.showModal({
-                title: '采用材料建议',
-                content: '将用推荐材料替换当前排列, 之后可撤回。AI建议不会自动确定每种材料的颗数。',
-                success: (res) => {
-                    resolve(res.confirm ? this.updateArrangement(selected, true) : undefined);
-                },
-                fail() {
-                    resolve();
-                },
-            });
-        });
     },
 
     /** 加载定制商品配置 / Loads custom product configuration. */
     loadConfig(restoredConfiguration) {
         this._snapshotSeq = (this._snapshotSeq || 0) + 1;
-        this.invalidateAi();
+        this.invalidateReference();
 
         const configSeq = (this._configSeq = (this._configSeq || 0) + 1);
         const requestedGoodsId = this.data.goodsId;
@@ -664,7 +577,7 @@ Page({
         }, 300);
     },
 
-    /** 实测输入和AI建议分开保存, 每次改动立即废弃旧报价. */
+    /** 实测输入仅由用户填写, 每次改动废弃旧参考及报价. */
     changeSizing(event) {
         if (this.data.saving) {
             return;
@@ -673,6 +586,7 @@ Page({
         if (!['neckCircumferenceMm', 'targetLengthMm'].includes(field)) {
             return;
         }
+        this.invalidateReference();
         this.setData({[field]: event.detail.value});
         this.refreshQuote();
     },
@@ -829,7 +743,6 @@ Page({
     onLoad(options) {
         this._unloaded = false;
         this._sessionToken = wx.getStorageSync('token') || '';
-        this.loadAiStatus();
         let goodsId = Number((options && options.goodsId) || 0);
         let snapshotId = Number((options && options.snapshotId) || 0);
         // tabBar 入口不带参数, 优先取商品页传入的 ID, 再回退默认演示商品 /
@@ -857,7 +770,7 @@ Page({
     onShow() {
         const token = wx.getStorageSync('token') || '';
         if (this._sessionToken !== undefined && token !== this._sessionToken) {
-            this.invalidateAi();
+            this.invalidateReference();
             this._configSeq = (this._configSeq || 0) + 1;
             this._snapshotSeq = (this._snapshotSeq || 0) + 1;
             this._quoteSeq = (this._quoteSeq || 0) + 1;
@@ -866,7 +779,6 @@ Page({
                 clearTimeout(this._engravingTimer);
             }
             this.setData({...initialDesignerState(), goodsId: DEFAULT_GOODS_ID});
-            this.loadAiStatus();
             this.loadConfig();
         }
         this._sessionToken = token;
@@ -895,7 +807,7 @@ Page({
     /** 页面卸载时使未完成请求失效并清理防抖计时器. */
     onUnload() {
         this._unloaded = true;
-        this.invalidateAi();
+        this.invalidateReference();
         this._configSeq = (this._configSeq || 0) + 1;
         this._snapshotSeq = (this._snapshotSeq || 0) + 1;
         this._quoteSeq = (this._quoteSeq || 0) + 1;

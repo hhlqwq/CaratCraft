@@ -1,0 +1,23 @@
+{
+    "ruleVersion": "necklace-reference-v1",
+    "reviewedAt": "2026-10-28",
+    "source": {
+        "title": "Tiffany官方项链尺寸指南",
+        "url": "https://www.tiffany.com/client-services/size-guide/necklaces-pendants-size.html",
+        "lengthsCm": [
+            "40.50",
+            "45.75",
+            "50.75",
+            "61.00"
+        ]
+    },
+    "unitConversion": "厘米乘10得到毫米, 使用来源厘米表值",
+    "productRule": "SHORT/MEDIUM/LONG是本项目相邻档位比较分组, 不是来源提供的个体合身公式",
+    "userData": "可选实测颈围和佩戴偏好, 不用身高体重推算颈围",
+    "restrictions": [
+        "参考不自动写入生产目标尺寸",
+        "无交集返回空结果",
+        "材料只核对单项用量与库存, 不承诺组合兼容",
+        "不调用云AI或保存参考请求的身体参数"
+    ]
+}

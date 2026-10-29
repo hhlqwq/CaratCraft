@@ -5,41 +5,26 @@
         <view class="intro-description">从材料库添加珍珠、尾扣、配饰和链条, 点击排列中的材料进行编辑。</view>
     </view>
 
-    <view class="ai-card">
-        <view class="ai-title">AI 尺寸与搭配推荐</view>
-        <view class="ai-note">告诉AI你的佩戴偏好, 获得长度与材料建议, 也可以继续手动设计。</view>
-        <view class="ai-note">仅使用赠送AI额度, 额度不足时停止推荐, 不自动切换付费通道。</view>
-        <view wx:if="{{aiStatusError}}" class="config-state error">
-            {{aiStatusError}}<button size="mini" bindtap="loadAiStatus">重试</button>
+    <view class="reference-card">
+        <view class="reference-title">尺寸与材料参考</view>
+        <view class="reference-note">按公开常见长度、选填实测颈围及商家配置筛选, 不通过身高体重推算颈围。</view>
+        <view class="reference-fields">
+            <label>实测颈围 mm<input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="选填, 未知请留空" disabled="{{saving}}" /></label>
         </view>
-        <view wx:elif="{{!aiStatus.enabled}}" class="ai-note">{{aiStatus.unavailableReason || '正在读取微信AI功能状态…'}}</view>
-        <block wx:else>
-            <view class="ai-fields">
-                <label>身高 cm<input type="digit" maxlength="5" value="{{aiHeight}}" data-field="aiHeight" bindinput="changeAiInput" placeholder="请输入" /></label>
-                <label>体重 kg<input type="digit" maxlength="5" value="{{aiWeight}}" data-field="aiWeight" bindinput="changeAiInput" placeholder="请输入" /></label>
-                <label>实测颈围 cm<input type="digit" maxlength="4" value="{{aiNeck}}" data-field="aiNeck" bindinput="changeAiInput" placeholder="选填, 更有依据" /></label>
-            </view>
-            <picker range="{{aiPreferences}}" value="{{aiPreferenceIndex}}" bindchange="changeAiPreference">
-                <view class="ai-preference">佩戴偏好: {{aiPreferences[aiPreferenceIndex]}} <text>更改 ›</text></view>
-            </picker>
-            <view class="ai-note">{{aiStatus.privacyNotice}}</view>
-            <checkbox-group bindchange="changeAiConsent">
-                <label class="ai-consent"><checkbox value="agree" checked="{{aiConsent}}" color="#315c4b" />我已阅读并同意以上数据使用说明</label>
-            </checkbox-group>
-            <button class="ai-action" bindtap="requestAiRecommendation" loading="{{aiLoading}}"
-                            disabled="{{aiLoading || loadingConfig || configError || !aiConsent}}">{{aiLoading ? 'AI正在生成建议' : (aiResult ? '重新推荐' : '获取AI推荐')}}</button>
-            <view wx:if="{{aiError}}" class="config-state error">{{aiError}}</view>
-            <view wx:if="{{aiResult}}" class="ai-result">
-                <view class="ai-length">建议成品长度 {{aiResult.lengthCm}} cm</view>
-                <view class="ai-note">参考范围 {{aiResult.rangeMinCm}}–{{aiResult.rangeMaxCm}} cm</view>
-                <view class="ai-reason">{{aiResult.reason}}</view>
-                <view class="ai-note">推荐材料: {{aiResult.optionNames}}</view>
-                <view class="ai-note">{{aiResult.notice}}</view>
-                <view class="ai-note">{{aiResult.modelNotice}}</view>
-                <view class="ai-note">{{aiResult.lengthNotice}}</view>
-                <button class="ai-action" bindtap="applyAiRecommendation" disabled="{{saving || loadingConfig || aiLoading}}">采用推荐搭配</button>
-            </view>
-        </block>
+        <picker range="{{referencePreferences}}" value="{{referencePreferenceIndex}}" bindchange="changeReferencePreference" disabled="{{saving}}">
+            <view class="reference-preference">长度偏好: {{referencePreferences[referencePreferenceIndex]}} <text>更改 ›</text></view>
+        </picker>
+        <view class="reference-note">参考请求不另存身体画像, 不向第三方发送数据。保存设计时, 实测颈围仍随本人草稿和订单保存, 用于制作。</view>
+        <button class="reference-action" bindtap="requestReference" loading="{{referenceLoading}}" disabled="{{referenceLoading || loadingConfig || configError || saving}}">{{referenceLoading ? '正在计算参考' : '查看规则参考'}}</button>
+        <view wx:if="{{referenceError}}" class="config-state error">{{referenceError}}</view>
+        <view wx:if="{{referenceResult}}" class="reference-result">
+            <view class="reference-length">{{referenceResult.lengthsLabel ? '可比较长度 ' + referenceResult.lengthsLabel + ' cm' : '当前条件下无可比较长度'}}</view>
+            <view class="reference-reason">{{referenceResult.reason}}</view>
+            <view class="reference-note">{{referenceResult.notice}}</view>
+            <view class="reference-note">单项库存可用材料 {{referenceResult.materialCount}} 项: {{referenceResult.materialNames || '暂无可用材料'}}{{referenceResult.materialCount > 12 ? '（列出前12项, 请在材料库查看完整选项）' : ''}}</view>
+            <view class="reference-note">请自行选择材料和确认目标成品长度, 参考不会自动修改排列或生产尺寸。</view>
+            <view class="reference-note" wx:for="{{referenceResult.sources}}" wx:key="url"><text selectable="true">来源: {{item.title}}（核验 {{item.reviewedAt}}） {{item.url}}</text></view>
+        </view>
     </view>
 
     <view class="preview-card">
@@ -166,18 +151,10 @@
 
     <view class="section sizing-section">
         <view class="section-title">实测颈围与目标成品长度</view>
-        <view class="section-description">请使用毫米填写实测颈围, AI建议不作为实测数据. 尺寸未齐可先保存草稿.</view>
-        <input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="实测颈围(mm)" disabled="{{saving}}" />
+        <view class="section-description">请使用毫米填写实测颈围, 参考长度不作为实测数据. 尺寸未齐可先保存草稿.</view>
         <input type="digit" value="{{targetLengthMm}}" data-field="targetLengthMm" bindinput="changeSizing" placeholder="目标成品长度(mm)" disabled="{{saving}}" />
         <view wx:if="{{quote.sizing}}">{{quote.sizing.notice}}</view>
         <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}">商家工艺估算成品长度: {{quote.sizing.estimatedFinishedLengthMm}}mm</view>
-    </view>
-    <view class="section ai-configuration">
-        <view class="section-title">AI配置检查</view>
-        <view>云环境配置: {{aiDiagnostics.configured ? '已填写' : '待商家配置'}}</view>
-        <view>当前微信能力: {{aiDiagnostics.supported ? '支持' : '不可用'}}</view>
-        <view>{{aiDiagnostics.quotaNotice}}</view>
-        <button size="mini" bindtap="loadAiStatus">重新检查</button>
     </view>
     <view class="bottom-bar">
         <button class="secondary" bindtap="saveDraft" loading="{{saving}}"

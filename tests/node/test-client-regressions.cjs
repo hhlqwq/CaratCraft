@@ -246,6 +246,7 @@ test('材料尺寸留空保持未知并拒绝无效测量值', () => {
 function designerFixture() {
     let page;
     const requests = [];
+    let token = 'A';
     load(
         'apps/miniapp/pages/designer/designer.js',
         {
@@ -258,15 +259,7 @@ function designerFixture() {
             '../../config/api.js': {
                 CustomizationConfig: '/config',
                 CustomizationQuote: '/quote',
-                AiRecommendation: '/ai/recommend',
-                AiRecommendationStatus: '/ai/status',
-            },
-            '../../services/ai-recommendation.js': {
-                availability: () => '',
-                recommend: (data) =>
-                    new Promise((resolve, reject) => {
-                        requests.push({url: '/ai/recommend', data, resolve, reject});
-                    }),
+                CustomizationReference: '/reference',
             },
             '../../services/necklace-arrangement.js': require('../../apps/miniapp/services/necklace-arrangement.js'),
         },
@@ -274,70 +267,120 @@ function designerFixture() {
             Page: (definition) => {
                 page = definition;
             },
-            wx: {showModal: (options) => options.success({confirm: true})},
+            wx: {
+                showModal: (options) => options.success({confirm: true}),
+                getStorageSync: () => token,
+            },
             setTimeout,
             clearTimeout,
         }
     );
     page.setData = (values) => Object.assign(page.data, values);
-    return {page, requests};
+    return {
+        page,
+        requests,
+        setToken: (value) => {
+            token = value;
+        },
+    };
 }
 
-/** 未同意不发送身体数据, 请求失败仍可手动选择材料. */
-test('AI推荐必须主动同意, 失败正确收尾且不覆盖设计', async () => {
+/** 规则参考仅发送毫米测量和偏好, 并发点击防重, 返回值不得修改设计或生产尺寸. */
+test('规则参考复用实测输入且不自动采用长度和材料', async () => {
     const {page, requests} = designerFixture();
-    page.data.selectedOptionIds = [7];
-    await page.requestAiRecommendation();
-    assert.equal(requests.length, 0);
-    Object.assign(page.data, {aiConsent: true, aiHeight: '165', aiWeight: '55', goodsId: 10});
-    const pending = page.requestAiRecommendation();
-    assert.equal(page.data.aiLoading, true);
-    assert.equal(requests[0].data.neckCm, null);
-    assert.equal(requests[0].data.consent, true);
-    requests[0].reject(new Error('模型超时'));
+    Object.assign(page.data, {goodsId: 10, selectedOptionIds: [7], targetLengthMm: '450'});
+    const pending = page.requestReference();
+    await page.requestReference();
+    assert.equal(requests.length, 1);
+    assert.deepEqual(JSON.parse(JSON.stringify(requests[0].data)), {
+        goodsId: 10,
+        neckCircumferenceMm: null,
+        preference: 'MEDIUM',
+    });
+    requests[0].resolve({
+        code: 0,
+        data: {goodsId: 10, lengthsMm: [457.5, 507.5], materials: [{name: '珍珠'}], sources: []},
+    });
     await pending;
-    assert.equal(page.data.aiLoading, false);
-    assert.equal(page.data.aiError, '模型超时');
+    assert.equal(page.data.referenceResult.lengthsLabel, '45.75 / 50.75');
+    assert.equal(page.data.referenceLoading, false);
+    assert.deepEqual(page.data.selectedOptionIds, [7]);
+    assert.equal(page.data.targetLengthMm, '450');
+});
+
+/** 无效测量值在请求前拒绝, 空值不猜测为0. */
+test('参考输入拒绝非法精度及范围', async () => {
+    const {page, requests} = designerFixture();
+    for (const value of ['0', '199', '801', '350.12', '3e2', '未知']) {
+        page.data.neckCircumferenceMm = value;
+        await page.requestReference();
+        assert.ok(page.data.referenceError);
+    }
+    assert.equal(requests.length, 0);
+});
+
+/** 失败释放读取锁并保留设计和输入, 可由用户重试. */
+test('规则参考失败正确收尾', async () => {
+    const {page, requests} = designerFixture();
+    Object.assign(page.data, {goodsId: 10, neckCircumferenceMm: '350', selectedOptionIds: [7]});
+    const pending = page.requestReference();
+    requests[0].reject(new Error('服务暂不可用'));
+    await pending;
+    assert.equal(page.data.referenceLoading, false);
+    assert.equal(page.data.referenceError, '服务暂不可用');
+    assert.equal(page.data.neckCircumferenceMm, '350');
     assert.deepEqual(page.data.selectedOptionIds, [7]);
 });
 
-/** 输入或商品变更后迟到的AI结果不得重新出现. */
-test('AI参数变更废弃在途结果', async () => {
+/** 修改偏好后旧结果不得覆盖最新参考, 不再依赖云环境状态请求. */
+test('参考参数变更隔离乱序响应', async () => {
     const {page, requests} = designerFixture();
-    Object.assign(page.data, {aiConsent: true, aiHeight: '165', aiWeight: '55', goodsId: 10});
-    const pending = page.requestAiRecommendation();
-    page.changeAiInput({currentTarget: {dataset: {field: 'aiHeight'}}, detail: {value: '170'}});
-    requests[0].resolve({code: 0, data: {goodsId: 10, lengthCm: 45}});
-    await pending;
-    assert.equal(page.data.aiResult, null);
-    assert.equal(page.data.aiHeight, '170');
+    page.data.goodsId = 10;
+    const old = page.requestReference();
+    page.changeReferencePreference({detail: {value: '2'}});
+    const fresh = page.requestReference();
+    requests[1].resolve({code: 0, data: {goodsId: 10, lengthsMm: [610], materials: []}});
+    await fresh;
+    requests[0].resolve({code: 0, data: {goodsId: 10, lengthsMm: [405], materials: []}});
+    await old;
+    assert.equal(page.data.referenceResult.lengthsLabel, '61');
 });
 
-/** 采用AI材料必须重新报价, 不信任结果中附带的旧价格或跨商品材料. */
-test('采用AI搭配后重新报价并拒绝跨商品结果', async () => {
+/** 账号、商品或页面变化后废弃旧参考, 不复用其他用户的身体输入结果. */
+test('参考响应核对账号商品及页面生命周期', async () => {
+    for (const change of ['account', 'goods', 'unload']) {
+        const {page, requests, setToken} = designerFixture();
+        page.data.goodsId = 10;
+        const pending = page.requestReference();
+        if (change === 'account') {
+            setToken('B');
+        }
+        if (change === 'goods') {
+            page.data.goodsId = 11;
+        }
+        if (change === 'unload') {
+            page.onUnload();
+        }
+        requests[0].resolve({code: 0, data: {goodsId: 10, lengthsMm: [405], materials: []}});
+        await pending;
+        assert.equal(page.data.referenceResult, null);
+    }
+});
+
+/** 同一实测字段用于参考和报价, 尺寸编辑立即废弃在途参考. */
+test('实测颈围变更立即废弃参考', async () => {
     const {page, requests} = designerFixture();
-    Object.assign(page.data, {
-        goodsId: 10,
-        quote: {totalPrice: 500},
-        componentGroups: [
-            {
-                type: 'pearl',
-                required: true,
-                options: [{id: 1, name: '澳白', assetUrl: '/static/p.png'}],
-            },
-        ],
-        aiResult: {goodsId: 11, optionIds: [1]},
+    page.data.goodsId = 10;
+    const pending = page.requestReference();
+    page.refreshQuote = () => Promise.resolve();
+    page.changeSizing({
+        currentTarget: {dataset: {field: 'neckCircumferenceMm'}},
+        detail: {value: '360'},
     });
-    page.applyAiRecommendation();
-    assert.equal(requests.length, 0);
-    page.data.aiResult = {goodsId: 10, optionIds: [1], quote: {totalPrice: 1}};
-    const pending = page.applyAiRecommendation();
-    assert.equal(requests[0].url, '/quote');
-    assert.equal(page.data.quote.totalPrice, undefined);
-    assert.deepEqual(Array.from(page.data.selectedOptionIds), [1]);
-    requests[0].resolve({code: 0, data: {totalPrice: 99}});
+    requests[0].resolve({code: 0, data: {goodsId: 10, lengthsMm: [405], materials: []}});
     await pending;
-    assert.equal(page.data.quote.totalPrice, 99);
+    assert.equal(page.data.referenceResult, null);
+    assert.equal(page.data.neckCircumferenceMm, '360');
 });
 
 /** 报价失败时旧价格立即失效, 后续不能保存或结算. */

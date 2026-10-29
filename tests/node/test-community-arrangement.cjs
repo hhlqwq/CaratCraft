@@ -67,7 +67,6 @@ test('编辑器清空撤回恢复完整排列并发送有序报价', async () =>
                 },
             },
             '../../config/api.js': {},
-            '../../services/ai-recommendation.js': {},
             '../../services/necklace-arrangement.js': arrangement,
         },
         {showModal: (options) => options.success({confirm: true})}
@@ -99,7 +98,6 @@ test('连续打开草稿时迟到详情不能覆盖最新草稿', async () => {
             CustomizationConfig: '/config',
             CustomizationQuote: '/quote',
         },
-        '../../services/ai-recommendation.js': {},
         '../../services/necklace-arrangement.js': arrangement,
     });
     const first = page.loadDesignSnapshot(1);

@@ -123,18 +123,16 @@ test('DIY账号切换清除草稿和身体输入但同账号保留编辑', () =>
     const {page, storage} = fixture('pages/designer/designer.js', {
         '../../utils/util.js': {},
         '../../config/api.js': {},
-        '../../services/ai-recommendation.js': {},
         '../../services/necklace-arrangement.js': {},
     });
     page._sessionToken = 'A';
-    page.invalidateAi = () => {};
+    page.invalidateReference = () => {};
     page.loadConfig = () => {};
-    page.loadAiStatus = () => {};
     Object.assign(page.data, {
         draftId: 9,
         engraving: 'A的刻字',
         neckCircumferenceMm: 350,
-        aiHeight: 170,
+        referenceResult: {goodsId: 10},
     });
     page.onShow();
     assert.equal(page.data.draftId, 9);
@@ -143,7 +141,7 @@ test('DIY账号切换清除草稿和身体输入但同账号保留编辑', () =>
     assert.equal(page.data.draftId, null);
     assert.equal(page.data.engraving, '');
     assert.equal(page.data.neckCircumferenceMm, '');
-    assert.equal(page.data.aiHeight, '');
+    assert.equal(page.data.referenceResult, null);
 });
 
 /** 首页游客进入只请求商品区块, 不交换微信身份或写会话. */
