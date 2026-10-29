@@ -1,4 +1,4 @@
-/* 构建隔离的管理端产物并记录真实模块, 不覆盖部署页面. */
+/* 构建唯一管理端交付产物并记录真实模块, 不操作运行中的部署页面. */
 const path = require('node:path');
 const fs = require('node:fs');
 const {spawnSync} = require('node:child_process');
@@ -7,7 +7,7 @@ const ui = path.join(root, 'apps/admin-ui');
 const env = {
     ...process.env,
     NODE_ENV: 'production',
-    CARATCRAFT_UI_OUTPUT: path.join(root, '.tools/copyright/admin-ui-dist'),
+    CARATCRAFT_UI_OUTPUT: path.join(ui, 'dist'),
     CARATCRAFT_UI_STATS: path.join(root, '.tools/copyright/webpack-stats.json'),
 };
 console.log('开始构建管理端并生成实际依赖清单.');

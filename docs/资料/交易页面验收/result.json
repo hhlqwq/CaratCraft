@@ -1,0 +1,9 @@
+{
+    "passed": true,
+    "scenarios": [
+        "stock_conflict_preserves_reason_and_requires_reload",
+        "refund_read_retry_and_processing_has_no_approve"
+    ],
+    "realBackend": false,
+    "productionBundle": true
+}

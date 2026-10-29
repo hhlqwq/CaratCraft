@@ -60,6 +60,14 @@ def verify_backend_files():
                     raise ValueError("后端构建包含私人配置或凭证资源, 请清除对应target残留并重新构建: " + module)
 
 
+def frontend_output(root):
+    """仅接受Vite默认构建目录的完整入口和资源, 不回退旧审计目录."""
+    directory = root / "apps/admin-ui/dist"
+    if not (directory / "index.html").is_file() or not any((directory / "assets").glob("*.js")):
+        raise ValueError("缺少完整管理端产物, 请先在apps/admin-ui执行生产构建")
+    return directory
+
+
 def main():
     """准入检查通过后打包应用和可重新构建的源码, 输出校验清单."""
     import sys
@@ -75,6 +83,7 @@ def main():
     if dirty:
         raise ValueError("正式交付必须使用已提交的干净源码树, 请先完成审阅并提交")
     verify_backend_files()
+    frontend = frontend_output(ROOT)
     if not dirty:
         assets = json.loads((ROOT / "legal/project-assets.json").read_text(encoding="utf-8"))
         for index, asset in enumerate(assets, 1):
@@ -100,7 +109,7 @@ def main():
             jar = BACKEND / module / "target" / (module + ".jar")
             archive.write(jar, "backend/" + jar.name)
             print("已加入应用: " + jar.name, flush=True)
-        for folder, prefix in [(ROOT / ".tools/copyright/admin-ui-dist", "frontend"),
+        for folder, prefix in [(frontend, "frontend"),
                                (ROOT / "apps/miniapp", "miniapp"), (ROOT / "legal", "legal")]:
             for path in folder.rglob("*"):
                 if application_file(path, folder):

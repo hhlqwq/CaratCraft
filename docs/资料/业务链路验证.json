@@ -248,5 +248,40 @@
             "sourceBundles": 13,
             "errors": []
         }
+    },
+    "purchaseHttpClosure": {
+        "date": "2026-10-29",
+        "tests": 14,
+        "passed": 14,
+        "cases": [
+            "admin_aggregate_save_update",
+            "actual_miniapp_sku_selector",
+            "cart_and_buy_checkout_use_current_price",
+            "overstock_rejected",
+            "cross_goods_product_rejected",
+            "zero_stock_rejected",
+            "no_stock_consumption_before_order"
+        ],
+        "realHttp": true,
+        "realMySql": true,
+        "realRedis": true,
+        "realBrowser": false,
+        "realPayment": false,
+        "businessServicesChanged": false,
+        "dependenciesDownloaded": false
+    },
+    "commerceBrowserClosure": {
+        "date": "2026-10-29",
+        "productionBundle": true,
+        "fixtureData": true,
+        "passed": true,
+        "coverage": [
+            "stock_conflict_preserves_input_requires_reload",
+            "refund_read_retry",
+            "processing_refund_no_approve_action",
+            "624px_dialog"
+        ],
+        "existingBrowserSuite": "passed",
+        "pageErrors": 0
     }
 }

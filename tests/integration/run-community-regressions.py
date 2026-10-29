@@ -106,12 +106,19 @@ def main():
     parser.add_argument("--redis-image", default="redis:7.2-alpine")
     parser.add_argument("--package", action="store_true", help="测试通过后打包两个后端应用")
     parser.add_argument("--http", action="store_true", help="打包后启动隔离API并验证真实HTTP参考接口")
+    parser.add_argument("--http-only", action="store_true", help="只验证已有应用包的真实HTTP, 不编译或声明源码已构建")
     parser.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
     args = parser.parse_args()
+    if args.http_only and (args.http or args.package):
+        parser.error("--http-only不与--http或--package组合使用")
+    if args.http_only:
+        for module in ("platform-admin", "platform-api"):
+            if not (ROOT / "backend" / module / "target" / (module + ".jar")).is_file():
+                parser.error("缺少已有应用包, 请先离线构建: " + module)
     day = datetime.strptime(args.date, "%Y-%m-%d").strftime("%Y%m%d")
     cache = args.maven_cache.resolve()
     settings = args.settings.resolve()
-    if not cache.is_dir() or not settings.is_file():
+    if not args.http_only and (not cache.is_dir() or not settings.is_file()):
         raise ValueError("请先准备Maven缓存及与缓存来源一致的settings; 本工具不下载依赖")
     for image in (args.maven_image, args.mysql_image, args.redis_image):
         docker(["image", "inspect", image])
@@ -140,6 +147,12 @@ def main():
         fixtures.start("caratcraft-redis-" + run_id, ["--network", "container:" + mysql,
                        "--tmpfs", "/data", args.redis_image, "redis-server", "--save", "", "--appendonly", "no"], env)
         wait_for_mysql(mysql, env)
+        if args.http_only:
+            print("[2/4] 仅验收已有应用包, 不清理或重新编译源码", flush=True)
+            from reference_http_probe import verify_reference_http
+            verify_reference_http(ROOT, fixtures, mysql, args.maven_image, env, output, docker)
+            print("[4/4] 已有应用包HTTP验证完成, 清理本次资源", flush=True)
+            return
         print("[2/4] 清理固定构建输出并执行完整离线回归: " + database, flush=True)
         clean_build_outputs(ROOT)
         command = ["docker", "run", "--rm", "--pull=never", "--network", "container:" + mysql,

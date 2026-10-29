@@ -63,8 +63,8 @@ def main():
     for relative in forbidden:
         if (ROOT / relative).exists():
             errors.append({"file": relative, "reason": "已移除目录重新出现"})
-    dist = ROOT / ".tools/copyright/admin-ui-dist"
-    if not dist.is_dir():
+    dist = ROOT / "apps/admin-ui/dist"
+    if not (dist / "index.html").is_file() or not any((dist / "assets").glob("*.js")):
         errors.append({"file": str(dist), "reason": "缺少本次前端产物"})
     else:
         for file in dist.rglob("*"):

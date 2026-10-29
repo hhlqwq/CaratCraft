@@ -37,7 +37,7 @@ export default [
         },
     },
     {
-        files: ['**/verify-admin-browser.cjs'],
+        files: ['**/verify-admin-browser.cjs', '**/verify-commerce-browser.cjs'],
         languageOptions: {
             // 此文件内的Playwright evaluate回调在页面环境执行.
             globals: Object.fromEntries(

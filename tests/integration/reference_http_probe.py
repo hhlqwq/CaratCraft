@@ -52,13 +52,13 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
     unsigned = header + b"." + payload
     token = (unsigned + b"." + base64.urlsafe_b64encode(hmac.new(key, unsigned, hashlib.sha256).digest()).rstrip(b"=")).decode()
 
-    def call(path, data=None, authenticated=True):
+    def call(path, data=None, authenticated=True, *, base_url=base, auth_token=token):
         """从测试容器请求回环HTTP, 令牌仅经标准输入传递, 不发布端口或继承代理."""
-        config = ['url = ' + json.dumps(base + path), 'header = "Content-Type: application/json"',
+        config = ['url = ' + json.dumps(base_url + path), 'header = "Content-Type: application/json"',
                   'silent', 'show-error', 'max-time = 5', 'noproxy = "*"',
                   'write-out = "\\n%{http_code}"']
         if authenticated:
-            config.append('header = ' + json.dumps('token: ' + token))
+            config.append('header = ' + json.dumps('token: ' + auth_token))
         if data is not None:
             config.append('data = ' + json.dumps(json.dumps(data)))
         result = subprocess.run(['docker', 'exec', '-i', application, 'curl', '--config', '-'],
@@ -115,6 +115,8 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
         (output / "http.json").write_text(json.dumps({"tests": len(cases), "passed": len(cases),
                                                      "cases": cases}, ensure_ascii=False, indent=4), encoding="utf-8")
         print("真实HTTP参考接口验证通过: " + str(len(cases)) + "项", flush=True)
+        from purchase_http_probe import verify_purchase_http
+        verify_purchase_http(root, fixtures, mysql, image, application_env, output, docker, sql, call)
     finally:
         result = docker(["logs", application], check=False)
         (output / "api.log").write_text(result.stdout + result.stderr, encoding="utf-8")
