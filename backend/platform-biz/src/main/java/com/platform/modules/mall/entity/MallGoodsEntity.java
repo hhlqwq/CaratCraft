@@ -40,11 +40,9 @@ import java.util.Date;
 public class MallGoodsEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private Integer categoryId;
 
     /** 珍珠来源和成品品类, 空值只兼容未整理的历史商品. */
@@ -61,43 +59,31 @@ public class MallGoodsEntity implements Serializable {
     private Long videoMediaId;
     private String videoUrl;
 
-    /** */
     private String goodsSn;
 
-    /** */
     private String name;
 
-    /** */
     private Integer brandId;
 
-    /** */
     private Integer goodsNumber;
 
-    /** */
     private String keywords;
 
-    /** */
     private String goodsBrief;
 
-    /** */
     private String goodsDesc;
 
-    /** */
     private Integer isOnSale;
 
-    /** */
     private Date addTime;
 
-    /** */
     private Integer sortOrder;
 
-    /** */
     private Integer isDelete;
 
     /** 移入回收站时间。 */
     private Date deleteTime;
 
-    /** */
     private Integer attributeCategory;
 
     /** 专柜价格 */
@@ -106,7 +92,6 @@ public class MallGoodsEntity implements Serializable {
     /** 附加价格 */
     private BigDecimal extraPrice;
 
-    /** */
     private Integer isNew;
 
     /** 商品单位 */
@@ -130,10 +115,8 @@ public class MallGoodsEntity implements Serializable {
     /** 单位价格，单价 */
     private BigDecimal unitPrice;
 
-    /** */
     private String promotionDesc;
 
-    /** */
     private String promotionTag;
 
     /** APP专享价 */
@@ -142,13 +125,10 @@ public class MallGoodsEntity implements Serializable {
     /** 是否是APP专属 */
     private Integer isAppExclusive;
 
-    /** */
     private Integer isLimited;
 
-    /** */
     private Integer isHot;
 
-    /** */
     private BigDecimal marketPrice;
 
     /** 创建人ID */
@@ -160,7 +140,6 @@ public class MallGoodsEntity implements Serializable {
     /** 修改时间 */
     private Date updateTime;
 
-    /** */
     private Long createUserDeptId;
 
     // 购物车中商品数量

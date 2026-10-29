@@ -10,7 +10,7 @@ function fixture(context) {
     const day =
         process.env.CARATCRAFT_TEST_DATE ||
         new Date().toLocaleDateString('sv-SE', {timeZone: 'Asia/Shanghai'});
-    const parent = path.join('D:/tmp/hailongcodex', day);
+    const parent = path.join(process.env.CARATCRAFT_TEST_TEMP || 'D:/tmp/hailongcodex', day);
     fs.mkdirSync(parent, {recursive: true});
     const root = fs.mkdtempSync(path.join(parent, 'conventions-'));
     context.after(() => {
@@ -86,6 +86,17 @@ test('规范门禁阻止星号导入和that别名回归', (context) => {
     fs.writeFileSync(java, 'import java.util.*;');
     fs.writeFileSync(script, 'const that = this;');
     assert.equal(check(root).length, 2);
+});
+
+/** 空注释和公开原始集合不能通过格式化工具掩盖类型或职责缺失. */
+test('规范门禁拒绝空注释和公开原始类型', (context) => {
+    const root = fixture(context);
+    const java = path.join(root, 'backend/platform-biz/src/main/java/Example.java');
+    fs.mkdirSync(path.dirname(java), {recursive: true});
+    fs.writeFileSync(java, 'class Example { /** */ public List list() { return null; } }');
+    const errors = check(root);
+    assert.ok(errors.some((message) => message.includes('空职责注释')));
+    assert.ok(errors.some((message) => message.includes('泛型契约')));
 });
 
 /** 已收敛的SQL、部署和管理端历史入口不得重新进入仓库. */

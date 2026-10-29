@@ -21,6 +21,8 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
     with zipfile.ZipFile(jar) as archive:
         if any("AiRecommendation" in name for name in archive.namelist()):
             raise AssertionError("干净交付包中仍存在旧AI类")
+        if any(name.endswith("/ApiAddressSaveRequest.class") for name in archive.namelist()):
+            raise AssertionError("干净交付包中仍存在已迁走的地址输入类")
         if not any(name.endswith("AppNecklaceReferenceController.class") for name in archive.namelist()):
             raise AssertionError("当前交付包缺少规则参考入口")
     user_id = 9_000_001

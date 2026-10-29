@@ -94,6 +94,23 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         request("/app/buy/add", {**purchase, "productId": empty_sku["id"]}, expected=400)
         assert sql("SELECT goods_number FROM mall_product WHERE id=" + str(product_id)) == "8"
         cases.append({"name": "cart_and_buy_do_not_consume_stock", "status": "passed"})
+        address = request("/app/address/save", {
+            "userName": "隔离收货人", "provinceName": "隔离省", "cityName": "隔离市",
+            "countyName": "隔离区", "detailInfo": "仅供测试的地址", "telNumber": "13800000000"})
+        assert address["userId"] == 9_000_001 and address["isDefault"] == 0
+        address_id = address["id"]
+        owned = request("/app/address/detail?id=" + str(address_id), {})
+        assert owned["id"] == address_id
+        request("/app/address/save", {"userName": "不完整输入"}, expected=400)
+        oversized = {key: address[key] for key in (
+            "id", "userName", "telNumber", "provinceName", "cityName", "countyName", "detailInfo")}
+        request("/app/address/save", {**oversized, "userName": "测" * 51, "isDefault": False}, expected=400)
+        sql("UPDATE mall_address SET user_id=9000002 WHERE id=" + str(address_id))
+        request("/app/address/detail?id=" + str(address_id), {}, expected=403)
+        request("/app/address/delete", {"id": address_id}, expected=404)
+        sql("UPDATE mall_address SET user_id=9000001 WHERE id=" + str(address_id))
+        request("/app/address/delete", {"id": address_id})
+        assert sql("SELECT COUNT(*) FROM mall_address WHERE id=" + str(address_id)) == "0"
         (output / "purchase-http.json").write_text(json.dumps(
             {"tests": len(cases), "passed": len(cases), "cases": cases,
              "browserAcceptance": False, "realPayment": False}, ensure_ascii=False, indent=4), encoding="utf-8")

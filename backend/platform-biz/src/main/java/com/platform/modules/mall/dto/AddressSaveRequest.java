@@ -1,9 +1,10 @@
-package com.platform.modules.app.request;
+package com.platform.modules.mall.dto;
 
 import lombok.Data;
 
+/** 收货地址输入契约, 不接收用户身份字段. */
 @Data
-public class ApiAddressSaveRequest {
+public class AddressSaveRequest {
     private Integer id;
     private String userName;
     private String postalCode;

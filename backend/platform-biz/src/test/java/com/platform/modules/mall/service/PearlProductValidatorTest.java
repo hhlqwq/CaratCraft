@@ -24,9 +24,9 @@ import java.util.Map;
 
 /** 珍珠参数和视频关联回归, 不访问真实数据库或存储服务. */
 class PearlProductValidatorTest {
-    /** 旧客户端的局部更新不应把新字段规范化为空值或清除已有测量数据. */
+    /** 商品修改始终执行唯一参数校验, 不再按是否携带新字段猜测旧客户端. */
     @Test
-    void legacyPartialUpdatePreservesNewMetadata() {
+    void updatesAlwaysValidateUnifiedMetadata() {
         var service = new MallGoodsServiceImpl();
         MallGoodsDao mapper = mock(MallGoodsDao.class);
         PearlProductValidator validator = mock(PearlProductValidator.class);
@@ -35,10 +35,13 @@ class PearlProductValidatorTest {
         MallGoodsEntity item = new MallGoodsEntity();
         item.setId(12);
         item.setIsOnSale(0);
-        when(mapper.updateById(item)).thenReturn(1);
+        when(mapper.update(
+                        org.mockito.ArgumentMatchers.eq(item), org.mockito.ArgumentMatchers.any()))
+                .thenReturn(1);
         assertTrue(service.update(item));
-        verify(mapper).updateById(item);
-        verifyNoInteractions(validator);
+        verify(mapper)
+                .update(org.mockito.ArgumentMatchers.eq(item), org.mockito.ArgumentMatchers.any());
+        verify(validator).validate(item);
         assertNull(item.getVideoMediaId());
     }
 
@@ -48,10 +51,22 @@ class PearlProductValidatorTest {
         MallGoodsEntity item = new MallGoodsEntity();
         item.setIsOnSale(1);
         var validator = new PearlProductValidator(mock(JdbcTemplate.class));
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, true));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
         item.setPearlSource("FRESHWATER");
         item.setJewelryType("NECKLACE");
-        assertDoesNotThrow(() -> validator.validate(item, true));
+        assertDoesNotThrow(() -> validator.validate(item));
+    }
+
+    /** 编辑上架商品同样拒绝空分类, 不为既有ID保留绕过规则的分支. */
+    @Test
+    void publishedEditCannotBypassCatalogDimensions() {
+        MallGoodsEntity item = new MallGoodsEntity();
+        item.setId(12);
+        item.setIsOnSale(1);
+        var validator = new PearlProductValidator(mock(JdbcTemplate.class));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
+        item.setPearlSource("SEAWATER");
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
     }
 
     /** 未知尺寸可留空, 单端、倒序及超精度区间均被拒绝. */
@@ -59,15 +74,15 @@ class PearlProductValidatorTest {
     void validatesOptionalDiameterRange() {
         MallGoodsEntity item = new MallGoodsEntity();
         var validator = new PearlProductValidator(mock(JdbcTemplate.class));
-        assertDoesNotThrow(() -> validator.validate(item, true));
+        assertDoesNotThrow(() -> validator.validate(item));
         item.setPearlDiameterMin(new BigDecimal("8.001"));
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, true));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
         item.setPearlDiameterMax(new BigDecimal("8"));
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, true));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
         item.setPearlDiameterMax(new BigDecimal("9.0001"));
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, true));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
         item.setPearlDiameterMax(new BigDecimal("9.001"));
-        assertDoesNotThrow(() -> validator.validate(item, true));
+        assertDoesNotThrow(() -> validator.validate(item));
     }
 
     /** 商品视频地址只能来自完成上传的记录, 不能提交任意外部URL. */
@@ -80,10 +95,10 @@ class PearlProductValidatorTest {
         item.setVideoUrl("https://untrusted.invalid/video.mp4");
         when(jdbc.queryForList("SELECT url FROM CC_PRODUCT_VIDEO WHERE id=? AND url<>''", 42L))
                 .thenReturn(List.of(Map.of("url", "/upload/video/verified.mp4")));
-        validator.validate(item, false);
+        validator.validate(item);
         assertEquals("/upload/video/verified.mp4", item.getVideoUrl());
         item.setVideoMediaId(0L);
-        validator.validate(item, false);
+        validator.validate(item);
         assertEquals("", item.getVideoUrl());
     }
 
@@ -94,10 +109,10 @@ class PearlProductValidatorTest {
         var validator = new PearlProductValidator(jdbc);
         MallGoodsEntity item = new MallGoodsEntity();
         item.setPearlSource("UNKNOWN");
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, false));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
         verifyNoInteractions(jdbc);
         item.setPearlSource("");
         item.setVideoMediaId(1L);
-        assertThrows(IllegalArgumentException.class, () -> validator.validate(item, false));
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(item));
     }
 }

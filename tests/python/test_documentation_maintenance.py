@@ -21,7 +21,7 @@ class DocumentationMaintenanceTest(unittest.TestCase):
     def setUp(self):
         """用明确日期和随机子目录隔离本用例, 无论失败与否均清理."""
         day = os.environ.get("CARATCRAFT_TEST_DATE", datetime.now().strftime("%Y-%m-%d"))
-        parent = Path("D:/tmp/hailongcodex") / datetime.strptime(day, "%Y-%m-%d").strftime("%Y-%m-%d")
+        parent = Path(os.environ.get("CARATCRAFT_TEST_TEMP", "D:/tmp/hailongcodex")) / datetime.strptime(day, "%Y-%m-%d").strftime("%Y-%m-%d")
         parent.mkdir(parents=True, exist_ok=True)
         temporary = tempfile.TemporaryDirectory(prefix="documentation-", dir=parent)
         self.addCleanup(temporary.cleanup)

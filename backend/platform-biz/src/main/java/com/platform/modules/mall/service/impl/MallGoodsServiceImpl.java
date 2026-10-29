@@ -38,8 +38,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * Service实现类
@@ -82,7 +80,7 @@ public class MallGoodsServiceImpl extends ServiceImpl<MallGoodsDao, MallGoodsEnt
     /** 创建商品前校验珍珠参数, 视频地址由已完成上传的媒体记录确定. */
     @Override
     public boolean add(MallGoodsEntity mallGoods) {
-        pearlProductValidator.validate(mallGoods, true);
+        pearlProductValidator.validate(mallGoods);
         return this.save(mallGoods);
     }
 
@@ -92,33 +90,13 @@ public class MallGoodsServiceImpl extends ServiceImpl<MallGoodsDao, MallGoodsEnt
         if (mallGoods == null || mallGoods.getId() == null || mallGoods.getId() <= 0) {
             throw new IllegalArgumentException("更新商品必须提供有效商品标识");
         }
-        if (!hasPearlMetadata(mallGoods)) {
-            return this.updateById(mallGoods);
-        }
-        pearlProductValidator.validate(mallGoods, false);
+        pearlProductValidator.validate(mallGoods);
         return this.update(
                 mallGoods,
                 new UpdateWrapper<MallGoodsEntity>()
                         .eq("id", mallGoods.getId())
                         .set(mallGoods.getPearlDiameterMin() == null, "pearl_diameter_min", null)
                         .set(mallGoods.getPearlDiameterMax() == null, "pearl_diameter_max", null));
-    }
-
-    /** 旧客户端局部更新保留新增字段, 携带珍珠字段时按完整参数保存. */
-    private boolean hasPearlMetadata(MallGoodsEntity goods) {
-        return Stream.of(
-                        goods.getPearlSource(),
-                        goods.getJewelryType(),
-                        goods.getPearlVariety(),
-                        goods.getPearlOrigin(),
-                        goods.getPearlShape(),
-                        goods.getPearlLuster(),
-                        goods.getPearlBlemish(),
-                        goods.getPearlDiameterMin(),
-                        goods.getPearlDiameterMax(),
-                        goods.getVideoMediaId(),
-                        goods.getVideoUrl())
-                .anyMatch(Objects::nonNull);
     }
 
     @Override

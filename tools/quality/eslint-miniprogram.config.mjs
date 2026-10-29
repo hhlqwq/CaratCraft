@@ -22,9 +22,15 @@ const functionDescription = {
         }
         return {
             FunctionDeclaration: inspect,
-            'CallExpression[callee.name=/^(Page|App|Component|Behavior)$/] > ObjectExpression > Property'(
-                node
-            ) {
+            Property(node) {
+                // 外部API的短回调由所属函数说明; Page/Component嵌套方法仍逐项检查.
+                const call = node.parent.parent;
+                if (
+                    call?.type === 'CallExpression' &&
+                    !['Page', 'App', 'Component', 'Behavior'].includes(call.callee.name)
+                ) {
+                    return;
+                }
                 if (['FunctionExpression', 'ArrowFunctionExpression'].includes(node.value.type)) {
                     inspect(node);
                 }

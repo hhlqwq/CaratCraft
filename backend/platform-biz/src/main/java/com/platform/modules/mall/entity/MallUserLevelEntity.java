@@ -38,14 +38,11 @@ import java.io.Serializable;
 public class MallUserLevelEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
-    /** */
     private String description;
 
     /** 微信昵称 */

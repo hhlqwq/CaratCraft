@@ -41,42 +41,31 @@ import java.util.Date;
 public class MallCouponEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
-    /** */
     private BigDecimal typeMoney;
 
-    /** */
     private Integer sendType;
 
-    /** */
     private BigDecimal minAmount;
 
-    /** */
     private BigDecimal maxAmount;
 
-    /** */
     @JsonFormat(pattern = "yyyy.MM.dd")
     private Date sendStartDate;
 
-    /** */
     @JsonFormat(pattern = "yyyy.MM.dd")
     private Date sendEndDate;
 
-    /** */
     @JsonFormat(pattern = "yyyy.MM.dd")
     private Date useStartDate;
 
-    /** */
     @JsonFormat(pattern = "yyyy年MM月dd日")
     private Date useEndDate;
 
-    /** */
     private BigDecimal minGoodsAmount;
 
     /** 转发次数 */

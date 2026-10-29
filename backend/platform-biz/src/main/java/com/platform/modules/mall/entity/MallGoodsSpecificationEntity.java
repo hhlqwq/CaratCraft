@@ -37,19 +37,14 @@ import java.io.Serializable;
 public class MallGoodsSpecificationEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private Integer goodsId;
 
-    /** */
     private Integer specificationId;
 
-    /** */
     private String value;
 
-    /** */
     private String picUrl;
 }

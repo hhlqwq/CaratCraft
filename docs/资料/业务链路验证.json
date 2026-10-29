@@ -283,5 +283,106 @@
         ],
         "existingBrowserSuite": "passed",
         "pageErrors": 0
+    },
+    "finalPlanClosure": {
+        "date": "2026-10-29",
+        "scope": "confirmed_local_v1_plan",
+        "java": {
+            "distinctTests": 206,
+            "passed": 206,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 167,
+                "admin": 3,
+                "api": 19
+            },
+            "finalAddressLengthCasesRerun": 4,
+            "doNotAddRerunsToDistinctCount": true
+        },
+        "node": {
+            "tests": 154,
+            "passed": 154,
+            "failures": 0,
+            "skipped": 0
+        },
+        "python": {
+            "tests": 26,
+            "passed": 26,
+            "failures": 0,
+            "skipped": 0
+        },
+        "powershell": {
+            "groupsPerVersion": 5,
+            "versions": [
+                "5.1",
+                "7"
+            ],
+            "passed": true,
+            "dockerCalls": "stub"
+        },
+        "browser": {
+            "productionBundle": true,
+            "existingSuite": "passed",
+            "commerceSuite": "passed",
+            "fixtureData": true,
+            "pageErrors": 0
+        },
+        "contracts": [
+            "address_biz_single_input_and_application_service",
+            "published_goods_same_validation_on_create_and_update",
+            "no_empty_javadoc_or_raw_public_envelope_collections",
+            "miniapp_nested_method_documentation_gate",
+            "single_address_editor_with_retry_and_session_isolation",
+            "share_footprint_pagination_bounds_and_offset",
+            "address_input_lengths_match_schema_and_two_pages_share_editor"
+        ],
+        "http": {
+            "reference": {
+                "tests": 11,
+                "passed": 11
+            },
+            "purchaseAndAddress": {
+                "tests": 21,
+                "passed": 21
+            },
+            "actualApplicationPackages": true,
+            "realMySql": true,
+            "realRedis": true,
+            "hostPortsPublished": false
+        },
+        "delivery": {
+            "backendPackage": "passed",
+            "adminProductionBundle": "passed",
+            "license": {
+                "backendComponents": 256,
+                "frontendComponents": 28,
+                "projectAssets": 160,
+                "sourceBundles": 13,
+                "errors": []
+            },
+            "sourceArchivePolicy": "export_only_clean_committed_source",
+            "manifestDirectory": ".tools/copyright/release"
+        },
+        "productionAcceptance": false,
+        "aiVersion": "next",
+        "dependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "externalAcceptanceRemaining": [
+            "real_WeChat_device",
+            "real_payment_refund",
+            "production_release"
+        ],
+        "format": {
+            "javaFiles": 647,
+            "frontendFiles": 343,
+            "passed": true,
+            "formatter": "Google Java Format 1.28.0 --aosp"
+        },
+        "repositoryPlanItems": "implemented_and_verified",
+        "rawLogsDirectory": ".tools/restructure"
     }
 }

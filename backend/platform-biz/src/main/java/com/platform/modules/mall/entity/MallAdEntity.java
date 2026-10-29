@@ -38,31 +38,22 @@ import java.util.Date;
 public class MallAdEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private Integer adPositionId;
 
-    /** */
     private Integer mediaType;
 
-    /** */
     private String name;
 
-    /** */
     private String link;
 
-    /** */
     private String imageUrl;
 
-    /** */
     private String content;
 
-    /** */
     private Date endTime;
 
-    /** */
     private Integer enabled;
 }

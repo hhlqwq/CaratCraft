@@ -7,7 +7,10 @@ if ($Errors.Count) { throw '启动脚本存在语法错误' }
 foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
     . ([scriptblock]::Create($Definition.Extent.Text))
 }
-$FixtureRoot = Join-Path 'D:/tmp/hailongcodex/2026-10-23' ('env-config-' + [Guid]::NewGuid().ToString('N'))
+# 默认遵循临时目录约定, 沙箱验证可显式指定工作区内的测试目录.
+$FixtureParent = if ($env:CARATCRAFT_TEST_TEMP) { $env:CARATCRAFT_TEST_TEMP } else { 'D:/tmp/hailongcodex' }
+$FixtureParent = Join-Path $FixtureParent (Get-Date -Format 'yyyy-MM-dd')
+$FixtureRoot = Join-Path $FixtureParent ('env-config-' + [Guid]::NewGuid().ToString('N'))
 $Utf8 = [Text.UTF8Encoding]::new($false)
 $Template = [IO.File]::ReadAllText((Join-Path $Root 'deploy/.env.example'), $Utf8)
 $Keys = @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')

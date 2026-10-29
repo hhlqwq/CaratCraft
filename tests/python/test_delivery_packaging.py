@@ -22,7 +22,7 @@ class DeliveryPackagingTest(unittest.TestCase):
         """使用明确日期的约定临时目录, 用例失败时也清理本用例创建的文件."""
         value = os.environ.get("CARATCRAFT_TEST_DATE", datetime.now().strftime("%Y-%m-%d"))
         day = datetime.strptime(value, "%Y-%m-%d").strftime("%Y-%m-%d")
-        directory = Path("D:/tmp/hailongcodex") / day
+        directory = Path(os.environ.get("CARATCRAFT_TEST_TEMP", "D:/tmp/hailongcodex")) / day
         directory.mkdir(parents=True, exist_ok=True)
         temporary = tempfile.TemporaryDirectory(prefix="delivery-", dir=directory)
         self.addCleanup(temporary.cleanup)

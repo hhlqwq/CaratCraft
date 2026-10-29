@@ -15,8 +15,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.platform.annotation.IgnoreAuth;
-import com.platform.modules.app.request.ApiAddressSaveRequest;
 import com.platform.modules.app.request.LoginWxPhoneRequest;
+import com.platform.modules.mall.dto.AddressSaveRequest;
 import com.platform.modules.mall.dto.ApiCartUpdateRequest;
 import com.platform.modules.mall.entity.MallCartEntity;
 import com.platform.modules.mall.entity.MallProductEntity;
@@ -55,9 +55,10 @@ class AccountSecurityTest {
     @Test
     void addressWithoutDefaultFlagUsesAuthenticatedOwner() {
         MallAddressService addresses = mock(MallAddressService.class);
-        AppAddressController controller = new AppAddressController();
+        com.platform.modules.mall.service.AddressApplicationService controller =
+                new com.platform.modules.mall.service.AddressApplicationService();
         ReflectionTestUtils.setField(controller, "addressService", addresses);
-        ApiAddressSaveRequest request = new ApiAddressSaveRequest();
+        AddressSaveRequest request = new AddressSaveRequest();
         request.setUserName("测试用户");
         request.setProvinceName("广东省");
         request.setCityName("深圳市");

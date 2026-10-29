@@ -37,13 +37,10 @@ import java.io.Serializable;
 public class MallGoodsIssueEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String question;
 
-    /** */
     private String answer;
 }

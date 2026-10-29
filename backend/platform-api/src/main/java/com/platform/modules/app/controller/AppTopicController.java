@@ -32,11 +32,11 @@ import java.util.Map;
 public class AppTopicController extends AppBaseController {
     @Autowired private MallTopicService topicService;
 
-    /** */
+    /** 分页返回公开专题的展示字段. */
     @Operation(summary = "专题列表")
     @IgnoreAuth
     @PostMapping("list")
-    public RestResponse<Object> list(
+    public RestResponse<Page<MallTopicEntity>> list(
             @RequestParam(value = "page") Integer page,
             @RequestParam(value = "size") Integer size) {
         Map<String, Object> param = new HashMap<>();
@@ -52,20 +52,20 @@ public class AppTopicController extends AppBaseController {
         return RestResponse.ok(result);
     }
 
-    /** */
+    /** 按专题标识查询公开详情. */
     @Operation(summary = "专题详情")
     @IgnoreAuth
     @PostMapping("detail")
-    public RestResponse<Object> detail(Integer id) {
+    public RestResponse<MallTopicEntity> detail(Integer id) {
         MallTopicEntity topicEntity = topicService.getById(id);
         return RestResponse.ok(topicEntity);
     }
 
-    /** */
+    /** 返回最多四条关联专题供页面展示. */
     @Operation(summary = "关联专题")
     @IgnoreAuth
     @PostMapping("related")
-    public RestResponse<Object> related() {
+    public RestResponse<List<MallTopicEntity>> related() {
         Map<String, Object> param = new HashMap<>();
         param.put("limit", 4);
         List<MallTopicEntity> topicEntities = topicService.queryList(param);

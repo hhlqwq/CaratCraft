@@ -39,26 +39,19 @@ import java.util.Date;
 public class MallUserCouponEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private Integer couponId;
 
-    /** */
     private String couponNumber;
 
-    /** */
     private Long userId;
 
-    /** */
     private Date usedTime;
 
-    /** */
     private Date addTime;
 
-    /** */
     private Integer orderId;
 
     /** 状态 1. 可用 2. 已用 3. 过期 */

@@ -41,7 +41,6 @@ public class MallAttributeCategoryEntity implements Serializable {
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
     /** 1开启; 0关闭; */

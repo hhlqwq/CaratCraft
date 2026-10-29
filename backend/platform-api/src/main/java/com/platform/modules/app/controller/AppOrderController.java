@@ -3,7 +3,6 @@ package com.platform.modules.app.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.binarywang.wxpay.service.WxPayService;
-import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.RestResponse;
@@ -59,15 +58,6 @@ public class AppOrderController extends AppBaseController {
     @Autowired private CustomDesignService customDesignService;
     @Autowired private CustomOrderCustomizationDao customOrderCustomizationDao;
     @Autowired private CustomDesignSnapshotDao customDesignSnapshotDao;
-
-    /** */
-    @Operation(summary = "订单首页")
-    @IgnoreAuth
-    @PostMapping("index")
-    public RestResponse<Object> index() {
-        //
-        return RestResponse.ok("");
-    }
 
     /** 获取订单列表 */
     @Operation(summary = "获取订单列表")

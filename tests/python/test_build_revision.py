@@ -1,6 +1,7 @@
 """离线比较两平台真实摘要实现, 不连接Docker或读取私人配置."""
 
 import hashlib
+from datetime import datetime
 import os
 from pathlib import Path
 import shutil
@@ -24,7 +25,7 @@ class BuildRevisionTest(unittest.TestCase):
                       (ROOT / ".gitattributes").read_text("utf-8"))
         self.assertFalse(any(Path("deploy/scripts/dev.ps1").is_relative_to(Path(root))
                              for root in roots), "宿主机操作脚本不能成为镜像构建输入")
-        temporary = Path("D:/tmp/hailongcodex/2026-10-23")
+        temporary = Path(os.environ.get("CARATCRAFT_TEST_TEMP", "D:/tmp/hailongcodex")) / datetime.now().strftime("%Y-%m-%d")
         temporary.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="image-inputs-", dir=temporary) as directory:
             fixture = Path(directory)

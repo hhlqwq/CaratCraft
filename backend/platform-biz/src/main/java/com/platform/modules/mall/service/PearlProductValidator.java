@@ -21,7 +21,7 @@ public class PearlProductValidator {
     }
 
     /** 商品创建和编辑共同校验专属参数, 视频地址只从已完成上传记录取得. */
-    public void validate(MallGoodsEntity item, boolean creating) {
+    public void validate(MallGoodsEntity item) {
         if (item == null) {
             throw new IllegalArgumentException("商品不能为空");
         }
@@ -31,9 +31,7 @@ public class PearlProductValidator {
                 || (!type.isEmpty() && !TYPES.contains(type))) {
             throw new IllegalArgumentException("商品珍珠来源或成品品类无效");
         }
-        if (Integer.valueOf(1).equals(item.getIsOnSale())
-                && (creating || !source.isEmpty() || !type.isEmpty())
-                && (source.isEmpty() || type.isEmpty())) {
+        if (Integer.valueOf(1).equals(item.getIsOnSale()) && (source.isEmpty() || type.isEmpty())) {
             throw new IllegalArgumentException("上架前请选择珍珠来源和成品品类");
         }
         item.setPearlSource(source);

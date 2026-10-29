@@ -54,7 +54,6 @@ public class MallAttributeEntity implements Serializable {
     /** 即选择输入,则attr_name对应的值的取值就是该这字段值 */
     private String value;
 
-    /** */
     private Integer sortOrder;
 
     /** 即选择输入,则attr_name对应的值的取值就是该这字段值 */

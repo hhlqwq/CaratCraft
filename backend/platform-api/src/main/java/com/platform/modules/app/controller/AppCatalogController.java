@@ -62,7 +62,7 @@ public class AppCatalogController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
-    /** */
+    /** 返回当前分类及其子分类, 供公开目录切换展示. */
     @Operation(summary = "分类目录当前分类数据接口")
     @IgnoreAuth
     @PostMapping("current")

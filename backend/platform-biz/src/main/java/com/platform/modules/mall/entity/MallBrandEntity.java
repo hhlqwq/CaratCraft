@@ -60,7 +60,6 @@ public class MallBrandEntity implements Serializable {
     /** 显示 */
     private Integer isShow;
 
-    /** */
     private BigDecimal floorPrice;
 
     /** app显示图片 */

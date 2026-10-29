@@ -40,7 +40,6 @@ import java.io.Serializable;
 public class MallAddressEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
@@ -50,7 +49,6 @@ public class MallAddressEntity implements Serializable {
     /** 收货人姓名 */
     private String userName;
 
-    /** */
     private Integer isDefault;
 
     /** 手机 */

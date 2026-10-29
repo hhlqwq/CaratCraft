@@ -54,7 +54,6 @@ public class MallCollectEntity implements Serializable {
     /** 是否提醒 */
     private Integer isAttention;
 
-    /** */
     private Integer typeId;
 
     /** 微信昵称 */

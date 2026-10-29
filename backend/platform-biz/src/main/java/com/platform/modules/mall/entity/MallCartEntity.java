@@ -76,7 +76,6 @@ public class MallCartEntity implements Serializable {
     /** product表对应的goods_specifition_ids */
     private String goodsSpecifitionIds;
 
-    /** */
     private Integer checked;
 
     /** 商品图片 */

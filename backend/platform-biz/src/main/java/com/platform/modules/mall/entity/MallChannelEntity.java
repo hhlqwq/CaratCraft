@@ -37,19 +37,14 @@ import java.io.Serializable;
 public class MallChannelEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
-    /** */
     private String url;
 
-    /** */
     private String iconUrl;
 
-    /** */
     private Integer sortOrder;
 }

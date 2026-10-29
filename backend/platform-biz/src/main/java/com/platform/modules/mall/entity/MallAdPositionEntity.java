@@ -38,20 +38,15 @@ import java.io.Serializable;
 public class MallAdPositionEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
-    /** */
     private Integer width;
 
-    /** */
     private Integer height;
 
-    /** */
     @TableField(value = "`desc`")
     private String desc;
 }

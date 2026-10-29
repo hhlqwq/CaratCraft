@@ -38,17 +38,14 @@ import java.io.Serializable;
 public class MallHelpIssueEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
     /** 问题分类 */
     private Integer typeId;
 
-    /** */
     private String question;
 
-    /** */
     private String answer;
 
     /** 排序 */

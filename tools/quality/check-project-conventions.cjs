@@ -106,8 +106,19 @@ function check(root) {
         for (const file of filesAt(path.join(project, module, 'src')).filter((name) =>
             name.endsWith('.java')
         )) {
-            if (/^import\s+(?:static\s+)?[^;]+\.\*;/m.test(fs.readFileSync(file, 'utf8'))) {
+            const source = fs.readFileSync(file, 'utf8');
+            if (/^import\s+(?:static\s+)?[^;]+\.\*;/m.test(source)) {
                 errors.push(path.relative(root, file) + ': 不允许星号导入');
+            }
+            if (/\/\*\*\s*\*\//.test(source)) {
+                errors.push(path.relative(root, file) + ': 不允许空职责注释');
+            }
+            if (
+                /\b(?:public|protected)\s+(?:RestResponse|List|Map|Set|Collection)\s+\w+\s*\(/.test(
+                    source
+                )
+            ) {
+                errors.push(path.relative(root, file) + ': 公开返回类型必须声明泛型契约');
             }
         }
     }

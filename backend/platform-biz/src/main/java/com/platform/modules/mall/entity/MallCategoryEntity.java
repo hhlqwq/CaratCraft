@@ -39,50 +39,35 @@ import java.util.List;
 public class MallCategoryEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String name;
 
-    /** */
     private String keywords;
 
-    /** */
     private String frontDesc;
 
-    /** */
     private Integer parentId;
 
-    /** */
     private Integer sortOrder;
 
-    /** */
     private Integer showIndex;
 
-    /** */
     private Integer isShow;
 
-    /** */
     private String bannerUrl;
 
-    /** */
     private String iconUrl;
 
-    /** */
     private String imgUrl;
 
-    /** */
     private String wapBannerUrl;
 
-    /** */
     private String level;
 
-    /** */
     private Integer type;
 
-    /** */
     private String frontName;
 
     /** 父节点名称 */

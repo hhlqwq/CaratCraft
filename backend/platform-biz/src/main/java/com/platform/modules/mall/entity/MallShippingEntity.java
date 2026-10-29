@@ -38,14 +38,11 @@ import java.io.Serializable;
 public class MallShippingEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** */
     @TableId(type = IdType.AUTO)
     private Integer id;
 
-    /** */
     private String code;
 
-    /** */
     private String name;
 
     /** 状态 0未删除 1已删除 */

@@ -64,7 +64,6 @@ public class MallTopicEntity implements Serializable {
     /** 专题价格 */
     private BigDecimal priceInfo;
 
-    /** */
     private String readCount;
 
     /** 场景图片链接 */
