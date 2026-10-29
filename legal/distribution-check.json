@@ -1,9 +1,7 @@
 {
-    "backendComponents": 256,
-    "frontendComponents": 28,
-    "projectAssets": 161,
-    "sourceBundles": 13,
-    "errors": [],
-    "validationScope": "历史应用发布物检查, 本轮仅迁移路径; 后端离线构建因缓存缺失未完成.",
-    "currentBuildVerified": false
+  "backendComponents": 256,
+  "frontendComponents": 28,
+  "projectAssets": 160,
+  "sourceBundles": 13,
+  "errors": []
 }

@@ -225,8 +225,13 @@
         "ruleVersion": "necklace-reference-v1",
         "dependenciesDownloaded": false,
         "businessServicesUpdated": false,
-        "realHttp": "pending",
-        "package": "pending",
+        "realHttp": {
+            "tests": 11,
+            "passed": 11,
+            "network": "container_loopback_actual_http",
+            "businessDatabaseAccessed": false
+        },
+        "package": "passed_offline_both_applications",
         "productionAcceptance": false,
         "pythonFullSuite": {
             "tests": 25,
@@ -234,6 +239,14 @@
             "errors": 8,
             "skipped": 3,
             "errorCause": "Sandbox denied writes to preconfigured external D:/tmp/hailongcodex directories; no permissions expanded"
+        },
+        "adminProductionBuild": "passed",
+        "license": {
+            "backendComponents": 256,
+            "frontendComponents": 28,
+            "projectAssets": 160,
+            "sourceBundles": 13,
+            "errors": []
         }
     }
 }

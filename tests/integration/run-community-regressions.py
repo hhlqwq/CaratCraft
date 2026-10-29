@@ -132,8 +132,6 @@ def main():
         network = fixtures.create_network()
         mysql_args = ["--network", network, "--tmpfs", "/var/lib/mysql",
                       "--mount", "type=bind,source=" + str(ROOT / "database/init") + ",target=/docker-entrypoint-initdb.d,readonly"]
-        if args.http:
-            mysql_args.extend(["--publish", "127.0.0.1::8081", "--publish", "127.0.0.1::8080"])
         for key in ("MYSQL_ROOT_PASSWORD", "MYSQL_DATABASE", "MYSQL_USER", "MYSQL_PASSWORD"):
             mysql_args.extend(["--env", key])
         mysql = fixtures.start("caratcraft-mysql-" + run_id, [*mysql_args, args.mysql_image,

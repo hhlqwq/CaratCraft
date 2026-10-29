@@ -5,10 +5,9 @@ import hashlib
 import hmac
 import json
 import secrets
+import subprocess
 import time
 import zipfile
-from urllib.error import HTTPError, URLError
-from urllib.request import ProxyHandler, Request, build_opener
 
 
 def encoded(value):
@@ -24,7 +23,7 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
             raise AssertionError("干净交付包中仍存在旧AI类")
         if not any(name.endswith("AppNecklaceReferenceController.class") for name in archive.namelist()):
             raise AssertionError("当前交付包缺少规则参考入口")
-    user_id = 190_000_001
+    user_id = 9_000_001
 
     def sql(statement):
         """仅在随机隔离库创建合成用户或读取验证计数."""
@@ -47,26 +46,28 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
         arguments.extend(["--env", name])
     application = fixtures.start("caratcraft-api-" + fixtures.run_id,
                                  [*arguments, image, "java", "-Xmx384m", "-jar", "/app/platform-api.jar"], application_env)
-    metadata = json.loads(docker(["inspect", mysql]).stdout)[0]
-    port = metadata["NetworkSettings"]["Ports"]["8081/tcp"][0]["HostPort"]
-    base = "http://127.0.0.1:" + str(port) + "/platform-framework-api"
-    opener = build_opener(ProxyHandler({}))
+    base = "http://127.0.0.1:8081/platform-framework-api"
     header = encoded({"alg": "HS256", "typ": "JWT"})
     payload = encoded({"sub": str(user_id), "iat": int(time.time()), "exp": int(time.time()) + 900})
     unsigned = header + b"." + payload
     token = (unsigned + b"." + base64.urlsafe_b64encode(hmac.new(key, unsigned, hashlib.sha256).digest()).rstrip(b"=")).decode()
 
     def call(path, data=None, authenticated=True):
-        """直接请求回环发布端口, 不继承宿主机HTTP代理或连接业务地址."""
-        headers = {"Content-Type": "application/json"}
+        """从测试容器请求回环HTTP, 令牌仅经标准输入传递, 不发布端口或继承代理."""
+        config = ['url = ' + json.dumps(base + path), 'header = "Content-Type: application/json"',
+                  'silent', 'show-error', 'max-time = 5', 'noproxy = "*"',
+                  'write-out = "\\n%{http_code}"']
         if authenticated:
-            headers["token"] = token
-        request = Request(base + path, data=None if data is None else json.dumps(data).encode(), headers=headers)
-        try:
-            with opener.open(request, timeout=5) as response:
-                return response.status, json.loads(response.read())
-        except HTTPError as error:
-            return error.code, json.loads(error.read())
+            config.append('header = ' + json.dumps('token: ' + token))
+        if data is not None:
+            config.append('data = ' + json.dumps(json.dumps(data)))
+        result = subprocess.run(['docker', 'exec', '-i', application, 'curl', '--config', '-'],
+                                input='\n'.join(config), capture_output=True, text=True,
+                                encoding='utf-8', timeout=15)
+        if result.returncode:
+            raise ConnectionError("隔离HTTP连接未就绪")
+        body, status = result.stdout.rsplit('\n', 1)
+        return int(status), json.loads(body)
 
     print("等待隔离API启动, 不替换业务运行实例", flush=True)
     ready = False
@@ -76,7 +77,7 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
                 if call("/internal/health/ready", authenticated=False)[0] == 200:
                     ready = True
                     break
-            except (URLError, TimeoutError, json.JSONDecodeError, ConnectionError):
+            except (TimeoutError, json.JSONDecodeError, ConnectionError):
                 pass
             if attempt % 10 == 0:
                 print("隔离API启动进度: " + str(attempt * 2) + "秒", flush=True)
