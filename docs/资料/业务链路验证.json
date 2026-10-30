@@ -764,6 +764,47 @@
                 "mavenElapsedSeconds": 85,
                 "businessServicesChanged": false,
                 "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q04",
+                "scope": "过滤器固定区域校验和敏感参数日志, 缓存批量删除类型",
+                "java": {
+                    "tests": 219,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "modules": {
+                        "common": 23,
+                        "biz": 174,
+                        "admin": 3,
+                        "api": 19
+                    },
+                    "newRegressionCases": 6
+                },
+                "cleanPackage": "passed",
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "style": {
+                    "javaDescriptions": 638,
+                    "changedJava": 4,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 0,
+                    "test": 0,
+                    "flags": [
+                        "rawtypes",
+                        "unchecked",
+                        "deprecation",
+                        "cast"
+                    ],
+                    "note": "不等同于全部IDE检查或第三方工具提示清零"
+                },
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
             }
         ],
         "remaining": [

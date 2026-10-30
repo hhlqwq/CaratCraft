@@ -27,35 +27,26 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Locale;
 
 /**
  * sql 注入过滤器
  *
  * @author hehailong
  */
-@Slf4j
 public class AntiSqlInjectionFilter implements Filter {
-
-    @Override
-    public void destroy() {}
-
-    @Override
-    public void init(jakarta.servlet.FilterConfig config) {}
-
     @Override
     public void doFilter(ServletRequest args0, ServletResponse args1, FilterChain chain)
             throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) args0;
         // 获得所有请求参数名
-        Enumeration params = req.getParameterNames();
+        Enumeration<String> params = req.getParameterNames();
         StringBuilder sql = new StringBuilder();
         while (params.hasMoreElements()) {
             // 得到参数名
-            String name = params.nextElement().toString();
+            String name = params.nextElement();
             // 得到参数对应值
             String[] value = req.getParameterValues(name);
             for (String s : value) {
@@ -71,14 +62,14 @@ public class AntiSqlInjectionFilter implements Filter {
     }
 
     /**
-     * 效验
+     * 按固定区域识别既有关键字, 不记录可能包含身份或联系方式的请求参数.
      *
-     * @param str
-     * @return
+     * @param str 待校验参数文本
+     * @return 是否命中既有拦截规则
      */
     protected static boolean sqlValidate(String str) {
         // 统一转为小写
-        str = str.toLowerCase();
+        str = str.toLowerCase(Locale.ROOT);
         // 过滤掉的sql关键字，可以手动添加
         String badStr =
                 "'|exec|execute|insert|select|delete|update|drop|master|truncate|"
@@ -89,8 +80,6 @@ public class AntiSqlInjectionFilter implements Filter {
         String[] badStrs = badStr.split("\\|");
         for (String s : badStrs) {
             if (str.contains(s)) {
-                log.info(s);
-                log.info(str);
                 return true;
             }
         }
