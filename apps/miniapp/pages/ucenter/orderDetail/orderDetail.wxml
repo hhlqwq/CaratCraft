@@ -1,3 +1,6 @@
+<view wx:if="{{loading}}">正在读取订单...</view>
+<view wx:if="{{error}}">{{error}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取订单</button></view>
+<view wx:if="{{refundError}}">{{refundError}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取售后</button></view>
 <view class="container">
     <view class="order-info">
         <view class="item-a">下单时间：{{orderInfo.addTime}}</view>
