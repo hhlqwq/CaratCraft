@@ -1,3 +1,6 @@
+<view wx:if="{{loading}}">正在加载...</view>
+<view wx:if="{{error}}">{{error}}<button bindtap="retryLoad">重新读取</button></view>
+<view wx:if="{{!loading && !error && !topicList.length}}">暂无内容</view>
 <view class="container">
     <scroll-view class="topic-list" scroll-y="true" scroll-top="{{scrollTop}}">
         <navigator class="item" wx:for="{{topicList}}" wx:key="id" url="../topicDetail/topicDetail?id={{item.id}}">
@@ -10,7 +13,7 @@
         </navigator>
         <view class="page" wx:if="{{showPage}}">
             <view class="prev {{ page <= 1 ? 'disabled' : ''}}" bindtap="prevPage">上一页</view>
-            <view class="next {{ (count / size) < page +1 ? 'disabled' : ''}}" bindtap="nextPage">下一页</view>
+            <view class="next {{ !hasMore ? 'disabled' : ''}}" bindtap="nextPage">下一页</view>
         </view>
     </scroll-view>
 </view>
