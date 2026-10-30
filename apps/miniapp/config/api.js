@@ -46,6 +46,7 @@ module.exports = {
     GoodsList: API_BASE_URL + 'goods/list', //获得商品列表
     GoodsCategory: API_BASE_URL + 'goods/category', //获得分类数据
     GoodsDetail: API_BASE_URL + 'goods/detail', //获得商品的详情
+    GoodsNew: API_BASE_URL + 'goods/new', //新品介绍
     GoodsHot: API_BASE_URL + 'goods/hot', //人气推荐
     GoodsRelated: API_BASE_URL + 'goods/related', //商品详情页的关联商品（大家都在看）
     CustomizationConfig: API_BASE_URL + 'customization/config', //获取定制器配置

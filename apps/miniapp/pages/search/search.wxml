@@ -1,3 +1,5 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
 <scroll-view class="container" style="height: 100%;">
     <view class="search-header">
         <view class="input-box">
@@ -65,3 +67,5 @@
 </scroll-view>
 
 <merchant-contact />
+
+<view wx:if="{{!readLoading && !readError && !goodsList.length}}">暂无商品</view>

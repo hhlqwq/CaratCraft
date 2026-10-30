@@ -1,3 +1,5 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
 <view class="container">
 <view class="help-head">常见问题</view>
     <view class="list-group" style="margin-top: 0;">

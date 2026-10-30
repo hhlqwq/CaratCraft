@@ -38,6 +38,14 @@ function fixture(file, dependencies = {}) {
             page = {...definition, data: structuredClone(definition.data)};
         },
         require: (name) => {
+            if (name === '../../services/page-read.js') {
+                const shared = {module: {exports: {}}, wx};
+                vm.runInNewContext(
+                    fs.readFileSync(path.join(root, 'services/page-read.js'), 'utf8'),
+                    shared
+                );
+                return shared.module.exports;
+            }
             if (!(name in dependencies)) {
                 throw new Error('测试未提供依赖: ' + name);
             }

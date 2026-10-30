@@ -1,3 +1,5 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
 <view class="home-page">
     <view class="home-hero">
         <view class="brand-kicker">CARAT CRAFT · 克拉匠造</view>

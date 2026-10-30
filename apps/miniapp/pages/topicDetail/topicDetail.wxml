@@ -1,3 +1,5 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
 <scroll-view class="container">
     <scroll-view class="content">
         <rich-text nodes="{{topicDetailHtml}}"></rich-text>
