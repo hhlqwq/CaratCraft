@@ -632,7 +632,7 @@
     "repositoryCodeQuality": {
         "date": "2026-10-30",
         "baseline": "232bae1",
-        "status": "in_progress",
+        "status": "paused_by_user",
         "scope": "全仓清理、现用代码诊断及首版三端验收, 分批验证后提交推送master",
         "batches": [
             {
@@ -836,12 +836,30 @@
                 "desktopControlled": false,
                 "businessServicesChanged": false,
                 "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q06",
+                "scope": "管理端公众号组件导入、文本转义及素材分页/标签和弹窗标题",
+                "status": "committed_with_remaining_verification_by_user_request",
+                "productionBuild": "passed, 23.18 seconds",
+                "toolEslint": "passed",
+                "adminEslint": "根目录误用配置的193项错误不能作为有效门禁结果, 需从admin-ui正确目录核验",
+                "browser": {
+                    "messageEscapingAndReply": "passed",
+                    "stoppedAt": "素材首屏页码文本空白断言",
+                    "assertionCorrected": true,
+                    "rerun": "按用户明确要求暂停, 未重跑或计为通过"
+                },
+                "frontendFormat": "首次整理通过, 最后断言调整待检查",
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
             }
         ],
         "remaining": [
-            "继续核对全仓历史无用入口及现用代码",
-            "过滤器主源码诊断及请求处理缺口",
-            "结算/反馈/评价/足迹/售后页面缺口",
+            "Q06管理端正确目录ESLint、最终格式及后台浏览器回归",
+            "继续核对全仓历史无用入口、依赖和配置",
+            "结算/反馈/评价/足迹页面缺口",
+            "XSS请求处理并发及资源边界",
             "微信逐页操作及真实平台验收",
             "最终交付重建及许可核对"
         ],
@@ -853,6 +871,7 @@
             "businessChanges": false,
             "copyrightLicenseLinesChanged": false,
             "validation": "逐文件原文归一化比较及git diff --check, 不重复运行未变业务测试"
-        }
+        },
+        "pauseReason": "用户明确要求先提交推送并暂停, 当前额度不足"
     }
 }

@@ -27,6 +27,8 @@
     </el-tabs>
 </template>
 <script>
+import MaterialFile from './assets/material-file';
+import MaterialNews from './assets/material-news';
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -41,8 +43,8 @@ export default {
         };
     },
     components: {
-        MaterialFile: () => import('./assets/material-file'),
-        MaterialNews: () => import('./assets/material-news'),
+        MaterialFile,
+        MaterialNews,
     },
     /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
@@ -50,9 +52,9 @@ export default {
     },
     methods: {
         /** 切换素材标签页后初始化对应素材面板. */
-        handleTabClick(tab, event) {
+        handleTabClick(tab) {
             this.$nextTick(() => {
-                this.$refs[tab.name + 'Panel'].init();
+                this.$refs[tab.props.name + 'Panel'].init();
             });
         },
         /** 读取公众号各类素材的数量统计. */

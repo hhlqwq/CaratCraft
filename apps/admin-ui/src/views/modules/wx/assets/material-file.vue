@@ -131,7 +131,6 @@ export default {
                 if (data && data.code === 0) {
                     this.dataList = data.data.items;
                     this.totalCount = data.data.totalCount;
-                    this.pageIndex++;
                 } else {
                     this.$message.error(data.msg);
                 }

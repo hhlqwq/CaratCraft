@@ -19,6 +19,11 @@ const modules = [
     ['community/posts', '社区管理'],
     ['merchant/legal', '协议与隐私'],
     ['merchant/contact', '商家服务'],
+    ['wx/wx-msg', '公众号消息'],
+    ['wx/wx-assets', '公众号素材'],
+    ['wx/wx-menu', '公众号菜单'],
+    ['wx/msg-reply-rule', '公众号回复规则'],
+    ['wx/wx-draft', '公众号草稿'],
 ];
 const permissions = [
     'sys:org:list',
@@ -49,6 +54,10 @@ const permissions = [
     'merchant:contact:read',
     'merchant:contact:update',
     'sys:oss:list',
+    'wx:wxmsg:save',
+    'wx:msgreplyrule:save',
+    'wx:draft:addDraft',
+    'wx:draft:updateDraft',
 ];
 const routes = {
     '/sys/org/queryAll': [

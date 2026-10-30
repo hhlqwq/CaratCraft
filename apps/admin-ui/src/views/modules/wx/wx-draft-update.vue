@@ -114,9 +114,10 @@
 </template>
 
 <script>
+import AssetsSelector from './assets/assets-selector';
 export default {
     components: {
-        AssetsSelector: () => import('./assets/assets-selector'),
+        AssetsSelector,
     },
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {

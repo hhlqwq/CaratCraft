@@ -162,9 +162,10 @@
     </div>
 </template>
 <script>
+import AssetsSelector from './assets/assets-selector';
 export default {
     components: {
-        AssetsSelector: () => import('./assets/assets-selector'),
+        AssetsSelector,
     },
     props: {
         selectedMenuLevel: {

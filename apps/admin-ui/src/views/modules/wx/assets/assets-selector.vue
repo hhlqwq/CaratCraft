@@ -17,6 +17,8 @@
     </el-dialog>
 </template>
 <script>
+import MaterialFile from './material-file';
+import MaterialNews from './material-news';
 export default {
     name: 'assets-selector',
     /** 初始化当前组件的响应式界面和表单状态. */
@@ -26,8 +28,8 @@ export default {
         };
     },
     components: {
-        MaterialFile: () => import('./material-file'),
-        MaterialNews: () => import('./material-news'),
+        MaterialFile,
+        MaterialNews,
     },
     props: {
         selectType: {

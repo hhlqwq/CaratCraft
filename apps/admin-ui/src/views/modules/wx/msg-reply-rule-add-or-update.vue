@@ -1,6 +1,6 @@
 <template>
     <el-dialog
-        :title="!dataForm.id ? '新增' : '修改'"
+        :title="!dataForm.ruleId ? '新增' : '修改'"
         :lock-scroll="false"
         :close-on-click-modal="false"
         v-model="visible"
@@ -105,12 +105,14 @@
 </template>
 
 <script>
+import AssetsSelector from './assets/assets-selector';
+import TagsEditor from '@/components/tags-editor';
 import {mapState} from 'vuex';
 
 export default {
     components: {
-        AssetsSelector: () => import('./assets/assets-selector'),
-        tagsEditor: () => import('@/components/tags-editor'),
+        AssetsSelector,
+        TagsEditor,
     },
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {

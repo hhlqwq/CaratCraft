@@ -15,7 +15,7 @@
             <el-tag size="small" v-else class="margin-right el-icon-download"></el-tag>
         </el-tooltip>
         <span class="panel-content">
-            <span v-if="msg.msgType === 'text'" v-html="msg.detail.content"></span>
+            <span v-if="msg.msgType === 'text'">{{ msg.detail.content }}</span>
             <span v-else-if="msg.msgType === 'event'">
                 <el-tag size="small" type="warning" effect="plain">事件</el-tag>
                 <el-tag size="small" type="info" effect="plain">{{ msg.detail.event }}</el-tag>

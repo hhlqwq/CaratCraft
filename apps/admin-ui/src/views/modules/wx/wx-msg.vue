@@ -72,6 +72,8 @@
 </template>
 
 <script>
+import WxMsgReply from './wx-msg-reply';
+import WxMsgPreview from '@/components/wx-msg-preview';
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -96,8 +98,8 @@ export default {
         };
     },
     components: {
-        WxMsgReply: () => import('./wx-msg-reply'),
-        WxMsgPreview: () => import('@/components/wx-msg-preview'),
+        WxMsgReply,
+        WxMsgPreview,
     },
     /** 页面激活时刷新当前业务数据. */
     activated() {

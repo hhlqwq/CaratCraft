@@ -85,9 +85,10 @@
     </div>
 </template>
 <script>
+import WxMenuButtonEditor from './wx-menu-button-editor';
 export default {
     components: {
-        wxMenuButtonEditor: () => import('./wx-menu-button-editor'),
+        WxMenuButtonEditor,
     },
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
