@@ -103,6 +103,7 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
         # 新材料目录默认停用; 仅在本轮隔离库配置独立测试材料, 不启用客户候选.
         sql("""
 UPDATE CC_CUSTOM_PRODUCT SET enabled=1,length_rules=NULL WHERE goods_id=1999105;
+UPDATE CC_COMPONENT_OPTION SET enabled=0 WHERE goods_id=1999105;
 INSERT INTO CC_COMPONENT_OPTION(goods_id,component_type,option_code,name,price_delta,material_params,enabled)
 VALUES(1999105,'pearl','reference-isolated-fixture','隔离规则参考材料',0,
        '{"stockQuantity":0,"stockUnit":"件"}',1);
@@ -110,6 +111,8 @@ VALUES(1999105,'pearl','reference-isolated-fixture','隔离规则参考材料',0
         assert sql("SELECT COUNT(*) FROM CC_COMPONENT_OPTION WHERE option_code LIKE 'client-%' AND enabled=1") == "0"
         generic = check("generic_reference", "/app/customization/reference", body, 200)
         assert generic["lengthsMm"] == [457.5, 507.5] and not generic["measured"]
+        material_names = [item["name"] for item in generic["materials"]]
+        assert material_names == ["隔离规则参考材料"], material_names
         assert generic["sources"][0]["url"].startswith("https://www.tiffany.com/")
         measured = check("measured_filter", "/app/customization/reference", {**body, "neckCircumferenceMm": 480}, 200)
         assert measured["lengthsMm"] == [507.5]

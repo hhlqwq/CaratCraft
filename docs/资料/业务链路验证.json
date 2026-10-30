@@ -724,11 +724,51 @@
                 "businessServicesChanged": false,
                 "dependenciesDownloaded": false,
                 "unrelatedAuthorEditsIncluded": false
+            },
+            {
+                "id": "Q03",
+                "scope": "回归源码泛型与非废弃事务构造, 可选原生容器构建",
+                "java": {
+                    "tests": 213,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "modules": {
+                        "common": 17,
+                        "biz": 174,
+                        "admin": 3,
+                        "api": 19
+                    },
+                    "databaseAndRedis": "全新独立夹具"
+                },
+                "cleanPackage": "passed",
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "python": {
+                    "snapshotSafety": 3,
+                    "fixtureOwnership": 3
+                },
+                "style": {
+                    "javaDescriptions": 636,
+                    "changedJava": 21,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 1,
+                    "test": 0
+                },
+                "firstAttempt": "匹配器重载歧义已明确Wrapper类型后全量重跑; HTTP材料夹具混入旧演示选项已隔离后复验",
+                "mavenElapsedSeconds": 85,
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
             }
         ],
         "remaining": [
-            "历史无用类及7处字段候选核对",
-            "业务与测试编译诊断",
+            "继续核对全仓历史无用入口及现用代码",
+            "过滤器主源码诊断及请求处理缺口",
             "结算/反馈/评价/足迹/售后页面缺口",
             "微信逐页操作及真实平台验收",
             "最终交付重建及许可核对"

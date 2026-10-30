@@ -3,6 +3,7 @@ package com.platform.modules.mall.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -48,18 +49,12 @@ class OrderPaymentServiceImplTest {
         MallOrderEntity order = unpaidOrder();
         when(orderService.lockById(10)).thenReturn(order);
 
-        when(orderService.update(
-                        any(MallOrderEntity.class),
-                        any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
-                .thenReturn(true);
+        when(orderService.update(any(MallOrderEntity.class), notNull())).thenReturn(true);
         service.markPaid(10, 19900);
 
         assertEquals(2, order.getPayStatus());
         assertEquals(201, order.getOrderStatus());
-        verify(orderService)
-                .update(
-                        any(MallOrderEntity.class),
-                        any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(orderService).update(any(MallOrderEntity.class), notNull());
         verify(customDesignService).markOrderPaid(10);
     }
 

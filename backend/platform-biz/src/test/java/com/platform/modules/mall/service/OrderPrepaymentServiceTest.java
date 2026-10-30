@@ -17,6 +17,7 @@ import com.platform.modules.wx.entity.WxUserEntity;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.ObjectProvider;
 
 import java.math.BigDecimal;
@@ -25,10 +26,9 @@ import java.math.BigDecimal;
 class OrderPrepaymentServiceTest {
     /** JSAPI预支付必须使用小程序openid, 不得误用公众号身份. */
     @Test
-    @SuppressWarnings("unchecked")
     void usesMiniappOpenidAndRejectsApplicationMismatch() throws Exception {
         MallOrderService orders = mock(MallOrderService.class);
-        ObjectProvider<WxPayService> provider = mock(ObjectProvider.class);
+        ObjectProvider<WxPayService> provider = mock();
         WxPayService gateway = mock(WxPayService.class);
         when(provider.getIfAvailable()).thenReturn(gateway);
         WxPayConfig config = new WxPayConfig();
@@ -44,7 +44,7 @@ class OrderPrepaymentServiceTest {
         order.setOrderSn("ISOLATED-TEST");
         order.setActualPrice(new BigDecimal("199.00"));
         when(orders.lockById(10)).thenReturn(order);
-        when(orders.update(any(Wrapper.class))).thenReturn(true);
+        when(orders.update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull())).thenReturn(true);
         WxUserEntity user = new WxUserEntity();
         user.setId(7L);
         user.setMaOpenid("miniapp-openid");

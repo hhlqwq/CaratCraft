@@ -2,12 +2,12 @@ package com.platform.modules.custom.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.custom.dao.WorkOrderLogDao;
 import com.platform.modules.custom.entity.ProductionWorkOrderEntity;
@@ -66,7 +66,7 @@ class CustomProductionWorkflowTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));
-        verify(workOrders, never()).update(any(), any(Wrapper.class));
+        verify(workOrders, never()).update(any(), notNull());
     }
 
     /** 跳过审核开工或直接取消工单都应拒绝. */
@@ -92,7 +92,7 @@ class CustomProductionWorkflowTest {
     /** 状态已更新但日志失败时抛出异常, 事务不得提交. */
     @Test
     void failedLogPreventsSuccessfulTransition() {
-        when(workOrders.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(workOrders.update(any(), notNull())).thenReturn(1);
         assertThrows(
                 IllegalStateException.class,
                 () -> service.transition(1L, "REVIEWED", "审核通过", 7L, "测试商家"));

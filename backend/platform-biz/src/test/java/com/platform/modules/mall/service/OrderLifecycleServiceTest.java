@@ -2,12 +2,12 @@ package com.platform.modules.mall.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.custom.entity.ProductionWorkOrderEntity;
@@ -16,6 +16,7 @@ import com.platform.modules.mall.entity.MallOrderEntity;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.math.BigDecimal;
 
@@ -54,7 +55,7 @@ class OrderLifecycleServiceTest {
         order.setPayStatus(2);
         order.setShippingStatus(1);
         assertThrows(IllegalArgumentException.class, () -> service.confirmReceipt(10, 8L));
-        verify(orders, never()).update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(orders, never()).update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull());
     }
 
     /** 完成订单重复确认是幂等操作, 不产生重复更新. */
@@ -64,7 +65,7 @@ class OrderLifecycleServiceTest {
         order.setPayStatus(2);
         order.setShippingStatus(2);
         service.confirmReceipt(10, 7L);
-        verify(orders, never()).update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(orders, never()).update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull());
     }
 
     /** 定制工单缺失或未完成质检时禁止发货. */
@@ -79,10 +80,9 @@ class OrderLifecycleServiceTest {
         when(workOrders.selectOne(any())).thenReturn(work);
         assertThrows(IllegalArgumentException.class, () -> service.ship(10, "测试快递", "TEST123"));
         work.setStatus("COMPLETED");
-        when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
-                .thenReturn(true);
+        when(orders.update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull())).thenReturn(true);
         service.ship(10, "测试快递", "TEST123");
-        verify(orders).update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(orders).update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull());
     }
 
     /** 零元、超精度和已预支付订单禁止改价. */
@@ -103,8 +103,7 @@ class OrderLifecycleServiceTest {
     /** 改价流水保存失败应抛出异常, 由事务统一回滚金额更新. */
     @Test
     void priceAuditFailureRollsBack() {
-        when(orders.update(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
-                .thenReturn(true);
+        when(orders.update(ArgumentMatchers.<Wrapper<MallOrderEntity>>notNull())).thenReturn(true);
         assertThrows(
                 IllegalStateException.class,
                 () -> service.adjustPrice(10, new BigDecimal("188.00"), "operator", "协商折扣"));

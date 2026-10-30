@@ -4,9 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.isNull;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -31,14 +29,12 @@ class StockAdjustmentTest {
         option.setComponentType("pearl");
         option.setOptionCode("p1");
         when(options.selectById(1L)).thenReturn(option);
-        when(stock.update(isNull(), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
-                .thenReturn(0);
+        when(stock.update(isNull(), notNull())).thenReturn(0);
         var service = new CustomStockServiceImpl(options, stock);
         assertThrows(
                 IllegalArgumentException.class, () -> service.updateStock(1L, 100, 20, "商家", "盘点"));
         verify(stock, never()).logMovement(any(), any(), any(), anyInt(), any(), any());
-        when(stock.update(isNull(), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
-                .thenReturn(1);
+        when(stock.update(isNull(), notNull())).thenReturn(1);
         assertThrows(
                 IllegalStateException.class, () -> service.updateStock(1L, 100, 20, "商家", "盘点"));
         verify(stock).logMovement(10, "pearl", "p1", 80, "商家", "盘点");

@@ -15,6 +15,7 @@ import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.mall.dao.MallOrderDao;
 import com.platform.modules.mall.dao.OrderPriceLogDao;
 import com.platform.modules.mall.service.impl.MallOrderServiceImpl;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +27,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -91,9 +90,7 @@ class OrderTransactionDatabaseTest {
         ProxyFactory proxy = new ProxyFactory(target);
         proxy.setProxyTargetClass(true);
         proxy.addAdvice(
-                new TransactionInterceptor(
-                        new DataSourceTransactionManager(source),
-                        new AnnotationTransactionAttributeSource()));
+                TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));
         service = (OrderLifecycleService) proxy.getProxy();
         orderId = new java.security.SecureRandom().nextInt(10_000_000, 15_000_000);
         jdbc.update(
@@ -224,9 +221,7 @@ class OrderTransactionDatabaseTest {
         ProxyFactory proxy = new ProxyFactory(target);
         proxy.setProxyTargetClass(true);
         proxy.addAdvice(
-                new TransactionInterceptor(
-                        new DataSourceTransactionManager(source),
-                        new AnnotationTransactionAttributeSource()));
+                TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));
         return (com.platform.modules.custom.service.CustomStockService) proxy.getProxy();
     }
 

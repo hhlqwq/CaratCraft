@@ -27,6 +27,7 @@ import com.platform.modules.mall.service.impl.MallGoodsServiceImpl;
 import com.platform.modules.mall.service.impl.MallGoodsSpecificationServiceImpl;
 import com.platform.modules.mall.service.impl.MallProductServiceImpl;
 import com.platform.modules.mall.service.impl.MallSpecificationServiceImpl;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,8 +38,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
@@ -111,8 +110,7 @@ class GoodsAggregateDatabaseTest {
         var manager = new DataSourceTransactionManager(source);
         transactions = new TransactionTemplate(manager);
         var proxy = new ProxyFactory(target);
-        proxy.addAdvice(
-                new TransactionInterceptor(manager, new AnnotationTransactionAttributeSource()));
+        proxy.addAdvice(TransactionTestSupport.interceptor(manager));
         aggregate = (MallGoodsAggregateService) proxy.getProxy();
         pricing = new CheckoutPricingService(null, sessions.getMapper(MallProductDao.class), goods);
     }

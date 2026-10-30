@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Statement;
@@ -232,9 +231,7 @@ class AccountLoginDatabaseTest {
     private AccountLoginService service(LegalDocumentService documents) {
         var proxy = new ProxyFactory(new AccountLoginService(jdbc, users, documents));
         proxy.setProxyTargetClass(true);
-        proxy.addAdvice(
-                new TransactionInterceptor(
-                        transactions, new AnnotationTransactionAttributeSource()));
+        proxy.addAdvice(TransactionTestSupport.interceptor(transactions));
         return (AccountLoginService) proxy.getProxy();
     }
 

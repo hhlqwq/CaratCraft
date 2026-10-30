@@ -12,6 +12,7 @@ import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
 import com.platform.modules.custom.service.impl.CustomDesignServiceImpl;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,8 +23,6 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -80,9 +79,7 @@ class CustomStockTransactionDatabaseTest {
                         sessions.getMapper(ComponentStockDao.class));
         var proxy = new ProxyFactory(target);
         proxy.addAdvice(
-                new TransactionInterceptor(
-                        new DataSourceTransactionManager(source),
-                        new AnnotationTransactionAttributeSource()));
+                TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));
         service = (CustomDesignService) proxy.getProxy();
         fixtureId = new SecureRandom().nextInt(30_000_000, 40_000_000);
         jdbc.update(

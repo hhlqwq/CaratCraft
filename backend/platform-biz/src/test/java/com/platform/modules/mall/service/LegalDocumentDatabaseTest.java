@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.platform.common.exception.BusinessException;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,8 +14,6 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.Map;
@@ -42,9 +41,7 @@ class LegalDocumentDatabaseTest {
         transactions = new DataSourceTransactionManager(source);
         var proxy = new ProxyFactory(new LegalDocumentService(jdbc));
         proxy.setProxyTargetClass(true);
-        proxy.addAdvice(
-                new TransactionInterceptor(
-                        transactions, new AnnotationTransactionAttributeSource()));
+        proxy.addAdvice(TransactionTestSupport.interceptor(transactions));
         service = (LegalDocumentService) proxy.getProxy();
     }
 

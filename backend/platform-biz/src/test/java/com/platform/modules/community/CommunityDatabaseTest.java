@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.support.ResponseAssertions;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +21,8 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
@@ -55,9 +54,7 @@ class CommunityDatabaseTest {
         ProxyFactory proxy = new ProxyFactory(new CommunityService(jdbc, designs));
         proxy.setProxyTargetClass(true);
         proxy.addAdvice(
-                new TransactionInterceptor(
-                        new DataSourceTransactionManager(source),
-                        new AnnotationTransactionAttributeSource()));
+                TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));
         service = (CommunityService) proxy.getProxy();
         owner = new java.security.SecureRandom().nextInt(10_000_000, 15_000_000);
         other = owner + 1;
@@ -183,12 +180,12 @@ class CommunityDatabaseTest {
         request.setKind("FINISHED");
         request.setMediaIds(List.of(image));
         long id = post(request);
-        var mine = (List<Map<String, Object>>) service.mine(owner, 1, 20).get("records");
+        var mine = ResponseAssertions.records(service.mine(owner, 1, 20).get("records"));
         assertInstanceOf(String.class, mine.get(0).get("imagesJson"));
         service.moderate(id, 0L, "PUBLISHED", "图片核验通过", "运营");
         String json = (String) service.detail(id).get("imagesJson");
         assertTrue(json.contains("/upload/owned-community.png"));
-        var publicRows = (List<Map<String, Object>>) service.page("FINISHED", 1, 20).get("records");
+        var publicRows = ResponseAssertions.records(service.page("FINISHED", 1, 20).get("records"));
         assertTrue(publicRows.stream().anyMatch(row -> ((Number) row.get("id")).longValue() == id));
     }
 

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
+import com.platform.support.TransactionTestSupport;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.transaction.annotation.AnnotationTransactionAttributeSource;
-import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
@@ -51,8 +50,7 @@ class MerchantServicesDatabaseTest {
         manager = new DataSourceTransactionManager(source);
         ProxyFactory proxy = new ProxyFactory(new MerchantContactService(jdbc));
         proxy.setProxyTargetClass(true);
-        proxy.addAdvice(
-                new TransactionInterceptor(manager, new AnnotationTransactionAttributeSource()));
+        proxy.addAdvice(TransactionTestSupport.interceptor(manager));
         contacts = (MerchantContactService) proxy.getProxy();
     }
 

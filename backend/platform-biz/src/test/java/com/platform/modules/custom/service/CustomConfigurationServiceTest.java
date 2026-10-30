@@ -3,7 +3,7 @@ package com.platform.modules.custom.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.any;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -50,11 +50,9 @@ class CustomConfigurationServiceTest {
         service.importConfiguration(product(), List.of(incoming), true);
         assertEquals(42L, incoming.getId());
         verify(options).updateById(incoming);
-        verify(options, never())
-                .delete(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(options, never()).delete(notNull());
         verify(stocks).initialize(10, "pearl", "p1");
-        verify(stocks, never())
-                .update(any(), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(stocks, never()).update(any(), notNull());
     }
 
     /** 大小写不同的同一代码在停用旧配置前即被拒绝. */
@@ -65,8 +63,7 @@ class CustomConfigurationServiceTest {
                 () ->
                         service.importConfiguration(
                                 product(), List.of(option("p1"), option("P1")), true));
-        verify(options, never())
-                .update(any(), any(com.baomidou.mybatisplus.core.conditions.Wrapper.class));
+        verify(options, never()).update(any(), notNull());
         verify(stocks, never()).initialize(any(), any(), any());
     }
 

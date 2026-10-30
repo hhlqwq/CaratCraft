@@ -3,12 +3,12 @@ package com.platform.modules.custom.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
@@ -101,7 +101,7 @@ class CustomDesignServiceImplTest {
         verify(snapshotDao).insert(snapshotCaptor.capture());
         CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
-        when(snapshotDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(snapshotDao.update(any(), notNull())).thenReturn(1);
 
         assertEquals(new BigDecimal("219.00"), service.lockAndGetPrice(88L, 7L));
         snapshot.setStatus("LOCKED");
@@ -126,7 +126,7 @@ class CustomDesignServiceImplTest {
         verify(stockDao).deductStock(10, "pearl", "akoya", 6);
         var binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(bindingDao.update(any(), notNull())).thenReturn(1);
         when(workOrderDao.selectCount(any())).thenReturn(0L);
         service.markOrderPaid(100);
         var work = ArgumentCaptor.forClass(ProductionWorkOrderEntity.class);
@@ -144,7 +144,7 @@ class CustomDesignServiceImplTest {
     void paidOrderCreatesOneWorkOrder() {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1, 0);
+        when(bindingDao.update(any(), notNull())).thenReturn(1, 0);
         when(workOrderDao.selectCount(any())).thenReturn(0L, 1L);
         CustomDesignSnapshotEntity snapshot = new CustomDesignSnapshotEntity();
         snapshot.setConfigurationJson("{\"goodsId\":10}");
@@ -212,7 +212,7 @@ class CustomDesignServiceImplTest {
         verify(snapshotDao).insert(snapshotCaptor.capture());
         CustomDesignSnapshotEntity snapshot = snapshotCaptor.getValue();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
-        when(snapshotDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(snapshotDao.update(any(), notNull())).thenReturn(1);
 
         assertEquals(88L, saved.get("snapshotId"));
         assertEquals(new BigDecimal("1059.00"), workflowService.lockAndGetPrice(88L, 7L));
@@ -221,7 +221,7 @@ class CustomDesignServiceImplTest {
 
         CustomOrderCustomizationEntity binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(bindingDao.update(any(), notNull())).thenReturn(1);
         when(workOrderDao.selectCount(any())).thenReturn(0L);
         workflowService.markOrderPaid(100);
 
@@ -248,7 +248,7 @@ class CustomDesignServiceImplTest {
     void cancelledBindingIsNotRevivedByLateCallback() {
         when(bindingDao.selectOne(any())).thenReturn(unpaidBinding());
         // 条件更新未命中说明绑定已不是 LOCKED / Miss means the binding is no longer LOCKED.
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(0);
+        when(bindingDao.update(any(), notNull())).thenReturn(0);
 
         service.markOrderPaid(100);
 
@@ -260,7 +260,7 @@ class CustomDesignServiceImplTest {
     void cancelUnpaidRestoresSnapshotToDraft() {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(bindingDao.update(any(), notNull())).thenReturn(1);
         CustomDesignSnapshotEntity snapshot = orderedSnapshot();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
         when(workOrderDao.selectOne(any())).thenReturn(null);
@@ -285,7 +285,7 @@ class CustomDesignServiceImplTest {
         binding.setStatus("PAID");
         when(bindingDao.selectOne(any())).thenReturn(binding);
         // 条件更新命中说明取消成功 / Hit means the cancellation succeeded.
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(bindingDao.update(any(), notNull())).thenReturn(1);
         CustomDesignSnapshotEntity snapshot = orderedSnapshot();
         when(snapshotDao.selectById(88L)).thenReturn(snapshot);
         when(workOrderDao.selectOne(any())).thenReturn(null);
@@ -304,7 +304,7 @@ class CustomDesignServiceImplTest {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         when(bindingDao.selectOne(any())).thenReturn(binding);
         // 第二次调用条件更新未命中 / Second conditional update misses.
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1, 0);
+        when(bindingDao.update(any(), notNull())).thenReturn(1, 0);
         when(snapshotDao.selectById(88L)).thenReturn(orderedSnapshot());
         when(workOrderDao.selectOne(any())).thenReturn(null);
 
@@ -320,9 +320,9 @@ class CustomDesignServiceImplTest {
         CustomOrderCustomizationEntity binding = unpaidBinding();
         binding.setStatus("CANCELLED");
         when(bindingDao.selectOne(any())).thenReturn(binding);
-        when(bindingDao.update(any(), any(Wrapper.class))).thenReturn(1);
+        when(bindingDao.update(any(), notNull())).thenReturn(1);
         service.cancelOrder(100);
-        verify(bindingDao, times(0)).update(any(), any(Wrapper.class));
+        verify(bindingDao, times(0)).update(any(), notNull());
         verify(stockDao, times(0)).restoreStock(any(), any(), any(), anyInt());
     }
 

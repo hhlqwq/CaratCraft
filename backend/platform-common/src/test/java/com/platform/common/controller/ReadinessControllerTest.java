@@ -15,10 +15,9 @@ import javax.sql.DataSource;
 class ReadinessControllerTest {
     /** 依赖缺失不影响存活, 但必须返回未就绪. */
     @Test
-    @SuppressWarnings("unchecked")
     void missingDependenciesAreNotReady() {
-        ObjectProvider<DataSource> databases = mock(ObjectProvider.class);
-        ObjectProvider<RedisConnectionFactory> redis = mock(ObjectProvider.class);
+        ObjectProvider<DataSource> databases = mock();
+        ObjectProvider<RedisConnectionFactory> redis = mock();
         ReadinessController controller =
                 new ReadinessController(databases, redis, "test", "revision");
         assertEquals(200, controller.live().getStatusCode().value());
@@ -27,10 +26,9 @@ class ReadinessControllerTest {
 
     /** 数据库异常正文不得返回连接信息或密码. */
     @Test
-    @SuppressWarnings("unchecked")
     void readinessDoesNotExposeConnectionSecrets() throws Exception {
-        ObjectProvider<DataSource> databases = mock(ObjectProvider.class);
-        ObjectProvider<RedisConnectionFactory> redis = mock(ObjectProvider.class);
+        ObjectProvider<DataSource> databases = mock();
+        ObjectProvider<RedisConnectionFactory> redis = mock();
         DataSource source = mock(DataSource.class);
         when(databases.getIfAvailable()).thenReturn(source);
         when(redis.getIfAvailable()).thenReturn(mock(RedisConnectionFactory.class));

@@ -16,6 +16,7 @@ import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.impl.CustomQuoteServiceImpl;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
+import com.platform.support.ResponseAssertions;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,11 +93,11 @@ class CustomQuoteServiceImplTest {
         request.setArrangementOptionIds(Arrays.asList(2L, 1L, 2L, 3L));
         Map<String, Object> quote = service.quote(request);
         assertEquals(new BigDecimal("339.00"), quote.get("totalPrice"));
-        var components = (java.util.List<Map<String, Object>>) quote.get("components");
+        var components = ResponseAssertions.records(quote.get("components"));
         assertEquals(3, components.size());
         assertEquals(2, components.get(0).get("quantity"));
         assertEquals(new BigDecimal("70.00"), components.get(0).get("linePrice"));
-        var arranged = (java.util.List<Map<String, Object>>) quote.get("arrangement");
+        var arranged = ResponseAssertions.records(quote.get("arrangement"));
         assertEquals(
                 Arrays.asList(2L, 1L, 2L, 3L),
                 arranged.stream().map(item -> item.get("optionId")).toList());
@@ -145,7 +146,7 @@ class CustomQuoteServiceImplTest {
         Map<String, Object> quote = service.quote(request);
         assertEquals(true, quote.get("lengthComplete"));
         assertEquals(new BigDecimal("400"), quote.get("estimatedLengthMm"));
-        var arranged = (java.util.List<Map<String, Object>>) quote.get("arrangement");
+        var arranged = ResponseAssertions.records(quote.get("arrangement"));
         assertEquals("近正圆", arranged.get(0).get("shape"));
         assertEquals("极光", arranged.get(0).get("luster"));
         assertEquals("微瑕", arranged.get(0).get("blemish"));

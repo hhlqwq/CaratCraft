@@ -107,10 +107,11 @@ def main():
     parser.add_argument("--package", action="store_true", help="测试通过后打包两个后端应用")
     parser.add_argument("--http", action="store_true", help="打包后启动隔离API并验证真实HTTP参考接口")
     parser.add_argument("--http-only", action="store_true", help="只验证已有应用包的真实HTTP, 不编译或声明源码已构建")
+    parser.add_argument("--native-workspace", action="store_true", help="在容器原生目录编译源码快照并恢复受控产物")
     parser.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
     args = parser.parse_args()
-    if args.http_only and (args.http or args.package):
-        parser.error("--http-only不与--http或--package组合使用")
+    if args.http_only and (args.http or args.package or args.native_workspace):
+        parser.error("--http-only不与--http、--package或--native-workspace组合使用")
     if args.http_only:
         for module in ("platform-admin", "platform-api"):
             if not (ROOT / "backend" / module / "target" / (module + ".jar")).is_file():
@@ -165,9 +166,22 @@ def main():
             command.extend(["--env", key])
         command.extend([args.maven_image, "mvn", "-o", "-B", "-s", "/tmp/test-settings.xml",
                         "-DforkCount=0", "package" if args.package or args.http else "test"])
+        if args.native_workspace:
+            from native_maven import command as native_command
+            command = native_command(
+                ROOT, cache, settings, output, args.maven_image, mysql,
+                "package" if args.package or args.http else "test",
+                ("CARATCRAFT_DATABASE_TEST", "CARATCRAFT_DATABASE_TEST_URL", "CARATCRAFT_DATABASE_TEST_PASSWORD",
+                 "CARATCRAFT_REDIS_TEST", "CARATCRAFT_REDIS_TEST_PORT"))
         log = output / "maven.log"
         with log.open("w", encoding="utf-8") as stream:
             result = subprocess.run(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)
+        if args.native_workspace:
+            from native_maven import restore_outputs
+            if (output / "native-results/targets.tar").is_file():
+                restore_outputs(ROOT, output)
+            elif result.returncode == 0:
+                raise RuntimeError("原生构建成功但没有返回产物归档")
         for line in log.read_text("utf-8", errors="replace").splitlines():
             if "Tests run:" in line or "BUILD " in line or "[ERROR]" in line:
                 print(line, flush=True)

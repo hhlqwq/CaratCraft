@@ -3,14 +3,14 @@ package com.platform.modules.mall.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.modules.mall.entity.MallGoodsEntity;
@@ -28,7 +28,6 @@ import java.util.List;
 class PearlCatalogServiceTest {
     /** 来源、品类、可售及未删除条件应同时存在, 分页参数不被服务端默认值覆盖. */
     @Test
-    @SuppressWarnings("unchecked")
     void combinesBothDimensionsWithVisibilityAndPagination() {
         TableInfoHelper.initTableInfo(
                 new MapperBuilderAssistant(new MybatisConfiguration(), "test"),
@@ -38,10 +37,11 @@ class PearlCatalogServiceTest {
         Page<MallGoodsEntity> response = new Page<>(3, 7);
         response.setRecords(List.of(item));
         response.setTotal(15);
-        when(goods.page(any(Page.class), any())).thenReturn(response);
+        when(goods.page(org.mockito.ArgumentMatchers.<Page<MallGoodsEntity>>notNull(), notNull()))
+                .thenReturn(response);
         var result = new PearlCatalogService(goods).page("FRESHWATER", "NECKLACE", 3, 7);
-        ArgumentCaptor<Page> page = ArgumentCaptor.forClass(Page.class);
-        ArgumentCaptor<Wrapper> filter = ArgumentCaptor.forClass(Wrapper.class);
+        ArgumentCaptor<Page<MallGoodsEntity>> page = ArgumentCaptor.captor();
+        ArgumentCaptor<LambdaQueryWrapper<MallGoodsEntity>> filter = ArgumentCaptor.captor();
         verify(goods).page(page.capture(), filter.capture());
         assertEquals(3, page.getValue().getCurrent());
         assertEquals(7, page.getValue().getSize());
@@ -49,9 +49,7 @@ class PearlCatalogServiceTest {
         assertTrue(sql.contains("is_delete"));
         assertTrue(sql.contains("is_on_sale"));
         assertTrue(sql.contains("ORDER BY id DESC"));
-        var wrapper =
-                (com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<MallGoodsEntity>)
-                        filter.getValue();
+        var wrapper = filter.getValue();
         var values = new ArrayList<>(wrapper.getParamNameValuePairs().values());
         assertEquals(2, Collections.frequency(values, "FRESHWATER"));
         assertEquals(2, Collections.frequency(values, "NECKLACE"));
