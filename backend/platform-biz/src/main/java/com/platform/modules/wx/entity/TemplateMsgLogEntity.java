@@ -59,8 +59,10 @@ public class TemplateMsgLogEntity implements Serializable {
     private Date sendTime;
     private String sendResult;
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public TemplateMsgLogEntity() {}
 
+    /** 构建当前微信数据实体, 按构造参数保存对应的账号、消息或配置内容. */
     public TemplateMsgLogEntity(WxMpTemplateMessage msg, String sendResult) {
         this.touser = msg.getToUser();
         this.templateId = msg.getTemplateId();

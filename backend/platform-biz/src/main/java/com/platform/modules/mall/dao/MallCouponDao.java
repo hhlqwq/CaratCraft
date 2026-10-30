@@ -55,6 +55,7 @@ public interface MallCouponDao extends BaseMapper<MallCouponEntity> {
     List<MallCouponEntity> selectMallCouponPage(
             Page<MallCouponEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 读取满足当前用户及优惠条件的领券记录. */
     MallCouponEntity getUserCoupon(@Param(value = "id") Integer id, @Param("userId") Long userId);
 
     /**
@@ -65,7 +66,9 @@ public interface MallCouponDao extends BaseMapper<MallCouponEntity> {
      */
     MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> params);
 
+    /** 按给定条件更新用户领券状态. */
     void updateUserCoupon(MallCouponEntity couponVo);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCouponEntity> queryList(Map<String, Object> param);
 }

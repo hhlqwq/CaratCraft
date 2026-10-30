@@ -14,7 +14,7 @@ function load() {
         return pending;
     }
     pending = util
-        .request(api.MerchantContact)
+        .request(api.MerchantContact, {}, 'GET')
         .then((response) => {
             if (response.code !== 0 || !response.data) {
                 throw new Error(response.msg || '客服资料暂不可用');

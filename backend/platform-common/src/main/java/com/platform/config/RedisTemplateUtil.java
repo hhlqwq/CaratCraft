@@ -104,19 +104,6 @@ public class RedisTemplateUtil {
         }
     }
 
-    /**
-     * @param key key
-     * @param value value
-     * @return boolean
-     */
-    public boolean setIfAbsent(String key, String value) {
-        if (!hasKey(key)) {
-            set(key, value);
-            return true;
-        }
-        return false;
-    }
-
     // ============================String=============================
 
     /**

@@ -92,6 +92,7 @@ export default {
     components: {
         AddOrUpdate,
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataForm: {},
@@ -103,15 +104,18 @@ export default {
             dataListLoading: false,
         };
     },
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.init();
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init() {
             if (!this.dataList.length) {
                 this.getDataList();
             }
         },
+        /** 按当前筛选和分页条件读取业务列表. */
         getDataList() {
             if (this.dataListLoading) {
                 return;
@@ -141,6 +145,7 @@ export default {
                 this.$refs.addOrUpdate.init(this.fileType);
             });
         },
+        /** 应用当前选择结果并同步到所属表单. */
         onSelect(itemInfo) {
             if (!this.selectMode) {
                 return;
@@ -177,12 +182,15 @@ export default {
             this.pageIndex = val;
             this.getDataList();
         },
+        /** 提示素材地址已复制成功. */
         onCopySuccess() {
             this.$message.success('已复制');
         },
+        /** 提示当前浏览器未能完成复制操作. */
         onCopyError() {
             this.$message.error('复制失败,可能是此浏览器不支持复制');
         },
+        /** 从第一页重新读取素材列表并通知父组件内容已变更. */
         onChange() {
             this.pageIndex = 1;
             this.getDataList();

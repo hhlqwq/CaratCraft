@@ -65,6 +65,7 @@ public class RestResponse<V> implements Serializable {
     /** 失败状态码 */
     private static final int FAIL_CODE = HttpStatus.BAD_REQUEST.value();
 
+    /** 按传入的成功标记、业务码、说明和数据构建统一响应. */
     public RestResponse(boolean success, int code, String msg, V data) {
         this.success = success;
         this.code = code;
@@ -72,38 +73,47 @@ public class RestResponse<V> implements Serializable {
         this.data = data;
     }
 
+    /** 构建成功业务响应并携带当前调用提供的数据. */
     public static <V> RestResponse<V> ok() {
         return new RestResponse<>(true, SUCCESS_CODE, "操作成功", null);
     }
 
+    /** 构建成功业务响应并携带当前调用提供的数据. */
     public static <V> RestResponse<V> ok(V data) {
         return new RestResponse<>(true, SUCCESS_CODE, "操作成功", data);
     }
 
+    /** 构建成功业务响应并携带当前调用提供的数据. */
     public static <V> RestResponse<V> ok(String msg) {
         return new RestResponse<>(true, SUCCESS_CODE, msg, null);
     }
 
+    /** 构建成功业务响应并携带当前调用提供的数据. */
     public static <V> RestResponse<V> ok(String msg, V data) {
         return new RestResponse<>(true, SUCCESS_CODE, msg, data);
     }
 
+    /** 构建失败业务响应并保留本次调用的错误码或说明. */
     public static <V> RestResponse<V> fail() {
         return new RestResponse<>(false, FAIL_CODE, "操作失败", null);
     }
 
+    /** 构建失败业务响应并保留本次调用的错误码或说明. */
     public static <V> RestResponse<V> fail(String msg) {
         return new RestResponse<>(false, FAIL_CODE, msg, null);
     }
 
+    /** 构建失败业务响应并保留本次调用的错误码或说明. */
     public static <V> RestResponse<V> fail(V data) {
         return new RestResponse<>(false, FAIL_CODE, "操作失败", data);
     }
 
+    /** 构建失败业务响应并保留本次调用的错误码或说明. */
     public static <V> RestResponse<V> fail(String msg, V data) {
         return new RestResponse<>(false, FAIL_CODE, msg, data);
     }
 
+    /** 构建失败业务响应并保留本次调用的错误码或说明. */
     public static <V> RestResponse<V> fail(int code, String msg) {
         return new RestResponse<>(false, code, msg, null);
     }

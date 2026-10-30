@@ -71,39 +71,48 @@
 import {isURL} from '@/utils/validate';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {};
     },
     computed: {
         documentClientHeight: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.documentClientHeight;
             },
         },
         menuActiveName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.menuActiveName;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMenuActiveName', val);
             },
         },
         mainTabs: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.mainTabs;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMainTabs', val);
             },
         },
         mainTabsActiveName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.mainTabsActiveName;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMainTabsActiveName', val);
             },
         },
+        /** 按窗口、导航和标签栏高度计算主内容区可用高度. */
         siteContentViewHeight() {
             let height = this.documentClientHeight - 50 - 30 - 2;
             if (this.$route.meta.isTab) {

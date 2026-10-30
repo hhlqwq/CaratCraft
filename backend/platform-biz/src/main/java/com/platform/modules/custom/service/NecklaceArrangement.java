@@ -42,6 +42,9 @@ public final class NecklaceArrangement {
             item.put("name", option.getName());
             item.put("sizeMm", size);
             item.put("assetUrl", option.getAssetUrl());
+            if ("accessory".equals(option.getComponentType())) {
+                item.put("lengthRole", params.getString("lengthRole"));
+            }
             if (pearl) {
                 item.put(
                         "shape",

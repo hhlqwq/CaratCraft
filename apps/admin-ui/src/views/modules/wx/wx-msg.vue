@@ -73,6 +73,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             timeSelections: {
@@ -98,6 +99,7 @@ export default {
         WxMsgReply: () => import('./wx-msg-reply'),
         WxMsgPreview: () => import('@/components/wx-msg-preview'),
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -131,6 +133,7 @@ export default {
                 this.dataListLoading = false;
             });
         },
+        /** 补充消息列表中尚未缓存的用户显示信息. */
         refreshUserList(msgList) {
             let openidList = msgList
                 .map((msg) => msg.openid)
@@ -150,6 +153,7 @@ export default {
                 }
             });
         },
+        /** 从当前用户缓存读取消息发送者信息, 缺失时显示占位值. */
         getUserInfo(openid) {
             return (
                 this.userDataList.find((u) => u.mpOpenId === openid) || {

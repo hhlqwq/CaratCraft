@@ -55,5 +55,6 @@ public interface MallCategoryDao extends BaseMapper<MallCategoryEntity> {
     List<MallCategoryEntity> selectMallCategoryPage(
             Page<MallCategoryEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallCategoryEntity> queryList(Map<String, Object> param);
 }

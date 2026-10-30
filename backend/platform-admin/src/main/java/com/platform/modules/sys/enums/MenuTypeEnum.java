@@ -37,11 +37,13 @@ public enum MenuTypeEnum {
     private Integer value;
     private String text;
 
+    /** 保存菜单类型编码和显示文本. */
     MenuTypeEnum(Integer value, String text) {
         this.value = value;
         this.text = text;
     }
 
+    /** 读取当前对象的Value属性. */
     public Integer getValue() {
         return value;
     }

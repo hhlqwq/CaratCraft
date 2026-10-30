@@ -94,6 +94,7 @@ public interface MallOrderService extends IService<MallOrderEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 提交当前业务上下文并返回其处理结果. */
     Map<String, Object> submit(JSONObject payload, WxUserEntity loginUser);
 
     /** 取消未支付订单并释放资源 / Cancels an unpaid order and releases resources. */
@@ -102,6 +103,7 @@ public interface MallOrderService extends IService<MallOrderEntity> {
     /** 完成退款并释放资源 / Completes a refund and releases resources. */
     void completeRefund(Integer orderId, Integer refundedOrderStatus);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallOrderEntity> queryList(Map<String, Object> params);
 
     /** 在调用方事务内锁定订单, 所有支付和履约状态流转统一使用此入口. */

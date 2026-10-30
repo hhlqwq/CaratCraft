@@ -104,6 +104,8 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                     throw new IllegalArgumentException("同类组件只能选择一个");
                 }
                 selectedTypes.add(option.getComponentType());
+                com.platform.modules.custom.service.MaterialTypes.require(
+                        option.getComponentType());
                 selectedOptions.add(option);
                 var rules =
                         com.platform.modules.custom.service.ComponentRules.parse(
@@ -196,11 +198,13 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         if (product == null) {
             throw new IllegalArgumentException("该商品未开放定制");
         }
-        if (product.getRequiredComponentTypes() == null
-                || product.getRequiredComponentTypes().isBlank()) {
+        String required =
+                com.platform.modules.custom.service.MaterialTypes.required(
+                        product.getRequiredComponentTypes());
+        if (required.isBlank()) {
             return true;
         }
-        for (String requiredType : product.getRequiredComponentTypes().split(",")) {
+        for (String requiredType : required.split(",")) {
             if (!requiredType.isBlank() && !selectedTypes.contains(requiredType.trim())) {
                 return false;
             }

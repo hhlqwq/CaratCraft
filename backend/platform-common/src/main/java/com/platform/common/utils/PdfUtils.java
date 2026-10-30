@@ -152,6 +152,7 @@ public class PdfUtils {
         }
     }
 
+    /** 启动当前应用或工具入口并传递命令行参数. */
     public static void main(String[] args) {
         removeWatermark(new File("/Users/pengjun/828.pdf"));
     }

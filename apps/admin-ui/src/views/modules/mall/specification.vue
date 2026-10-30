@@ -88,6 +88,7 @@
 import AddOrUpdate from './specification-add-or-update';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -104,12 +105,14 @@ export default {
     components: {
         AddOrUpdate,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
     methods: {
         // 获取数据列表
 
+        /** 按当前筛选和分页条件读取业务列表. */
         getDataList(page) {
             if (page) {
                 this.pageIndex = page;

@@ -168,16 +168,9 @@ Page({
                 const groups = {};
                 const groupNames = {
                     pearl: '珍珠种类与规格',
-                    material: '贵金属材质',
-                    gem: '钻石与宝石',
-                    fitting: '配饰',
-                    accessory: '配饰',
                     clasp: '尾扣',
-                    style: '成品款式',
-                    chain: '链条材质',
-                    length: '项链长度',
-                    pendant: '吊坠款式',
-                    engraving: '刻字工艺',
+                    accessory: '配饰',
+                    chain: '链条',
                 };
                 const primaryTypes = String((res.data.product || {}).requiredComponentTypes || '')
                     .split(',')
@@ -188,6 +181,18 @@ Page({
                 const options = res.data && res.data.options ? res.data.options : [];
                 if (!options.length) {
                     this.setData({loadingConfig: false, configError: '商家尚未配置可选组件'});
+                    return;
+                }
+                if (
+                    primaryTypes.some((type) => Object.keys(groupNames).indexOf(type) < 0) ||
+                    options.some(
+                        (option) => Object.keys(groupNames).indexOf(option.componentType) < 0
+                    )
+                ) {
+                    this.setData({
+                        loadingConfig: false,
+                        configError: '材料分类尚未升级, 请商家按四类材料重新配置',
+                    });
                     return;
                 }
                 options.forEach(function (option) {
@@ -207,17 +212,7 @@ Page({
                 const componentGroups = Object.keys(groups).map(function (key, index) {
                     return groups[key];
                 });
-                const groupOrder = [
-                    'pearl',
-                    'clasp',
-                    'accessory',
-                    'fitting',
-                    'chain',
-                    'material',
-                    'style',
-                    'gem',
-                    'length',
-                ];
+                const groupOrder = ['pearl', 'clasp', 'accessory', 'chain'];
                 componentGroups.sort(function (left, right) {
                     return groupOrder.indexOf(left.type) - groupOrder.indexOf(right.type);
                 });

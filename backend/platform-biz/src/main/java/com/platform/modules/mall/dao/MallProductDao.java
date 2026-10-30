@@ -35,8 +35,10 @@ import java.util.Map;
  */
 @Mapper
 public interface MallProductDao extends BaseMapper<MallProductEntity> {
+    /** 按给定条件读取当前领域全部匹配记录. */
     List<MallProductEntity> queryAll(@Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallProductEntity> queryList(Map<String, Object> param);
 
     /** 原子扣减库存 / Atomically deducts stock. */

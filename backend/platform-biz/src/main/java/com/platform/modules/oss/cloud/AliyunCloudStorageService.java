@@ -42,6 +42,7 @@ public class AliyunCloudStorageService extends AbstractCloudStorageService {
 
     private OSSClient client;
 
+    /** 按传入的存储配置初始化当前云存储客户端. */
     public AliyunCloudStorageService(CloudStorageConfig config) {
         this.config = config;
 
@@ -49,6 +50,7 @@ public class AliyunCloudStorageService extends AbstractCloudStorageService {
         init();
     }
 
+    /** 初始化当前组件的运行配置或依赖资源. */
     private void init() {
         client =
                 new OSSClient(

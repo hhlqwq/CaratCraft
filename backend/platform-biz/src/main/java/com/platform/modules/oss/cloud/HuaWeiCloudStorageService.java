@@ -36,12 +36,14 @@ public class HuaWeiCloudStorageService extends AbstractCloudStorageService {
 
     private ObsClient obsClient;
 
+    /** 按传入的存储配置初始化当前云存储客户端. */
     public HuaWeiCloudStorageService(CloudStorageConfig config) {
         this.config = config;
         // 初始化
         init();
     }
 
+    /** 初始化当前组件的运行配置或依赖资源. */
     private void init() {
         obsClient =
                 new ObsClient(

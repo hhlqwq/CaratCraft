@@ -7,6 +7,7 @@ foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automa
     . ([scriptblock]::Create($Definition.Extent.Text))
 }
 $EnvFile = 'fake.env'; $ComposeFile = 'fake.yml'
+$ProjectRoot = $Root
 $env:BUILD_REVISION = 'test'
 
 # 所有Docker和数据操作仅记录调用, 不访问真实引擎或数据库.
@@ -29,8 +30,14 @@ function docker {
     if ($Sql -match 'SELECT TABLE_NAME') {
         if ($Script:Mode -ne 'missing-table') { 'sys_region' }
         'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION'
-    } elseif ($Sql -match 'SELECT COUNT') {
-        if ($Script:Mode -eq 'old-schema') { '0' } else { '1' }
+    } elseif ($Sql -match 'SELECT version,sha256') {
+        foreach ($File in (Get-ChildItem -LiteralPath (Join-Path $Root 'database/migrations') -Filter 'V*.sql' -File)) {
+            if ($script:Mode -eq 'old-schema' -and $File.Name -eq 'V20261024_01_material_catalog.sql') { continue }
+            $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($script:Mode -eq 'hash-conflict') { $Hash = '0' * 64 }
+            $File.Name + "`t" + $Hash
+        }
+        if ($script:Mode -eq 'unknown-version') { "V20990101_01_unknown.sql`t$('0' * 64)" }
     } elseif ($Sql -eq 'SELECT 1;') { '1' }
 }
 
@@ -63,7 +70,7 @@ foreach ($Case in @('root-auth', 'app-auth', 'missing-table', 'old-schema')) {
     if (@($Script:Actions | Where-Object { $_ -match 'mysql redis$' }).Count -ne 2) { throw '开发恢复必须重试一次数据服务' }
     if ($Script:Actions -match '^(build|pull)\b') { throw '开发恢复不得触发下载或构建' }
 }
-foreach ($Case in @('root-auth', 'sql-error', 'application-error')) {
+foreach ($Case in @('root-auth', 'sql-error', 'application-error', 'hash-conflict', 'unknown-version')) {
     $Script:Mode = $Case; $Script:Recover = $false
     $Script:Actions = @(); $Script:Resets = 0; $Script:Ready = $false; $Script:Diagnostics = 0
     $Rejected = $false

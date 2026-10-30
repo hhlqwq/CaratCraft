@@ -58,6 +58,7 @@ public interface MallOrderDao extends BaseMapper<MallOrderEntity> {
     List<MallOrderEntity> selectMallOrderPage(
             Page<MallOrderEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallOrderEntity> queryList(Map<String, Object> param);
 
     /** 原子取消待支付订单 / Atomically cancels an unpaid order. */

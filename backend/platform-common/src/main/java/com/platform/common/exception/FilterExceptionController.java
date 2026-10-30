@@ -42,6 +42,7 @@ import java.util.Map;
  */
 @RestController
 public class FilterExceptionController extends BasicErrorController {
+    /** 使用默认错误属性初始化过滤器异常处理入口. */
     public FilterExceptionController() {
         super(new DefaultErrorAttributes(), new ErrorProperties());
     }

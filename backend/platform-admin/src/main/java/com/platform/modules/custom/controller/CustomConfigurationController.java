@@ -40,6 +40,14 @@ public class CustomConfigurationController {
 
     private final com.platform.modules.custom.service.CustomConfigurationService configuration;
 
+    /** 下载同源客户候选目录, 所有候选默认停用且不包含实测尺寸或虚构库存. */
+    @GetMapping("catalog-template")
+    @RequiresPermissions("custom:config:list")
+    public RestResponse<Map<String, Object>> catalogTemplate(@RequestParam Integer goodsId) {
+        return RestResponse.ok(
+                com.platform.modules.custom.service.CustomerMaterialCatalog.template(goodsId));
+    }
+
     /** 查询已配置的定制商品 / Lists configured custom products. */
     @Operation(summary = "查询定制商品配置")
     @GetMapping("products")

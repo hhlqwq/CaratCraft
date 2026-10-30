@@ -37,22 +37,27 @@ public class SpringContextUtils implements ApplicationContextAware {
         SpringContextUtils.applicationContext = applicationContext;
     }
 
+    /** 读取当前对象的Bean属性. */
     public static Object getBean(String name) {
         return applicationContext.getBean(name);
     }
 
+    /** 读取当前对象的Bean属性. */
     public static <T> T getBean(String name, Class<T> requiredType) {
         return applicationContext.getBean(name, requiredType);
     }
 
+    /** 判断Spring容器是否包含指定名称的组件. */
     public static boolean containsBean(String name) {
         return applicationContext.containsBean(name);
     }
 
+    /** 查询指定Spring组件是否采用单例作用域. */
     public static boolean isSingleton(String name) {
         return applicationContext.isSingleton(name);
     }
 
+    /** 读取当前对象的Type属性. */
     public static Class<? extends Object> getType(String name) {
         return applicationContext.getType(name);
     }

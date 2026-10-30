@@ -53,6 +53,7 @@ export default {
             default: 'small',
         },
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             inputVisible: false,
@@ -75,6 +76,7 @@ export default {
             newTags.splice(newTags.indexOf(tag), 1);
             this.$emit('update:modelValue', newTags.join(','));
         },
+        /** 显示标签输入框并在下一帧聚焦输入控件. */
         showInput() {
             this.inputVisible = true;
             this.$nextTick((_) => {

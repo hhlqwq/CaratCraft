@@ -105,6 +105,7 @@
 import AddOrUpdate from './helpissue-add-or-update';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -121,6 +122,7 @@ export default {
     components: {
         AddOrUpdate,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },

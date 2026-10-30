@@ -72,9 +72,11 @@ def main():
                 errors.append({"file": file.relative_to(ROOT).as_posix(), "reason": "旧插件仍被发布"})
     result = {"backendComponents": len(data["backend"]), "frontendComponents": len(data["frontend"]),
               "projectAssets": len(assets), "sourceBundles": len(data.get("sourceBundles", [])),
-              "errors": errors}
+              "errors": errors,
+              "validationScope": "当前后端发布JAR、实际前端构建图、许可原文、对应源码及素材哈希",
+              "currentBuildVerified": not errors}
     (LEGAL / "distribution-check.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        json.dumps(result, ensure_ascii=False, indent=4) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(result, ensure_ascii=False))
     if errors:
         raise SystemExit(1)

@@ -19,6 +19,7 @@ public class RegionCacheUtil implements InitializingBean {
 
     public static List<SysRegionEntity> sysRegionEntityList;
 
+    /** 初始化当前组件的运行配置或依赖资源. */
     public static void init() {
         SysRegionService regionService =
                 (SysRegionService) SpringContextUtils.getBean("regionService");

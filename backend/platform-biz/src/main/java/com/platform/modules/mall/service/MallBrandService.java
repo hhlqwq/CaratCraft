@@ -90,5 +90,6 @@ public interface MallBrandService extends IService<MallBrandEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallBrandEntity> queryList(Map<String, Object> param);
 }

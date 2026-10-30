@@ -137,7 +137,8 @@
         "database/migrations/V20261021_02_order_legal.sql": "e32dc29ecf4fcbf2f008af1d9d9baff5441fc9746b395172383286410316863e",
         "database/migrations/V20261021_03_goods_recycle_schema.sql": "6ef60b660b5a32a2b2d079e986c077b03fd9df2f19e01d7ecece085dc9a487ad",
         "database/migrations/V20261021_04_menu_encoding.sql": "e21f0123c0c67cc7a8cf45f49b062f2129a09be7bd7dd8e34c90c6cf4d9e9d76",
-        "database/migrations/V20261022_01_sku_contract.sql": "6b528245057f1d59850fe9836fb7c5ec8d432946c474bce070320de9d0ba6d8d"
+        "database/migrations/V20261022_01_sku_contract.sql": "6b528245057f1d59850fe9836fb7c5ec8d432946c474bce070320de9d0ba6d8d",
+        "database/migrations/V20261024_01_material_catalog.sql": "d691f27c355d49f326cbad14f7ddbf2b2af4aaea8e29e38617505885c3e8fafe"
     },
     "composeProject": "platform-wxshop",
     "note": "旧路径仅保留未跟踪本机原件, 不作为源码或运行时回退入口.",

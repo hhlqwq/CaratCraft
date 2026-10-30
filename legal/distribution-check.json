@@ -1,7 +1,9 @@
 {
-  "backendComponents": 256,
-  "frontendComponents": 28,
-  "projectAssets": 160,
-  "sourceBundles": 13,
-  "errors": []
+    "backendComponents": 256,
+    "frontendComponents": 28,
+    "projectAssets": 160,
+    "sourceBundles": 13,
+    "errors": [],
+    "validationScope": "合并前历史产物清单; 当前合并源码尚未重建交付, 不作为最新产物通过证据",
+    "currentBuildVerified": false
 }

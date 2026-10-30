@@ -71,6 +71,7 @@ import UpdatePassword from './main-navbar-update-password';
 import {clearLoginInfo} from '@/utils';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             updatePassowrdVisible: false,
@@ -83,33 +84,40 @@ export default {
     },
     computed: {
         navbarLayoutType: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.navbarLayoutType;
             },
         },
         sidebarFold: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.sidebarFold;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateSidebarFold', val);
             },
         },
         mainTabs: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.mainTabs;
             },
+            /** 将新值同步到当前控件或页面的绑定状态. */
             set(val) {
                 this.$store.commit('common/updateMainTabs', val);
             },
         },
         userName: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.user.name;
             },
         },
     },
     methods: {
+        /** 打开主题设置面板并初始化其当前选项. */
         showTheme() {
             this.themeVisible = true;
             this.$nextTick(() => {

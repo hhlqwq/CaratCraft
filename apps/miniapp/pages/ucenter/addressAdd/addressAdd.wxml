@@ -1,19 +1,19 @@
 <view class="add-address">
-    <view wx:if="{{detailLoading}}">正在读取地址...</view>
-    <view wx:if="{{detailError}}">{{detailError}}<button bindtap="getAddressDetail">重新读取地址</button></view>
-    <view wx:if="{{saveError}}">{{saveError}}</view>
+    <view wx:if="{{loading}}">正在加载地址...</view>
+    <view wx:if="{{loadError}}" bindtap="getAddressDetail">{{loadError}}</view>
+    <view wx:if="{{saveUncertain}}">保存结果未确认, 请返回地址列表核对.</view>
     <view class="add-form">
         <view class="form-item">
-            <input class="input" bindinput="bindinputName" maxlength="50" disabled="{{saving || detailLoading}}" placeholder="姓名" value="{{address.userName}}" auto-focus/>
+            <input class="input" bindinput="bindinputName" maxlength="50" placeholder="姓名" value="{{address.userName}}" auto-focus/>
         </view>
         <view class="form-item">
-            <input class="input" bindinput="bindinputMobile" disabled="{{saving || detailLoading}}" value="{{address.telNumber}}" maxlength="11" type="number" placeholder="手机号码"/>
+            <input class="input" bindinput="bindinputMobile" value="{{address.telNumber}}" maxlength="11" type="number" placeholder="手机号码"/>
         </view>
         <view class="form-item">
             <input class="input" value="{{address.fullRegion}}" disabled="true" bindtap="chooseRegion" placeholder="省份、城市、区县"/>
         </view>
         <view class="form-item">
-            <input class="input" bindinput="bindinputAddress" maxlength="120" disabled="{{saving || detailLoading}}" value="{{address.detailInfo}}" placeholder="详细地址, 如街道、楼盘号等"/>
+            <input class="input" bindinput="bindinputAddress" maxlength="120" value="{{address.detailInfo}}" placeholder="详细地址, 如街道、楼盘号等"/>
         </view>
         <view class="form-default">
             <text bindtap="bindIsDefault" class="default-input {{address.isDefault == 1 ? 'selected' : ''}}">设为默认地址</text>
@@ -21,8 +21,8 @@
     </view>
 
     <view class="btns">
-        <button class="cannel" bindtap="cancelAddress" disabled="{{saving}}">取消</button>
-        <button class="save" bindtap="saveAddress" loading="{{saving}}" disabled="{{saving || detailLoading || detailError}}">保存</button>
+        <button class="cannel" bindtap="cancelAddress">取消</button>
+        <button loading="{{saving}}" disabled="{{saving || loading || loadError || saveUncertain}}" class="save" bindtap="saveAddress">保存</button>
     </view>
 
     <view class="region-select" wx:if="{{openSelectRegion}}">
@@ -32,9 +32,10 @@
         </view>
         <view class="done {{selectRegionDone ? '' : 'disabled'}}" bindtap="doneSelectRegion">确定</view>
       </view>
-      <view wx:if="{{regionError}}">{{regionError}}<button bindtap="retryRegion">重试地区读取</button></view>
       <scroll-view scroll-y class="bd">
         <view class="region-list">
+          <view wx:if="{{regionLoading}}">正在加载地区...</view>
+          <view wx:if="{{regionError}}" bindtap="retryRegions">{{regionError}}</view>
           <view class="item {{item.selected ? 'selected' : ''}}" bindtap="selectRegion" data-region-index="{{index}}" wx:for="{{regionList}}" wx:key="id">{{item.name}}</view>
         </view>
       </scroll-view>

@@ -1,3 +1,4 @@
+import functionDescription from '../../tools/quality/function-description-rule.mjs';
 import js from '@eslint/js';
 import vue from 'eslint-plugin-vue';
 
@@ -41,7 +42,9 @@ export default [
             ),
             parserOptions: {ecmaVersion: 'latest', sourceType: 'module'},
         },
+        plugins: {project: {rules: {'function-description': functionDescription}}},
         rules: {
+            'project/function-description': 'error',
             'no-unused-vars': ['error', {args: 'none', caughtErrors: 'none'}],
             'no-var': 'error',
             'prefer-const': 'error',

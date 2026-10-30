@@ -28,6 +28,7 @@
 </template>
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             activeTab: 'image',
@@ -43,15 +44,18 @@ export default {
         MaterialFile: () => import('./assets/material-file'),
         MaterialNews: () => import('./assets/material-news'),
     },
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.materialCount();
     },
     methods: {
+        /** 切换素材标签页后初始化对应素材面板. */
         handleTabClick(tab, event) {
             this.$nextTick(() => {
                 this.$refs[tab.name + 'Panel'].init();
             });
         },
+        /** 读取公众号各类素材的数量统计. */
         materialCount() {
             this.$http({
                 url: '/manage/wxAssets/materialCount',

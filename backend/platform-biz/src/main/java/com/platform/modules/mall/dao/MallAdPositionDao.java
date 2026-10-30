@@ -55,5 +55,6 @@ public interface MallAdPositionDao extends BaseMapper<MallAdPositionEntity> {
     List<MallAdPositionEntity> selectMallAdPositionPage(
             Page<MallAdPositionEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallAdPositionEntity> queryList(Map<String, Object> param);
 }

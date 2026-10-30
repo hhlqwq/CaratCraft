@@ -47,6 +47,7 @@ import java.util.Map;
 @Configuration
 public class ShiroConfig {
 
+    /** 构建当前应用使用的会话管理器. */
     @Bean("sessionManager")
     public SessionManager sessionManager() {
         DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
@@ -57,6 +58,7 @@ public class ShiroConfig {
         return sessionManager;
     }
 
+    /** 装配当前应用的安全管理器和认证领域. */
     @Bean("securityManager")
     public SecurityManager securityManager(Oauth2Realm oAuth2Realm, SessionManager sessionManager) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
@@ -71,6 +73,7 @@ public class ShiroConfig {
         return securityManager;
     }
 
+    /** 配置公开入口和需要认证的HTTP过滤规则. */
     @Bean("shiroFilter")
     public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
@@ -97,11 +100,13 @@ public class ShiroConfig {
         return shiroFilter;
     }
 
+    /** 注册Shiro组件的生命周期处理器. */
     @Bean("lifecycleBeanPostProcessor")
     public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
         return new LifecycleBeanPostProcessor();
     }
 
+    /** 启用Shiro权限注解的方法拦截能力. */
     @Bean
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(
             SecurityManager securityManager) {

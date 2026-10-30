@@ -81,6 +81,33 @@ class CustomConfigurationServiceTest {
         verify(products, never()).insert(any(CustomProductEntity.class));
     }
 
+    /** 旧类在任何持久化之前被拒绝, 包括停用材料导入和必选组配置. */
+    @Test
+    void legacyTypesCannotReenterNewConfiguration() {
+        var legacy = option("legacy");
+        legacy.setComponentType("material");
+        assertThrows(IllegalArgumentException.class, () -> service.saveOption(legacy));
+        verify(options, never()).insert(any(CustomComponentOptionEntity.class));
+        verify(stocks, never()).initialize(any(), any(), any());
+        var invalid = product();
+        invalid.setRequiredComponentTypes("pearl,style");
+        assertThrows(IllegalArgumentException.class, () -> service.saveProduct(invalid));
+        verify(products, never()).insert(any(CustomProductEntity.class));
+    }
+
+    /** 配饰启用前必须说明计长位置, 默认为启用的请求也不能绕过确认. */
+    @Test
+    void accessoryPublicationRequiresExplicitLengthRole() {
+        var accessory = option("charm");
+        accessory.setComponentType("accessory");
+        assertThrows(IllegalArgumentException.class, () -> service.saveOption(accessory));
+        verify(options, never()).insert(any(CustomComponentOptionEntity.class));
+        accessory.setMaterialParams("{\"lengthRole\":\"HANGING\"}");
+        service.saveOption(accessory);
+        verify(options).insert(accessory);
+        verify(stocks).initialize(10, "accessory", "charm");
+    }
+
     /** 创建与下载模板一致的停用商品配置. */
     private CustomProductEntity product() {
         var product = new CustomProductEntity();

@@ -49,6 +49,7 @@ public class AliPayService {
     @Value("${ali.pay.encryptKey}")
     private String encryptKey;
 
+    /** 读取配置并构建相应微信账号的配置存储. */
     @PostConstruct
     public void loadConfigStorages() {
         Config config = new Config();
@@ -133,6 +134,7 @@ public class AliPayService {
     }
 
     /** alipay.trade.cancel */
+    /** 按当前支付流程的交易标识执行撤销处理. */
     public AlipayTradeCancelResponse cancelTrade(String tradeNo) throws Exception {
         return Factory.Payment.Common().cancel(tradeNo);
     }

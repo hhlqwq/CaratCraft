@@ -176,6 +176,7 @@ export default {
             required: true,
         },
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             selectType: 'image',
@@ -192,6 +193,7 @@ export default {
                 this.checkMenuName(value);
             }
         },
+        /** 记录当前素材选择类型并打开素材选择器. */
         selectMedia(selectType) {
             this.assetsSelectorVisible = true;
             this.selectType = selectType;
@@ -215,6 +217,7 @@ export default {
             }
             return len;
         },
+        /** 接收素材选择结果并写入当前编辑内容. */
         onAssetsSelect(assetsInfo) {
             this.updateButton('mediaId', assetsInfo.mediaId);
             this.assetsSelectorVisible = false;

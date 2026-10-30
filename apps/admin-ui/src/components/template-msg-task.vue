@@ -95,6 +95,7 @@ export default {
             required: false,
         },
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             visible: false,
@@ -127,6 +128,7 @@ export default {
             return content;
         },
     }),
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.getWxUserTags().then((taglist) => {
             if (this.wxUserTagName) {
@@ -140,6 +142,7 @@ export default {
         });
     },
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init(msgTemplate) {
             if (!msgTemplate || !msgTemplate.templateId) {
                 this.$message.error('消息模板无效');
@@ -152,6 +155,7 @@ export default {
             this.msgTemplate = msgTemplate;
             this.visible = true;
         },
+        /** 读取公众号用户标签供当前界面选择或维护. */
         getWxUserTags() {
             return new Promise((resolve, reject) => {
                 this.$http({
@@ -170,6 +174,7 @@ export default {
                     .catch((err) => reject(err));
             });
         },
+        /** 按当前筛选条件读取公众号接收用户. */
         getWxUsers() {
             this.wxUsersLoading = true;
             this.$http({
@@ -184,6 +189,7 @@ export default {
                 this.wxUsersLoading = false;
             });
         },
+        /** 校验并提交当前模板消息发送任务, 防止重复提交. */
         send() {
             if (this.sending) {
                 return;

@@ -231,23 +231,12 @@ public class AppPayController extends AppBaseController {
         return IpWhitelistUtil.matchesAny(clientIp, notifyIpWhitelist);
     }
 
-    // 返回微信服务
+    /** 按微信回调协议构建处理结果XML, 不代表支付状态已通过验证. */
     public static String setXml(String returnCode, String returnMsg) {
         return "<xml><return_code><![CDATA["
                 + returnCode
                 + "]]></return_code><return_msg><![CDATA["
                 + returnMsg
                 + "]]></return_msg></xml>";
-    }
-
-    // 模拟微信回调接口
-    public static String callbakcXml(String orderNum) {
-        return "<xml><appid><![CDATA[wx2421b1c4370ec43b]]></appid><attach><![CDATA[支付测试]]></attach><bank_type><![CDATA[CFT]]></bank_type><fee_type><![CDATA[CNY]]></fee_type>"
-                   + " <is_subscribe><![CDATA[Y]]></is_subscribe><mch_id><![CDATA[10000100]]></mch_id><nonce_str><![CDATA[5d2b6c2a8db53831f7eda20af46e531c]]></nonce_str><openid><![CDATA[oUpF8uMEb4qRXf22hE3X68TekukE]]></openid>"
-                   + " <out_trade_no><![CDATA["
-                + orderNum
-                + "]]></out_trade_no>  <result_code><![CDATA[SUCCESS]]></result_code>"
-                + " <return_code><![CDATA[SUCCESS]]></return_code><sign><![CDATA[B552ED6B279343CB493C5DD0D78AB241]]></sign><sub_mch_id><![CDATA[10000100]]></sub_mch_id>"
-                + " <time_end><![CDATA[20140903131540]]></time_end><total_fee>1</total_fee><trade_type><![CDATA[JSAPI]]></trade_type><transaction_id><![CDATA[1004400740201409030005092168]]></transaction_id></xml>";
     }
 }

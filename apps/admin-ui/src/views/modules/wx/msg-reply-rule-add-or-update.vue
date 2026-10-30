@@ -112,6 +112,7 @@ export default {
         AssetsSelector: () => import('./assets/assets-selector'),
         tagsEditor: () => import('@/components/tags-editor'),
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             visible: false,
@@ -166,6 +167,7 @@ export default {
         },
     }),
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init(id) {
             this.dataForm.ruleId = id || '';
             this.visible = true;
@@ -205,9 +207,11 @@ export default {
                 }
             });
         },
+        /** 在当前回复正文中插入待编辑的链接模板. */
         addLink() {
             this.dataForm.replyContent += '<a href="链接地址">链接文字</a>';
         },
+        /** 根据回复类型初始化对应的内容编辑结构. */
         onReplyTypeChange(value) {
             if (value === 'miniprogrampage') {
                 const demo = {
@@ -252,6 +256,7 @@ export default {
                 this.dataForm.replyContent = '媒体素材media_id';
             }
         },
+        /** 接收素材选择结果并写入当前编辑内容. */
         onAssetsSelect(assetsInfo) {
             if (
                 this.dataForm.replyType === 'miniprogrampage' ||

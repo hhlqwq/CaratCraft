@@ -384,5 +384,249 @@
         },
         "repositoryPlanItems": "implemented_and_verified",
         "rawLogsDirectory": ".tools/restructure"
+    },
+    "completion20261024": {
+        "baseCommit": "1e7134a",
+        "java": {
+            "tests": 200,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 155,
+                "admin": 3,
+                "api": 25
+            },
+            "method": "最终源码全量package及全新tmpfs MySQL/独立Redis补测, 最新Surefire报告去重汇总"
+        },
+        "node": {
+            "businessTests": 171,
+            "httpProbe": 1,
+            "failures": 0,
+            "skipped": 0
+        },
+        "style": {
+            "javaFiles": 644,
+            "frontendFiles": 350,
+            "javaAosp": true,
+            "chineseFunctionDescriptions": true,
+            "frontendAndToolsEslint": true,
+            "newRuleTests": {
+                "node": 7,
+                "python": 4
+            }
+        },
+        "build": "最新两应用JAR及管理端生产包构建通过",
+        "browser": "最新生产包及独立HTTP夹具的既有浏览器回归通过, 不连接业务接口",
+        "license": {
+            "actualNpmPackages": 25,
+            "backendComponents": 256,
+            "frontendInventoryComponents": 28,
+            "assets": 160,
+            "sourceBundles": 13,
+            "errors": []
+        },
+        "cleanup": "所有本轮MySQL、Redis、API、管理服务及Nginx测试容器已清理; 业务五个容器保持运行; 临时样本已清理",
+        "remaining": [
+            "联网依赖下载的客户全新Docker构建路径未重跑, 本轮为禁网编译与运行时封装",
+            "微信真机、真实支付退款、正式AI及生产发布需实际账号和环境"
+        ],
+        "deployed": false,
+        "python": {
+            "tests": 30,
+            "failures": 0,
+            "skipped": 0,
+            "switches": "显式启用Git Bash完整摘要对照和已有JDK镜像职责回归"
+        },
+        "powershell": {
+            "groups": 5,
+            "shells": [
+                "Windows PowerShell5.1",
+                "PowerShell7"
+            ],
+            "failed": 0,
+            "scope": "全部为隔离文件或替身, 不操作业务服务"
+        },
+        "commentSemantics": {
+            "javaAstFiles": 145,
+            "vueAstTemplateStyleFiles": 128,
+            "differences": 0
+        },
+        "httpBusiness": {
+            "checks": 7,
+            "passed": true,
+            "evidence": "docs/资料/HTTP业务链路验证.json",
+            "scope": "真实HTTP、认证器、MyBatis、MySQL、Redis与实际小程序SKU模块; 合成身份, 不调用真实微信或支付"
+        },
+        "images": {
+            "sourceRevision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+            "images": {
+                "carat-craft-backend:verified-20261024-cleanup": {
+                    "id": "sha256:b825a38b646b037acff8266ff187f889c2655410be4e95e4d26a91fe8ee3e44c",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+                    "user": "caratcraft"
+                },
+                "carat-craft-admin-ui:verified-20261024-cleanup": {
+                    "id": "sha256:574b8ad4f65773eb063bc8d483ac86f563dfc8c625fad29071d7a90a42d2813a",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+                    "user": "",
+                    "httpStaticAssetsChecked": 19
+                }
+            },
+            "backendJarSha256": {
+                "admin": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                "api": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0"
+            },
+            "networkDownloads": false,
+            "productionServicesChanged": false,
+            "scope": "授权删除后新JAR及最新许可材料的禁网运行时封装"
+        },
+        "authorizedLegacyCleanup": {
+            "date": "2026-10-24",
+            "authorizedByUser": true,
+            "deleted": [
+                "RedisLock.java",
+                "RedisTemplateUtil.setIfAbsent",
+                "SkuCartesianHelper.java",
+                "AppPayController.callbakcXml"
+            ],
+            "artifactChecks": [
+                {
+                    "module": "platform-admin",
+                    "sha256": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                },
+                {
+                    "module": "platform-api",
+                    "sha256": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                }
+            ],
+            "realPaymentXmlResponseRetained": true,
+            "cleanBuild": "离线缺少maven-clean-plugin, 核对路径后只删除四模块target并重新package成功, 未下载依赖",
+            "java": {
+                "tests": 200,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 0,
+                "modules": {
+                    "common": 17,
+                    "biz": 155,
+                    "admin": 3,
+                    "api": 25
+                }
+            },
+            "databaseCases": 41,
+            "redisCases": 1,
+            "httpBusinessChecks": 7,
+            "javaDescriptionFiles": 644,
+            "distributionLicenseErrors": [],
+            "nodePythonPowerShellBrowser": "沿用前批验证结果, 本批无对应源码变更, 未重复运行",
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
+        }
+    },
+    "latestVerification": "customerRequirementCompletion20261024",
+    "customerRequirementCompletion20261024": {
+        "baseCommit": "0a8e054",
+        "java": {
+            "tests": 207,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 162,
+                "admin": 3,
+                "api": 25
+            }
+        },
+        "node": {
+            "businessTests": 174,
+            "httpProbe": 1,
+            "failures": 0,
+            "skipped": 0
+        },
+        "python": {
+            "tests": 34,
+            "failures": 0,
+            "skipped": 0
+        },
+        "httpChecks": 9,
+        "style": {
+            "javaFiles": 647,
+            "javaAosp": true,
+            "frontendFiles": 350,
+            "frontendFormattingMethod": "349文件完整检查及开发者工具项目配置单文件检查",
+            "allEslintPassed": true
+        },
+        "miniappCompile": {
+            "officialWxml": 43,
+            "officialWxss": 48,
+            "javascriptSyntax": 58,
+            "ideErrors": 0,
+            "ideWarnings": 5,
+            "warningDetailsVerified": true,
+            "uploaded": false
+        },
+        "candidateCatalog": {
+            "items": 112,
+            "source": "backend/platform-biz/src/main/resources/catalog/customer-material-catalog.json",
+            "accessoryNamesProvisional": true,
+            "migration": "V20261024_01_material_catalog.sql"
+        },
+        "adminProductionBuild": "passed",
+        "adminBrowserFixture": "passed",
+        "artifactLicense": "passed, 256 backend / 28 frontend inventory / 25 actual npm / 160 assets / 13 source bundles",
+        "deployed": true,
+        "currentRoundVerificationImagesBuilt": true,
+        "remaining": [
+            "正式商家摄影、价格库存、工艺、客服及协议资料需维护; 候选及旧分类模板停用, 不能直接下单",
+            "真机、微信登录、真实支付退款及正式AI另行验收",
+            "客户联网从零Docker依赖下载构建未重跑"
+        ],
+        "verificationImages": {
+            "backend": "carat-craft-backend:verified-20261024-materials",
+            "adminUi": "carat-craft-admin-ui:verified-20261024-materials",
+            "evidence": "交付镜像验证.json",
+            "imageInternalJarHttpChecks": 9,
+            "staticResourcesChecked": 19,
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
+        },
+        "localDeployment": {
+            "evidence": "本机部署验证.json",
+            "backupSkippedByUser": true,
+            "missingMigrationApplied": "V20261024_01_material_catalog.sql",
+            "allServicesHealthy": true,
+            "mysqlRedisNotRestarted": true
+        },
+        "publicReadFix": {
+            "evidence": "小程序接口验证.json",
+            "realHttpCallsPassed": 4,
+            "nodeBusinessTests": 174,
+            "ideErrors": 0,
+            "ideWarnings": 5,
+            "warningDetailsVerified": true
+        }
+    },
+    "masterIntegration": {
+        "date": "2026-10-30",
+        "local": "944213f",
+        "remote": "9baed20",
+        "status": "source_merged_node_passed",
+        "note": "合并前的独立历史证据不代表合并后已完成构建验收",
+        "node": {
+            "tests": 291,
+            "passed": 291,
+            "failed": 0,
+            "skipped": 0
+        },
+        "build": "未重建应用或操作业务环境"
     }
 }

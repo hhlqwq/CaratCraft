@@ -21,33 +21,43 @@ export default {
         mainTabsActiveName: '',
     },
     mutations: {
+        /** 更新共享布局记录的可视区域高度. */
         updateDocumentClientHeight(state, height) {
             state.documentClientHeight = height;
         },
+        /** 更新导航栏的布局类型. */
         updateNavbarLayoutType(state, type) {
             state.navbarLayoutType = type;
         },
+        /** 更新侧栏使用的配色主题. */
         updateSidebarLayoutSkin(state, skin) {
             state.sidebarLayoutSkin = skin;
         },
+        /** 更新侧栏展开或折叠状态. */
         updateSidebarFold(state, fold) {
             state.sidebarFold = fold;
         },
+        /** 替换当前账号可见的导航菜单列表. */
         updateMenuList(state, list) {
             state.menuList = list;
         },
+        /** 更新当前激活的菜单名称. */
         updateMenuActiveName(state, name) {
             state.menuActiveName = name;
         },
+        /** 设置主内容区是否需要重新加载. */
         updateContentIsNeedRefresh(state, status) {
             state.contentIsNeedRefresh = status;
         },
+        /** 同步主界面已打开的标签页列表. */
         updateMainTabs(state, tabs) {
             state.mainTabs = tabs;
         },
+        /** 更新主界面当前激活的标签页名称. */
         updateMainTabsActiveName(state, name) {
             state.mainTabsActiveName = name;
         },
+        /** 删除指定标签页并调整当前激活页. */
         removeTab(state, tabName) {
             state.mainTabs = state.mainTabs.filter((item) => item.name !== tabName);
             if (state.mainTabs.length >= 1) {
@@ -63,6 +73,7 @@ export default {
                 router.push({name: 'home'});
             }
         },
+        /** 关闭当前激活的主界面标签页. */
         closeCurrentTab(state) {
             this.commit('common/removeTab', state.mainTabsActiveName);
         },

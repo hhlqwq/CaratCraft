@@ -47,7 +47,9 @@ Page({
             const historical =
                 ['TERMS', 'PRIVACY'].includes(kind) && /^[1-9]\d*$/.test(version || '');
             const response = await util.request(
-                api.LegalDocuments + (historical ? '/' + kind + '/' + version : '')
+                api.LegalDocuments + (historical ? '/' + kind + '/' + version : ''),
+                {},
+                'GET'
             );
             if (response.code !== 0) {
                 throw new Error(response.msg || '协议加载失败');
@@ -57,7 +59,7 @@ Page({
             }
             this.setData({documents: historical ? [response.data] : response.data});
             if (token) {
-                const records = await util.request(api.LegalDocuments + '/history');
+                const records = await util.request(api.LegalDocuments + '/history', {}, 'GET');
                 if (records.code !== 0) {
                     throw new Error(records.msg || '确认记录加载失败');
                 }

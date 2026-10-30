@@ -102,6 +102,7 @@
 import AddOrUpdate from './config-add-or-update';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -119,10 +120,12 @@ export default {
     components: {
         AddOrUpdate,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
     methods: {
+        /** 处理表格单元格点击并切换当前编辑状态. */
         cellclick(row, column) {
             if (this.isAuth('sys:config:update')) {
                 if (column.label === '参数名') {
@@ -140,6 +143,7 @@ export default {
                 });
             }
         },
+        /** 在编辑控件失焦时结束当前单元格编辑. */
         blurClick({row, column}) {
             if (column.label === '参数名') {
                 row.isOK = false;

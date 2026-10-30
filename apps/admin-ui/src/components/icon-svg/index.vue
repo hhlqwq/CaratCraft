@@ -23,9 +23,11 @@ export default {
         },
     },
     computed: {
+        /** 生成当前图标在SVG雪碧图中的引用标识. */
         getName() {
             return `#icon-${this.name}`;
         },
+        /** 按图标名称和样式选项生成SVG类名. */
         getClassName() {
             return [
                 'icon-svg',

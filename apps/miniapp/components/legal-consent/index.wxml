@@ -3,7 +3,7 @@
     <view wx:elif="{{error}}"><text>{{error}}</text><button bindtap="load" size="mini">重新加载</button></view>
     <view wx:else>
         <view wx:for="{{documents}}" wx:key="kind">
-            <navigator url="/pages/ucenter/legal/index?kind={{item.kind}}&amp;version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
+            <navigator class="legal-link" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
         </view>
         <checkbox-group bindchange="change"><label><checkbox value="agree" checked="{{checked}}" />我已阅读并同意以上用户协议及隐私政策</label></checkbox-group>
     </view>

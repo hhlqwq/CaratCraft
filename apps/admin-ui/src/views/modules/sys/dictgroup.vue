@@ -131,6 +131,7 @@ import AddOrUpdate from './dictgroup-add-or-update';
 import Dict from './dict';
 
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -149,10 +150,12 @@ export default {
         AddOrUpdate,
         Dict,
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
     methods: {
+        /** 打开当前字典的明细数据界面. */
         showDict(groupId, code) {
             this.$nextTick(() => {
                 this.$refs.dict.getDictDataList(groupId, code);

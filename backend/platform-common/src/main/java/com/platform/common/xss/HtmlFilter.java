@@ -140,6 +140,7 @@ public final class HtmlFilter {
     private final boolean alwaysMakeTags;
 
     /** Default constructor. */
+    /** 按默认或传入白名单配置初始化HTML过滤器. */
     HtmlFilter() {
         vAllowed = new HashMap<>();
 
@@ -175,7 +176,8 @@ public final class HtmlFilter {
     }
 
     /**
-     * Set debug flag to true. Otherwise use default settings. See the default constructor.
+     * 按默认或传入白名单配置初始化HTML过滤器. Set debug flag to true. Otherwise use default settings. See the
+     * default constructor.
      *
      * @param debug turn debug on with a true argument
      */
@@ -185,7 +187,7 @@ public final class HtmlFilter {
     }
 
     /**
-     * Map-parameter configurable constructor.
+     * 按默认或传入白名单配置初始化HTML过滤器. Map-parameter configurable constructor.
      *
      * @param conf map containing configuration. keys match field names.
      */
@@ -216,10 +218,12 @@ public final class HtmlFilter {
                 conf.containsKey("alwaysMakeTags") ? (Boolean) conf.get("alwaysMakeTags") : true;
     }
 
+    /** 清空本次HTML过滤使用的临时解析状态. */
     private void reset() {
         vTagCounts.clear();
     }
 
+    /** 仅在启用调试时记录过滤处理信息. */
     private void debug(final String msg) {
         if (vDebug) {
             Logger.getAnonymousLogger().info(msg);
@@ -229,7 +233,7 @@ public final class HtmlFilter {
     // ---------------------------------------------------------------
 
     /**
-     * my versions of some PHP library functions
+     * 将字符编码转换为对应的字符文本. my versions of some PHP library functions
      *
      * @param decimal decimal
      * @return String
@@ -239,6 +243,8 @@ public final class HtmlFilter {
     }
 
     /**
+     * 将HTML特殊字符转换为安全实体表示.
+     *
      * @param s s
      * @return String
      */
@@ -254,7 +260,8 @@ public final class HtmlFilter {
     // ---------------------------------------------------------------
 
     /**
-     * given a user submitted input String, filter out any invalid or restricted html.
+     * 按当前标签、属性和协议白名单过滤输入HTML. given a user submitted input String, filter out any invalid or
+     * restricted html.
      *
      * @param input text (i.e. submitted by a user) than may contain html
      * @return "clean" version of input, with only valid, whitelisted html elements allowed
@@ -285,14 +292,17 @@ public final class HtmlFilter {
         return s;
     }
 
+    /** 读取过滤器是否自动补齐标签的配置. */
     public boolean isAlwaysMakeTags() {
         return alwaysMakeTags;
     }
 
+    /** 读取过滤器是否移除HTML注释的配置. */
     public boolean isStripComments() {
         return stripComment;
     }
 
+    /** 转义输入中的HTML注释内容. */
     private String escapeComments(final String s) {
         final Matcher m = P_COMMENTS.matcher(s);
         final StringBuffer buf = new StringBuffer();
@@ -307,6 +317,7 @@ public final class HtmlFilter {
         return buf.toString();
     }
 
+    /** 按当前配置修正不平衡的HTML标签. */
     private String balanceHtml(String s) {
         if (alwaysMakeTags) {
             //
@@ -334,6 +345,7 @@ public final class HtmlFilter {
         return s;
     }
 
+    /** 逐个检查并过滤输入中的HTML标签. */
     private String checkTags(String s) {
         Matcher m = P_TAGS.matcher(s);
 
@@ -358,6 +370,7 @@ public final class HtmlFilter {
         return s;
     }
 
+    /** 按配置移除不应保留的空标签内容. */
     private String processRemoveBlanks(final String s) {
         String result = s;
         for (String tag : vRemoveBlanks) {
@@ -375,12 +388,14 @@ public final class HtmlFilter {
         return result;
     }
 
+    /** 按给定模式和替换文本转换输入内容. */
     private static String regexReplace(
             final Pattern regexPattern, final String replacement, final String s) {
         Matcher m = regexPattern.matcher(s);
         return m.replaceAll(replacement);
     }
 
+    /** 校验单个HTML标签及其属性并生成过滤结果. */
     private String processTag(final String s) {
         Matcher m = P_END_TAG.matcher(s);
         if (m.find()) {
@@ -463,6 +478,7 @@ public final class HtmlFilter {
         return "";
     }
 
+    /** 校验并过滤属性值中的URL协议. */
     private String processParamProtocol(String s) {
         String str = "#//";
         s = decodeEntities(s);
@@ -481,6 +497,7 @@ public final class HtmlFilter {
         return s;
     }
 
+    /** 解码输入中的字符实体以便统一校验. */
     private String decodeEntities(String s) {
         StringBuffer buf = new StringBuffer();
 
@@ -517,6 +534,7 @@ public final class HtmlFilter {
         return s;
     }
 
+    /** 校验字符实体并转义不允许的表示. */
     private String validateEntities(final String s) {
         StringBuffer buf = new StringBuffer();
 
@@ -534,6 +552,7 @@ public final class HtmlFilter {
         return encodeQuotes(buf.toString());
     }
 
+    /** 将文本中的引号编码为HTML实体. */
     private String encodeQuotes(final String s) {
         if (encodeQuotes) {
             StringBuffer buf = new StringBuffer();
@@ -557,15 +576,18 @@ public final class HtmlFilter {
         }
     }
 
+    /** 检查并按白名单保留或转义当前实体. */
     private String checkEntity(final String preamble, final String term) {
 
         return ";".equals(term) && isValidEntity(preamble) ? '&' + preamble : "&amp;" + preamble;
     }
 
+    /** 判断字符实体是否在允许范围内. */
     private boolean isValidEntity(final String entity) {
         return inArray(entity, vAllowedEntities);
     }
 
+    /** 判断给定字符串是否属于指定候选集合. */
     private static boolean inArray(final String s, final String[] array) {
         for (String item : array) {
             if (item != null && item.equals(s)) {
@@ -575,10 +597,12 @@ public final class HtmlFilter {
         return false;
     }
 
+    /** 判断HTML标签是否在当前白名单内. */
     private boolean allowed(final String name) {
         return (vAllowed.isEmpty() || vAllowed.containsKey(name)) && !inArray(name, vDisallowed);
     }
 
+    /** 判断指定标签的属性是否被当前规则允许. */
     private boolean allowedAttribute(final String name, final String paramName) {
         return allowed(name) && (vAllowed.isEmpty() || vAllowed.get(name).contains(paramName));
     }

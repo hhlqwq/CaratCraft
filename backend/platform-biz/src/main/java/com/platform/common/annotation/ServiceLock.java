@@ -33,5 +33,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ServiceLock {
+    /** 提供当前枚举或接口状态的说明文本. */
     String description() default "";
 }

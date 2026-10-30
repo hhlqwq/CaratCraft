@@ -46,6 +46,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
     /** html过滤 */
     private static final HtmlFilter HTML_FILTER = new HtmlFilter();
 
+    /** 包装原HTTP请求以对读取的参数执行XSS过滤. */
     public XssHttpServletRequestWrapper(HttpServletRequest request) {
         super(request);
         orgRequest = request;
@@ -135,6 +136,7 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
         return value;
     }
 
+    /** 对请求输入执行当前XSS过滤规则. */
     private String xssEncode(String input) {
         return HTML_FILTER.filter(input);
     }

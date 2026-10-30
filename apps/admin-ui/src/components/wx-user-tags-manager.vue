@@ -48,6 +48,7 @@ export default {
             default: true,
         },
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dialogVisible: false,
@@ -59,13 +60,16 @@ export default {
     computed: mapState({
         wxUserTags: (state) => state.wxUserTags.tags,
     }),
+    /** 挂载组件后初始化控件并读取所需数据. */
     mounted() {
         this.getWxUserTags();
     },
     methods: {
+        /** 显示用户标签管理弹窗. */
         show() {
             this.dialogVisible = true;
         },
+        /** 读取公众号用户标签供当前界面选择或维护. */
         getWxUserTags() {
             this.$http({
                 url: '/manage/wxUserTags/list',
@@ -76,6 +80,7 @@ export default {
                 }
             });
         },
+        /** 确认后删除指定的公众号用户标签. */
         deleteTag(tagid) {
             if (this.submitting) {
                 return;
@@ -98,18 +103,21 @@ export default {
                 });
             });
         },
+        /** 显示标签输入框并在下一帧聚焦输入控件. */
         showInput() {
             this.inputVisible = true;
             this.$nextTick((_) => {
                 this.$refs.saveTagInput.$refs.input.focus();
             });
         },
+        /** 提交新标签并关闭新增标签输入框. */
         addTag() {
             const newTagName = this.inputValue;
             this.saveTag(newTagName);
             this.inputVisible = false;
             this.inputValue = '';
         },
+        /** 提示输入指定标签的新名称并提交修改. */
         editTag(tagid, orignName = '') {
             this.$prompt('请输入新标签名称', '提示', {
                 confirmButtonText: '确定',
@@ -123,6 +131,7 @@ export default {
                 })
                 .catch(() => {});
         },
+        /** 提交公众号用户标签的新增或改名请求. */
         saveTag(name, tagid) {
             if (this.submitting) {
                 return;

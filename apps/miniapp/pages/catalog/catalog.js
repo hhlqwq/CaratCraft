@@ -63,12 +63,16 @@ Page({
         const page = this.data.page;
         this.setData({loading: true, error: ''});
         try {
-            const response = await util.request(api.PearlCatalog, {
-                source: this.data.source,
-                type: this.data.type,
-                page,
-                limit: 20,
-            });
+            const response = await util.request(
+                api.PearlCatalog,
+                {
+                    source: this.data.source,
+                    type: this.data.type,
+                    page,
+                    limit: 20,
+                },
+                'GET'
+            );
             if (version !== this.requestVersion) {
                 return;
             }

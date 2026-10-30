@@ -106,6 +106,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {name: ''},
@@ -116,6 +117,7 @@ export default {
             totalPage: 0,
         };
     },
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -190,13 +192,16 @@ export default {
             const elapsed = Date.now() - new Date(value).getTime();
             return Math.max(0, 30 - Math.floor(elapsed / 86400000));
         },
+        /** 保存表格当前勾选项以供后续批量操作. */
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },
+        /** 调整每页数量并重新读取列表. */
         sizeChangeHandle(val) {
             this.pageSize = val;
             this.getDataList(1);
         },
+        /** 切换当前页码并读取对应列表. */
         currentChangeHandle(val) {
             this.pageIndex = val;
             this.getDataList();

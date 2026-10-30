@@ -113,7 +113,7 @@ setTimeout(() => {
             page: process.argv[2],
             requests,
             errors,
-            readError: page?.data?.readError || '',
+            readError: page?.data?.readError || page?.data?.loadError || '',
         })
     );
     process.exit(0);

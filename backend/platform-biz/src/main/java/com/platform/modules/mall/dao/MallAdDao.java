@@ -55,5 +55,6 @@ public interface MallAdDao extends BaseMapper<MallAdEntity> {
     List<MallAdEntity> selectMallAdPage(
             Page<MallAdEntity> page, @Param("params") Map<String, Object> params);
 
+    /** 按给定条件查询当前领域记录列表. */
     List<MallAdEntity> queryList(Map<String, Object> param);
 }

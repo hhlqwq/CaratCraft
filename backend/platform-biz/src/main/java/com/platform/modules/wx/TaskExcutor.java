@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021-05-06 18:30:15
  */
 public class TaskExcutor {
+    /** 禁止外部实例化共享任务执行器. */
     private TaskExcutor() {}
 
     /** 使用静态内部类实现单例懒加载 */

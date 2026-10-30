@@ -3,6 +3,7 @@
 import hashlib
 import io
 import json
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -196,15 +197,33 @@ def frontend_package_roots():
         identifier = module.get("identifier", "").split("!")[-1].split("?")[0]
         if "node_modules" not in identifier:
             continue
-        file = Path(identifier)
+        snapshot = os.environ.get("CARATCRAFT_FRONTEND_NODE_MODULES")
+        if snapshot:
+            normalized = identifier.replace("\\", "/")
+            if "/node_modules/" not in normalized:
+                raise ValueError("构建模块缺少node_modules归属: " + identifier)
+            relative = normalized.split("/node_modules/", 1)[1]
+            if ".." in Path(relative).parts:
+                raise ValueError("构建模块归属越界: " + identifier)
+            file = Path(snapshot).resolve() / relative
+        else:
+            file = Path(identifier)
         if not file.is_absolute():
             file = UI / file
-        if not file.is_file():
-            continue
+        if not snapshot and not file.is_file():
+            raise FileNotFoundError("构建模块不可读取, 请在构建环境核验或提供包快照: " + identifier)
+        found = False
         for parent in file.parents:
+            if snapshot and not parent.is_relative_to(Path(snapshot).resolve()):
+                break
             if (parent / "package.json").is_file():
                 folders.add(parent)
+                found = True
                 break
+        if not found:
+            raise FileNotFoundError("构建模块缺少包元数据: " + identifier)
+    if not folders:
+        raise ValueError("实际构建图没有可核验的npm包")
     return sorted(folders)
 
 

@@ -39,6 +39,7 @@ export default {
     props: {
         wxUsers: Array,
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             // 操作，tagging | untagging
@@ -83,6 +84,7 @@ export default {
         },
     }),
     methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
         init(mode) {
             if (mode === 'tagging' || mode === 'untagging') {
                 this.mode = mode;
@@ -91,10 +93,12 @@ export default {
                 this.$message.error('mode参数有误');
             }
         },
+        /** 根据标签标识查找显示名称, 未找到时保留未知状态. */
         getTagName(tagid) {
             const tag = this.wxUserTags.find((item) => item.id === tagid);
             return tag ? tag.name : '?';
         },
+        /** 校验当前表单并提交新增或修改请求. */
         dataFormSubmit() {
             if (this.submitting) {
                 return;

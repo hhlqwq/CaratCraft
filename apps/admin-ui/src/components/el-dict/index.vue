@@ -25,6 +25,7 @@ export default {
     emits: ['update:modelValue', 'change'],
     name: 'el-dict',
     componentName: 'ElDict',
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             placeholder: '请选择',
@@ -33,6 +34,7 @@ export default {
         };
     },
     methods: {
+        /** 向父组件通知当前字典选择已变化. */
         changeHandle() {
             this.$emit('change');
         },

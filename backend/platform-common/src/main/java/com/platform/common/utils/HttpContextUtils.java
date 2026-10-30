@@ -30,17 +30,20 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  */
 public class HttpContextUtils {
 
+    /** 从当前请求上下文取得HTTP请求对象. */
     public static HttpServletRequest getHttpServletRequest() {
         return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
                 .getRequest();
     }
 
+    /** 按当前HTTP请求构建服务域名地址. */
     public static String getDomain() {
         HttpServletRequest request = getHttpServletRequest();
         StringBuffer url = request.getRequestURL();
         return url.delete(url.length() - request.getRequestURI().length(), url.length()).toString();
     }
 
+    /** 读取当前请求的来源地址. */
     public static String getOrigin() {
         HttpServletRequest request = getHttpServletRequest();
         return request.getHeader("Origin");

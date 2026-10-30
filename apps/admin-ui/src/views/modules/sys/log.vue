@@ -76,6 +76,7 @@
 
 <script>
 export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             searchForm: {
@@ -89,6 +90,7 @@ export default {
             selectionDataList: [],
         };
     },
+    /** 创建组件时准备所需的依赖数据. */
     created() {
         this.getDataList();
     },

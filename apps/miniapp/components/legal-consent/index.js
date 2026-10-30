@@ -31,7 +31,7 @@ Component({
             this.setData({loading: true, checked: false, error: ''});
             this.triggerEvent('change', null);
             try {
-                const response = await util.request(api.LegalDocuments);
+                const response = await util.request(api.LegalDocuments, {}, 'GET');
                 if (response.code !== 0 || !Array.isArray(response.data)) {
                     throw new Error(response.msg || '协议加载失败');
                 }

@@ -49,14 +49,14 @@ class CustomQuoteServiceImplTest {
         CustomProductEntity product = new CustomProductEntity();
         product.setGoodsId(10);
         product.setEnabled(1);
-        product.setRequiredComponentTypes("CHAIN,PENDANT");
+        product.setRequiredComponentTypes("chain,accessory");
         when(productDao.selectOne(any())).thenReturn(product);
         when(optionDao.selectList(any()))
                 .thenReturn(
                         Arrays.asList(
-                                option(1L, "CHAIN", "20.00"),
-                                option(2L, "PENDANT", "35.00"),
-                                option(3L, "CHAIN", "50.00")));
+                                option(1L, "chain", "20.00"),
+                                option(2L, "accessory", "35.00"),
+                                option(3L, "chain", "50.00")));
         // 组件库存 mock / Mock component stock
         ComponentStockEntity stock = new ComponentStockEntity();
         stock.setStock(100);
@@ -107,10 +107,10 @@ class CustomQuoteServiceImplTest {
     /** 库存校验累计耗用量, 不能因分成多个实例绕过库存不足. */
     @Test
     void arrangementChecksCombinedStockQuantity() {
-        var first = option(1L, "CHAIN", "20.00");
+        var first = option(1L, "chain", "20.00");
         first.setMaterialParams("{\"stockQuantity\":60,\"stockUnit\":\"毫米\"}");
         when(optionDao.selectList(any()))
-                .thenReturn(Arrays.asList(first, option(2L, "PENDANT", "35.00")));
+                .thenReturn(Arrays.asList(first, option(2L, "accessory", "35.00")));
         CustomQuoteRequest request = request();
         request.setArrangementOptionIds(Arrays.asList(1L, 2L, 1L));
         assertThrows(IllegalArgumentException.class, () -> service.quote(request));

@@ -174,6 +174,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 读取符合热门条件的商品集合. */
     @Operation(summary = "新热门商品信息")
     @IgnoreAuth
     @PostMapping("hotGoods")
@@ -193,6 +194,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 读取首页使用的专题展示内容. */
     @Operation(summary = "专题")
     @IgnoreAuth
     @PostMapping("topic")
@@ -209,6 +211,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 读取首页展示的品牌内容. */
     @Operation(summary = "品牌制造商")
     @IgnoreAuth
     @PostMapping("brand")
@@ -228,6 +231,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 按当前参数读取分类及其关联展示内容. */
     @Operation(summary = "商品分类及分类下的商品")
     @IgnoreAuth
     @PostMapping("category")
@@ -277,6 +281,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 读取当前入口的轮播展示内容. */
     @Operation(summary = "轮播图")
     @IgnoreAuth
     @PostMapping("banner")
@@ -292,6 +297,7 @@ public class AppIndexController extends AppBaseController {
         return RestResponse.ok(resultObj);
     }
 
+    /** 读取当前入口的频道导航内容. */
     @Operation(summary = "快捷类目")
     @IgnoreAuth
     @PostMapping("channel")

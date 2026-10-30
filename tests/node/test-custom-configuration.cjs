@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const {Blob} = require('node:buffer');
 const {test} = require('node:test');
 
 /** 创建可显式完成的异步操作, 不访问外部网络. */
@@ -19,6 +20,7 @@ function deferred() {
 /** 按真实data与methods装配页面, 网络和文件读取由用例决定返回顺序. */
 function fixture() {
     const readers = [];
+    const downloads = [];
     const source = fs.readFileSync(
         path.resolve(__dirname, '../../apps/admin-ui/src/views/modules/custom/configuration.vue'),
         'utf8'
@@ -30,6 +32,15 @@ function fixture() {
             .replace('export default', 'module.exports ='),
         {
             module: box,
+            Blob,
+            URL: {createObjectURL: () => 'blob:catalog', revokeObjectURL() {}},
+            document: {
+                createElement: () => ({
+                    click() {
+                        downloads.push(this.download);
+                    },
+                }),
+            },
             FileReader: class {
                 /** 只记录实例, 用例显式触发读取完成或失败. */
                 constructor() {
@@ -62,7 +73,7 @@ function fixture() {
     editor.$confirm = () => Promise.resolve();
     editor.product.goodsId = 10;
     editor.selectedGoodsId = 10;
-    return {editor, calls, messages, readers, component};
+    return {editor, calls, messages, readers, component, downloads};
 }
 
 /** 新商品只接收自己的配件, 切换时立即清空旧列表. */
@@ -202,4 +213,62 @@ test('定制配置离页隔离全部在途结果', async () => {
     await Promise.all([loading, saving]);
     assert.equal(editor.options.length, 0);
     assert.equal(calls.length, 2);
+});
+
+/** 客户目录读取防重且只在原商品上下文触发下载, 不写业务配置. */
+test('客户目录下载隔离商品切换并可失败重试', async () => {
+    const {editor, calls, downloads} = fixture();
+    const first = editor.downloadTemplate();
+    await editor.downloadTemplate();
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].params.goodsId, 10);
+    editor.resetProduct();
+    calls[0].resolve({data: {code: 0, data: {options: []}}});
+    await first;
+    assert.equal(downloads.length, 0);
+    editor.selectedGoodsId = 20;
+    const failed = editor.downloadTemplate();
+    calls[1].reject(new Error('offline'));
+    await failed;
+    assert.equal(editor.catalogDownloading, false);
+    const retry = editor.downloadTemplate();
+    calls[2].resolve({data: {code: 0, data: {options: [{enabled: 0}]}}});
+    await retry;
+    assert.equal(downloads.length, 1);
+    assert.ok(calls.every((call) => call.method === 'get'));
+});
+
+/** 旧分类不能被后台编辑入口再次保存为当前材料, 不猜测其映射. */
+test('四类材料与旧配置编辑边界一致', () => {
+    const {editor, messages} = fixture();
+    assert.deepEqual(
+        Array.from(editor.componentTypes, (row) => row.value),
+        ['pearl', 'clasp', 'accessory', 'chain']
+    );
+    const original = editor.option;
+    editor.editOption({componentType: 'material', id: 7});
+    assert.equal(editor.option, original);
+    assert.match(messages[0], /旧分类/);
+});
+
+/** 配饰计长方式由商家明确修改, 保存时保留候选来源和其他规则. */
+test('配饰计长选择随材料保存且不丢失原始元数据', async () => {
+    const {editor, calls} = fixture();
+    editor.editOption({
+        id: 44,
+        componentType: 'accessory',
+        optionCode: 'charm',
+        name: '待核对配饰',
+        materialParams: JSON.stringify({lengthRole: 'HANGING', provisionalName: true}),
+    });
+    assert.equal(editor.ruleForm.lengthRole, 'HANGING');
+    editor.ruleForm.lengthRole = 'INLINE';
+    editor.ruleForm.spanMm = '2';
+    const saving = editor.saveOption();
+    const rules = JSON.parse(calls[0].data.materialParams);
+    assert.equal(rules.lengthRole, 'INLINE');
+    assert.equal(rules.spanMm, 2);
+    assert.equal(rules.provisionalName, true);
+    calls[0].resolve({data: {code: 0}});
+    await saving;
 });

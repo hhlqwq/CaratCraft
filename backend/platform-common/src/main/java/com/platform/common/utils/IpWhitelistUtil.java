@@ -8,6 +8,7 @@ package com.platform.common.utils;
  */
 public class IpWhitelistUtil {
 
+    /** 禁止实例化只提供静态方法的IP白名单工具. */
     private IpWhitelistUtil() {}
 
     /**

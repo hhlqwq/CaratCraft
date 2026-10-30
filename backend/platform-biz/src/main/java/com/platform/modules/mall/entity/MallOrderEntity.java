@@ -180,6 +180,7 @@ public class MallOrderEntity implements Serializable {
     @TableField(exist = false)
     private List<MallOrderGoodsEntity> goodsList;
 
+    /** 按当前地址的省市区名称组合完整地区显示文本. */
     public String getFullRegion() {
         if (StringUtils.isNotBlank(this.fullRegion)) {
             return fullRegion;
@@ -202,6 +203,7 @@ public class MallOrderEntity implements Serializable {
         }
     }
 
+    /** 将当前订单状态映射为显示文本. */
     public String getOrderStatusText() {
         if (null != orderStatus && StringUtils.isEmpty(orderStatusText)) {
             switch (orderStatus) {
@@ -236,6 +238,7 @@ public class MallOrderEntity implements Serializable {
         return orderStatusText;
     }
 
+    /** 根据当前订单状态计算允许的操作. */
     public Map<String, Object> getHandleOption() {
         handleOption = new HashMap<>();
         // 取消操作

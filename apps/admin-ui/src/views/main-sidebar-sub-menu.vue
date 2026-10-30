@@ -47,6 +47,7 @@ export default {
     },
     computed: {
         sidebarLayoutSkin: {
+            /** 读取当前控件或页面的响应式绑定值. */
             get() {
                 return this.$store.state.common.sidebarLayoutSkin;
             },

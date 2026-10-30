@@ -29,12 +29,14 @@ import org.apache.commons.lang.StringUtils;
  */
 public abstract class AbstractAssert {
 
+    /** 判断文本是否为空或仅包含空白. */
     public static void isBlank(String str, String message) {
         if (StringUtils.isBlank(str)) {
             throw new BusinessException(message);
         }
     }
 
+    /** 判断当前值是否为空或符合此工具定义的空值条件. */
     public static void isNull(Object object, String message) {
         if (object == null) {
             throw new BusinessException(message);

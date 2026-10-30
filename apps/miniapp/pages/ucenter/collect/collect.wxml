@@ -1,6 +1,6 @@
-<view wx:if="{{readLoading}}" role="status">正在读取...</view>
-<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
 <view class="container">
+    <view wx:if="{{loading}}">正在加载收藏...</view>
+    <view wx:if="{{loadError}}" bindtap="getCollectList">{{loadError}}</view>
     <view class="collect-list">
         <view class="item" bindtap="openGoods"  bindtouchstart="touchStart" bindtouchend="touchEnd" wx:for="{{collectList}}" wx:key="id" data-index="{{index}}">
             <image class="img" src="{{item.listPicUrl}}" webp="{{true}}"></image>
@@ -11,7 +11,7 @@
             </view>
         </view>
     </view>
-    <view class="empty-state" wx:if="{{collectList.length === 0}}">
+    <view class="empty-state" wx:if="{{!loading && !loadError && collectList.length === 0}}">
         <view class="empty-icon">♡</view>
         <view class="empty-title">暂无收藏</view>
         <view class="empty-desc">遇到喜欢的珠宝，可以先收藏起来</view>

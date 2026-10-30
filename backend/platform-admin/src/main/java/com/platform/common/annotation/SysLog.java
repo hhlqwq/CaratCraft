@@ -34,5 +34,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface SysLog {
 
+    /** 声明本次操作的审计描述. */
     String value() default "操作日志";
 }

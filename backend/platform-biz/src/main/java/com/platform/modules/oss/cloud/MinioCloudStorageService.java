@@ -26,12 +26,14 @@ public class MinioCloudStorageService extends AbstractCloudStorageService {
 
     private MinioClient minioClient;
 
+    /** 按传入的存储配置初始化当前云存储客户端. */
     public MinioCloudStorageService(CloudStorageConfig config) {
         this.config = config;
         // 初始化
         init();
     }
 
+    /** 初始化当前组件的运行配置或依赖资源. */
     private void init() {
         minioClient =
                 MinioClient.builder()

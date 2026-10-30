@@ -129,6 +129,7 @@ export default {
     components: {
         AddOrUpdate,
     },
+    /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
             dataForm: {
@@ -147,6 +148,7 @@ export default {
         KefuMsgType: (state) => state.message.KefuMsgType,
     }),
 
+    /** 页面激活时刷新当前业务数据. */
     activated() {
         this.getDataList();
     },
@@ -226,6 +228,7 @@ export default {
                 });
             });
         },
+        /** 请求同步公众号自动回复规则并刷新当前列表. */
         syncReplyRyle() {
             this.$http({
                 url: '/manage/msgReplyRule/syncReplyRyle',
@@ -246,6 +249,7 @@ export default {
                 }
             });
         },
+        /** 将回复类型编码映射为界面显示名称. */
         replyTypeFormat(row, column, cellValue) {
             return this.KefuMsgType[cellValue];
         },

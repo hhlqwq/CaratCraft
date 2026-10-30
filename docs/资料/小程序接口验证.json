@@ -1,0 +1,36 @@
+{
+    "date": "2026-10-24",
+    "transport": "真实页面及统一util.request通过微信传输适配访问本机已部署后端, 无服务响应替身",
+    "calls": [
+        {
+            "path": "/platform-framework-api/app/merchant/contact",
+            "method": "GET",
+            "http": 200,
+            "code": 0
+        },
+        {
+            "path": "/platform-framework-api/app/pearl-catalog/list",
+            "method": "GET",
+            "http": 200,
+            "code": 0
+        },
+        {
+            "path": "/platform-framework-api/app/legal",
+            "method": "GET",
+            "http": 200,
+            "code": 0
+        },
+        {
+            "path": "/platform-framework-api/app/legal",
+            "method": "GET",
+            "http": 200,
+            "code": 0
+        }
+    ],
+    "catalogError": "",
+    "legalError": "",
+    "consentMessage": "商家尚未发布完整协议, 暂不能授权登录",
+    "styleSelector": ".legal-link",
+    "passed": true,
+    "realWeChatLoginTested": false
+}

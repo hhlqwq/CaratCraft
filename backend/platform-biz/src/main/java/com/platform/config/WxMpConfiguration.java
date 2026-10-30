@@ -45,6 +45,7 @@ public class WxMpConfiguration {
     @Autowired private StringRedisTemplate stringRedisTemplate;
     @Autowired private WxMpProperties properties;
 
+    /** 装配公众号SDK服务及账号配置. */
     @Bean
     public WxMpService wxMpService() {
         WxMpService wxMpService = new WxMpServiceImpl();
@@ -52,6 +53,7 @@ public class WxMpConfiguration {
         return wxMpService;
     }
 
+    /** 配置使用Redis存储的公众号SDK上下文. */
     @Bean
     public WxMpRedisConfigImpl wxMpRedisConfig() {
         WxMpRedisConfigImpl wxMpInRedisConfigStorage =

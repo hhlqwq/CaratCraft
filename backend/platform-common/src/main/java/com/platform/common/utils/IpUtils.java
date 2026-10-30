@@ -69,6 +69,7 @@ public class IpUtils {
         return ip;
     }
 
+    /** 读取本机网络地址用于当前服务信息展示. */
     public static String getLocalHostAdress() {
         try {
             return InetAddress.getLocalHost().getHostAddress();

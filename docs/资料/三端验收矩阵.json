@@ -3,8 +3,8 @@
     "overall": "pending",
     "note": "源码契约与宿主替身测试不等于微信编译、模拟器显示、真实登录或支付验收.",
     "currentNodeRegression": {
-        "tests": 272,
-        "passed": 272,
+        "tests": 291,
+        "passed": 291,
         "failed": 0,
         "skipped": 0
     },
@@ -31,11 +31,10 @@
         "pages": [
             {
                 "route": "pages/index/index",
-                "sourceSha256": "284cd6f4b8f062170b9cb29117fc257d7215e7d2bca3e4e68fcc1f082f97682b",
+                "sourceSha256": "294f0ebb23bcb500f48c7678451664eaf432a7d2be83d298df693e6a9773da78",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -43,11 +42,10 @@
             },
             {
                 "route": "pages/catalog/catalog",
-                "sourceSha256": "f83a4768de15edba1114385fe5d9267ff81c8377947d91f2ff8ab28e7b5e6ee7",
+                "sourceSha256": "764974dd6f7d99ca7ae92b02ec212fee7b63dfacae5244113e20bd51f481f00d",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -59,7 +57,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -71,7 +68,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -79,11 +75,10 @@
             },
             {
                 "route": "pages/ucenter/address/address",
-                "sourceSha256": "49c189a30aca354628dc812a457253c3ea579d3b8eafdfc8768656cad1a32c89",
+                "sourceSha256": "ed291b9e2ff437da3daeb315caa5c066926723abeb97d3e5a7725f3f46baf70b",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -91,11 +86,10 @@
             },
             {
                 "route": "pages/ucenter/addressAdd/addressAdd",
-                "sourceSha256": "83c7c5f484f9a4be890978eb0ad64a68d19c30b8236f2e71a438c4a09e7521f3",
+                "sourceSha256": "aadbe338f908e80a349cc86bc15e5fa2287325fb677fa22fbde8e75d221884e2",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -107,7 +101,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -119,7 +112,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -127,11 +119,10 @@
             },
             {
                 "route": "pages/ucenter/orderDetail/orderDetail",
-                "sourceSha256": "3a5801d21f465315a8d12d45c4ed9e8d50cafbe6edfaef9693850320424edb50",
+                "sourceSha256": "6bbca1d5b3f7b6a6fa767ca763e6a2fab7bd49397b3ed4c7668c77bdd2520516",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -143,7 +134,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 0,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -155,7 +145,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -163,11 +152,10 @@
             },
             {
                 "route": "pages/ucenter/collect/collect",
-                "sourceSha256": "66bd81231248fde4b1be5b7c305a6f6a9f3840fad812d9450785044776443106",
+                "sourceSha256": "f957f2c5c95da7ff9f57271f5cb13b571f20e7b0fde67c61aa9ecd4d97fc2167",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -179,7 +167,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -191,7 +178,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -203,7 +189,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -215,7 +200,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -227,7 +211,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -239,7 +222,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 0,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -251,7 +233,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 0,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -263,7 +244,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -275,7 +255,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -287,7 +266,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -299,7 +277,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -311,7 +288,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -323,7 +299,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -331,11 +306,10 @@
             },
             {
                 "route": "pages/shopping/address/address",
-                "sourceSha256": "e799cfd1afa03f5970ceb5f9eaae7409a213ba392fe545f423a4ceacb9945dd9",
+                "sourceSha256": "74a1f31426e370c4b8cd7a2d03e961f7663cae5e2af2be9ee666473230ed17be",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -343,11 +317,10 @@
             },
             {
                 "route": "pages/shopping/addressAdd/addressAdd",
-                "sourceSha256": "5ee7a719756394b52cee26e7b85207ffbf74e29c8d6e88fc518d49525931b702",
+                "sourceSha256": "002b91c5338f072b6312103118bfa78dc5330fe1a6a1d2255b6c1fedb5fdfd0e",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -359,7 +332,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 3,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -367,11 +339,10 @@
             },
             {
                 "route": "pages/designer/designer",
-                "sourceSha256": "088f99ce0ae664b831e1d7d575e19a0d95d279d70164fe4e40166276bd9c098d",
+                "sourceSha256": "d3112c27315f312a8448c0780e88be44be976ef5983f5a537831bd770b921b69",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -383,7 +354,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 2,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -395,7 +365,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 0,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -407,7 +376,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -419,7 +387,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -431,7 +398,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -443,7 +409,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 0,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -455,7 +420,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -467,7 +431,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -479,7 +442,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -491,7 +453,6 @@
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -499,11 +460,10 @@
             },
             {
                 "route": "pages/ucenter/legal/index",
-                "sourceSha256": "0d50cb127bbc6c603986d0527a41b6386699276df5ef040473afdad6a21aa47f",
+                "sourceSha256": "1a37976ec33b830e0665706b6dcc2c7563ec4cafaf1aed6695562bcd52fab55d",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "requests": 1,
                     "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
                 },
                 "wechatDisplay": "pending",
@@ -516,5 +476,12 @@
         "40页实际显示及关键操作",
         "真实微信登录和支付退款",
         "当前源码最终交付重建"
-    ]
+    ],
+    "masterIntegration": {
+        "date": "2026-10-30",
+        "local": "944213f",
+        "remote": "9baed20",
+        "status": "source_merged_node_passed",
+        "build": "pending"
+    }
 }

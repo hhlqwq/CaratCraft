@@ -1,3 +1,3 @@
-const {createAddressEditor} = require('../../../services/address-editor.js');
+const {createAddressEditorPage} = require('../../../services/address-editor-page.js');
 
-Page(createAddressEditor());
+Page(createAddressEditorPage());

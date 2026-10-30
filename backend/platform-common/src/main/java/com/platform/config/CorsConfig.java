@@ -35,6 +35,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    /** 按配置的来源白名单建立跨域请求过滤器. */
     @Bean
     public CorsFilter corsFilter() {
         // 1.添加CORS配置信息

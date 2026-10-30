@@ -31,40 +31,48 @@ public class BusinessException extends RuntimeException {
     private String msg;
     private int code = HttpStatus.INTERNAL_SERVER_ERROR.value();
 
+    /** 构建业务异常并保存当前错误说明、错误码及可选的异常原因. */
     public BusinessException(String msg) {
         super(msg);
         this.msg = msg;
     }
 
+    /** 构建业务异常并保存当前错误说明、错误码及可选的异常原因. */
     public BusinessException(String msg, Throwable e) {
         super(msg, e);
         this.msg = msg;
     }
 
+    /** 构建业务异常并保存当前错误说明、错误码及可选的异常原因. */
     public BusinessException(String msg, int code) {
         super(msg);
         this.msg = msg;
         this.code = code;
     }
 
+    /** 构建业务异常并保存当前错误说明、错误码及可选的异常原因. */
     public BusinessException(String msg, int code, Throwable e) {
         super(msg, e);
         this.msg = msg;
         this.code = code;
     }
 
+    /** 读取当前对象的Msg属性. */
     public String getMsg() {
         return msg;
     }
 
+    /** 更新当前对象的Msg属性. */
     public void setMsg(String msg) {
         this.msg = msg;
     }
 
+    /** 读取当前对象的Code属性. */
     public int getCode() {
         return code;
     }
 
+    /** 更新当前对象的Code属性. */
     public void setCode(int code) {
         this.code = code;
     }
