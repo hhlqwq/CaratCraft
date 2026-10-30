@@ -805,6 +805,37 @@
                 },
                 "businessServicesChanged": false,
                 "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q05",
+                "scope": "小程序售后唯一SUCCEEDED状态及官方编译临时目录约定",
+                "node": {
+                    "tests": 291,
+                    "passed": 291,
+                    "failed": 0,
+                    "skipped": 0
+                },
+                "officialMiniappCompile": {
+                    "pages": 40,
+                    "wxml": 43,
+                    "wxss": 48,
+                    "javascriptSyntax": 60,
+                    "officialWxmlWxssCompilePassed": true,
+                    "scope": "已有微信开发者工具官方WCC/WCSC编译, JS为Node语法检查; 不替代IDE运行、真机、微信登录或支付验收",
+                    "temporaryFilesCleaned": true,
+                    "uploaded": false
+                },
+                "realCompilerRegressionCases": 2,
+                "javaRegression": "未修改后端, 复用Q04结果, 未再次执行219项",
+                "style": {
+                    "javaDescriptions": 638,
+                    "changedJava": 0,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "desktopControlled": false,
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
             }
         ],
         "remaining": [

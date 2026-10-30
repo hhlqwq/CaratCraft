@@ -43,7 +43,8 @@ def main():
         for suffix in (".js", ".json", ".wxml", ".wxss"):
             if not (PROJECT / (route + suffix)).is_file():
                 raise ValueError("页面文件缺失: " + route + suffix)
-    temporary = Path("D:/tmp/hailongcodex" if os.name == "nt" else "/tmp/hailongcodex")
+    temporary = Path(os.environ.get("CARATCRAFT_TEST_TEMP",
+                                   "D:/tmp/hailongcodex" if os.name == "nt" else "/tmp/hailongcodex"))
     temporary.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="miniapp-compile-", dir=temporary) as output:
         for suffix, executable in ((".wxml", "wcc.exe"), (".wxss", "wcsc.exe")):

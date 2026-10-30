@@ -22,7 +22,8 @@ class MiniappCompilationTest(unittest.TestCase):
 
     def compile(self, content):
         """在约定目录编译独立页面并只清理本次样例及输出."""
-        folder = Path("D:/tmp/hailongcodex" if os.name == "nt" else "/tmp/hailongcodex")
+        folder = Path(os.environ.get("CARATCRAFT_TEST_TEMP",
+                                    "D:/tmp/hailongcodex" if os.name == "nt" else "/tmp/hailongcodex"))
         folder.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="wxml-regression-", dir=folder) as directory:
             source = Path(directory) / "index.wxml"

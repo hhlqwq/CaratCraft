@@ -154,8 +154,8 @@ function refundsFixture() {
     return {page, calls};
 }
 
-/** 支付渠道受理不能被界面显示为退款成功, 状态只按服务端结果区分. */
-test('售后中心区分处理中与确认成功', async () => {
+/** 只按业务SUCCEEDED确认成功, 支付渠道SUCCESS不是业务状态的兼容别名. */
+test('售后中心区分处理中、业务成功和未知渠道状态', async () => {
     const {page, calls} = refundsFixture();
     page.onShow();
     calls[0].resolve({
@@ -163,15 +163,18 @@ test('售后中心区分处理中与确认成功', async () => {
         data: {
             records: [
                 {orderId: 1, status: 'PROCESSING', amountFen: 12345},
-                {orderId: 2, status: 'SUCCESS', amountFen: 500},
+                {orderId: 2, status: 'SUCCEEDED', amountFen: 500},
+                {orderId: 3, status: 'SUCCESS', amountFen: 500},
             ],
-            total: 2,
+            total: 3,
         },
     });
     await new Promise(setImmediate);
     assert.equal(page.data.records[0].statusText, '支付渠道处理中');
     assert.equal(page.data.records[0].amountText, '123.45');
     assert.equal(page.data.records[1].statusText, '退款成功');
+    assert.equal(page.data.records[2].statusText, '状态待核对');
+    assert.match(page.data.records[2].hint, /当前状态未知/);
     assert.equal(page.data.hasMore, false);
 });
 
@@ -192,7 +195,7 @@ test('售后请求隔离迟到响应并支持原页重试', async () => {
     await retry;
     calls[0].resolve({
         code: 0,
-        data: {records: [{orderId: 4, status: 'SUCCESS', amountFen: 100}], total: 1},
+        data: {records: [{orderId: 4, status: 'SUCCEEDED', amountFen: 100}], total: 1},
     });
     await new Promise(setImmediate);
     assert.equal(page.data.records[0].orderId, 3);
@@ -207,7 +210,7 @@ test('离开售后页面清除私人列表并隔离迟到响应', async () => {
     page.onHide();
     calls[0].resolve({
         code: 0,
-        data: {records: [{orderId: 99, status: 'SUCCESS', amountFen: 100}], total: 1},
+        data: {records: [{orderId: 99, status: 'SUCCEEDED', amountFen: 100}], total: 1},
     });
     await new Promise(setImmediate);
     assert.equal(page.data.records.length, 0);
