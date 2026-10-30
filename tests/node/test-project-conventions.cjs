@@ -99,6 +99,29 @@ test('规范门禁拒绝空注释和公开原始类型', (context) => {
     assert.ok(errors.some((message) => message.includes('泛型契约')));
 });
 
+/** 微信模板绑定不使用XML实体转义运算符, 编辑器与源码保持同一缩进配置. */
+test('门禁拒绝无法编译的WXML表达式和开发者工具缩进覆盖', (context) => {
+    const root = fixture(context);
+    const directory = path.join(root, 'apps/miniapp');
+    fs.mkdirSync(directory, {recursive: true});
+    const template = path.join(directory, 'index.wxml');
+    const config = path.join(directory, 'project.config.json');
+    fs.writeFileSync(template, '<view wx:if="{{!loading &amp;&amp; !items.length}}"/>');
+    fs.writeFileSync(
+        config,
+        JSON.stringify({editorSetting: {tabSize: 2, tabIndent: 'insertSpaces'}})
+    );
+    const errors = check(root);
+    assert.ok(errors.some((message) => message.includes('WXML绑定表达式')));
+    assert.ok(errors.some((message) => message.includes('开发者工具须使用4空格')));
+    fs.writeFileSync(template, '<view wx:if="{{!loading && !items.length}}"/>');
+    fs.writeFileSync(
+        config,
+        JSON.stringify({editorSetting: {tabSize: 4, tabIndent: 'insertSpaces'}})
+    );
+    assert.deepEqual(check(root), []);
+});
+
 /** 已收敛的SQL、部署和管理端历史入口不得重新进入仓库. */
 test('规范门禁拒绝恢复已删除的备用实现', (context) => {
     const root = fixture(context);

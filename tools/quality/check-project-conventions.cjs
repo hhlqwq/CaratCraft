@@ -129,6 +129,21 @@ function check(root) {
             errors.push(path.relative(root, file) + ': 不再使用that别名');
         }
     }
+    for (const file of filesAt(path.join(root, 'apps/miniapp')).filter((name) =>
+        name.endsWith('.wxml')
+    )) {
+        const bindings = fs.readFileSync(file, 'utf8').match(/\{\{[\s\S]*?\}\}/g) || [];
+        if (bindings.some((binding) => /&(?:amp|lt|gt|quot|apos);/.test(binding))) {
+            errors.push(path.relative(root, file) + ': WXML绑定表达式不能使用HTML实体代替运算符');
+        }
+    }
+    const miniappProject = path.join(root, 'apps/miniapp/project.config.json');
+    if (fs.existsSync(miniappProject)) {
+        const settings = JSON.parse(fs.readFileSync(miniappProject, 'utf8')).editorSetting;
+        if (settings?.tabSize !== 4 || settings?.tabIndent !== 'insertSpaces') {
+            errors.push('apps/miniapp/project.config.json: 开发者工具须使用4空格缩进');
+        }
+    }
     for (const file of [...owned.flatMap((name) => filesAt(path.join(root, name))), ...markdown]) {
         if (
             !/\.(?:cjs|mjs|js|py|ps1|sh|cmd|yml|yaml|json|md)$/.test(file) ||
