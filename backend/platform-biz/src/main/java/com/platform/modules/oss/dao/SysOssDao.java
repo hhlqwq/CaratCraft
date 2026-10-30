@@ -44,5 +44,6 @@ public interface SysOssDao extends BaseMapper<SysOssEntity> {
      * @param params 查询参数
      * @return List
      */
-    List<SysOssEntity> selectSysOssPage(IPage page, @Param("params") Map<String, Object> params);
+    List<SysOssEntity> selectSysOssPage(
+            IPage<SysOssEntity> page, @Param("params") Map<String, Object> params);
 }

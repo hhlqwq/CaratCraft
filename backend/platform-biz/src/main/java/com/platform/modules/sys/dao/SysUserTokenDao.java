@@ -52,5 +52,5 @@ public interface SysUserTokenDao extends BaseMapper<SysUserTokenEntity> {
      * @return List
      */
     List<SysUserTokenEntity> selectSysUserTokenPage(
-            IPage page, @Param("params") Map<String, Object> params);
+            IPage<SysUserTokenEntity> page, @Param("params") Map<String, Object> params);
 }

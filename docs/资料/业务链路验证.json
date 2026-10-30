@@ -628,5 +628,48 @@
             "skipped": 0
         },
         "build": "未重建应用或操作业务环境"
+    },
+    "repositoryCodeQuality": {
+        "date": "2026-10-30",
+        "baseline": "232bae1",
+        "status": "in_progress",
+        "scope": "全仓清理、现用代码诊断及首版三端验收, 分批验证后提交推送master",
+        "batches": [
+            {
+                "id": "Q01",
+                "scope": "数据权限/8个分页Mapper泛型及配置Controller冗余注入",
+                "java": {
+                    "tests": 213,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "databaseAndRedis": "全新独立夹具"
+                },
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "style": {
+                    "changedJava": 11,
+                    "javaDescriptions": 649,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 2,
+                    "test": 65
+                },
+                "notes": "参考夹具已修复停用模板假设, 未启用客户候选; 框架ResultHandler参数豁免已核对缓存JAR接口签名",
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            }
+        ],
+        "remaining": [
+            "历史无用类及7处字段候选核对",
+            "业务与测试编译诊断",
+            "结算/反馈/评价/足迹/售后页面缺口",
+            "微信逐页操作及真实平台验收",
+            "最终交付重建及许可核对"
+        ]
     }
 }

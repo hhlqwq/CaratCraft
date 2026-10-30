@@ -49,13 +49,14 @@ import java.util.Map;
 @NoArgsConstructor
 public class DataScopeInnerInterceptor implements InnerInterceptor {
 
+    /** 按本人和机构范围追加查询条件; ResultHandler原始类型由MyBatis重写签名限定. */
     @Override
     public void beforeQuery(
             Executor executor,
             MappedStatement ms,
             Object parameter,
             RowBounds rowBounds,
-            ResultHandler resultHandler,
+            @SuppressWarnings("rawtypes") ResultHandler resultHandler,
             BoundSql boundSql) {
         // 不是SELECT操作直接返回
         if (!SqlCommandType.SELECT.equals(ms.getSqlCommandType())) {

@@ -45,7 +45,7 @@ public interface SysDictGroupDao extends BaseMapper<SysDictGroupEntity> {
      * @return List
      */
     List<SysDictGroupEntity> selectSysDictGroupPage(
-            IPage page, @Param("params") Map<String, Object> params);
+            IPage<SysDictGroupEntity> page, @Param("params") Map<String, Object> params);
 
     /**
      * 查询所有数据字典

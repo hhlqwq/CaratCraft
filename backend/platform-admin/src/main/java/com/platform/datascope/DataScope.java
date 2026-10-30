@@ -29,7 +29,8 @@ import java.util.HashMap;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class DataScope extends HashMap {
+public class DataScope extends HashMap<String, Object> {
+    private static final long serialVersionUID = 1L;
 
     /** SQL中数据创建用户（通常传入CREATE_USER_ID）的别名 */
     private String userAlias = "T.CREATE_USER_ID";

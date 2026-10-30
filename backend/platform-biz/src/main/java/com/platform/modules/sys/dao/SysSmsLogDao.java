@@ -53,5 +53,5 @@ public interface SysSmsLogDao extends BaseMapper<SysSmsLogEntity> {
      * @return List
      */
     List<SysSmsLogEntity> selectSysSmsLogPage(
-            IPage page, @Param("params") Map<String, Object> params);
+            IPage<SysSmsLogEntity> page, @Param("params") Map<String, Object> params);
 }

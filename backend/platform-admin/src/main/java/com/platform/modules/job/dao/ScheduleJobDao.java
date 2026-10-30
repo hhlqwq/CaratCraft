@@ -53,5 +53,5 @@ public interface ScheduleJobDao extends BaseMapper<ScheduleJobEntity> {
      * @return List
      */
     List<ScheduleJobEntity> selectScheduleJobPage(
-            IPage page, @Param("params") Map<String, Object> params);
+            IPage<ScheduleJobEntity> page, @Param("params") Map<String, Object> params);
 }

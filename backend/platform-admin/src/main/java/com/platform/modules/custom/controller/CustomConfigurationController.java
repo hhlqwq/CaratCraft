@@ -2,7 +2,6 @@ package com.platform.modules.custom.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.platform.common.utils.RestResponse;
-import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomConfigurationImportRequest;
@@ -35,7 +34,6 @@ import java.util.Map;
 public class CustomConfigurationController {
     private final CustomProductDao customProductDao;
     private final CustomComponentOptionDao componentOptionDao;
-    private final ComponentStockDao componentStockDao;
     private final MallGoodsService mallGoodsService;
 
     private final com.platform.modules.custom.service.CustomConfigurationService configuration;

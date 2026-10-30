@@ -60,5 +60,6 @@ public interface SysDictDao extends BaseMapper<SysDictEntity> {
      * @param params 查询参数
      * @return List
      */
-    List<SysDictEntity> selectDictPage(IPage page, @Param("params") Map<String, Object> params);
+    List<SysDictEntity> selectDictPage(
+            IPage<SysDictEntity> page, @Param("params") Map<String, Object> params);
 }
