@@ -662,6 +662,68 @@
                 "notes": "参考夹具已修复停用模板假设, 未启用客户候选; 框架ResultHandler参数豁免已核对缓存JAR接口签名",
                 "businessServicesChanged": false,
                 "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q02",
+                "scope": "15个历史无入口类及7处冗余注入",
+                "deletedSources": [
+                    "backend/platform-api/src/main/java/com/platform/modules/app/entity/FullUserInfo.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/ApiAuthLoginByAliRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/ApiAuthLoginByWeixinRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/PhoneCodeRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/PhoneRequest.java",
+                    "backend/platform-biz/src/main/java/com/platform/builder/ImageBuilder.java",
+                    "backend/platform-biz/src/main/java/com/platform/common/validator/group/NoPetsGroup.java",
+                    "backend/platform-biz/src/main/java/com/platform/common/validator/group/PetsGroup.java",
+                    "backend/platform-biz/src/main/java/com/platform/modules/wx/form/WxUserTaggingForm.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/JsonUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/LatLgtUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/ObjectUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/PdfUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/QRCodeUtil.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/SeckillStatEnum.java"
+                ],
+                "cleanPackage": "passed",
+                "jarChecks": [
+                    {
+                        "module": "platform-admin",
+                        "removedClassesChecked": 15,
+                        "ownLibraries": [
+                            "BOOT-INF/lib/platform-biz-2.0.0.jar",
+                            "BOOT-INF/lib/platform-common-2.0.0.jar"
+                        ],
+                        "removedClassesAbsent": true,
+                        "sha256": "a5f69faa1d200274471ed054d5300ceb0c1aad9e81854be73f2fded8f2b91469"
+                    },
+                    {
+                        "module": "platform-api",
+                        "removedClassesChecked": 15,
+                        "ownLibraries": [
+                            "BOOT-INF/lib/platform-biz-2.0.0.jar",
+                            "BOOT-INF/lib/platform-common-2.0.0.jar"
+                        ],
+                        "removedClassesAbsent": true,
+                        "sha256": "c97bf42ab11fcbfcc32b2c0251d4afa35640df1084e99b9747d9253c23eae98b"
+                    }
+                ],
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "javaUnitRegression": "复用Q01的213项未变业务回归; 本批编译所有测试但不计为已执行",
+                "style": {
+                    "javaDescriptions": 634,
+                    "changedJava": 3,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 1,
+                    "test": 65
+                },
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false,
+                "unrelatedAuthorEditsIncluded": false
             }
         ],
         "remaining": [

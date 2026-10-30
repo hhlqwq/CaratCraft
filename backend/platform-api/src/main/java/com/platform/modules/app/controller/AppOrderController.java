@@ -2,7 +2,6 @@ package com.platform.modules.app.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.RestResponse;
@@ -11,7 +10,6 @@ import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
-import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.service.LegalDocumentService;
@@ -52,10 +50,6 @@ public class AppOrderController extends AppBaseController {
     @Autowired private com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
     @Autowired private MallOrderGoodsService orderGoodsService;
 
-    @Autowired(required = false)
-    private WxPayService wxPayService;
-
-    @Autowired private CustomDesignService customDesignService;
     @Autowired private CustomOrderCustomizationDao customOrderCustomizationDao;
     @Autowired private CustomDesignSnapshotDao customDesignSnapshotDao;
 

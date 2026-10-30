@@ -24,12 +24,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.StringUtils;
-import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallAddressDao;
 import com.platform.modules.mall.dao.MallCartDao;
-import com.platform.modules.mall.dao.MallCouponDao;
 import com.platform.modules.mall.dao.MallOrderDao;
 import com.platform.modules.mall.dao.MallOrderGoodsDao;
 import com.platform.modules.mall.dao.MallProductDao;
@@ -41,7 +39,6 @@ import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.entity.MallProductEntity;
 import com.platform.modules.mall.service.LegalDocumentService;
-import com.platform.modules.mall.service.MallGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
@@ -74,10 +71,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     @Autowired private MallCartDao cartDao;
     @Autowired private MallProductDao productDao;
     @Autowired private MallOrderGoodsDao orderGoodsDao;
-    @Autowired private MallCouponDao couponDao;
     @Autowired private MallUserCouponDao userCouponDao;
-    @Autowired private MallGoodsService goodsService;
-    @Autowired private RedisTemplateUtil redisTemplateUtil;
     @Autowired private CustomDesignService customDesignService;
     @Autowired private LegalDocumentService legalDocuments;
 

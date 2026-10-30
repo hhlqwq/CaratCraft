@@ -9,9 +9,7 @@ import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.IpWhitelistUtil;
 import com.platform.common.utils.RestResponse;
-import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
-import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.mall.service.OrderPaymentService;
 import com.platform.modules.wx.entity.WxUserEntity;
@@ -46,14 +44,12 @@ import java.io.InputStream;
 public class AppPayController extends AppBaseController {
     @Autowired private com.platform.modules.mall.service.OrderRefundService refundService;
     @Autowired private MallOrderService orderService;
-    @Autowired private MallOrderGoodsService orderGoodsService;
 
     @Autowired(required = false)
     private WxPayService weixinPayService;
 
     @Autowired private OrderPaymentService orderPaymentService;
     @Autowired private com.platform.modules.mall.service.OrderPrepaymentService prepaymentService;
-    @Autowired private CustomDesignService customDesignService;
 
     @Value("${wx.pay.baseNotifyUrl}")
     private String baseNotifyUrl;
