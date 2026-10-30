@@ -24,7 +24,7 @@ import com.platform.modules.wx.entity.WxUserEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Mapper
 public interface WxUserDao extends BaseMapper<WxUserEntity> {

@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * <p>定义订单模块的标准业务能力，包括分页、查询、新增、修改、删除。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 public interface MallOrderService extends IService<MallOrderEntity> {

@@ -21,7 +21,7 @@ package com.platform.common.utils;
 import java.util.Random;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 public class CharUtil {
 

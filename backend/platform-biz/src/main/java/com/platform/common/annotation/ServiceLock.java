@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 /**
  * 自定义注解 同步锁
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

@@ -32,7 +32,7 @@ import java.nio.file.StandardOpenOption;
 /**
  * 服务器存储
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-17 16:21:01
  */
 public class DiskCloudStorageService extends AbstractCloudStorageService {

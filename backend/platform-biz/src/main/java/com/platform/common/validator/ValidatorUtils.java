@@ -31,7 +31,7 @@ import java.util.Set;
  *
  * <p>参考文档：http://docs.jboss.org/hibernate/validator/5.4/reference/en-US/html_single/
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class ValidatorUtils {
     private static Validator validator;

@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 作者: @author Harmon <br>
+ * 作者: @author hehailong <br>
  * 时间: 2017-08-11 08:32<br>
  *
  * <p>描述: 商城目录、详情与购物车商品展示服务 <br>

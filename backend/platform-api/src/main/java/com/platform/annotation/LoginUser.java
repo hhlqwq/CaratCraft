@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
 /**
  * 登录用户信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Schema(hidden = true)
 @Target(ElementType.PARAMETER)

@@ -24,7 +24,7 @@ import lombok.EqualsAndHashCode;
 import java.util.HashMap;
 
 /**
- * @author 何海龙
+ * @author hehailong
  *     <p>数据权限查询参数
  */
 @Data

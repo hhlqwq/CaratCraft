@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 商品评论图片表
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 13:45:28
  */
 public interface MallCommentPictureService extends IService<MallCommentPictureEntity> {

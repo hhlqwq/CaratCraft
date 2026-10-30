@@ -39,7 +39,7 @@ import java.util.Map;
 /**
  * 系统日志
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "SysLogController|系统日志")
 @RequiredArgsConstructor

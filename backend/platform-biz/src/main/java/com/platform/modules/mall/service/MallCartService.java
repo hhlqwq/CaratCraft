@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 购物车持久化契约, 应用层先校验身份、商品及数量再调用写入方法.
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2024-07-19 20:53:40
  */
 public interface MallCartService extends IService<MallCartEntity> {

@@ -7,7 +7,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @Schema(description = "立即购买类")

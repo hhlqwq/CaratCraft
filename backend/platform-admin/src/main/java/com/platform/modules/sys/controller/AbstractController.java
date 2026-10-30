@@ -31,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Controller公共组件
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 public abstract class AbstractController {

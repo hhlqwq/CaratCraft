@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * XSS过滤
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class XssFilter implements Filter {
     private String[] excludedPageArray = new String[] {"/service/model/"};

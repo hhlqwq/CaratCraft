@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * 组织机构Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-21 11:29:22
  */
 public interface SysOrgService extends IService<SysOrgEntity> {

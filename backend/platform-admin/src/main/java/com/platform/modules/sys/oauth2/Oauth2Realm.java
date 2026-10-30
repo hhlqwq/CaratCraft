@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * 认证
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RequiredArgsConstructor
 @Component

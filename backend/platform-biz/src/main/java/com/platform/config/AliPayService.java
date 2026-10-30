@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Service
 public class AliPayService {

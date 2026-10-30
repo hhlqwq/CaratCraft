@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Service("sysUserTokenService")
 public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenEntity>

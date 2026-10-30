@@ -39,7 +39,7 @@ import java.io.IOException;
 /**
  * oauth2过滤器
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class Oauth2Filter extends AuthenticatingFilter {
 

@@ -34,7 +34,7 @@ import java.util.Date;
 /**
  * 自动回复规则
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 @Data

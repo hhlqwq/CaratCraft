@@ -40,7 +40,7 @@ import java.util.Date;
 /**
  * 微信粉丝
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName(value = "WX_USER", autoResultMap = true)

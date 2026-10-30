@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * 购物车持久化适配, 批量勾选和删除始终携带所属用户条件.
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2024-07-19 20:53:40
  */
 @Service("mallCartService")

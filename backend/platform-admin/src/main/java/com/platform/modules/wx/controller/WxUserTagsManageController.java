@@ -44,7 +44,7 @@ import java.util.List;
 /**
  * 公众号用户标签
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RestController
 @RequestMapping("/manage/wxUserTags")

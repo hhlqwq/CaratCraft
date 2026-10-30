@@ -43,7 +43,7 @@ import java.lang.reflect.Method;
 /**
  * 系统日志，切面处理类
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RequiredArgsConstructor
 @Aspect

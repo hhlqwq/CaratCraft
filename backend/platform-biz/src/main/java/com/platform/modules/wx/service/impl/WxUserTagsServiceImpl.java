@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Service
 @CacheConfig(cacheNames = {"wxUserTagsServiceCache"})

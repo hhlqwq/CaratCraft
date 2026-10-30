@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * mybatis-plus配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class CacheConfig {

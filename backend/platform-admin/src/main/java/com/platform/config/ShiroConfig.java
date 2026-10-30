@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Shiro配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class ShiroConfig {

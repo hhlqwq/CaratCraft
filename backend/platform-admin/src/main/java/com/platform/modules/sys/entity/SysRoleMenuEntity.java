@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * 角色与菜单对应关系
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_ROLE_MENU")

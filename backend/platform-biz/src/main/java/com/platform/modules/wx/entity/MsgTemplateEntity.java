@@ -37,7 +37,7 @@ import java.util.Date;
 /**
  * 模板消息模板
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName(value = "WX_MSG_TEMPLATE", autoResultMap = true)

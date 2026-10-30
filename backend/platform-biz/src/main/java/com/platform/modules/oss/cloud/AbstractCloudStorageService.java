@@ -31,7 +31,7 @@ import java.util.UUID;
 /**
  * 云存储(支持七牛、阿里云、腾讯云、MINIO、华为云)
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-17 16:21:01
  */
 public abstract class AbstractCloudStorageService implements AutoCloseable {

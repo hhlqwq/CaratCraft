@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * 系统用户
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_USER")

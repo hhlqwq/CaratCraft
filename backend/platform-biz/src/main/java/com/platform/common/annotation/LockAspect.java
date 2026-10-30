@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * 同步锁 AOP
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Component
 @Scope

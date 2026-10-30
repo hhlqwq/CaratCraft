@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Minio存储
  *
- * @author 何海龙
+ * @author hehailong
  * @email 939961241@qq.com
  * @date 2022-03-06 16:21:01
  */

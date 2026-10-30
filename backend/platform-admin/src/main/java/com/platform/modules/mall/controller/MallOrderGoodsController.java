@@ -49,7 +49,7 @@ import java.util.Map;
  *
  * <p>提供后台订单商品明细的查询、分页、详情、增删改接口。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @RestController

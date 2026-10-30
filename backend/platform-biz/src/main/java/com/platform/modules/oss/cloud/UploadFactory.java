@@ -26,7 +26,7 @@ import com.platform.modules.sys.service.SysConfigService;
 /**
  * 文件上传Factory
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-17 16:21:01
  */
 public final class UploadFactory {

@@ -21,6 +21,6 @@ package com.platform.common.validator.group;
 /**
  * 华为云
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface HuaweiGroup {}

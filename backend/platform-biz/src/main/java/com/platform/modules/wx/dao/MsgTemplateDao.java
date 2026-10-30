@@ -24,7 +24,7 @@ import com.platform.modules.wx.entity.MsgTemplateEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Mapper
 public interface MsgTemplateDao extends BaseMapper<MsgTemplateEntity> {}

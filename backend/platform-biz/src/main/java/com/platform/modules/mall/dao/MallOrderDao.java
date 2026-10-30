@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * <p>提供订单列表查询和分页查询能力，供 Service 层调用。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @Mapper

@@ -49,7 +49,7 @@ import java.util.Map;
 /**
  * 消息模板
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2019-11-12 18:30:15
  */
 @Tag(name = "MsgTemplateManageController|消息模板")

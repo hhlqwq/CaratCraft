@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Service("scheduleJobLogService")
 public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogDao, ScheduleJobLogEntity>

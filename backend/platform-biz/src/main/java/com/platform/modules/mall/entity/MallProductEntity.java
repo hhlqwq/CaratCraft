@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 /**
  * 商品货品表
  *
- * @author pengjun
+ * @author hehailong
  */
 @Data
 @TableName("mall_product")

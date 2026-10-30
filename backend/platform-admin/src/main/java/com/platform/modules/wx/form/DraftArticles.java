@@ -25,7 +25,7 @@ import java.io.Serializable;
 /**
  * 图文素材文章实体.
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2022-08-22 19:20:47
  */
 @Data

@@ -32,7 +32,7 @@ import java.util.Date;
 /**
  * 实体
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-02-24 13:15:28
  */
 @Data

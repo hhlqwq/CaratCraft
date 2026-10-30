@@ -25,7 +25,7 @@ import java.io.Serializable;
 /**
  * redis缓存信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 public class SysCacheEntity implements Serializable {

@@ -28,7 +28,7 @@ import java.util.Date;
 /**
  * 系统验证码
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_CAPTCHA")

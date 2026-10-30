@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * 角色与菜单对应关系
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysRoleMenuService extends IService<SysRoleMenuEntity> {
 

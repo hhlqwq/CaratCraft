@@ -29,7 +29,7 @@ import java.util.Date;
 /**
  * 短信发送日志实体
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-02-12 09:51:15
  */
 @Data

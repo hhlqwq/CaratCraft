@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * MVC配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RequiredArgsConstructor
 @Configuration

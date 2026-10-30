@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 微信发布能力接口Controller.
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2022-08-22 19:20:47
  */
 @Tag(name = "WxMpFreePublishController|微信发布能力接口")

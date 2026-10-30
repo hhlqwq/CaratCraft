@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 /**
  * app登录效验
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

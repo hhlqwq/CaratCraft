@@ -31,7 +31,7 @@ import java.util.Date;
 /**
  * 系统用户Token
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_USER_TOKEN")

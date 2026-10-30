@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 /**
  * 系统日志注解
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 /**
  * 验证码
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysCaptchaService extends IService<SysCaptchaEntity> {
     /**

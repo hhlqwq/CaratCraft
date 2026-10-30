@@ -36,7 +36,7 @@ import java.awt.image.BufferedImage;
 import java.util.Date;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @RequiredArgsConstructor
 @Service("sysCaptchaService")

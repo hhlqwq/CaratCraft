@@ -21,7 +21,7 @@ package com.platform.common.utils;
 /**
  * 常量
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class Constant {
     public static final String USER_KEY = "LOGIN_USER_KEY";

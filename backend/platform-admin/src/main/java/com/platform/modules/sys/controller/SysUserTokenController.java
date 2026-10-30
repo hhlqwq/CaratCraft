@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * 系统用户TokenController
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-02-01 11:12:49
  */
 @Tag(name = "SysUserTokenController|登录用户")

@@ -5,7 +5,7 @@ import com.platform.modules.mall.dto.GoodsAggregateDTO;
 /**
  * 商品聚合服务
  *
- * @author pengjun
+ * @author hehailong
  */
 public interface MallGoodsAggregateService {
 

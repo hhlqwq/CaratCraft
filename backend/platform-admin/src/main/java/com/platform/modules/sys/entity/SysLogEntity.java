@@ -31,7 +31,7 @@ import java.util.Date;
 /**
  * 系统日志
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_LOG")

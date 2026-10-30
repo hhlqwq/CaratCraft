@@ -35,7 +35,7 @@ import java.util.Enumeration;
 /**
  * sql 注入过滤器
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 public class AntiSqlInjectionFilter implements Filter {

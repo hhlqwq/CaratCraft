@@ -29,7 +29,7 @@ import java.util.Properties;
 /**
  * 生成验证码配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class KaptchaConfig {

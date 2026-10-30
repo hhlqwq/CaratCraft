@@ -29,7 +29,7 @@ import java.io.InputStream;
 /**
  * 阿里云存储
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-17 16:21:01
  */
 public class AliyunCloudStorageService extends AbstractCloudStorageService {

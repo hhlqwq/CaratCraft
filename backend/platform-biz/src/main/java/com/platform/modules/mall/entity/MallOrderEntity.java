@@ -39,7 +39,7 @@ import java.util.Map;
  *
  * <p>该实体用于后台订单管理模块的基础 CRUD，保存订单主信息、收货信息、支付信息、金额信息以及时间信息。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @Data

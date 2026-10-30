@@ -34,7 +34,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 /**
  * 异常处理器
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 @RestControllerAdvice

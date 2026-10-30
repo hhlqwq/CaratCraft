@@ -29,7 +29,7 @@ import java.io.Serializable;
 /**
  * 实体
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2025-06-22 12:04:32
  */
 @Data

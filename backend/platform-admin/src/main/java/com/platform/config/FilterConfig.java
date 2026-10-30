@@ -26,7 +26,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 /**
  * 过滤器配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class FilterConfig {

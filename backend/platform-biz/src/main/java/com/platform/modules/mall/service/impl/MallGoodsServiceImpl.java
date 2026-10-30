@@ -42,7 +42,7 @@ import java.util.Map;
 /**
  * Service实现类
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-02-24 13:15:28
  */
 @Service("mallGoodsService")

@@ -33,7 +33,7 @@ import java.util.Date;
 /**
  * mybatis-plus配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class MybatisPlusConfig {

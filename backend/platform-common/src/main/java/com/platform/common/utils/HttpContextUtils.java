@@ -26,7 +26,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 /**
  * HttpContextUtils
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class HttpContextUtils {
 

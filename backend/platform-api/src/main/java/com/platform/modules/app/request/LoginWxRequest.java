@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
- * @author pengjun
+ * @author hehailong
  */
 @Data
 @Schema(description = "微信小程序身份登录")

@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 @Service("wxMsgService")

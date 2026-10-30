@@ -3,7 +3,7 @@ package com.platform.modules.mall.dto;
 import lombok.Data;
 
 /**
- * 作者: @author Harmon <br>
+ * 作者: @author hehailong <br>
  * 时间: 2017-09-28 11:13<br>
  * 描述: CouponInfoVo <br>
  */

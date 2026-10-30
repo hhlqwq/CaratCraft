@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Service
 public class TemplateMsgLogServiceImpl extends ServiceImpl<TemplateMsgLogDao, TemplateMsgLogEntity>

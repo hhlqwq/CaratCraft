@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * 数据字典分组Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-15 11:42:20
  */
 public interface SysDictGroupService extends IService<SysDictGroupEntity> {

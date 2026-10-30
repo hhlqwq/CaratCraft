@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * 系统用户
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Mapper
 public interface SysUserDao extends BaseMapper<SysUserEntity> {

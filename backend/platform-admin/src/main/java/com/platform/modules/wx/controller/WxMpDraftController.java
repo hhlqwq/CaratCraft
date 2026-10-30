@@ -54,7 +54,7 @@ import java.util.List;
 /**
  * 微信草稿箱接口Controller
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2022-08-21 22:59:47
  */
 @Tag(name = "WxMpDraftController|微信草稿箱接口")

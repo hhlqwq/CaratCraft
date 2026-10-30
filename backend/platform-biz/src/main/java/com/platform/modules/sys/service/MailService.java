@@ -21,7 +21,7 @@ package com.platform.modules.sys.service;
 /**
  * 邮件相关接口 系统发送：使用application.yml文件中的mail配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface MailService {
 

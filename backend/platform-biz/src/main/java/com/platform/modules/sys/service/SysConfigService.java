@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * 系统配置信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysConfigService extends IService<SysConfigEntity> {
 

@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * 用户与角色对应关系
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_USER_ROLE")

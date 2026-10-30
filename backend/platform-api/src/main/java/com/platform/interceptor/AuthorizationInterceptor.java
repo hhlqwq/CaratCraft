@@ -41,7 +41,7 @@ import java.util.Arrays;
 /**
  * 权限(Token)验证
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Component
 @RequiredArgsConstructor

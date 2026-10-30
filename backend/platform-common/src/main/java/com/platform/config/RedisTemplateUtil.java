@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * RedisTemplate工具类
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 @Component

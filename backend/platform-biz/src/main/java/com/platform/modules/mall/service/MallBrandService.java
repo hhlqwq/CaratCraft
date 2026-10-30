@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2024-07-19 21:57:59
  */
 public interface MallBrandService extends IService<MallBrandEntity> {

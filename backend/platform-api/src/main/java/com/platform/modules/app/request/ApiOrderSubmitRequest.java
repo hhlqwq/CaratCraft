@@ -3,7 +3,7 @@ package com.platform.modules.app.request;
 import lombok.Data;
 
 /**
- * @author pengjun
+ * @author hehailong
  */
 @Data
 public class ApiOrderSubmitRequest {

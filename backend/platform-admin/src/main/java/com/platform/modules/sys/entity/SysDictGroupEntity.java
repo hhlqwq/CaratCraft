@@ -35,7 +35,7 @@ import java.util.Date;
 /**
  * 数据字典分组实体 表名 sys_dict_group
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-15 11:42:20
  */
 @Data

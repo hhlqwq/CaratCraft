@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * 模版消息发送记录
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2019-11-12 18:30:15
  */
 @Tag(name = "TemplateMsgLogManageController|模版消息发送记录")

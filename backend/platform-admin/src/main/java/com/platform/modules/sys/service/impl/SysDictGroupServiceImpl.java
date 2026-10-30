@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * 数据字典分组Service实现类
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-15 11:42:20
  */
 @Service("sysDictGroupService")

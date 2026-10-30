@@ -26,7 +26,7 @@ import org.apache.ibatis.annotations.Mapper;
 /**
  * 系统日志Dao
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-22 10:36:49
  */
 @Mapper

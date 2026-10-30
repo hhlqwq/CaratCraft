@@ -23,7 +23,7 @@ import com.platform.modules.wx.form.TemplateMsgBatchForm;
 import me.chanjar.weixin.mp.bean.template.WxMpTemplateMessage;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 public interface TemplateMsgService {
     /**

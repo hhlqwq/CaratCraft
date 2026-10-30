@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2025-06-20 11:02:14
  */
 public interface MallAdPositionService extends IService<MallAdPositionEntity> {

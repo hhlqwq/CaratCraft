@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * 角色与机构对应关系实体 表名 sys_role_org
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-21 17:20:07
  */
 @Data

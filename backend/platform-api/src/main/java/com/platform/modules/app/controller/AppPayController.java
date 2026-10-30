@@ -32,7 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 /**
- * 作者: @author Harmon <br>
+ * 作者: @author hehailong <br>
  * 时间: 2017-08-11 08:32<br>
  *
  * @gitee https://gitee.com/hehailong/platform 描述: AppController <br>

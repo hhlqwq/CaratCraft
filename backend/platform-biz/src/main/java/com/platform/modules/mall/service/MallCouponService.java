@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-02-24 10:20:41
  */
 public interface MallCouponService extends IService<MallCouponEntity> {

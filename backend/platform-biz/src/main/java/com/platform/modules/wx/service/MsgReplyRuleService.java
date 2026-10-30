@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 public interface MsgReplyRuleService extends IService<MsgReplyRuleEntity> {

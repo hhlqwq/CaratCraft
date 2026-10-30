@@ -28,7 +28,7 @@ import org.apache.shiro.subject.Subject;
 /**
  * Shiro工具类
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class ShiroUtils {
 

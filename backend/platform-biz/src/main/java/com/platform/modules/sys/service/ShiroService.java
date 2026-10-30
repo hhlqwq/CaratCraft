@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * shiro相关接口
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface ShiroService extends IService<SysUserTokenEntity> {
     /**

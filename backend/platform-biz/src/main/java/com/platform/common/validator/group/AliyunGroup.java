@@ -21,6 +21,6 @@ package com.platform.common.validator.group;
 /**
  * 阿里云
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface AliyunGroup {}

@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * Service实现类
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2025-06-29 18:07:36
  */
 @Service("mallAttributeService")

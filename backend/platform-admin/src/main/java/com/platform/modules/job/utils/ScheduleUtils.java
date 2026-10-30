@@ -36,7 +36,7 @@ import org.quartz.TriggerKey;
 /**
  * 定时任务工具类
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class ScheduleUtils {
     private static final String JOB_NAME = "TASK_";

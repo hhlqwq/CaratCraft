@@ -25,7 +25,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 public class WxUserBatchTaggingForm {

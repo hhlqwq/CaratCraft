@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * 商品SKU
  *
- * @author pengjun
+ * @author hehailong
  */
 @Mapper
 public interface MallProductDao extends BaseMapper<MallProductEntity> {

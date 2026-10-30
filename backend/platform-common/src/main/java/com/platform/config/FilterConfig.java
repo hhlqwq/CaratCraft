@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * admin、api都用到的 过滤器配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class FilterConfig {

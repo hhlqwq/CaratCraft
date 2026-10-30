@@ -21,6 +21,6 @@ package com.platform.common.validator.group;
 /**
  * 服务器存储
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface DiskGroup {}

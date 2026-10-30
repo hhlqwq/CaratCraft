@@ -36,7 +36,7 @@ import java.util.Date;
 /**
  * 组织机构实体 表名 sys_org
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-21 11:29:22
  */
 @Data

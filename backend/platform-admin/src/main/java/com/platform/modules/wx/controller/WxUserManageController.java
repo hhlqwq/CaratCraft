@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * 用户表
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "WxUserManageController|公众号粉丝")
 @RequiredArgsConstructor

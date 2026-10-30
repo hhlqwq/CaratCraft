@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 商品关联Dao
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 21:55:00
  */
 @Mapper

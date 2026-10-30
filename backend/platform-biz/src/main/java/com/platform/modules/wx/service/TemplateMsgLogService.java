@@ -25,7 +25,7 @@ import com.platform.modules.wx.entity.TemplateMsgLogEntity;
 import java.util.Map;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 public interface TemplateMsgLogService extends IService<TemplateMsgLogEntity> {
     /**

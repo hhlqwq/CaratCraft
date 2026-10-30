@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * 商品货品表Service接口
  *
- * @author pengjun
+ * @author hehailong
  */
 public interface MallProductService extends IService<MallProductEntity> {
     /** 按给定条件读取当前领域全部匹配记录. */

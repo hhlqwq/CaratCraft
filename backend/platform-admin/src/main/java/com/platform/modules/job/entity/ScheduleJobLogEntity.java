@@ -29,7 +29,7 @@ import java.util.Date;
 /**
  * 定时任务日志
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SCHEDULE_JOB_LOG")

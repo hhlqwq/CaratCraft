@@ -26,7 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * 资源配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Component
 public class ActResourceHandlerConfig implements WebMvcConfigurer {

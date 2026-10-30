@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * 描述：商品货品表服务实现类
  *
- * @author pengjun
+ * @author hehailong
  */
 @Service("mallProductService")
 public class MallProductServiceImpl extends ServiceImpl<MallProductDao, MallProductEntity>

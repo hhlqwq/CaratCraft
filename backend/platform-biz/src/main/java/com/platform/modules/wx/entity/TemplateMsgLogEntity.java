@@ -37,7 +37,7 @@ import java.util.Date;
 /**
  * 模板消息日志
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName(value = "WX_TEMPLATE_MSG_LOG", autoResultMap = true)

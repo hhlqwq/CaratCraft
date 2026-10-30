@@ -47,7 +47,7 @@ import java.util.Map;
 /**
  * 关键词热搜表Controller
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2025-06-29 19:29:29
  */
 @RestController

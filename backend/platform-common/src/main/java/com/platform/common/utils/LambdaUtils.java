@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 /**
  * 基于该工具方法，便可轻松编写如下业务代码，清晰、简洁
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2022-08-21 22:59:47
  */
 public class LambdaUtils {

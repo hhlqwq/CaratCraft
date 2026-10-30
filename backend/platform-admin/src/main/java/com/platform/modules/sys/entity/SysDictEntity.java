@@ -33,7 +33,7 @@ import java.io.Serializable;
 /**
  * 数据字典实体 表名 sys_dict
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-01-15 11:42:20
  */
 @Data

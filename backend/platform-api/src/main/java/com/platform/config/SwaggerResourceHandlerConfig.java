@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 资源配置
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Component
 public class SwaggerResourceHandlerConfig implements WebMvcConfigurer {

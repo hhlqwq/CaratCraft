@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 公众号验证服务器
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "WxMpPortalController|公众号服务器配置控制器")
 @Slf4j

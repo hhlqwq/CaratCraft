@@ -39,7 +39,7 @@ import java.util.Date;
  * 在需要处理的字段上使用@TableField(typeHandler = JacksonTypeHandler.class)，同时实体开启@TableName(autoResultMap =
  * true)
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 @Data

@@ -33,7 +33,7 @@ import java.util.Map;
  *
  * <p>提供订单商品查询与分页查询能力，支撑后台订单商品管理。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @Mapper

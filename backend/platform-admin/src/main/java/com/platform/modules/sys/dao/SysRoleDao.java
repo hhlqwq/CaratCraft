@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * 角色管理
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Mapper
 public interface SysRoleDao extends BaseMapper<SysRoleEntity> {

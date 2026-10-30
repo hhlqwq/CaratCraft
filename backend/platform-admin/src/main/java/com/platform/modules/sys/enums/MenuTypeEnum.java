@@ -22,7 +22,7 @@ package com.platform.modules.sys.enums;
  * 名称：MenuTypeEnum <br>
  * 描述：菜单类型<br>
  *
- * @author 何海龙
+ * @author hehailong
  * @version 1.0
  * @since 1.0.0
  */

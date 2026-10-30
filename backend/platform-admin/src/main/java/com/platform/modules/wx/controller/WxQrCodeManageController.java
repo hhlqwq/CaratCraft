@@ -48,7 +48,7 @@ import java.util.Map;
 /**
  * 公众号带参二维码管理 https://github.com/Wechat-Group/WxJava/wiki/MP_二维码管理
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2020-06-17 13:56:51
  */
 @Tag(name = "WxQrCodeManageController|公众号带参二维码")

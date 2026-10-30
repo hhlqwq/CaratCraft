@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 定时任务
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 public class ScheduleJob extends QuartzJobBean {

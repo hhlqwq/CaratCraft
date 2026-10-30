@@ -21,6 +21,6 @@ package com.platform.common.validator.group;
 /**
  * 更新数据 Group
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface UpdateGroup {}

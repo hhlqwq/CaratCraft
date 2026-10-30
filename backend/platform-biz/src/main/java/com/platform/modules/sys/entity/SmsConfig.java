@@ -26,7 +26,7 @@ import java.io.Serializable;
  * 名称：SmsConfig <br>
  * 描述：短信配置信息<br>
  *
- * @author 何海龙
+ * @author hehailong
  * @version 1.0
  * @since 1.0.0
  */

@@ -32,7 +32,7 @@ import java.math.BigDecimal;
  *
  * <p>该实体用于维护订单中的商品明细项，记录商品快照、购买数量、成交价及规格信息。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @Data

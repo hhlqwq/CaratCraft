@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  * 小程序数据分析相关接口Controller
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2020-04-21 14:41:47
  */
 @Tag(name = "WxMaAnalysisController|小程序数据分析")

@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 /**
  * 会员操作接口
  *
- * @author pengjun
+ * @author hehailong
  */
 @Tag(name = "会员操作-AppUserController")
 @RestController

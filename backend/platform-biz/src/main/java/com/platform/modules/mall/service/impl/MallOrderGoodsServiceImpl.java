@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * <p>提供订单商品明细模块的查询、分页、增删改功能实现。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 @Service("mallOrderGoodsService")

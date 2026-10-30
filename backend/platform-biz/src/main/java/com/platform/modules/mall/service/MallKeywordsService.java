@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 关键词热搜表Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2025-06-29 19:29:29
  */
 public interface MallKeywordsService extends IService<MallKeywordsEntity> {

@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * 商品聚合DTO
  *
- * @author pengjun
+ * @author hehailong
  */
 @Data
 public class GoodsAggregateDTO {

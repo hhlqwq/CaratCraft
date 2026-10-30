@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 /**
  * 商品聚合服务实现类
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Service
 @RequiredArgsConstructor

@@ -30,7 +30,7 @@ import java.net.UnknownHostException;
 /**
  * IP地址
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 public class IpUtils {

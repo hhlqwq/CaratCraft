@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * redis缓存信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysCacheService {
 

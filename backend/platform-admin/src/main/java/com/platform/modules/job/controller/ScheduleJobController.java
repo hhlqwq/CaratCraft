@@ -44,7 +44,7 @@ import java.util.Map;
 /**
  * 定时任务
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "ScheduleJobController|定时任务")
 @RequiredArgsConstructor

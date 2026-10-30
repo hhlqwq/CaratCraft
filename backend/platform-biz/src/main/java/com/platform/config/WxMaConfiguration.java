@@ -48,7 +48,7 @@ import java.io.File;
 /**
  * wechat ma configuration
  *
- * @author 何海龙
+ * @author hehailong
  */
 @AllArgsConstructor
 @Slf4j

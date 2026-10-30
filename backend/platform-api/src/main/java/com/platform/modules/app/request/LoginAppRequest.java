@@ -7,7 +7,7 @@ import lombok.Data;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 
 /**
- * @author pengjun
+ * @author hehailong
  */
 @Data
 @Schema(description = "APP登录")

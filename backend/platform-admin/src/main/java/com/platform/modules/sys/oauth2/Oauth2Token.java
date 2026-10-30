@@ -23,7 +23,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 /**
  * token
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class Oauth2Token implements AuthenticationToken {
     private String token;

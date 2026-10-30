@@ -36,7 +36,7 @@ import java.util.Map;
 /**
  * 商品评论图片表Service实现类
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 13:45:49
  */
 @Service("mallCommentPictureService")

@@ -38,7 +38,7 @@ import java.util.Map;
 /**
  * 过滤器异常处理
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RestController
 public class FilterExceptionController extends BasicErrorController {

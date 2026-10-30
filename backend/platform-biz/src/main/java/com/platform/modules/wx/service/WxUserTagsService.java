@@ -24,7 +24,7 @@ import me.chanjar.weixin.mp.bean.tag.WxUserTag;
 import java.util.List;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 public interface WxUserTagsService {
     /**

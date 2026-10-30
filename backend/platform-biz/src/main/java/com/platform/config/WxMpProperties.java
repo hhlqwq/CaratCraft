@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 /**
  * mp properties
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @ConfigurationProperties(prefix = "wx.mp")

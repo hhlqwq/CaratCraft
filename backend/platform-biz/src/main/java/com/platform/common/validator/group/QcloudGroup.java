@@ -21,6 +21,6 @@ package com.platform.common.validator.group;
 /**
  * 腾讯云
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface QcloudGroup {}

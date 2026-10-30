@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * 跨域处理
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 public class CorsConfig {

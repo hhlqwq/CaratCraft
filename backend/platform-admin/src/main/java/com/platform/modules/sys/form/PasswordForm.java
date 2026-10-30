@@ -23,7 +23,7 @@ import lombok.Data;
 /**
  * 密码表单
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 public class PasswordForm {

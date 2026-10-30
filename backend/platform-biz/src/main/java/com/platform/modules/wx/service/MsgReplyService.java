@@ -25,7 +25,7 @@ import me.chanjar.weixin.common.error.WxErrorException;
  * 官方文档：https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Service_Center_messages.html#7
  * WxJava客服消息文档：https://github.com/Wechat-Group/WxJava/wiki/MP_主动发送消息（客服消息）
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 public interface MsgReplyService {

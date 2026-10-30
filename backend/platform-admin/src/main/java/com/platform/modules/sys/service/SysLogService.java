@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * 系统日志
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysLogService extends IService<SysLogEntity> {
 

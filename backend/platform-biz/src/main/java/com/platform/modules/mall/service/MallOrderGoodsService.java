@@ -31,7 +31,7 @@ import java.util.Map;
  *
  * <p>定义订单商品模块的业务方法，包括查询、分页以及标准增删改。
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 14:30:00
  */
 public interface MallOrderGoodsService extends IService<MallOrderGoodsEntity> {

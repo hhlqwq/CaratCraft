@@ -24,7 +24,7 @@ import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
 /**
  * 商品关联Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-03-15 21:55:00
  */
 public interface MallRelatedGoodsService extends IService<MallRelatedGoodsEntity> {

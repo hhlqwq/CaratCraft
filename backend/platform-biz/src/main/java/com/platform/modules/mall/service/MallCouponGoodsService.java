@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 优惠券关联商品Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-02-24 10:20:41
  */
 public interface MallCouponGoodsService extends IService<MallCouponGoodsEntity> {

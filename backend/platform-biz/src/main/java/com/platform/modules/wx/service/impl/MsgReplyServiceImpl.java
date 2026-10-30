@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * nagement/Service_Center_messages.html#7
  * 参考WxJava客服消息文档：https://github.com/Wechat-Group/WxJava/wiki/MP_主动发送消息（客服消息）
  *
- * @author 何海龙
+ * @author hehailong
  * @date 2021-05-06 18:30:15
  */
 @Slf4j

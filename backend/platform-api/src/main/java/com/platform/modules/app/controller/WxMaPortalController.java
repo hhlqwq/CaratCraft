@@ -45,7 +45,7 @@ import java.util.Objects;
 /**
  * 小程序验证服务器
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "WxMaPortalController|小程序服务器配置控制器")
 @Slf4j

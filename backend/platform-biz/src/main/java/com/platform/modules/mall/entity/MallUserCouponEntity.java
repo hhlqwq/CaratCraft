@@ -31,7 +31,7 @@ import java.util.Date;
 /**
  * 实体
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2024-07-19 21:02:38
  */
 @Data

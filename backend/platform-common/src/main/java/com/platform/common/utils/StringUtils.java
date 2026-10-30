@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 /**
  * String工具类
  *
- * @author 何海龙
+ * @author hehailong
  */
 public class StringUtils {
 

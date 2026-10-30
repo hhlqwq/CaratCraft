@@ -23,7 +23,7 @@ import lombok.Data;
 /**
  * 登录表单
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 public class SysLoginForm {

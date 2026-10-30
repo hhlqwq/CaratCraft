@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * 系统用户Token
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Mapper
 public interface SysUserTokenDao extends BaseMapper<SysUserTokenEntity> {

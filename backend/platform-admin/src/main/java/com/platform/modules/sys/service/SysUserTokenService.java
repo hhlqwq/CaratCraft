@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  * 用户Token
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface SysUserTokenService extends IService<SysUserTokenEntity> {
 

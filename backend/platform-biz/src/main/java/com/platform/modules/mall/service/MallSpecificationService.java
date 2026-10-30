@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 规格表Service接口
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2026-02-24 10:10:05
  */
 public interface MallSpecificationService extends IService<MallSpecificationEntity> {

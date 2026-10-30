@@ -30,7 +30,7 @@ import java.io.Serializable;
 /**
  * 系统配置信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 @TableName("SYS_CONFIG")

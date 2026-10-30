@@ -24,7 +24,7 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Setter
 @Getter

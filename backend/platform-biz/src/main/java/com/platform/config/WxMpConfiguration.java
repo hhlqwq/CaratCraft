@@ -36,7 +36,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * wechat mp configuration
  *
- * @author 何海龙
+ * @author hehailong
  */
 @RequiredArgsConstructor
 @Configuration

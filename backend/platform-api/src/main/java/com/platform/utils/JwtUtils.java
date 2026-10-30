@@ -38,7 +38,7 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * jwt工具类
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 @ConfigurationProperties(prefix = "platform-api.jwt")

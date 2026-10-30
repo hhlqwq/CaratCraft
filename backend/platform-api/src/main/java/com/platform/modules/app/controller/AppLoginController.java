@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * APP登录授权
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 @RestController

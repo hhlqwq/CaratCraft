@@ -46,7 +46,7 @@ import java.util.Map;
 /**
  * 系统配置信息
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "SysConfigController|系统配置")
 @RequiredArgsConstructor

@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 定时任务 testTask为spring bean的名称
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Slf4j
 @Component("testTask")

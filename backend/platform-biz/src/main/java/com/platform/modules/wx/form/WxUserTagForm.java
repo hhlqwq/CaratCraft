@@ -24,7 +24,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 @Data
 public class WxUserTagForm {

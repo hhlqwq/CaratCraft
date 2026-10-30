@@ -50,7 +50,7 @@ import javax.imageio.ImageIO;
 /**
  * 登录相关
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Tag(name = "SysLoginController|登录相关")
 @RequiredArgsConstructor

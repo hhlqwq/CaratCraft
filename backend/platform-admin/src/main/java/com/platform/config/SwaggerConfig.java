@@ -42,7 +42,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  *
  * <p>注意： integer、double、float、long、byte、需要给example的值
  *
- * @author 何海龙
+ * @author hehailong
  */
 @Configuration
 @EnableWebMvc

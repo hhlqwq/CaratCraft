@@ -48,7 +48,7 @@ import java.util.Map;
 /**
  * 短信发送日志Controller
  *
- * @author 何海龙
+ * @author hehailong
  * @since 2019-02-12 09:51:15
  */
 @Tag(name = "SysSmsLogController|短信发送日志")

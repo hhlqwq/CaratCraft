@@ -14,7 +14,7 @@ import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 
 /**
- * @author 何海龙
+ * @author hehailong
  */
 public class HttpUtils {
     /**

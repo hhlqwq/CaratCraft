@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * 消息模板
  *
- * @author 何海龙
+ * @author hehailong
  */
 public interface MsgTemplateService extends IService<MsgTemplateEntity> {
     /**
