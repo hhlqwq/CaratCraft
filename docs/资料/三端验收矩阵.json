@@ -1,0 +1,520 @@
+{
+    "date": "2026-10-30",
+    "overall": "pending",
+    "note": "源码契约与宿主替身测试不等于微信编译、模拟器显示、真实登录或支付验收.",
+    "currentNodeRegression": {
+        "tests": 272,
+        "passed": 272,
+        "failed": 0,
+        "skipped": 0
+    },
+    "reusedBaseline": {
+        "commit": "2bbd16dec252fa4b1b39f6a3845168d26529d507",
+        "date": "2026-10-29",
+        "backend": {
+            "status": "reused_unchanged",
+            "javaTests": 206,
+            "evidence": "业务链路验证.json#finalPlanClosure"
+        },
+        "admin": {
+            "status": "reused_unchanged",
+            "evidence": "业务链路验证.json#finalPlanClosure",
+            "browserSuites": 2
+        }
+    },
+    "miniapp": {
+        "compile": {
+            "status": "pending",
+            "blocker": "修复已识别的协议模板编译错误, 等待用户手动编译结果; 自动化运行时超时."
+        },
+        "desktop": "不接管鼠标键盘, 不切换或新开窗口.",
+        "pages": [
+            {
+                "route": "pages/index/index",
+                "sourceSha256": "284cd6f4b8f062170b9cb29117fc257d7215e7d2bca3e4e68fcc1f082f97682b",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/catalog/catalog",
+                "sourceSha256": "f83a4768de15edba1114385fe5d9267ff81c8377947d91f2ff8ab28e7b5e6ee7",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/newGoods/newGoods",
+                "sourceSha256": "4d617d5f89f3749e1b22e01a45721394b3cc06b72519536ed3bb18717d256049",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/hotGoods/hotGoods",
+                "sourceSha256": "a220f36ad7dc0ff0ed5803372f53f188dce2bce74f55917660b3bd0c250c8f1f",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/address/address",
+                "sourceSha256": "49c189a30aca354628dc812a457253c3ea579d3b8eafdfc8768656cad1a32c89",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/addressAdd/addressAdd",
+                "sourceSha256": "83c7c5f484f9a4be890978eb0ad64a68d19c30b8236f2e71a438c4a09e7521f3",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/footprint/footprint",
+                "sourceSha256": "4f646f1edebbc9c13a5db9af200f2cedf911c61037b37ba71d93ff81c14a2ea9",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/order/order",
+                "sourceSha256": "a6a7a7487b1d505fe1204a355988eab9a233a5496986390820003e101902bf2b",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/orderDetail/orderDetail",
+                "sourceSha256": "3a5801d21f465315a8d12d45c4ed9e8d50cafbe6edfaef9693850320424edb50",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/feedback/feedback",
+                "sourceSha256": "c494c8c8a03d65e8de52b150888e5a134f8ba30e470f140d9829afa904eeb95b",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 0,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/coupon/coupon",
+                "sourceSha256": "e964069128a31e1b902e6ed5a8f3569cb927c7ffbe55574943a38fa59231d906",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/collect/collect",
+                "sourceSha256": "66bd81231248fde4b1be5b7c305a6f6a9f3840fad812d9450785044776443106",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/design/design",
+                "sourceSha256": "522d031871c81ecf55274f251d028f39c6bf3531655c845e92bd06f70af2c2c8",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/pay/pay",
+                "sourceSha256": "e5e6dcb88e99caafb27930b3ed738b79dbbfb1502cc2e7ef6c259a434049ebaa",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/payResult/payResult",
+                "sourceSha256": "b786131172b4331e7d1f1978cbf04ce530c881b37facff822e4c223f2299f5cf",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/index/index",
+                "sourceSha256": "7b2db55eb95660cc7cd11a8325dadeea2dbbb032cb759ac9331a816565777f3f",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/topic/topic",
+                "sourceSha256": "9c46e07fbd145a4ee5450543e27d8d3913efa1ca7e3a84f6cd45afcc70ac694a",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/comment/comment",
+                "sourceSha256": "dc7c58c07be9abc8ab31a6bbdbd0942be8ee5dddb2d57c8b20b38230e1b81a7a",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 0,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/commentPost/commentPost",
+                "sourceSha256": "804eaf69048f237575bf49f4b369571e442fd4405f76851d40e8307e2fc0fd7b",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 0,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/brand/brand",
+                "sourceSha256": "17f1e7c211a23463d1cb9d7c6d2816bff4a680495db09719f30174d1ac0de8a3",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/brandDetail/brandDetail",
+                "sourceSha256": "e901fea05813e5c03926940dcfc811c96a89658e5c8e4fe502661d10ca4042e2",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/search/search",
+                "sourceSha256": "96ebadefae854d410a2ca2ead2d512ab2c95283abef03d067147cbb7781fa25f",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/category/category",
+                "sourceSha256": "ef14b91a0ab4d4675179e885d1e94832f24bdd3cc8428752b0d57f648e58db7b",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/cart/cart",
+                "sourceSha256": "5a2c01c9c9e0ed54e82d1f9c2732186bda0dda485f1d2729163e5ecb5dbe19a4",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/shopping/checkout/checkout",
+                "sourceSha256": "9bb6c7ce6bb38fb16192162a99ea0d3c5a7e3b780470a4f1c8fb8921ba3ad100",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/shopping/address/address",
+                "sourceSha256": "e799cfd1afa03f5970ceb5f9eaae7409a213ba392fe545f423a4ceacb9945dd9",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/shopping/addressAdd/addressAdd",
+                "sourceSha256": "5ee7a719756394b52cee26e7b85207ffbf74e29c8d6e88fc518d49525931b702",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/goods/goods",
+                "sourceSha256": "a8af484e2975800f8b8042db9df5f46f54c55a2209d4ff148deaa7fdb6099241",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 3,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/designer/designer",
+                "sourceSha256": "088f99ce0ae664b831e1d7d575e19a0d95d279d70164fe4e40166276bd9c098d",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/topicDetail/topicDetail",
+                "sourceSha256": "4b217f692e44c6392c39f2e3f0f78af5fbb92a652e1990fd97adf7bf32444258",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 2,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/auth/mobile/mobile",
+                "sourceSha256": "7e24b8593deeeeb08acf2a6d41a6af3cec3c5d520babbbaaded65b38e7d4c971",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 0,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/shopping/selCoupon/selCoupon",
+                "sourceSha256": "f40041f248be40116d20c17d1e8bea05b1e1b6f8d41cdbd5769e9091e70a3195",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/help/help",
+                "sourceSha256": "41d29b510515d5055e8c561daf1b09ab011f57ea1ea02a0ca2654c54976f2939",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/helpInfo/helpInfo",
+                "sourceSha256": "19c18e79d49a49a5e45cb59e893dee6a7d22395db43d5fff01cc212f024cc955",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/auth/btnAuth/btnAuth",
+                "sourceSha256": "ca7b43226b4d115fdca079d2ef752c67045078f060e9d9bd0de9117ef221be05",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 0,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/community/index",
+                "sourceSha256": "38b1575ec5df5f2965559b7d6ef4c1362bbd12eca6cfae939a233bf6d4823fc4",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/community/detail",
+                "sourceSha256": "d13a35fce41a4ed3886c5ab2dee23ba6e04b3701156fcca0e61ebf7fca4ccd5e",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/community/publish",
+                "sourceSha256": "10d82a194a0bb8de5147cdc58205e6104ab802d38d0ab36df2149aac24f64e49",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/aftersales/index",
+                "sourceSha256": "c0c4633a61403d565029f5cd8b834258833afb7930f61e2e4e854b1c74ef5aff",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            },
+            {
+                "route": "pages/ucenter/legal/index",
+                "sourceSha256": "0d50cb127bbc6c603986d0527a41b6386699276df5ef040473afdad6a21aa47f",
+                "sourceContract": "passed",
+                "initialOfflineLifecycle": {
+                    "status": "passed",
+                    "requests": 1,
+                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                },
+                "wechatDisplay": "pending",
+                "wechatOperations": "pending"
+            }
+        ]
+    },
+    "remaining": [
+        "微信完整编译",
+        "40页实际显示及关键操作",
+        "真实微信登录和支付退款",
+        "当前源码最终交付重建"
+    ]
+}
