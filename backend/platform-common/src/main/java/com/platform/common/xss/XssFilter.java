@@ -18,49 +18,48 @@
  */
 package com.platform.common.xss;
 
+import com.platform.common.utils.JsonContract;
+import com.platform.common.utils.RestResponse;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
- * XSS过滤
+ * 在进入MVC前验证JSON边界, 下游业务异常仍由全局异常处理器映射.
  *
  * @author hehailong
  */
 public class XssFilter implements Filter {
-    private String[] excludedPageArray = new String[] {"/service/model/"};
-
-    @Override
-    public void init(FilterConfig config) {}
-
+    /** 仅预读取有界JSON, 不读取multipart、XML支付回调或其他二进制流. */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        XssHttpServletRequestWrapper xssRequest =
-                new XssHttpServletRequestWrapper((HttpServletRequest) request);
-
-        boolean isExcludedPage = false;
-        // 判断是否在过滤url之外
-        for (String page : excludedPageArray) {
-            if (((HttpServletRequest) request).getServletPath().indexOf(page) > -1) {
-                isExcludedPage = true;
-                break;
-            }
+        var wrapped = new XssHttpServletRequestWrapper((HttpServletRequest) request);
+        try {
+            wrapped.prepareJsonBody();
+        } catch (XssHttpServletRequestWrapper.JsonBodyTooLargeException error) {
+            reject((HttpServletResponse) response, 413, error.getMessage());
+            return;
+        } catch (IllegalArgumentException error) {
+            reject((HttpServletResponse) response, 400, "JSON格式、编码或层级无效");
+            return;
         }
-        // 排除过滤url
-        if (isExcludedPage) {
-            chain.doFilter(request, response);
-        } else {
-            chain.doFilter(xssRequest, response);
-        }
+        chain.doFilter(wrapped, response);
     }
 
-    @Override
-    public void destroy() {}
+    /** 过滤阶段直接提供统一HTTP状态及RestResponse, 不输出请求正文或异常栈. */
+    private void reject(HttpServletResponse response, int code, String message) throws IOException {
+        response.setStatus(code);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(JsonContract.write(RestResponse.fail(code, message)));
+    }
 }

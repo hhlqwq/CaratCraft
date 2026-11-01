@@ -40,6 +40,7 @@ public class FilterConfig {
         FilterRegistrationBean<XssFilter> registration = new FilterRegistrationBean<>();
         registration.setDispatcherTypes(DispatcherType.REQUEST);
         registration.setFilter(new XssFilter());
+        registration.setAsyncSupported(false);
         registration.addUrlPatterns("/*");
         registration.setName("xssFilter");
         registration.setOrder(Integer.MAX_VALUE);

@@ -27,6 +27,7 @@ import me.chanjar.weixin.common.error.WxErrorException;
 import org.apache.shiro.authz.AuthorizationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -105,6 +106,13 @@ public class BusinessExceptionHandler {
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
     public RestResponse<String> handleMethodNotAllowed(Exception error) {
         return RestResponse.fail(405, "请求方法不支持");
+    }
+
+    /** 不支持的媒体类型保持415, 不作为服务内部故障返回500. */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public RestResponse<String> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException error) {
+        return RestResponse.fail(415, "请求内容类型不支持");
     }
 
     /** 未匹配的静态资源与业务路由均保持404语义. */

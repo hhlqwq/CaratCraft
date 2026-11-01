@@ -83,7 +83,6 @@
         <jakarta.mail.version>2.0.1</jakarta.mail.version>
         <qcloudsms.version>1.0.6</qcloudsms.version>
         <aliyun-sdk-sms.version>2.0.24</aliyun-sdk-sms.version>
-        <pdfbox.version>3.0.0</pdfbox.version>
         <huaweicloud.obs>3.23.9.1</huaweicloud.obs>
     </properties>
 
@@ -403,13 +402,6 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-codec</artifactId>
             <version>${batik.version}</version>
-        </dependency>
-
-        <!-- PDF操作 -->
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>${pdfbox.version}</version>
         </dependency>
 
         <!-- 邮件 -->

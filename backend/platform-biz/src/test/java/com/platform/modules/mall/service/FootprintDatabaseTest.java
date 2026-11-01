@@ -54,7 +54,7 @@ class FootprintDatabaseTest {
         clean();
         jdbc.update(
                 "INSERT INTO mall_goods(id,name,is_delete)"
-                    + " VALUES(1991701,'足迹甲',0),(1991702,'足迹乙',0),(1991703,'已删除',1)");
+                        + " VALUES(1991701,'足迹甲',0),(1991702,'足迹乙',0),(1991703,'已删除',1)");
         long seconds = Instant.parse("2025-01-01T16:30:00Z").getEpochSecond();
         jdbc.update(
                 "INSERT INTO mall_footprint(id,user_id,goods_id,add_time) VALUES"
@@ -97,7 +97,7 @@ class FootprintDatabaseTest {
                 0,
                 jdbc.queryForObject(
                         "SELECT COUNT(*) FROM mall_footprint WHERE user_id=9900701 AND"
-                            + " goods_id=1991701",
+                                + " goods_id=1991701",
                         Integer.class));
         assertEquals(1, service.list(9900701L, 1, 10).total());
         assertEquals(1, service.list(9900702L, 1, 10).total());

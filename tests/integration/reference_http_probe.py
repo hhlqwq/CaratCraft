@@ -54,15 +54,16 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
     unsigned = header + b"." + payload
     token = (unsigned + b"." + base64.urlsafe_b64encode(hmac.new(key, unsigned, hashlib.sha256).digest()).rstrip(b"=")).decode()
 
-    def call(path, data=None, authenticated=True, *, base_url=base, auth_token=token):
+    def call(path, data=None, authenticated=True, *, base_url=base, auth_token=token,
+             raw_body=None, content_type="application/json"):
         """从测试容器请求回环HTTP, 令牌仅经标准输入传递, 不发布端口或继承代理."""
-        config = ['url = ' + json.dumps(base_url + path), 'header = "Content-Type: application/json"',
+        config = ['url = ' + json.dumps(base_url + path), 'header = ' + json.dumps('Content-Type: ' + content_type),
                   'silent', 'show-error', 'max-time = 5', 'noproxy = "*"',
                   'write-out = "\\n%{http_code}"']
         if authenticated:
             config.append('header = ' + json.dumps('token: ' + auth_token))
-        if data is not None:
-            config.append('data = ' + json.dumps(json.dumps(data)))
+        if data is not None or raw_body is not None:
+            config.append('data = ' + json.dumps(raw_body if raw_body is not None else json.dumps(data)))
         result = subprocess.run(['docker', 'exec', '-i', application, 'curl', '--config', '-'],
                                 input='\n'.join(config), capture_output=True, text=True,
                                 encoding='utf-8', timeout=15)
@@ -114,6 +115,19 @@ VALUES(1999105,'pearl','reference-isolated-fixture','隔离规则参考材料',0
         material_names = [item["name"] for item in generic["materials"]]
         assert material_names == ["隔离规则参考材料"], material_names
         assert generic["sources"][0]["url"].startswith("https://www.tiffany.com/")
+        for content_type, expected in (("application/json; charset=UTF-8", 200), ("application/merge-patch+json", 415)):
+            status, result = call("/app/customization/reference", body, content_type=content_type)
+            assert status == expected and result["code"] == (0 if expected == 200 else expected)
+            cases.append({"name": "json_media_type", "status": status})
+        status, result = call("/app/customization/reference", raw_body='{"x":1,"x":2}', content_type="application/merge-patch+json")
+        assert status == 400 and result["code"] == 400
+        cases.append({"name": "suffix_json_validated_before_mvc", "status": status})
+        for name, raw, expected in (("duplicate_json_key", '{"goodsId":1999105,"goodsId":1}', 400),
+                                     ("trailing_json", '{}{}', 400),
+                                     ("oversized_json", ' ' * (6 * 1024 * 1024 + 1), 413)):
+            status, result = call("/app/customization/reference", raw_body=raw)
+            assert status == expected and result["code"] == expected, (name, status)
+            cases.append({"name": name, "status": status})
         measured = check("measured_filter", "/app/customization/reference", {**body, "neckCircumferenceMm": 480}, 200)
         assert measured["lengthsMm"] == [507.5]
         empty = check("no_intersection", "/app/customization/reference", {**body, "neckCircumferenceMm": 800}, 200)
