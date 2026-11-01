@@ -1,4 +1,4 @@
-"""按客户资料独立核对候选规格和同源迁移生成, 不执行SQL."""
+"""按客户资料独立核对候选规格和同源初始化种子生成, 不执行SQL."""
 
 import json
 from pathlib import Path
@@ -30,8 +30,8 @@ class CustomerMaterialCatalogTest(unittest.TestCase):
         self.assertEqual("4cdb7d6266146989ee6bac5fbba25069612578aaa3f27ee3456a6b299c9f1c0f", catalog["sourceSha256"])
 
     def test_candidate_migration_matches_single_source(self):
-        """迁移严格对应资源且重复生成不改写受控源码."""
-        path = ROOT / "database/migrations/V20261024_01_material_catalog.sql"
+        """初始化种子严格对应资源且重复生成不改写受控源码."""
+        path = ROOT / "database/init/030_material_catalog.sql"
         before = path.read_bytes()
         subprocess.run([sys.executable, str(ROOT / "tools/database/build-customer-material-catalog.py"), "--check"], check=True, capture_output=True)
         self.assertEqual(before, path.read_bytes())

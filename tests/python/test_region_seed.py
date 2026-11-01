@@ -12,7 +12,7 @@ class RegionSeedTest(unittest.TestCase):
 
     def test_records_keep_original_content_and_count(self):
         """全部地区INSERT与整改前按LF记录的摘要一致, 不靠减少数据加速."""
-        source = (ROOT / "database/init/060_sys_region.sql").read_text("utf-8")
+        source = (ROOT / "database/init/040_regions.sql").read_text("utf-8")
         records = [line for line in source.splitlines(keepends=True)
                    if line.startswith("INSERT INTO `sys_region`")]
         self.assertEqual(len(records), 46181)
@@ -21,7 +21,7 @@ class RegionSeedTest(unittest.TestCase):
 
     def test_transaction_only_wraps_seed_records(self):
         """建表先执行, 全部INSERT由一个显式事务提交, 中间没有隐式提交DDL."""
-        source = (ROOT / "database/init/060_sys_region.sql").read_text("utf-8")
+        source = (ROOT / "database/init/040_regions.sql").read_text("utf-8")
         self.assertEqual(source.count("START TRANSACTION;"), 1)
         self.assertEqual(source.count("COMMIT;"), 1)
         ddl, inserts = source.split("START TRANSACTION;")

@@ -176,45 +176,28 @@ database_query() {
     printf '%s\n' "$output"
 }
 
-# 校验全部迁移及原始SHA, 未知版本或冲突不能触发自动清库.
-assert_database_migrations() {
-    local rows version digest extra file expected count=0
-    rows="$(database_query 'SELECT version,sha256 FROM CC_SCHEMA_MIGRATION ORDER BY version;')" || return $?
-    while IFS=$'\t' read -r version digest extra; do
-        [[ -n "$version" ]] || { [[ -z "$digest$extra" ]] && continue; return 1; }
-        if [[ ! "$version" =~ ^V[0-9]{8}_[0-9]+_[a-z0-9_]+\.sql$ || -n "$extra" ||
-              ! -f "$PROJECT_DIR/database/migrations/$version" || -L "$PROJECT_DIR/database/migrations/$version" ]]; then
-            echo '迁移台账包含未知或格式异常的版本, 停止启动。'; return 1
-        fi
-        expected="$(sha256_file < "$PROJECT_DIR/database/migrations/$version" | tr 'A-F' 'a-f')" || return 1
-        [[ "$digest" == "$expected" ]] || { echo "迁移SHA256冲突: $version, 停止启动。"; return 1; }
-        [[ "$(cut -f1 <<< "$rows" | grep -Fxc "$version")" == 1 ]] || {
-            echo '迁移台账包含重复版本, 停止启动。'; return 1;
-        }
-    done <<< "$rows"
-    for file in "$PROJECT_DIR"/database/migrations/V*.sql; do
-        [[ -f "$file" && ! -L "$file" ]] || { echo '本地迁移文件为空或类型不合法, 停止启动。'; return 1; }
-        version="${file##*/}"
-        [[ "$version" =~ ^V[0-9]{8}_[0-9]+_[a-z0-9_]+\.sql$ ]] || return 1
-        count=$((count+1))
-        if ! cut -f1 <<< "$rows" | grep -Fxq "$version"; then
-            echo "本地开发库缺少迁移: $version。"; return 42
-        fi
-    done
-    [[ "$count" -gt 0 ]]
+# 核对唯一完整初始化版本, 旧开发结构返回恢复信号.
+assert_database_schema() {
+    local version
+    version="$(database_query 'SELECT version FROM CC_SCHEMA_VERSION WHERE id=1;')" || return $?
+    case "$version" in
+        1) return 0 ;;
+        ''|0) echo '本地开发库尚未完成当前完整初始化。'; return 42 ;;
+        *) echo '未知数据库结构版本, 停止启动。'; return 1 ;;
+    esac
 }
 
-# 在应用启动前识别部分初始化及缺少迁移的旧数据库.
+# 在应用启动前识别部分初始化及未完成初始化的旧数据库.
 assert_database_ready() {
     local tables name version
-    tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_MIGRATION');")" || return $?
-    for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_MIGRATION; do
+    tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_VERSION');")" || return $?
+    for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION; do
         if ! grep -Fxq "$name" <<< "$tables"; then
             echo "本地开发库不是当前结构, 缺少$name。"
             return 42
         fi
     done
-    assert_database_migrations || return $?
+    assert_database_schema || return $?
     version="$(database_query "SELECT 1;" application)" || return $?
     [[ "$version" == 1 ]] || return 1
 }

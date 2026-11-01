@@ -37,34 +37,20 @@ class RepositoryStructureTest(unittest.TestCase):
         self.assertFalse(any(set(Path(name).parts) & {"target", "dist", "node_modules", "packages"}
                              for name in selected))
 
-    def test_version_migrations_keep_original_bytes_and_names(self):
-        """所有受控V版本与迁移前SHA256一致, 不通过重新命名绕过台账."""
-        record = json.loads((ROOT / "docs/资料/仓库结构.json").read_text("utf-8"))
-        expected = record["versionSqlSha256"]
-        actual = {file.relative_to(ROOT).as_posix(): hashlib.sha256(file.read_bytes()).hexdigest()
-                  for file in (ROOT / "database/migrations").glob("V*.sql")}
+    def test_database_has_one_complete_initialization(self):
+        """未上线项目只保留完整入口, 历史由Git追溯而非继续执行旧链."""
+        expected = ["010_schema.sql", "020_seed.sql", "030_material_catalog.sql",
+                    "040_regions.sql", "050_ready.sql", "060_restrict_application_user.sh"]
+        actual = sorted(file.name for file in (ROOT / "database/init").iterdir())
         self.assertEqual(expected, actual)
-
-    def test_initialization_keeps_order_and_resolvable_sources(self):
-        """数字前缀保持原初始化顺序, 初始化不再依赖历史SOURCE或目录."""
-        record = json.loads((ROOT / "docs/资料/仓库结构.json").read_text("utf-8"))
-        mapping = sorted((old, new) for old, new in record["files"].items()
-                         if new.startswith("database/init/"))
-        expected = [new for _, new in mapping]
-        actual = sorted(file.relative_to(ROOT).as_posix()
-                        for file in (ROOT / "database/init").iterdir() if file.is_file())
-        self.assertEqual(expected, actual)
+        self.assertFalse((ROOT / "database/migrations").exists())
+        self.assertFalse((ROOT / "tools/database/SchemaMigrationTool.java").exists())
         for name in actual:
-            self.assertNotRegex((ROOT / name).read_text("utf-8-sig"), r"(?im)^\s*SOURCE\s+[^\r\n;]+;")
-        self.assertFalse((ROOT / "database/legacy").exists())
-
-    def test_generated_migrations_match_unique_sources(self):
-        """只读生成校验必须覆盖全部迁移且不改写初始化文件."""
-        target = ROOT / "database/init/130_schema_versions.sql"
-        before = target.read_bytes()
-        subprocess.run([sys.executable, str(ROOT / "tools/database/build-migration-baseline.py"),
-                        "--check"], check=True, capture_output=True)
-        self.assertEqual(before, target.read_bytes())
+            text = (ROOT / "database/init" / name).read_text("utf-8-sig")
+            self.assertNotRegex(text, r"(?im)^\s*SOURCE\s+[^\r\n;]+;")
+        seed = (ROOT / "database/init/020_seed.sql").read_text("utf-8")
+        self.assertNotIn("DEMO-BRIDGE-001", seed)
+        self.assertNotIn("CC_SCHEMA_MIGRATION", seed)
 
     def test_runtime_configuration_and_assets_have_one_source(self):
         """运行配置和素材台账不得重新引入已删除的备用入口或无用副本."""

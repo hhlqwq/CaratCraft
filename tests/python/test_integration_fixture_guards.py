@@ -42,9 +42,9 @@ class FixtureGuardsTest(unittest.TestCase):
                 ["inspect", "mysql"], ["rm", "-f", "mysql"],
                 ["network", "inspect", "network-id"], ["network", "rm", "network-id"]])
 
-    def test_empty_migration_table_is_not_ready(self):
+    def test_empty_initialization_is_not_ready(self):
         """连接成功但尚未导入版本表内容时继续等待."""
-        replies = [SimpleNamespace(returncode=0, stdout="0"), SimpleNamespace(returncode=0, stdout="14")]
+        replies = [SimpleNamespace(returncode=0, stdout="0"), SimpleNamespace(returncode=0, stdout="1")]
         with patch.object(RUNNER, "docker", side_effect=replies) as command, patch.object(RUNNER.time, "sleep") as sleep:
             RUNNER.wait_for_mysql("ours", {"MYSQL_DATABASE": "isolated"})
             self.assertEqual(command.call_count, 2)

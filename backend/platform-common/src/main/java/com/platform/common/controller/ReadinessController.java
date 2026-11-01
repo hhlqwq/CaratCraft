@@ -54,7 +54,7 @@ public class ReadinessController {
                             connection.prepareStatement(
                                     "SELECT COUNT(*) FROM information_schema.tables WHERE"
                                         + " table_schema=DATABASE() AND table_name IN"
-                                        + " ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_MIGRATION','CC_REFUND','CC_STOCK_LOG','CC_COMMUNITY_POST','CC_COMMUNITY_LIKE','CC_COMMUNITY_MEDIA','CC_COMMUNITY_LOG','CC_MERCHANT_CONTACT','CC_MERCHANT_CONTACT_LOG','CC_LEGAL_HEAD','CC_LEGAL_DOCUMENT','CC_LEGAL_ACCEPTANCE','CC_LOGIN_IDENTITY_LOCK','CC_ORDER_LEGAL')")) {
+                                        + " ('CC_ORDER_PRICE_LOG','CC_DESIGN_SNAPSHOT','CC_SCHEMA_VERSION','CC_REFUND','CC_STOCK_LOG','CC_COMMUNITY_POST','CC_COMMUNITY_LIKE','CC_COMMUNITY_MEDIA','CC_COMMUNITY_LOG','CC_MERCHANT_CONTACT','CC_MERCHANT_CONTACT_LOG','CC_LEGAL_HEAD','CC_LEGAL_DOCUMENT','CC_LEGAL_ACCEPTANCE','CC_LOGIN_IDENTITY_LOCK','CC_ORDER_LEGAL')")) {
                 statement.setQueryTimeout(3);
                 try (var rows = statement.executeQuery()) {
                     if (!rows.next() || rows.getInt(1) != 16) {
@@ -63,8 +63,8 @@ public class ReadinessController {
                 }
                 try (var versionQuery =
                                 connection.prepareStatement(
-                                        "SELECT version FROM CC_SCHEMA_MIGRATION WHERE"
-                                                + " version='V20261022_01_sku_contract.sql'");
+                                        "SELECT version FROM CC_SCHEMA_VERSION WHERE"
+                                                + " id=1 AND version=1");
                         var versions = versionQuery.executeQuery()) {
                     if (!versions.next()) {
                         return ResponseEntity.status(503).body(metadata("schema_required"));
@@ -85,13 +85,6 @@ public class ReadinessController {
     /** 保持固定的非敏感响应字段, 不序列化异常对象. */
     private Map<String, String> metadata(String status) {
         return Map.of(
-                "status",
-                status,
-                "version",
-                version,
-                "revision",
-                revision,
-                "requiredSchema",
-                "V20261022_01");
+                "status", status, "version", version, "revision", revision, "requiredSchema", "1");
     }
 }

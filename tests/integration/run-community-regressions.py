@@ -71,9 +71,8 @@ def wait_for_mysql(identity, env):
     for attempt in range(60):
         result = docker(["exec", "--env", "MYSQL_PWD", identity, "mysql", "--protocol=TCP",
                          "-h127.0.0.1", "-uroot", "--batch", "--skip-column-names",
-                         env["MYSQL_DATABASE"], "-e", "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION"], env, False)
-        if (result.returncode == 0 and result.stdout.strip().isdigit()
-                and int(result.stdout.strip()) > 0):
+                         env["MYSQL_DATABASE"], "-e", "SELECT version FROM CC_SCHEMA_VERSION WHERE id=1"], env, False)
+        if result.returncode == 0 and result.stdout.strip() == "1":
             return
         if attempt % 5 == 0:
             print("等待隔离MySQL初始化: " + str(attempt * 2) + "秒", flush=True)

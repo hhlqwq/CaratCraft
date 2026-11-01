@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 新建库初始化完成后收窄应用账号权限, 迁移操作使用单独管理账号.
+# 新建库初始化完成后收窄应用账号权限, 结构管理使用单独管理账号.
 restrict_application_user() {
   [[ "${MYSQL_DATABASE:-}" =~ ^[a-zA-Z0-9_]+$ ]] || exit 1
   [[ "${MYSQL_USER:-}" =~ ^[a-zA-Z0-9_]+$ ]] || exit 1

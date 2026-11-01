@@ -217,7 +217,7 @@ def main():
                        "--env", "MYSQL_USER", "--mount", f"type=bind,source={ROOT / 'database/init'},target=/docker-entrypoint-initdb.d,readonly",
                        "mysql:8.0.36", "--default-authentication-plugin=mysql_native_password", environment=env)
         containers.append(mysql)
-        wait_until(lambda: sql(mysql, "SELECT COUNT(*) FROM CC_SCHEMA_MIGRATION;"))
+        wait_until(lambda: sql(mysql, "SELECT version FROM CC_SCHEMA_VERSION WHERE id=1;"))
         print("完整隔离数据库初始化完成", flush=True)
         sql(mysql, f"INSERT INTO SYS_USER_TOKEN(USER_ID,TOKEN,EXPIRE_TIME,UPDATE_TIME) VALUES('1','{admin_token}',DATE_ADD(NOW(),INTERVAL 1 HOUR),NOW());"
             "INSERT INTO WX_USER(ID,MA_OPENID,NICKNAME) VALUES(900001,'http_synthetic_a','隔离用户A'),(900002,'http_synthetic_b','隔离用户B');"

@@ -1,0 +1,52 @@
+{
+    "schemaVersion": 1,
+    "checks": {
+        "completeVersion": true,
+        "regions": true,
+        "noMigrationLedger": true,
+        "noBridgeGoods": true,
+        "feedbackUnicode": true,
+        "catalogExact": true,
+        "candidateStockZero": true
+    },
+    "encoding": {
+        "textColumnsScanned": 380,
+        "suspectTextColumns": [],
+        "suspectComments": {
+            "column_comments": 0,
+            "table_comments": 0
+        },
+        "seedAssertions": {
+            "系统菜单": true,
+            "社区菜单": true,
+            "商家菜单": true,
+            "协议菜单": true,
+            "字典分组": true,
+            "字典备注": true,
+            "订单超时任务": true,
+            "地区字典": true,
+            "字典表注释": true,
+            "字典列注释": true
+        },
+        "ok": true
+    },
+    "businessDatabaseChanged": false,
+    "initializationFiles": [
+        "010_schema.sql",
+        "020_seed.sql",
+        "030_material_catalog.sql",
+        "040_regions.sql",
+        "050_ready.sql",
+        "060_restrict_application_user.sh"
+    ],
+    "verifiedDate": "2026-11-01",
+    "consolidationComparison": {
+        "businessTablesExcludingRegions": 93,
+        "columnsIncludingRegions": 751,
+        "seedRowsExcludingRegions": 568,
+        "sameColumnsIndexesAndConstraints": true,
+        "sameSeedValuesExceptInitializationTimes": true,
+        "removedBridgeRows": 2,
+        "collationComparedWithComposeDefault": "utf8mb4_general_ci"
+    }
+}

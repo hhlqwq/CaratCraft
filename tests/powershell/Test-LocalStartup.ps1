@@ -29,17 +29,13 @@ function docker {
     if ($Sql -match 'SELECT TABLE_NAME') {
         if ($script:Mode -eq 'query-error') { $global:LASTEXITCODE = 1; return }
         if ($script:Mode -ne 'partial-database') { 'sys_region' }
-        'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_MIGRATION'
+        'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_VERSION'
     } elseif ($Sql.Trim() -eq 'SELECT 1;') {
         '1'
-    } elseif ($Sql -match 'SELECT version,sha256') {
-        foreach ($File in (Get-ChildItem -LiteralPath (Join-Path $Root 'database/migrations') -Filter 'V*.sql' -File)) {
-            if ($script:Mode -eq 'old-schema' -and $File.Name -eq 'V20261024_01_material_catalog.sql') { continue }
-            $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($script:Mode -eq 'hash-conflict') { $Hash = '0' * 64 }
-            $File.Name + "`t" + $Hash
-        }
-        if ($script:Mode -eq 'unknown-version') { "V20990101_01_unknown.sql`t$('0' * 64)" }
+    } elseif ($Sql -match 'SELECT version FROM CC_SCHEMA_VERSION') {
+        if ($script:Mode -eq 'old-schema') { '0' }
+        elseif ($script:Mode -eq 'unknown-version') { '2' }
+        else { '1' }
     }
 }
 
@@ -74,9 +70,7 @@ if ($script:Calls[-1] -notmatch 'SELECT TABLE_NAME') { throw '缺基础表后仍
 $script:Mode = 'query-error'
 Assert-Rejected { Assert-DatabaseReady } 'MySQL'
 $script:Mode = 'old-schema'
-Assert-Rejected { Assert-DatabaseReady } 'V20261024_01'
-$script:Mode = 'hash-conflict'
-Assert-Rejected { Assert-DatabaseReady } 'SHA256'
+Assert-Rejected { Assert-DatabaseReady } '完整初始化'
 $script:Mode = 'unknown-version'
 Assert-Rejected { Assert-DatabaseReady } '未知'
 
