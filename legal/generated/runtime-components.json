@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-22",
+  "date": "2026-11-01",
   "backend": [
     {
       "file": "quartz-2.3.2.jar",
@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "9f7a995a4c4598025460353680bf0b3d1c3749ce28a1bfe77374664f216db725",
+      "sha256": "90a7d7a75d40f5bb9ce120a6794ef8bccf578d6ea23bf1105ea27d2fd9c3fa6c",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -143,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "abcdac185101d75201d51610bc2e2919bfe34c1e3047eaf81cac46bf6149b77c",
+      "sha256": "034ca220a838c1ab371cdc3fbdbbbe901530a120647b06523c690ca06d1d9633",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -5365,81 +5365,6 @@
       "sourceUrl": "https://repo.maven.apache.org/maven2/org/apache/xmlgraphics/batik-codec/1.16/batik-codec-1.16-sources.jar",
       "status": "已取得许可声明, 按交付义务处理",
       "coordinates": "org.apache.xmlgraphics:batik-codec:1.16",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "pdfbox-3.0.0.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "702d5d6c4a493ed3e0e085428b5ce9e1879a15950d74077354e28aeb98767104",
-      "licenses": [
-        {
-          "name": "Apache-2.0",
-          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/pdfbox-3.0.0.jar/META-INF_LICENSE",
-        "legal/generated/evidence/pdfbox-3.0.0.jar/META-INF_NOTICE",
-        "legal/generated/evidence/pdfbox-3.0.0.jar/pdfbox-3.0.0.pom",
-        "legal/generated/evidence/pdfbox-3.0.0.jar/pdfbox-parent-3.0.0.pom",
-        "legal/generated/evidence/pdfbox-3.0.0.jar/apache-29.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/org/apache/pdfbox/pdfbox/3.0.0/pdfbox-3.0.0-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "org.apache.pdfbox:pdfbox:3.0.0",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "pdfbox-io-3.0.0.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "c72d403c1ba81ff493ee621938e7a0fc2f6bd3de1ee2e3280bbff91dc9e694e6",
-      "licenses": [
-        {
-          "name": "Apache-2.0",
-          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/pdfbox-io-3.0.0.jar/META-INF_LICENSE",
-        "legal/generated/evidence/pdfbox-io-3.0.0.jar/META-INF_NOTICE",
-        "legal/generated/evidence/pdfbox-io-3.0.0.jar/pdfbox-io-3.0.0.pom",
-        "legal/generated/evidence/pdfbox-io-3.0.0.jar/pdfbox-parent-3.0.0.pom",
-        "legal/generated/evidence/pdfbox-io-3.0.0.jar/apache-29.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/org/apache/pdfbox/pdfbox-io/3.0.0/pdfbox-io-3.0.0-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "org.apache.pdfbox:pdfbox-io:3.0.0",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "fontbox-3.0.0.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "6dcc4237ab52be066c9641cb4c49ca09ceb879b2d7d08ad6bfe4237222cb90b7",
-      "licenses": [
-        {
-          "name": "Apache-2.0",
-          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/fontbox-3.0.0.jar/META-INF_LICENSE",
-        "legal/generated/evidence/fontbox-3.0.0.jar/META-INF_NOTICE",
-        "legal/generated/evidence/fontbox-3.0.0.jar/fontbox-3.0.0.pom",
-        "legal/generated/evidence/fontbox-3.0.0.jar/pdfbox-parent-3.0.0.pom",
-        "legal/generated/evidence/fontbox-3.0.0.jar/apache-29.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/org/apache/pdfbox/fontbox/3.0.0/fontbox-3.0.0-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "org.apache.pdfbox:fontbox:3.0.0",
       "selectedLicense": "Apache-2.0"
     },
     {

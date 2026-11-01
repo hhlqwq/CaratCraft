@@ -1,470 +1,521 @@
 {
-    "date": "2026-10-30",
-    "overall": "pending",
-    "note": "源码契约与宿主替身测试不等于微信编译、模拟器显示、真实登录或支付验收.",
+    "date": "2026-11-01",
+    "codeCommit": "6f6cf589f3726de9c4db1d46597e482a73410135",
+    "overall": "pending_external_acceptance",
+    "codeAcceptance": "passed",
+    "note": "当前代码和构建门禁通过, 不等同于微信模拟器逐页显示、真机或真实支付验收.",
     "currentNodeRegression": {
-        "tests": 291,
-        "passed": 291,
+        "tests": 306,
+        "passed": 306,
         "failed": 0,
         "skipped": 0
     },
-    "reusedBaseline": {
-        "commit": "2bbd16dec252fa4b1b39f6a3845168d26529d507",
-        "date": "2026-10-29",
-        "backend": {
-            "status": "reused_unchanged",
-            "javaTests": 206,
-            "evidence": "业务链路验证.json#finalPlanClosure"
+    "healthProbeRegression": {
+        "tests": 1,
+        "passed": 1,
+        "scope": "真实HTTP200与503, 临时Java容器"
+    },
+    "pythonRegression": {
+        "tests": 40,
+        "passed": 40,
+        "failed": 0,
+        "skipped": 0
+    },
+    "backend": {
+        "javaTests": 241,
+        "passed": 241,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "httpChainChecks": {
+            "referenceAndJsonBoundary": 18,
+            "purchaseFeedbackAndFootprint": 41
         },
-        "admin": {
-            "status": "reused_unchanged",
-            "evidence": "业务链路验证.json#finalPlanClosure",
-            "browserSuites": 2
-        }
+        "cleanPackage": "passed",
+        "runtimeSourceMatchesBuildSnapshot": true,
+        "runtimeSourceFilesCompared": 681,
+        "applicationClassBytesMatch": true,
+        "adminRuntimeJars": 253,
+        "apiRuntimeJars": 246,
+        "pdfDependenciesAbsent": true,
+        "businessServicesChanged": false
+    },
+    "admin": {
+        "productionBuild": "passed",
+        "eslint": "passed",
+        "browserSuites": 3,
+        "browserScope": "当前生产包及隔离接口夹具, 无微信平台调用或业务实例操作",
+        "suites": [
+            "verify-admin-browser.cjs",
+            "verify-commerce-browser.cjs",
+            "verify-wechat-admin-browser.cjs"
+        ]
+    },
+    "sourceQuality": {
+        "javaAosp": "passed",
+        "javaDescriptionFiles": 647,
+        "frontendFormattingFiles": 367,
+        "eslint": "passed",
+        "gitWhitespace": "passed"
+    },
+    "database": {
+        "schemaVersion": 1,
+        "initializationOnly": true,
+        "historicalMigrationChainRemoved": true,
+        "initializationEvidence": "数据库初始化验证.json",
+        "existingDatabaseChanged": false
     },
     "miniapp": {
         "compile": {
-            "status": "pending",
-            "blocker": "修复已识别的协议模板编译错误, 等待用户手动编译结果; 自动化运行时超时."
+            "status": "passed",
+            "pages": 40,
+            "wxml": 43,
+            "wxss": 48,
+            "javascriptSyntax": 60,
+            "officialWxmlWxssCompilePassed": true,
+            "scope": "已有微信开发者工具官方WCC/WCSC编译, JS为Node语法检查; 不替代IDE运行、真机、微信登录或支付验收",
+            "temporaryFilesCleaned": true,
+            "uploaded": false
         },
-        "desktop": "不接管鼠标键盘, 不切换或新开窗口.",
+        "sourceHashAlgorithm": "SHA256, 按.js/.json/.wxml/.wxss依次拼接相对路径+NUL+文件字节+NUL",
+        "desktop": "未接管桌面、上传或发布",
         "pages": [
             {
                 "route": "pages/index/index",
-                "sourceSha256": "294f0ebb23bcb500f48c7678451664eaf432a7d2be83d298df693e6a9773da78",
+                "sourceSha256": "35ad6a61205d9c2fb3ee75e4effd7ad8f1a9c87d3a1b695846c7aeefe1c990d4",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/catalog/catalog",
-                "sourceSha256": "764974dd6f7d99ca7ae92b02ec212fee7b63dfacae5244113e20bd51f481f00d",
+                "sourceSha256": "a86ce03614246086348a66f3b642d782f808c495f52240643633adeec3daf5e7",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/newGoods/newGoods",
-                "sourceSha256": "4d617d5f89f3749e1b22e01a45721394b3cc06b72519536ed3bb18717d256049",
+                "sourceSha256": "e0d577118e7001bb2916485756a88b2118d634b56b998391453480d8c3a9f6be",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/hotGoods/hotGoods",
-                "sourceSha256": "a220f36ad7dc0ff0ed5803372f53f188dce2bce74f55917660b3bd0c250c8f1f",
+                "sourceSha256": "6fa3ec5e0aebc43172c1ec04798681d957bb73c1536fd4cb7f3e31d97c2d62cd",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/address/address",
-                "sourceSha256": "ed291b9e2ff437da3daeb315caa5c066926723abeb97d3e5a7725f3f46baf70b",
+                "sourceSha256": "d44547baf4921c37b45c4f22e0589f1fc4bb3b363b87eec8a2da7ffd00cbbf02",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/addressAdd/addressAdd",
-                "sourceSha256": "aadbe338f908e80a349cc86bc15e5fa2287325fb677fa22fbde8e75d221884e2",
+                "sourceSha256": "851a9e18f167918056a27e1471f42080945dc10b96de042650eb94454250abf6",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/footprint/footprint",
-                "sourceSha256": "4f646f1edebbc9c13a5db9af200f2cedf911c61037b37ba71d93ff81c14a2ea9",
+                "sourceSha256": "48226c8dbc3bfc8145c2d5b6861c4d548dbc1d7a9396e36434064fb26088ddf5",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/order/order",
-                "sourceSha256": "a6a7a7487b1d505fe1204a355988eab9a233a5496986390820003e101902bf2b",
+                "sourceSha256": "b1c671fb33a726d904eebee930aca85c5411481efa1745a28c231c99c7101feb",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/orderDetail/orderDetail",
-                "sourceSha256": "6bbca1d5b3f7b6a6fa767ca763e6a2fab7bd49397b3ed4c7668c77bdd2520516",
+                "sourceSha256": "07c440bfdf874a3d08bd0ab7d30510d8d55b4ea3874b4fec39b8b53fb340497e",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/feedback/feedback",
-                "sourceSha256": "c494c8c8a03d65e8de52b150888e5a134f8ba30e470f140d9829afa904eeb95b",
+                "sourceSha256": "84752d9cb5c04e252c42acba73a9acd5081dc81a9967ffc6c9860677ad5c8405",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/coupon/coupon",
-                "sourceSha256": "e964069128a31e1b902e6ed5a8f3569cb927c7ffbe55574943a38fa59231d906",
+                "sourceSha256": "075ea8f0aa10ff426f9d191daa799198e338946b5e44378f645235e4f919196e",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/collect/collect",
-                "sourceSha256": "f957f2c5c95da7ff9f57271f5cb13b571f20e7b0fde67c61aa9ecd4d97fc2167",
+                "sourceSha256": "36d1cba2f234aa88137300cf942772ae583c7e89b3092d1c7c20f432807d1626",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/design/design",
-                "sourceSha256": "522d031871c81ecf55274f251d028f39c6bf3531655c845e92bd06f70af2c2c8",
+                "sourceSha256": "bfaf5d210a06bd53b0fe44a898d5d4154dba51c3225691a008c705cbe69f3df4",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/pay/pay",
-                "sourceSha256": "e5e6dcb88e99caafb27930b3ed738b79dbbfb1502cc2e7ef6c259a434049ebaa",
+                "sourceSha256": "0c40cda7bb2147e22b959e3130906b5745d898409a8167a344935b76dab8e6f6",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/payResult/payResult",
-                "sourceSha256": "b786131172b4331e7d1f1978cbf04ce530c881b37facff822e4c223f2299f5cf",
+                "sourceSha256": "d0d41e053ebcc3b4cd7611898bde9500e32113b70e47418ab674fed821cfcfc7",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/index/index",
-                "sourceSha256": "7b2db55eb95660cc7cd11a8325dadeea2dbbb032cb759ac9331a816565777f3f",
+                "sourceSha256": "f5977ef2fe759387fe659a0e379442e207f8c41ca2051f68e1fece60897c5525",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/topic/topic",
-                "sourceSha256": "9c46e07fbd145a4ee5450543e27d8d3913efa1ca7e3a84f6cd45afcc70ac694a",
+                "sourceSha256": "d49655283e2ebd013c5e1d72bd4b0140def83e4ae8842ae12eb39247acce3881",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/comment/comment",
-                "sourceSha256": "dc7c58c07be9abc8ab31a6bbdbd0942be8ee5dddb2d57c8b20b38230e1b81a7a",
+                "sourceSha256": "1f18178002ba43bf865bdbb3693b4b023360a866fa4a882e3df0494949e196aa",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/commentPost/commentPost",
-                "sourceSha256": "804eaf69048f237575bf49f4b369571e442fd4405f76851d40e8307e2fc0fd7b",
+                "sourceSha256": "ffb9e60e81a7d911327cbfa9006991a7b4d23be6a99673b183d2f6bb926ff41d",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/brand/brand",
-                "sourceSha256": "17f1e7c211a23463d1cb9d7c6d2816bff4a680495db09719f30174d1ac0de8a3",
+                "sourceSha256": "4db969e707d1b20235587336ef8534a05cb23ce5ea07b86c014d560903fd1769",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/brandDetail/brandDetail",
-                "sourceSha256": "e901fea05813e5c03926940dcfc811c96a89658e5c8e4fe502661d10ca4042e2",
+                "sourceSha256": "8ca7f9202727fc369e7cf76671fca28e103d45eec7f96c482c4e7aabf32b8a4b",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/search/search",
-                "sourceSha256": "96ebadefae854d410a2ca2ead2d512ab2c95283abef03d067147cbb7781fa25f",
+                "sourceSha256": "7448b09a280e8354428302669680154bdd3beb2ce85504dc0332ec64d315079a",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/category/category",
-                "sourceSha256": "ef14b91a0ab4d4675179e885d1e94832f24bdd3cc8428752b0d57f648e58db7b",
+                "sourceSha256": "7f56f3056e9df4ccefc78ef3963e710615b0eef44c9d1ae1a25f45570cdc934e",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/cart/cart",
-                "sourceSha256": "5a2c01c9c9e0ed54e82d1f9c2732186bda0dda485f1d2729163e5ecb5dbe19a4",
+                "sourceSha256": "cfa8738c13d85c425ef2c6e1b3484b2fc9259d3f20d29674c6fa3cc6d9ac86df",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/shopping/checkout/checkout",
-                "sourceSha256": "9bb6c7ce6bb38fb16192162a99ea0d3c5a7e3b780470a4f1c8fb8921ba3ad100",
+                "sourceSha256": "03d6eded61158447f34f5683874b418db8d9417fffdc4ee04213a092432575d7",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/shopping/address/address",
-                "sourceSha256": "74a1f31426e370c4b8cd7a2d03e961f7663cae5e2af2be9ee666473230ed17be",
+                "sourceSha256": "8050e51112554b7b58047155056341d7389aeeda92f3ba86326280bd91f79657",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/shopping/addressAdd/addressAdd",
-                "sourceSha256": "002b91c5338f072b6312103118bfa78dc5330fe1a6a1d2255b6c1fedb5fdfd0e",
+                "sourceSha256": "be3acfffeb2f8784f84c26b6ef47e7041ce53bc0452f7e69e5037c30169570e5",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/goods/goods",
-                "sourceSha256": "a8af484e2975800f8b8042db9df5f46f54c55a2209d4ff148deaa7fdb6099241",
+                "sourceSha256": "f57b6185b7fe7411e52b90421eb8152c77e0798c294a75328f5a5d40b3bc2fea",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/designer/designer",
-                "sourceSha256": "d3112c27315f312a8448c0780e88be44be976ef5983f5a537831bd770b921b69",
+                "sourceSha256": "3d5935329d4dc58c5cb0c85e3a4ac83695d8e5c54f0cdde52fea659f618d963c",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/topicDetail/topicDetail",
-                "sourceSha256": "4b217f692e44c6392c39f2e3f0f78af5fbb92a652e1990fd97adf7bf32444258",
+                "sourceSha256": "af9d184650f18488f44a55fd95111991b33bb9525181a2ce479518a5ab7dee21",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/auth/mobile/mobile",
-                "sourceSha256": "7e24b8593deeeeb08acf2a6d41a6af3cec3c5d520babbbaaded65b38e7d4c971",
+                "sourceSha256": "70ccd7e98c6877e3ca40e9c9855a28fcd587db2cacdc54b8a29f8b172f1c6af8",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/shopping/selCoupon/selCoupon",
-                "sourceSha256": "f40041f248be40116d20c17d1e8bea05b1e1b6f8d41cdbd5769e9091e70a3195",
+                "sourceSha256": "c563c11abd4f6744ba9e1cf09afefb8c22e37bda534f6f11bd0173f8e7e944ef",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/help/help",
-                "sourceSha256": "41d29b510515d5055e8c561daf1b09ab011f57ea1ea02a0ca2654c54976f2939",
+                "sourceSha256": "591b5d67b0ef19ebf60e3a78ea674825a045076bb760d730044db1f0e83f1b4c",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/helpInfo/helpInfo",
-                "sourceSha256": "19c18e79d49a49a5e45cb59e893dee6a7d22395db43d5fff01cc212f024cc955",
+                "sourceSha256": "316a00a491ed49c3a30baadb9fc3bd16d5a9448f9c27f7a5026e8cec2150659a",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/auth/btnAuth/btnAuth",
-                "sourceSha256": "ca7b43226b4d115fdca079d2ef752c67045078f060e9d9bd0de9117ef221be05",
+                "sourceSha256": "8a37f3d1fd717b38eef867b4d73950d8968002c10571ada6b7f5d54fc67ed203",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/community/index",
-                "sourceSha256": "38b1575ec5df5f2965559b7d6ef4c1362bbd12eca6cfae939a233bf6d4823fc4",
+                "sourceSha256": "b047c1bc5d9efb4b93c55f354991446cfa6ad94413d5f46ee597179b62822725",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/community/detail",
-                "sourceSha256": "d13a35fce41a4ed3886c5ab2dee23ba6e04b3701156fcca0e61ebf7fca4ccd5e",
+                "sourceSha256": "a87bc1feabc853570ee89a881b0879ca40500ac0a0a45c5fcf10276df4f3e102",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/community/publish",
-                "sourceSha256": "10d82a194a0bb8de5147cdc58205e6104ab802d38d0ab36df2149aac24f64e49",
+                "sourceSha256": "d4aaba7cc1976e2e01362efeee77b0e635ab16995ec3375528a0c0cf4133cd4d",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/aftersales/index",
-                "sourceSha256": "c0c4633a61403d565029f5cd8b834258833afb7930f61e2e4e854b1c74ef5aff",
+                "sourceSha256": "b7af601fb3d1e071f30c45c222e93a9ac962caf41b1325c2bc5683236666705d",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
             },
             {
                 "route": "pages/ucenter/legal/index",
-                "sourceSha256": "1a37976ec33b830e0665706b6dcc2c7563ec4cafaf1aed6695562bcd52fab55d",
+                "sourceSha256": "f23f5f5cb2fbe41a28275606a6532129d88d47d60c18a558977963b3b0e7046e",
                 "sourceContract": "passed",
                 "initialOfflineLifecycle": {
                     "status": "passed",
-                    "scope": "onLoad/onShow/onReady/onUnload, 网络固定失败, 无真实微信渲染或写入"
+                    "scope": "真实页面及共享服务, 宿主替身固定断网, 无微信渲染或真实写入"
                 },
                 "wechatDisplay": "pending",
                 "wechatOperations": "pending"
@@ -472,16 +523,17 @@
         ]
     },
     "remaining": [
-        "微信完整编译",
-        "40页实际显示及关键操作",
+        "40页微信模拟器实际显示及关键操作",
         "真实微信登录和支付退款",
-        "当前源码最终交付重建"
+        "正式商家资料、平台配置及生产发布验收"
     ],
-    "masterIntegration": {
-        "date": "2026-10-30",
-        "local": "944213f",
-        "remote": "9baed20",
-        "status": "source_merged_node_passed",
-        "build": "pending"
+    "licenseDistribution": {
+        "backendComponents": 253,
+        "frontendComponents": 28,
+        "projectAssets": 160,
+        "sourceBundles": 13,
+        "errors": [],
+        "validationScope": "当前后端发布JAR、实际前端构建图、许可原文、对应源码及素材哈希",
+        "currentBuildVerified": true
     }
 }

@@ -1,6 +1,6 @@
 # CaratCraft应用发布许可材料
 
-实际应用依赖见[运行组件索引](generated/runtime-components.json). 2026-10-21原生Vue3迁移已按构建图同步为28个前端/复制样式组件, 后端保留既有256个运行JAR的许可选择, 本轮重新打包后须核对项目模块哈希和完整分发门禁. 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
+实际应用依赖见[运行组件索引](generated/runtime-components.json). 2026-10-21原生Vue3迁移已按构建图同步为28个前端/复制样式组件, 当前管理端253个、API246个运行JAR, 已移除无入口PDFBox及其fontbox/pdfbox-io依赖; 每次重新打包须核对项目模块哈希和完整分发门禁, 原始许可原文不改写. 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
 
 本轮新增实际入包的`vue`、`@vue/reactivity`、`@vue/runtime-core`及`@vue/runtime-dom`均为锁定的3.5.44版本, 随附各原始npm包内的完整MIT文本及元数据. 兼容运行时不再入包, 旧许可证据不删除. `tools/legal/sync-frontend-license-inventory.py --date 2026-10-21`仅为这四个已核对的固定版本同步原始文本, 其他新依赖仍会拒绝并要求单独核对.
 
@@ -12,7 +12,7 @@
 - `sources/`提供13份需要随应用交付处理的对应Java库源码. 不能在商业交付时仅复制应用JAR而遗漏此目录及许可原文.
 - 若旧MIT npm包未附独立LICENSE, 保留同版本官方MIT元数据、经完整性校验的原始发布包及标准MIT文本. 原包内版权声明原样保留, 不编造版权日期或把作者改为项目作者.
 - CSS内复制的normalize.css7.0.0另有MIT证据. ElementUI图标字体保留原已核验的2.15.10副本, 新组件运行代码使用Element Plus, 保留其MIT文本; 这些库字体不是项目自有字体.
-- [项目素材来源](project-assets.json)记录161个重新绘制的资源, 由`tools/assets/generate-project-assets.py`中的几何图形生成. 珠宝图片是标注DEMO的功能示意, 商家上线必须使用其有权发布的真实商品图与文案.
+- [项目素材来源](project-assets.json)记录160个重新绘制的资源, 由`tools/assets/generate-project-assets.py`中的几何图形生成. 珠宝图片是标注DEMO的功能示意, 商家上线必须使用其有权发布的真实商品图与文案.
 
 源码原有BSD/Apache版权头保留, 包括只出现在法律声明里的历史名称. [源码声明集合](SOURCE-NOTICES.txt)同时随应用提供. 无关品牌的产品展示、推广、回调默认值和统计账号已清理. 许可材料中出现第三方名字不表示其为本项目提供背书.
 
@@ -51,4 +51,4 @@ python tools/legal/check-copyright-distribution.py
 
 完整修改和验证记录见[项目维护文档](../docs/项目维护文档.md). 本材料不是对未知权利主张的零风险保证; 商家另外添加的商品摄影、字体、文案、商标和数据也须有自己的来源与授权.
 
-原底座Apache许可原文见[UPSTREAM-LICENSE](UPSTREAM-LICENSE). 本目录为唯一发布许可和素材来源入口; 原根目录旧素材清单停止维护, 采用原应用内161条清单并同步新位置, 不修改素材字节或原始版权声明.
+原底座Apache许可原文见[UPSTREAM-LICENSE](UPSTREAM-LICENSE). 本目录为唯一发布许可和素材来源入口; 原根目录旧素材清单停止维护, 采用当前160条素材清单及对应路径, 不修改素材字节或原始版权声明.
