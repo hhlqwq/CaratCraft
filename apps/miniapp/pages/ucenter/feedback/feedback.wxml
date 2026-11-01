@@ -1,6 +1,6 @@
 <view class="container">
 
-    <picker bindchange="bindPickerChange" value="{{index}}" range="{{array}}">
+    <picker disabled="{{actionBusy}}" bindchange="bindPickerChange" value="{{index}}" range="{{array}}">
         <view class="picker">
             <view class="fb-type">
                 <view class="type-label">{{array[index]}}</view>
@@ -10,20 +10,18 @@
         </view>
     </picker>
     <view class="fb-body">
-        <textarea class="content" placeholder="对我们的小程序、商品、服务，你还有什么建议吗？你还希望克拉匠造上线什么新品？请告诉我们..."  bindinput ="contentInput" maxlength="500" auto-focus="true" value="{{content}}"/>
+        <textarea disabled="{{actionBusy}}" class="content" placeholder="对我们的小程序、商品、服务，你还有什么建议吗？你还希望克拉匠造上线什么新品？请告诉我们..."  bindinput ="contentInput" maxlength="500" auto-focus="true" value="{{content}}"/>
         <view class="text-count">{{contentLength}}/500</view>
     </view>
     <view class="fb-mobile">
         <view class="label">手机号码</view>
         <view class="mobile-box">
-            <input class="mobile" maxlength="11" type="number" placeholder="方便我们与你联系" bindinput ="mobileInput" value="{{mobile}}"/>
-            <!--
-            <image class="clear-icon" src="/static/images/clear_input.png" bindtap="cleanMobile"></image>
-            -->
+            <input disabled="{{actionBusy}}" class="mobile" maxlength="11" type="number" placeholder="方便我们与你联系" bindinput ="mobileInput" value="{{mobile}}"/>
+
         </view>
     </view>
 
-    <view class="fb-btn" bindtap="sbmitFeedback">提交</view>
+    <button class="fb-btn" bindtap="submitFeedback" disabled="{{actionBusy}}" loading="{{actionBusy}}">提交</button>
 </view>
 
 <merchant-contact />

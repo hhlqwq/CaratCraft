@@ -44,7 +44,7 @@ public class MallFeedbackEntity implements Serializable {
     private Integer msgId;
 
     /** 会员Id */
-    private Integer userId;
+    private Long userId;
 
     /** 会员会员名称 */
     private String userName;

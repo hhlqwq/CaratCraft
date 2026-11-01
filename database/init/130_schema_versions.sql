@@ -2286,3 +2286,11 @@ AND NOT EXISTS (SELECT 1 FROM CC_COMPONENT_STOCK s WHERE s.goods_id=o.goods_id A
 COMMIT;
 INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
 VALUES ('V20261024_01_material_catalog.sql', 'd691f27c355d49f326cbad14f7ddbf2b2af4aaea8e29e38617505885c3e8fafe');
+
+-- 版本: V20261101_01_feedback_unicode.sql
+-- 保留Unicode反馈正文和昵称, 不改变既有业务值或用户ID范围.
+SET NAMES utf8mb4;
+ALTER TABLE mall_feedback
+    CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+INSERT IGNORE INTO CC_SCHEMA_MIGRATION(version,sha256)
+VALUES ('V20261101_01_feedback_unicode.sql', '9dd97dd3b1398366d9e441ef8e14166cc68312cae519194a2ab2d0d98a388368');

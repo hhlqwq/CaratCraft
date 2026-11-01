@@ -23,10 +23,12 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
                            [*arguments, image, "java", "-Xmx384m", "-jar", "/app/admin.jar"], env)
     cases = []
 
-    def request(path, body=None, expected=200, management=False):
+    def request(path, body=None, expected=200, management=False, auth_token=None):
         """同时检查传输状态和业务码, 不将HTTP成功误当业务成功."""
         options = ({"base_url": "http://127.0.0.1:8080/platform-framework", "auth_token": admin_token}
                    if management else {})
+        if auth_token is not None:
+            options["auth_token"] = auth_token
         status, response = call(path, body, **options)
         assert status == expected, (path, status, response.get("msg"))
         assert response["code"] == (0 if expected == 200 else expected), (path, response)
@@ -131,6 +133,10 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         assert int(sql("SELECT goods_number FROM mall_product WHERE id=" + str(product_id))) == 8 - purchase["number"]
         orders = request("/app/order/list?page=1&size=1", {})
         assert orders["total"] == 1 and orders["current"] == 1 and orders["size"] == 1 and len(orders["records"]) == 1
+        request("/app/feedback/save", {"index": 1, "mobile": "13800000000", "content": "  隔离反馈😀  "})
+        request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
+        request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
+        assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND content='隔离反馈😀'") == "1"
         goods_page = request("/custom/configuration/goods?page=1&size=1", management=True)
         assert len(goods_page["records"]) == 1 and goods_page["total"] >= 1
         assert set(goods_page["records"][0]) == {"id", "name"}

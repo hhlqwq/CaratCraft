@@ -85,6 +85,7 @@ function withPageReads(definition) {
             if (changed) {
                 contextFor(this).alive = false;
                 this._pageReads = null;
+                contextFor(this);
                 this.setData({
                     ...JSON.parse(initial),
                     readLoading: false,

@@ -2,52 +2,33 @@ package com.platform.modules.app.controller;
 
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.RestResponse;
-import com.platform.modules.app.request.ApiFeedbackSaveRequest;
-import com.platform.modules.mall.entity.MallFeedbackEntity;
-import com.platform.modules.mall.service.MallFeedbackService;
+import com.platform.modules.mall.dto.FeedbackSaveRequest;
+import com.platform.modules.mall.service.FeedbackApplicationService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
-import java.util.Map;
-
 /**
- * 作者: @author hehailong <br>
- * 时间: 2017-08-11 08:32<br>
+ * 本人反馈HTTP适配层, 校验与保存交由业务服务.
  *
- * <p>描述: AppFeedbackController <br>
+ * @author hehailong
  */
-@Tag(name = "会员反馈-AppFeedbackController")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/app/feedback")
-public class AppFeedbackController extends AppBaseController {
-    @Autowired private MallFeedbackService feedbackService;
+public class AppFeedbackController {
+    private final FeedbackApplicationService feedback;
 
-    /** 添加反馈 */
-    @Operation(summary = "添加反馈")
+    /** 提交认证用户反馈, 不接收请求中的归属字段. */
     @PostMapping("save")
-    public RestResponse<Map<String, Object>> save(
-            @LoginUser WxUserEntity loginUser, @RequestBody ApiFeedbackSaveRequest request) {
-        if (null != request) {
-            MallFeedbackEntity feedbackVo = new MallFeedbackEntity();
-            feedbackVo.setUserId(loginUser.getId().intValue());
-            feedbackVo.setUserName(loginUser.getNickname());
-            feedbackVo.setMobile(request.getMobile());
-            feedbackVo.setFeedType(request.getIndex());
-            feedbackVo.setStatus(1);
-            feedbackVo.setContent(request.getContent());
-            feedbackVo.setAddTime(new Date());
-            feedbackService.save(feedbackVo);
-            return RestResponse.ok("感谢你的反馈");
-        }
-        return RestResponse.fail("反馈失败");
+    public RestResponse<String> save(
+            @LoginUser WxUserEntity user, @RequestBody FeedbackSaveRequest request) {
+        feedback.submit(user.getId(), user.getNickname(), request);
+        return RestResponse.ok("感谢你的反馈");
     }
 }
