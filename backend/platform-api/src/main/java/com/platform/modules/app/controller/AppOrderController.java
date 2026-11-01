@@ -1,6 +1,5 @@
 package com.platform.modules.app.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.Query;
@@ -20,8 +19,9 @@ import com.platform.modules.wx.entity.WxUserEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections.MapUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,16 +42,17 @@ import java.util.Map;
 @Tag(name = "订单-AppOrderController")
 @RestController
 @RequestMapping("/app/order")
+@RequiredArgsConstructor
 public class AppOrderController extends AppBaseController {
-    @Autowired private LegalDocumentService legalDocuments;
+    private final LegalDocumentService legalDocuments;
 
-    @Autowired private com.platform.modules.mall.service.OrderRefundService refundService;
-    @Autowired private MallOrderService orderService;
-    @Autowired private com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
-    @Autowired private MallOrderGoodsService orderGoodsService;
+    private final com.platform.modules.mall.service.OrderRefundService refundService;
+    private final MallOrderService orderService;
+    private final com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
+    private final MallOrderGoodsService orderGoodsService;
 
-    @Autowired private CustomOrderCustomizationDao customOrderCustomizationDao;
-    @Autowired private CustomDesignSnapshotDao customDesignSnapshotDao;
+    private final CustomOrderCustomizationDao customOrderCustomizationDao;
+    private final CustomDesignSnapshotDao customDesignSnapshotDao;
 
     /** 获取订单列表 */
     @Operation(summary = "获取订单列表")
@@ -102,10 +103,10 @@ public class AppOrderController extends AppBaseController {
             order.setGoodsCount(goodsCount);
             order.setGoodsList(goodsList);
         }
-        pageData.put("list", orderEntityList);
+        pageData.put("records", orderEntityList);
         pageData.put("total", total);
-        pageData.put("limit", size);
-        pageData.put("page", page);
+        pageData.put("size", size);
+        pageData.put("current", page);
         return RestResponse.ok(pageData);
     }
 
@@ -191,42 +192,35 @@ public class AppOrderController extends AppBaseController {
     public RestResponse<Object> submit(
             @LoginUser WxUserEntity loginUser, @RequestBody ApiOrderSubmitRequest request) {
         Map<String, Object> resultObj = null;
-        try {
-            JSONObject payload = new JSONObject();
-            if (request.getAddressId() != null) {
-                payload.put("addressId", request.getAddressId());
-            }
-            if (request.getCouponId() != null) {
-                payload.put("couponId", request.getCouponId());
-            }
-            if (request.getType() != null) {
-                payload.put("type", request.getType());
-            }
-            if (request.getPostscript() != null) {
-                payload.put("postscript", request.getPostscript());
-            }
-            if (request.getDesignSnapshotId() != null) {
-                payload.put("designSnapshotId", request.getDesignSnapshotId());
-            }
-            payload.put("checkoutId", request.getCheckoutId());
-            payload.put("requestKey", request.getRequestKey());
-            payload.put("expectedActualPrice", request.getExpectedActualPrice());
-            resultObj = orderService.submit(payload, loginUser);
-            if (null != resultObj) {
-                Integer code = MapUtils.getInteger(resultObj, "code");
-                if (code != null && code == 0) {
-                    return RestResponse.ok(resultObj.get("data"));
-                }
-                return RestResponse.fail(MapUtils.getString(resultObj, "msg", "提交失败"));
-            }
-            return RestResponse.fail("提交失败");
-        } catch (IllegalArgumentException e) {
-            return RestResponse.fail(e.getMessage());
-        } catch (IllegalStateException e) {
-            return RestResponse.fail(e.getMessage());
-        } catch (Exception e) {
-            return RestResponse.fail("提交失败, 请稍后重试或检查订单列表");
+        Map<String, Object> payload = new HashMap<>();
+        if (request.getAddressId() != null) {
+            payload.put("addressId", request.getAddressId());
         }
+        if (request.getCouponId() != null) {
+            payload.put("couponId", request.getCouponId());
+        }
+        if (request.getType() != null) {
+            payload.put("type", request.getType());
+        }
+        if (request.getPostscript() != null) {
+            payload.put("postscript", request.getPostscript());
+        }
+        if (request.getDesignSnapshotId() != null) {
+            payload.put("designSnapshotId", request.getDesignSnapshotId());
+        }
+        payload.put("checkoutId", request.getCheckoutId());
+        payload.put("requestKey", request.getRequestKey());
+        payload.put("expectedActualPrice", request.getExpectedActualPrice());
+        payload.put("expectedItems", request.getExpectedItems());
+        resultObj = orderService.submit(payload, loginUser);
+        if (null != resultObj) {
+            Integer code = MapUtils.getInteger(resultObj, "code");
+            if (code != null && code == 0) {
+                return RestResponse.ok(resultObj.get("data"));
+            }
+            return RestResponse.fail(MapUtils.getString(resultObj, "msg", "提交失败"));
+        }
+        return RestResponse.fail("提交失败");
     }
 
     /** 取消订单 */
@@ -260,13 +254,7 @@ public class AppOrderController extends AppBaseController {
     @Operation(summary = "确认收货")
     @PostMapping("confirmOrder")
     public RestResponse<String> confirmOrder(Integer orderId, @LoginUser WxUserEntity loginUser) {
-        try {
-            lifecycleService.confirmReceipt(orderId, loginUser.getId());
-            return RestResponse.ok("确认收货成功");
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            return RestResponse.fail(e.getMessage());
-        } catch (Exception e) {
-            return RestResponse.fail("确认收货失败：" + e.getMessage());
-        }
+        lifecycleService.confirmReceipt(orderId, loginUser.getId());
+        return RestResponse.ok("确认收货成功");
     }
 }

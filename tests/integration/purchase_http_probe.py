@@ -111,6 +111,26 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         sql("UPDATE mall_address SET user_id=9000001 WHERE id=" + str(address_id))
         request("/app/address/delete", {"id": address_id})
         assert sql("SELECT COUNT(*) FROM mall_address WHERE id=" + str(address_id)) == "0"
+        # 合成正文只存在本轮随机测试库, 不作为商家正式协议发布.
+        sql("INSERT INTO CC_LEGAL_DOCUMENT(kind,version,title,content,status,operator_id) VALUES"
+            "('TERMS',1,'隔离协议','仅测试','PUBLISHED','test'),('PRIVACY',1,'隔离隐私','仅测试','PUBLISHED','test');"
+            "UPDATE CC_LEGAL_HEAD SET published_version=1;"
+            "INSERT INTO CC_LEGAL_ACCEPTANCE(user_id,kind,version) VALUES(9000001,'TERMS',1),(9000001,'PRIVACY',1);")
+        address = request("/app/address/save", {"userName": "隔离订单收货人", "provinceName": "隔离省",
+            "cityName": "隔离市", "countyName": "隔离区", "detailInfo": "仅供下单测试", "telNumber": "13800000000"})
+        cart_checkout = request("/app/cart/checkout?type=cart&addressId=" + str(address["id"]), {})
+        submit = {"addressId": address["id"], "type": "cart", "requestKey": "http_frozen_items_001",
+                  "expectedActualPrice": cart_checkout["actualPrice"],
+                  "expectedItems": [{"goodsId": goods_id, "productId": product_id, "number": purchase["number"]}]}
+        changed = dict(submit, expectedItems=[{"goodsId": goods_id, "productId": empty_sku["id"], "number": purchase["number"]}])
+        request("/app/order/submit", changed, expected=409)
+        created = request("/app/order/submit", submit)
+        retried = request("/app/order/submit", submit)
+        assert created["orderInfo"]["id"] == retried["orderInfo"]["id"]
+        request("/app/order/submit", changed, expected=400)
+        assert int(sql("SELECT goods_number FROM mall_product WHERE id=" + str(product_id))) == 8 - purchase["number"]
+        orders = request("/app/order/list?page=1&size=1", {})
+        assert orders["total"] == 1 and orders["current"] == 1 and orders["size"] == 1 and len(orders["records"]) == 1
         goods_page = request("/custom/configuration/goods?page=1&size=1", management=True)
         assert len(goods_page["records"]) == 1 and goods_page["total"] >= 1
         assert set(goods_page["records"][0]) == {"id", "name"}

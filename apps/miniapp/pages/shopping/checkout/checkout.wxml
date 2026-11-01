@@ -1,4 +1,6 @@
 <view class="container">
+    <view wx:if="{{readLoading}}">正在读取结算信息...</view>
+    <view wx:if="{{readError}}">{{readError}}<button bindtap="retryRead">重新读取</button></view>
     <view wx:if="{{designQuote}}" class="address-box" style="height:auto;padding:24rpx;box-sizing:border-box">
         <view>定制材料确认 · {{designQuote.arrangement.length || 0}}个实例</view>
         <view wx:for="{{designQuote.components}}" wx:key="optionId" style="font-size:24rpx;line-height:1.8">{{item.name}} × {{item.instances || 1}} / 用量{{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
@@ -18,7 +20,7 @@
                 <image src="/static/images/address_right.png"></image>
             </view>
         </view>
-        <view class="address-item address-empty" bindtap="addAddress" wx:if="{{checkedAddress.id <= 0}}">
+        <view class="address-item address-empty" bindtap="addAddress" wx:if="{{!checkedAddress.id}}">
             <view class="m">
                还没有收货地址，去添加
             </view>
@@ -85,7 +87,7 @@
 
     <view class="order-total">
         <view class="l">实付：￥{{actualPrice}}</view>
-        <button class="r" bindtap="submitOrder" disabled="{{submitting}}" loading="{{submitting}}">{{submitting ? '提交中' : '去付款'}}</button>
+        <button class="r" bindtap="submitOrder" disabled="{{actionBusy || readLoading || readError || (!checkoutReady && !createdOrderId)}}" loading="{{actionBusy}}">{{createdOrderId ? '继续付款' : actionBusy ? '提交中' : '去付款'}}</button>
     </view>
 </view>
 

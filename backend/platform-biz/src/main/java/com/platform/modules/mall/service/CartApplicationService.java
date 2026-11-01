@@ -468,6 +468,7 @@ public class CartApplicationService {
                     customDesignService.quoteOwned(
                             ((Number) resultObj.get("designSnapshotId")).longValue(),
                             loginUser.getId());
+            resultObj.put("designQuote", quote);
             goodsTotalPrice = new BigDecimal(quote.get("totalPrice").toString());
             if (!checkedGoodsList.isEmpty()) {
                 checkedGoodsList.get(0).setRetailPrice(goodsTotalPrice);

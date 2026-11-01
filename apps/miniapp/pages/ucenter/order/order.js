@@ -5,7 +5,7 @@ Page({
     ...createPagedFeed({
         url: api.OrderList,
         listField: 'orderList',
-        responseField: 'list',
+        responseField: 'records',
         refreshOnShow: true,
     }),
     /** 只从当前已读取的可支付订单进入支付页, 金额由支付页重新核对. */

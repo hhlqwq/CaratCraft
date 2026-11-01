@@ -1,238 +1,236 @@
 const util = require('../../../utils/util.js');
 const api = require('../../../config/api.js');
-const pay = require('../../../services/pay.js');
-
+const {withPageReads, readPage} = require('../../../services/page-read.js');
+const {performPageAction} = require('../../../services/page-action.js');
 const app = getApp();
 
-Page({
-    data: {
-        checkedGoodsList: [],
-        checkedAddress: {},
-        checkedCoupon: [],
-        couponList: [],
-        goodsTotalPrice: 0.0, //商品总价
-        freightPrice: 0.0, //快递费
-        couponPrice: 0.0, //优惠券的价格
-        orderTotalPrice: 0.0, //订单总价
-        actualPrice: 0.0, //实际需要支付的总价
-        addressId: 0,
-        couponId: 0,
-        isBuy: false,
-        couponDesc: '',
-        couponCode: '',
-        buyType: '',
-        submitting: false,
-        checkoutId: '',
-        requestKey: '',
-        designSnapshotId: null,
-    },
-    /** 初始化结算类型和定制快照 / Initializes checkout type and customization snapshot. */
-    onLoad(options) {
-        const isBuy = options.isBuy === true || options.isBuy === 'true';
-        const querySnapshotId = Number(options.designSnapshotId || 0);
-        this.setData({
-            checkoutId: options.checkoutId || '',
-            requestKey:
-                'checkout_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12),
-            isBuy: isBuy,
-            buyType: isBuy ? 'buy' : 'cart',
-            designSnapshotId: isBuy ? querySnapshotId || null : null,
-        });
-        //每次重新加载界面，清空数据
-        app.globalData.userCoupon = 'NO_USE_COUPON';
-        app.globalData.selectedCoupon = {};
-    },
-
-    /** 加载服务端购买上下文, 再按其中的快照获取最新报价 / Loads server buy context before requoting its snapshot. */
-    getCheckoutInfo() {
-        const url = api.CartCheckout;
-        const buyType = this.data.isBuy ? 'buy' : 'cart';
-        util.request(url, {
-            addressId: this.data.addressId,
-            couponId: this.data.couponId,
-            type: buyType,
-            checkoutId: this.data.checkoutId,
-        })
-            .then((res) => {
-                if (res.code !== 0) {
-                    return Promise.reject(new Error(res.msg || '结算信息加载失败'));
-                }
-                const contextSnapshotId = Number(res.data.designSnapshotId || 0);
-                const currentSnapshotId = Number(this.data.designSnapshotId || 0);
-                if (
-                    contextSnapshotId &&
-                    currentSnapshotId &&
-                    contextSnapshotId !== currentSnapshotId
-                ) {
-                    return Promise.reject(new Error('定制设计与当前结算信息不一致，请重新结算'));
-                }
-                const designSnapshotId = contextSnapshotId || currentSnapshotId || null;
-                this.setData({designSnapshotId: designSnapshotId});
-                return {checkout: res, quote: {code: 0, data: null}};
-            })
-            .then((result) => {
-                const res = result.checkout;
-                const quoteRes = result.quote;
-                if (quoteRes.code !== 0) {
-                    util.showErrorToast(quoteRes.msg || '定制报价已失效');
-                    return;
-                }
-                if (res.code === 0) {
-                    const designQuote = quoteRes.data;
-                    const displayGoodsTotal = designQuote
-                        ? Number(designQuote.totalPrice)
-                        : res.data.goodsTotalPrice;
-                    const displayOrderTotal = designQuote
-                        ? displayGoodsTotal + Number(res.data.freightPrice || 0)
-                        : res.data.orderTotalPrice;
-                    const displayActual = designQuote
-                        ? Math.max(0, displayOrderTotal - Number(res.data.couponPrice || 0))
-                        : res.data.actualPrice;
-                    this.setData({
-                        designQuote: designQuote || null,
-                        checkedGoodsList: res.data.checkedGoodsList,
-                        checkedAddress: res.data.checkedAddress,
-                        actualPrice: displayActual,
-                        checkedCoupon: res.data.checkedCoupon ? res.data.checkedCoupon : '',
-                        couponList: res.data.couponList ? res.data.couponList : '',
-                        couponPrice: res.data.couponPrice,
-                        freightPrice: res.data.freightPrice,
-                        goodsTotalPrice: displayGoodsTotal,
-                        orderTotalPrice: displayOrderTotal,
-                    });
-                    //设置默认收获地址
-                    if (this.data.checkedAddress.id) {
-                        const addressId = this.data.checkedAddress.id;
-                        if (addressId) {
-                            this.setData({addressId: addressId});
-                        }
-                    } else {
-                        wx.showModal({
-                            title: '',
-                            content: '请添加默认收货地址!',
-                            success: (res) => {
-                                if (res.confirm) {
-                                    this.selectAddress();
-                                }
-                            },
-                        });
-                    }
-                }
-            })
-            .catch(function (error) {
-                util.showErrorToast(error && error.message ? error.message : '结算信息加载失败');
+Page(
+    withPageReads({
+        data: {
+            checkedGoodsList: [],
+            checkedAddress: {},
+            checkedCoupon: [],
+            couponList: [],
+            goodsTotalPrice: null,
+            freightPrice: null,
+            couponPrice: null,
+            orderTotalPrice: null,
+            actualPrice: null,
+            addressId: 0,
+            couponId: 0,
+            couponDesc: '',
+            couponCode: '',
+            isBuy: false,
+            buyType: 'cart',
+            checkoutId: '',
+            requestKey: '',
+            designSnapshotId: null,
+            checkoutReady: false,
+            createdOrderId: null,
+            designQuote: null,
+        },
+        /** 每次新结算建立独立提交键, 不复用其他页面的购买意图. */
+        onLoad(options) {
+            const isBuy = options.isBuy === true || options.isBuy === 'true';
+            this.setData({
+                isBuy,
+                buyType: isBuy ? 'buy' : 'cart',
+                checkoutId: options.checkoutId || '',
+                designSnapshotId: isBuy ? Number(options.designSnapshotId || 0) || null : null,
+                requestKey:
+                    'checkout_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 12),
             });
-    },
-    /** 记录当前选择的收货地址并返回结算流程. */
-    selectAddress() {
-        wx.navigateTo({
-            url: '/pages/shopping/address/address',
-        });
-    },
-    /** 从结算页面进入收货地址新增流程. */
-    addAddress() {
-        wx.navigateTo({
-            url: '/pages/shopping/addressAdd/addressAdd',
-        });
-    },
-
-    /** 页面再次展示时刷新订单结算状态. */
-    onShow() {
-        this.getCouponData();
-
-        try {
-            const addressId = wx.getStorageSync('addressId');
-            if (addressId) {
-                this.setData({
-                    addressId: addressId,
-                });
+            app.globalData.userCoupon = 'NO_USE_COUPON';
+            app.globalData.selectedCoupon = {};
+        },
+        /** 返回结算页重读选择, 已创建订单则保留继续付款入口. */
+        onShow() {
+            if (this.data.createdOrderId) {
+                return;
             }
-        } catch (e) {
-            util.showErrorToast('地址读取失败, 请重新选择');
-        }
-        this.getCheckoutInfo();
-    },
-
-    /**
-     * 获取优惠券
-     */
-    getCouponData() {
-        if (app.globalData.userCoupon == 'USE_COUPON') {
+            this.getCouponData();
+            const selected = Number(wx.getStorageSync('addressId'));
             this.setData({
-                couponDesc: app.globalData.selectedCoupon.name,
-                couponId: app.globalData.selectedCoupon.user_coupon_id,
+                addressId: Number.isSafeInteger(selected) && selected > 0 ? selected : 0,
             });
-        } else if (app.globalData.userCoupon == 'NO_USE_COUPON') {
+            return this.getCheckoutInfo();
+        },
+        /** 只接受本次服务端结算结果, 加载与失败时立即废弃旧价格. */
+        getCheckoutInfo() {
+            if (this.data.createdOrderId) {
+                return Promise.resolve(false);
+            }
             this.setData({
-                couponDesc: '不使用优惠券',
-                couponId: '',
+                checkoutReady: false,
+                actualPrice: null,
+                checkedAddress: {},
+                checkedGoodsList: [],
             });
-        }
-    },
-
-    /**
-     * 选择可用优惠券
-     */
-    tapCoupon() {
-        wx.navigateTo({
-            url: '../selCoupon/selCoupon?buyType=' + this.data.buyType,
-        });
-    },
-
-    /** 提交期间锁定按钮, 已创建订单仅继续支付而不重复下单. */
-    submitOrder() {
-        if (this.data.submitting) {
-            return;
-        }
-        if (this.data.addressId <= 0) {
-            util.showErrorToast('请选择收货地址');
-            return false;
-        }
-        this.setData({submitting: true});
-        return util
-            .request(
-                api.OrderSubmit,
-                {
-                    addressId: this.data.addressId,
-                    couponId: this.data.couponId,
-                    type: this.data.buyType,
-                    checkoutId: this.data.checkoutId,
-                    requestKey: this.data.requestKey,
-                    expectedActualPrice: this.data.actualPrice,
-                    designSnapshotId: this.data.designSnapshotId,
+            return readPage(
+                this,
+                'checkout',
+                () =>
+                    util.request(api.CartCheckout, {
+                        addressId: this.data.addressId,
+                        couponId: this.data.couponId,
+                        type: this.data.buyType,
+                        checkoutId: this.data.checkoutId,
+                    }),
+                (res) => {
+                    const data = res.data;
+                    if (
+                        !data ||
+                        !Array.isArray(data.checkedGoodsList) ||
+                        data.checkedGoodsList.length === 0 ||
+                        !data.checkedAddress ||
+                        !/^\d+(\.\d{1,2})?$/.test(String(data.actualPrice))
+                    ) {
+                        throw new Error('结算信息无效, 请重新选择商品');
+                    }
+                    const snapshot = Number(data.designSnapshotId || 0) || null;
+                    if (
+                        snapshot &&
+                        this.data.designSnapshotId &&
+                        snapshot !== this.data.designSnapshotId
+                    ) {
+                        throw new Error('设计与购买信息不一致, 请重新结算');
+                    }
+                    this.setData({
+                        checkedGoodsList: data.checkedGoodsList,
+                        checkedAddress: data.checkedAddress,
+                        checkedCoupon: data.checkedCoupon || [],
+                        couponList: data.couponList || [],
+                        goodsTotalPrice: data.goodsTotalPrice,
+                        freightPrice: data.freightPrice,
+                        couponPrice: data.couponPrice,
+                        orderTotalPrice: data.orderTotalPrice,
+                        actualPrice: data.actualPrice,
+                        addressId: Number(data.checkedAddress.id) || 0,
+                        designSnapshotId: snapshot || this.data.designSnapshotId,
+                        designQuote: data.designQuote || null,
+                        checkoutReady: true,
+                    });
+                }
+            );
+        },
+        /** 同步本次主动选择的优惠券, 不把空字符串当作数字提交. */
+        getCouponData() {
+            const selected = app.globalData.selectedCoupon || {};
+            if (app.globalData.userCoupon === 'USE_COUPON') {
+                const id = Number(selected.user_coupon_id);
+                this.setData({
+                    couponDesc: selected.name || '',
+                    couponId: Number.isSafeInteger(id) && id > 0 ? id : 0,
+                });
+            } else {
+                this.setData({couponDesc: '不使用优惠券', couponId: 0});
+            }
+        },
+        /** 只在可编辑状态选择地址, 不干扰已提交的购买意图. */
+        selectAddress() {
+            if (!this.data.actionBusy && !this.data.createdOrderId) {
+                wx.navigateTo({url: '/pages/shopping/address/address'});
+            }
+        },
+        /** 在结算前补充本人地址. */
+        addAddress() {
+            if (!this.data.actionBusy && !this.data.createdOrderId) {
+                wx.navigateTo({url: '/pages/shopping/addressAdd/addressAdd'});
+            }
+        },
+        /** 仅在提交前进入优惠券选择页. */
+        tapCoupon() {
+            if (!this.data.actionBusy && !this.data.createdOrderId) {
+                wx.navigateTo({url: '../selCoupon/selCoupon?buyType=' + this.data.buyType});
+            }
+        },
+        /** 已创建订单只进入统一支付页, 导航失败也不能再次下单. */
+        continuePayment() {
+            if (
+                this.data.actionBusy ||
+                !this.data.createdOrderId ||
+                !this._pageReads?.alive ||
+                this._readToken !== (wx.getStorageSync('token') || '')
+            ) {
+                return false;
+            }
+            const context = this._pageReads;
+            const token = this._readToken;
+            this.setData({actionBusy: true});
+            wx.redirectTo({
+                url: '/pages/pay/pay?orderId=' + this.data.createdOrderId,
+                fail: () => {
+                    if (
+                        this._pageReads === context &&
+                        context.alive &&
+                        token === (wx.getStorageSync('token') || '')
+                    ) {
+                        util.showErrorToast('订单已创建, 可重试进入付款或从我的订单继续');
+                    }
                 },
-                'POST',
-                'application/json'
-            )
-            .then((res) => {
-                if (res.code === 0) {
-                    const orderId = res.data.orderInfo.id;
-                    // 订单已绑定设计快照, 无论支付结果如何都不得再次提交同一设计 / The order now owns the snapshot and must not be resubmitted.
+                complete: () => {
+                    if (
+                        this._pageReads === context &&
+                        context.alive &&
+                        token === (wx.getStorageSync('token') || '')
+                    ) {
+                        this.setData({actionBusy: false});
+                    }
+                },
+            });
+            return true;
+        },
+        /** 提交冻结商品明细并从确认阶段防重, 所有迟到写入结果均核对账号与页面. */
+        async submitOrder() {
+            if (this.data.createdOrderId) {
+                return this.continuePayment();
+            }
+            if (
+                !this.data.checkoutReady ||
+                !this.data.addressId ||
+                this.data.readLoading ||
+                this.data.readError
+            ) {
+                util.showErrorToast('请先加载有效结算信息并选择地址');
+                return false;
+            }
+            const succeeded = await performPageAction(this, {
+                canRun: () =>
+                    this.data.checkoutReady && this.data.addressId > 0 && !this.data.createdOrderId,
+                request: () =>
+                    util.request(
+                        api.OrderSubmit,
+                        {
+                            addressId: this.data.addressId,
+                            couponId: this.data.couponId,
+                            type: this.data.buyType,
+                            checkoutId: this.data.checkoutId,
+                            requestKey: this.data.requestKey,
+                            expectedActualPrice: this.data.actualPrice,
+                            designSnapshotId: this.data.designSnapshotId,
+                            expectedItems: this.data.checkedGoodsList.map((item) => ({
+                                goodsId: item.goodsId,
+                                productId: item.productId,
+                                number: item.number,
+                            })),
+                        },
+                        'POST',
+                        'application/json'
+                    ),
+                onSuccess: (res) => {
+                    const id = Number(res.data?.orderInfo?.id);
+                    if (!Number.isSafeInteger(id) || id < 1) {
+                        throw new Error('订单返回信息异常, 请先从我的订单核对');
+                    }
+                    this.setData({createdOrderId: id, checkoutReady: false});
                     wx.removeStorageSync('designSnapshotId');
                     wx.removeStorageSync('designQuote');
-                    this.setData({designSnapshotId: null});
-                    return pay
-                        .payOrder(parseInt(orderId))
-                        .then((res) => {
-                            wx.redirectTo({
-                                url: '/pages/payResult/payResult?status=1&orderId=' + orderId,
-                            });
-                        })
-                        .catch((res) => {
-                            // 支付失败后通过已有订单重新支付, 不重新提交定制设计 / Retry payment from the existing order.
-                            wx.redirectTo({
-                                url: '/pages/payResult/payResult?status=0&orderId=' + orderId,
-                            });
-                        });
-                } else {
-                    util.showErrorToast(res.msg || '下单失败');
-                }
-            })
-            .catch((error) => {
-                util.showErrorToast(error.message || '提交失败, 请稍后重试');
-            })
-            .then(() => {
-                this.setData({submitting: false});
+                },
             });
-    },
-});
+            if (succeeded) {
+                this.continuePayment();
+            }
+            return succeeded;
+        },
+    })
+);

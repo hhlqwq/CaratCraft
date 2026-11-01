@@ -130,19 +130,32 @@ test('支付成功后查询服务端状态', async () => {
 function loadCheckout(request, storage, extraWx = {}) {
     let page;
     const app = {globalData: {userCoupon: 'NO_USE_COUPON'}};
+    const wx = {
+        getStorageSync: (key) => storage[key],
+        stopPullDownRefresh() {},
+        removeStorageSync() {},
+        ...extraWx,
+    };
+    const reads = load('apps/miniapp/services/page-read.js', {}, {wx});
+    const actions = load(
+        'apps/miniapp/services/page-action.js',
+        {'../utils/util.js': {showErrorToast() {}}},
+        {wx}
+    );
     load(
         'apps/miniapp/pages/shopping/checkout/checkout.js',
         {
             '../../../utils/util.js': {request, showErrorToast: () => {}},
             '../../../config/api.js': {CartCheckout: '/checkout', OrderSubmit: '/submit'},
-            '../../../services/pay.js': {},
+            '../../../services/page-read.js': reads,
+            '../../../services/page-action.js': actions,
         },
         {
             Page: (definition) => {
                 page = definition;
             },
             getApp: () => app,
-            wx: {getStorageSync: (key) => storage[key], ...extraWx},
+            wx,
         }
     );
     page.setData = (values) => Object.assign(page.data, values);
@@ -162,15 +175,27 @@ test('结算先读取所选地址, 提交按钮阻止重复请求', async () => 
         },
         {addressId: 12}
     );
-    page.onShow();
+    page.onLoad({});
+    const reading = page.onShow();
     assert.equal(calls[0].data.addressId, 12);
+    await page.submitOrder();
+    assert.equal(calls.length, 1);
+    complete({
+        code: 0,
+        data: {
+            checkedGoodsList: [{goodsId: 1, productId: 2, number: 1}],
+            checkedAddress: {id: 12},
+            actualPrice: '10.00',
+        },
+    });
+    await reading;
     calls.length = 0;
     const submitted = page.submitOrder();
     page.submitOrder();
     assert.equal(calls.length, 1);
     complete({code: 400, msg: '测试失败'});
     await submitted;
-    assert.equal(page.data.submitting, false);
+    assert.equal(page.data.actionBusy, false);
 });
 
 /** 使用当前Vue编译器读取组件, 导入依赖替换为占位对象, 不依赖旧Babel工具链. */

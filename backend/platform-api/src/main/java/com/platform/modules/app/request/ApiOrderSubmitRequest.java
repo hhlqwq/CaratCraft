@@ -15,4 +15,6 @@ public class ApiOrderSubmitRequest {
     private String checkoutId;
     private String requestKey;
     private java.math.BigDecimal expectedActualPrice;
+    // 保留输入数值原型, 由业务固定DTO拒绝小数或字符串身份, 不先隐式转为整数.
+    private java.util.List<java.util.Map<String, Object>> expectedItems;
 }

@@ -41,7 +41,11 @@ class OrderCancellationServiceTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
-        service = spy(new MallOrderServiceImpl());
+        service =
+                spy(
+                        new MallOrderServiceImpl(
+                                null, null, null, null, null, null, null, null, null, null, null,
+                                null));
         orders = mock(MallOrderDao.class);
         gateway = mock(WxPayService.class);
         payments = mock(OrderPaymentService.class);

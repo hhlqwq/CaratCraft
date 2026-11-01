@@ -11,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.alibaba.fastjson.JSONObject;
 import com.platform.common.exception.BusinessException;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallAddressDao;
@@ -48,12 +47,14 @@ class CheckoutIntegrityTest {
     private MallCouponDao coupons;
     private CheckoutPricingService pricing;
     private WxUserEntity user;
-    private JSONObject request;
+    private Map<String, Object> request;
 
     /** 使用真实计价逻辑和可观察的持久化替身准备一次购物车结算. */
     @BeforeEach
     void setUp() {
-        orders = new MallOrderServiceImpl();
+        orders =
+                new MallOrderServiceImpl(
+                        null, null, null, null, null, null, null, null, null, null, null, null);
         ReflectionTestUtils.setField(orders, "legalDocuments", mock(LegalDocumentService.class));
         orderDao = mock(MallOrderDao.class);
         products = mock(MallProductDao.class);
@@ -117,11 +118,55 @@ class CheckoutIntegrityTest {
                         "customDesignService",
                         mock(CustomDesignService.class));
         dependencies.forEach((name, value) -> ReflectionTestUtils.setField(orders, name, value));
-        request = new JSONObject();
+        request = new java.util.HashMap<>();
         request.put("requestKey", "checkout_same_request_01");
         request.put("type", "cart");
         request.put("addressId", 1);
         request.put("expectedActualPrice", new BigDecimal("99.00"));
+        request.put("expectedItems", List.of(Map.of("goodsId", 10, "productId", 20, "number", 1)));
+    }
+
+    /** 同一提交键不能用等额但不同SKU的明细重试. */
+    @Test
+    void changedItemsCannotReuseKey() {
+        orders.submit(request, user);
+        request.put("expectedItems", List.of(Map.of("goodsId", 10, "productId", 21, "number", 1)));
+        assertThrows(IllegalArgumentException.class, () -> orders.submit(request, user));
+        verify(orderDao, times(1)).insert(any(MallOrderEntity.class));
+        verify(products, times(1)).deductStock(20, 1);
+    }
+
+    /** 新订单先核对商品集合, 不因总价相同而接受已变化购物车. */
+    @Test
+    void changedItemsStopNewOrder() {
+        request.put("expectedItems", List.of(Map.of("goodsId", 10, "productId", 21, "number", 1)));
+        assertThrows(IllegalStateException.class, () -> orders.submit(request, user));
+        verify(orderDao, never()).insert(any(MallOrderEntity.class));
+        verify(products, never()).deductStock(anyInt(), anyInt());
+    }
+
+    /** 清空购物车后的合法重试使用原明细, 十进制尾零不改变同一金额意图. */
+    @Test
+    void retryAfterCartClearedUsesFrozenItems() {
+        orders.submit(request, user);
+        var carts = (MallCartDao) ReflectionTestUtils.getField(orders, "cartDao");
+        org.mockito.Mockito.clearInvocations(carts);
+        when(carts.selectByMap(any())).thenReturn(List.of());
+        request.put("expectedActualPrice", new BigDecimal("99.0"));
+        assertEquals(0, orders.submit(request, user).get("code"));
+        verify(carts, never()).selectByMap(any());
+    }
+
+    /** 小数与字符串不能被转换为有效SKU或数量. */
+    @Test
+    void itemNumbersRejectCoercion() {
+        for (Object number : List.of("1", 1.5)) {
+            request.put(
+                    "expectedItems",
+                    List.of(Map.of("goodsId", 10, "productId", 20, "number", number)));
+            assertThrows(IllegalArgumentException.class, () -> orders.submit(request, user));
+        }
+        verify(orderDao, never()).insert(any(MallOrderEntity.class));
     }
 
     /** 新协议尚未确认时不创建订单, 也不扣减商品库存. */

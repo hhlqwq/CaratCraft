@@ -18,10 +18,10 @@
  */
 package com.platform.modules.mall.service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.platform.common.utils.JsonContract;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.StringUtils;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
@@ -33,6 +33,7 @@ import com.platform.modules.mall.dao.MallOrderGoodsDao;
 import com.platform.modules.mall.dao.MallProductDao;
 import com.platform.modules.mall.dao.MallUserCouponDao;
 import com.platform.modules.mall.dto.BuyGoodsRequest;
+import com.platform.modules.mall.dto.OrderSubmitRequest;
 import com.platform.modules.mall.entity.MallAddressEntity;
 import com.platform.modules.mall.entity.MallCartEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
@@ -42,8 +43,9 @@ import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,29 +67,28 @@ import java.util.Set;
  * @since 2026-03-15 14:30:00
  */
 @Service("mallOrderService")
+@RequiredArgsConstructor
 public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEntity>
         implements MallOrderService {
-    @Autowired private MallAddressDao addressDao;
-    @Autowired private MallCartDao cartDao;
-    @Autowired private MallProductDao productDao;
-    @Autowired private MallOrderGoodsDao orderGoodsDao;
-    @Autowired private MallUserCouponDao userCouponDao;
-    @Autowired private CustomDesignService customDesignService;
-    @Autowired private LegalDocumentService legalDocuments;
+    private final MallAddressDao addressDao;
+    private final MallCartDao cartDao;
+    private final MallProductDao productDao;
+    private final MallOrderGoodsDao orderGoodsDao;
+    private final MallUserCouponDao userCouponDao;
+    private final CustomDesignService customDesignService;
+    private final LegalDocumentService legalDocuments;
 
-    @Autowired
-    private org.springframework.beans.factory.ObjectProvider<
+    private final org.springframework.beans.factory.ObjectProvider<
                     com.github.binarywang.wxpay.service.WxPayService>
             paymentGateway;
 
-    @Autowired
-    private org.springframework.beans.factory.ObjectProvider<
+    private final org.springframework.beans.factory.ObjectProvider<
                     com.platform.modules.mall.service.OrderPaymentService>
             paymentResults;
 
-    @Autowired private com.platform.modules.mall.service.PurchaseContextService purchaseContexts;
-    @Autowired private com.platform.modules.mall.service.CheckoutPricingService checkoutPricing;
-    @Autowired private com.platform.modules.wx.dao.WxUserDao wxUserDao;
+    private final com.platform.modules.mall.service.PurchaseContextService purchaseContexts;
+    private final com.platform.modules.mall.service.CheckoutPricingService checkoutPricing;
+    private final com.platform.modules.wx.dao.WxUserDao wxUserDao;
 
     /** 查询订单列表。 */
     @Override
@@ -146,8 +147,10 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> submit(JSONObject jsonParam, WxUserEntity loginUser) {
-        Map<String, Object> resultObj = new HashMap<String, Object>();
+    public Map<String, Object> submit(Map<String, Object> jsonParam, WxUserEntity loginUser) {
+        OrderSubmitRequest request =
+                JsonContract.read(JsonContract.write(jsonParam), OrderSubmitRequest.class);
+        Map<String, Object> resultObj = new HashMap<>();
         // 同一用户提交串行化, 幂等记录与订单、扣库存处于同一数据库事务.
         if (wxUserDao.selectOne(
                         new QueryWrapper<WxUserEntity>()
@@ -156,12 +159,12 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                 == null) {
             throw new IllegalArgumentException("用户不存在");
         }
-        String requestKey = jsonParam.getString("requestKey");
+        String requestKey = request.getRequestKey();
         if (requestKey == null || !requestKey.matches("[A-Za-z0-9_-]{16,80}")) {
             throw new IllegalArgumentException("缺少有效的订单提交键, 请重新结算");
         }
-        if ("buy".equals(jsonParam.getString("type"))) {
-            requestKey = "buy_" + jsonParam.getString("checkoutId");
+        if ("buy".equals(request.getType())) {
+            requestKey = "buy_" + request.getCheckoutId();
         }
         java.util.Map<String, Object> intent = new java.util.TreeMap<>();
         for (String name :
@@ -175,9 +178,14 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                         "expectedActualPrice")) {
             intent.put(name, jsonParam.get(name));
         }
+        var expectedItems = canonicalItems(request.getExpectedItems());
+        intent.put("expectedItems", expectedItems);
+        if (request.getExpectedActualPrice() != null) {
+            intent.put(
+                    "expectedActualPrice", request.getExpectedActualPrice().stripTrailingZeros());
+        }
         String digest =
-                org.apache.commons.codec.digest.DigestUtils.sha256Hex(
-                        JSONObject.toJSONString(intent));
+                org.apache.commons.codec.digest.DigestUtils.sha256Hex(JsonContract.write(intent));
         MallOrderEntity previous =
                 baseMapper.selectOne(
                         new QueryWrapper<MallOrderEntity>()
@@ -191,12 +199,12 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         }
 
         legalDocuments.requireAccepted(loginUser.getId());
-        Integer couponId = jsonParam.getInteger("couponId");
-        String type = jsonParam.getString("type");
-        String postscript = jsonParam.getString("postscript");
-        Long requestedDesignSnapshotId = jsonParam.getLong("designSnapshotId");
+        Integer couponId = request.getCouponId();
+        String type = request.getType();
+        String postscript = request.getPostscript();
+        Long requestedDesignSnapshotId = request.getDesignSnapshotId();
         Long designSnapshotId = requestedDesignSnapshotId;
-        MallAddressEntity addressVo = addressDao.selectById(jsonParam.getInteger("addressId"));
+        MallAddressEntity addressVo = addressDao.selectById(request.getAddressId());
         if (addressVo == null || !loginUser.getId().equals(addressVo.getUserId())) {
             throw new IllegalArgumentException("收货地址不存在或无权使用");
         }
@@ -240,7 +248,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             }
         } else {
             BuyGoodsRequest goodsVo =
-                    purchaseContexts.require(loginUser.getId(), jsonParam.getString("checkoutId"));
+                    purchaseContexts.require(loginUser.getId(), request.getCheckoutId());
             if (goodsVo == null) {
                 throw new IllegalArgumentException("购买信息已失效，请重新选择商品");
             }
@@ -281,6 +289,20 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
             checkedGoodsList.add(MallCartEntity);
         }
 
+        var actualItems =
+                canonicalItems(
+                        checkedGoodsList.stream()
+                                .map(
+                                        line ->
+                                                new OrderSubmitRequest.CheckoutItem(
+                                                        line.getGoodsId(),
+                                                        line.getProductId(),
+                                                        line.getNumber()))
+                                .toList());
+        if (!expectedItems.equals(actualItems)) {
+            throw new IllegalStateException("结算商品或数量已变化, 请刷新后确认");
+        }
+
         Map<String, BigDecimal> prices =
                 checkoutPricing.calculate(
                         loginUser.getId(),
@@ -290,7 +312,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         BigDecimal couponPrice = prices.get("couponPrice");
         BigDecimal orderTotalPrice = prices.get("orderTotalPrice");
         BigDecimal actualPrice = prices.get("actualPrice");
-        BigDecimal expected = jsonParam.getBigDecimal("expectedActualPrice");
+        BigDecimal expected = request.getExpectedActualPrice();
         if (expected == null || expected.compareTo(actualPrice) != 0) {
             throw new IllegalArgumentException("价格或优惠已变化, 请刷新结算页面后确认");
         }
@@ -393,6 +415,31 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         //
         resultObj.put("data", orderInfoMap);
         return resultObj;
+    }
+
+    /** 冻结条目按SKU稳定排序, 重试不依赖当前购物车, 拒绝重复身份和无效数量. */
+    private static List<OrderSubmitRequest.CheckoutItem> canonicalItems(
+            List<OrderSubmitRequest.CheckoutItem> items) {
+        if (items == null || items.isEmpty() || items.size() > 300) {
+            throw new IllegalArgumentException("缺少有效结算商品明细, 请重新结算");
+        }
+        Set<Integer> products = new java.util.HashSet<>();
+        for (var item : items) {
+            if (item == null
+                    || item.goodsId() == null
+                    || item.goodsId() < 1
+                    || item.productId() == null
+                    || item.productId() < 1
+                    || item.number() == null
+                    || item.number() < 1
+                    || item.number() > 9999
+                    || !products.add(item.productId())) {
+                throw new IllegalArgumentException("结算商品明细无效或重复");
+            }
+        }
+        return items.stream()
+                .sorted(java.util.Comparator.comparing(OrderSubmitRequest.CheckoutItem::productId))
+                .toList();
     }
 
     /** 预览和提交共享商品校验, 不使用客户端或购物车里的历史价格. */

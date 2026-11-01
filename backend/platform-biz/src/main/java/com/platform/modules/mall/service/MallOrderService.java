@@ -18,7 +18,6 @@
  */
 package com.platform.modules.mall.service;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -95,7 +94,7 @@ public interface MallOrderService extends IService<MallOrderEntity> {
     boolean deleteBatch(Integer[] ids);
 
     /** 提交当前业务上下文并返回其处理结果. */
-    Map<String, Object> submit(JSONObject payload, WxUserEntity loginUser);
+    Map<String, Object> submit(Map<String, Object> payload, WxUserEntity loginUser);
 
     /** 取消未支付订单并释放资源 / Cancels an unpaid order and releases resources. */
     boolean cancelUnpaid(Integer orderId, Long userId);
