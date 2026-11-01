@@ -1,14 +1,9 @@
 package com.platform.modules.custom.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.platform.common.utils.RestResponse;
-import com.platform.modules.custom.dao.CustomComponentOptionDao;
-import com.platform.modules.custom.dao.CustomProductDao;
 import com.platform.modules.custom.dto.CustomConfigurationImportRequest;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
-import com.platform.modules.mall.entity.MallGoodsEntity;
-import com.platform.modules.mall.service.MallGoodsService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Map;
 
 /** 定制商品及组件配置管理 / Custom product and component configuration administration. */
@@ -32,10 +26,7 @@ import java.util.Map;
 @RequestMapping("custom/configuration")
 @Tag(name = "CustomConfigurationController|定制配置")
 public class CustomConfigurationController {
-    private final CustomProductDao customProductDao;
-    private final CustomComponentOptionDao componentOptionDao;
-    private final MallGoodsService mallGoodsService;
-
+    private final com.platform.modules.custom.service.ConfigurationQueryService queries;
     private final com.platform.modules.custom.service.CustomConfigurationService configuration;
 
     /** 下载同源客户候选目录, 所有候选默认停用且不包含实测尺寸或虚构库存. */
@@ -50,23 +41,21 @@ public class CustomConfigurationController {
     @Operation(summary = "查询定制商品配置")
     @GetMapping("products")
     @RequiresPermissions("custom:config:list")
-    public RestResponse<List<CustomProductEntity>> products() {
-        return RestResponse.ok(
-                customProductDao.selectList(
-                        new LambdaQueryWrapper<CustomProductEntity>()
-                                .orderByAsc(CustomProductEntity::getGoodsId)));
+    public RestResponse<Map<String, Object>> products(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return RestResponse.ok(queries.products(page, size));
     }
 
     /** 查询可配置的商城商品 / Lists mall products available for configuration. */
     @Operation(summary = "查询可配置商城商品")
     @GetMapping("goods")
     @RequiresPermissions("custom:config:list")
-    public RestResponse<List<MallGoodsEntity>> goods() {
-        return RestResponse.ok(
-                mallGoodsService.list(
-                        new LambdaQueryWrapper<MallGoodsEntity>()
-                                .eq(MallGoodsEntity::getIsDelete, 0)
-                                .orderByDesc(MallGoodsEntity::getId)));
+    public RestResponse<Map<String, Object>> goods(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword) {
+        return RestResponse.ok(queries.goods(page, size, keyword));
     }
 
     /** 保存定制商品配置 / Saves a custom product configuration. */
@@ -82,13 +71,12 @@ public class CustomConfigurationController {
     @Operation(summary = "查询定制组件选项")
     @GetMapping("options")
     @RequiresPermissions("custom:config:list")
-    public RestResponse<List<CustomComponentOptionEntity>> options(@RequestParam Integer goodsId) {
-        return RestResponse.ok(
-                componentOptionDao.selectList(
-                        new LambdaQueryWrapper<CustomComponentOptionEntity>()
-                                .eq(CustomComponentOptionEntity::getGoodsId, goodsId)
-                                .orderByAsc(CustomComponentOptionEntity::getZIndex)
-                                .orderByAsc(CustomComponentOptionEntity::getId)));
+    public RestResponse<Map<String, Object>> options(
+            @RequestParam Integer goodsId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String keyword) {
+        return RestResponse.ok(queries.options(goodsId, page, size, keyword));
     }
 
     /** 保存组件选项 / Saves a component option. */
@@ -100,11 +88,11 @@ public class CustomConfigurationController {
         return RestResponse.ok();
     }
 
-    /** 删除组件选项及对应库存 / Deletes a component option and its stock row. */
-    @Operation(summary = "删除定制组件选项")
-    @PostMapping("option/delete")
+    /** 停用组件选项, 保留库存及历史引用. */
+    @Operation(summary = "停用定制组件选项")
+    @PostMapping("option/disable")
     @RequiresPermissions("custom:config:update")
-    public RestResponse<String> deleteOption(@RequestParam Long id) {
+    public RestResponse<String> disableOption(@RequestParam Long id) {
         configuration.disable(id);
         return RestResponse.ok();
     }

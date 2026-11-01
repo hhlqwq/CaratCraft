@@ -124,6 +124,13 @@
                     show-overflow-tooltip
                 ></el-table-column>
             </el-table>
+            <el-pagination
+                layout="total, prev, pager, next"
+                :total="logTotal"
+                :current-page="logPage"
+                :page-size="20"
+                @current-change="changeLogPage"
+            />
         </el-dialog>
     </div>
 </template>
@@ -155,6 +162,8 @@ export default {
             ],
             logVisible: false,
             logs: [],
+            logPage: 1,
+            logTotal: 0,
         };
     },
     /** 页面激活时刷新当前业务数据. */
@@ -355,10 +364,18 @@ export default {
             const option = this.statusOptions.find((item) => item.value === status);
             return option ? option.label : status;
         },
+        /** 按当前工单翻页查看完整日志. */
+        changeLogPage(page) {
+            this.logPage = page;
+            return this.showLogs({id: this.logWorkOrderId});
+        },
         // 查看工单操作日志 / Shows the work order operation logs.
         async showLogs(row) {
             const version = (this._logVersion = (this._logVersion || 0) + 1);
             const epoch = this.pageEpoch;
+            if (this.logWorkOrderId !== row.id) {
+                this.logPage = 1;
+            }
             this.logWorkOrderId = row.id;
             this.logVisible = true;
             this.logs = [];
@@ -367,6 +384,7 @@ export default {
             try {
                 const {data} = await this.$http({
                     url: `/custom/work-order/log/${row.id}`,
+                    params: {page: this.logPage, size: 20},
                     method: 'get',
                     showError: false,
                 });
@@ -378,10 +396,11 @@ export default {
                 ) {
                     return;
                 }
-                if (!data || data.code !== 0 || !Array.isArray(data.data)) {
+                if (!data || data.code !== 0 || !Array.isArray(data.data?.records)) {
                     throw new Error(data?.msg || '日志查询失败');
                 }
-                this.logs = data.data;
+                this.logs = data.data.records;
+                this.logTotal = data.data.total;
             } catch (error) {
                 if (
                     this.pageActive &&

@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /** 定制生产工单管理 / Custom production work order administration. */
 @RestController
 @RequiredArgsConstructor
@@ -65,13 +63,33 @@ public class CustomWorkOrderController extends AbstractController {
     @Operation(summary = "查询工单操作日志")
     @GetMapping("log/{workOrderId}")
     @RequiresPermissions("custom:work-order:list")
-    public RestResponse<List<WorkOrderLogEntity>> log(@PathVariable Long workOrderId) {
+    public RestResponse<Object> log(
+            @PathVariable Long workOrderId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size) {
         LambdaQueryWrapper<WorkOrderLogEntity> wrapper =
                 new LambdaQueryWrapper<WorkOrderLogEntity>()
                         .eq(WorkOrderLogEntity::getWorkOrderId, workOrderId)
                         .orderByDesc(WorkOrderLogEntity::getCreateTime)
-                        .last("LIMIT 200");
-        return RestResponse.ok(workOrderLogDao.selectList(wrapper));
+                        .orderByDesc(WorkOrderLogEntity::getId);
+        if (page < 1 || page > 100000 || size < 1 || size > 100) {
+            throw new IllegalArgumentException("分页参数不正确");
+        }
+        var result =
+                workOrderLogDao.selectPage(
+                        new com.baomidou.mybatisplus.extension.plugins.pagination.Page<
+                                WorkOrderLogEntity>(page, size),
+                        wrapper);
+        return RestResponse.ok(
+                java.util.Map.of(
+                        "records",
+                        result.getRecords(),
+                        "total",
+                        result.getTotal(),
+                        "current",
+                        result.getCurrent(),
+                        "size",
+                        result.getSize()));
     }
 
     /** 更新工单状态 / Updates a production work order status. */

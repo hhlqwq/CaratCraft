@@ -111,6 +111,17 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         sql("UPDATE mall_address SET user_id=9000001 WHERE id=" + str(address_id))
         request("/app/address/delete", {"id": address_id})
         assert sql("SELECT COUNT(*) FROM mall_address WHERE id=" + str(address_id)) == "0"
+        goods_page = request("/custom/configuration/goods?page=1&size=1", management=True)
+        assert len(goods_page["records"]) == 1 and goods_page["total"] >= 1
+        assert set(goods_page["records"][0]) == {"id", "name"}
+        request("/custom/configuration/goods?page=1&size=101", expected=400, management=True)
+        first = request("/custom/configuration/options?goodsId=1999105&page=1&size=100&keyword=client-", management=True)
+        second = request("/custom/configuration/options?goodsId=1999105&page=2&size=100&keyword=client-", management=True)
+        assert first["total"] == second["total"] == 112
+        assert len(first["records"]) == 100 and len(second["records"]) == 12
+        assert len({row["id"] for row in first["records"] + second["records"]}) == 112
+        assert all(row["enabled"] == 0 for row in first["records"] + second["records"])
+        request("/custom/configuration/options?goodsId=1999105&page=0&size=20", expected=400, management=True)
         (output / "purchase-http.json").write_text(json.dumps(
             {"tests": len(cases), "passed": len(cases), "cases": cases,
              "browserAcceptance": False, "realPayment": False}, ensure_ascii=False, indent=4), encoding="utf-8")

@@ -58,7 +58,10 @@ public class Query<T> extends LinkedHashMap<String, Object> {
             limit = Integer.parseInt(params.get("limit").toString());
         }
 
-        this.put("offset", (currPage - 1) * limit);
+        if (currPage < 1 || currPage > 100000 || limit < 1 || limit > 100) {
+            throw new IllegalArgumentException("分页参数不正确, 页大小须为1到100");
+        }
+        this.put("offset", (long) (currPage - 1) * limit);
         this.put("page", currPage);
         this.put("limit", limit);
 

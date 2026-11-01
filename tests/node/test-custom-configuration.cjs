@@ -82,9 +82,29 @@ test('切换商品隔离迟到配件读取', async () => {
     const old = editor.loadOptions();
     editor.selectProduct({goodsId: 20});
     assert.equal(editor.options.length, 0);
-    calls[1].resolve({data: {code: 0, data: [{id: 200, goodsId: 20}]}});
+    calls[1].resolve({
+        data: {
+            code: 0,
+            data: {
+                records: [{id: 200, goodsId: 20}],
+                total: [{id: 200, goodsId: 20}].length,
+                current: 1,
+                size: 20,
+            },
+        },
+    });
     await new Promise(setImmediate);
-    calls[0].resolve({data: {code: 0, data: [{id: 100, goodsId: 10}]}});
+    calls[0].resolve({
+        data: {
+            code: 0,
+            data: {
+                records: [{id: 100, goodsId: 10}],
+                total: [{id: 100, goodsId: 10}].length,
+                current: 1,
+                size: 20,
+            },
+        },
+    });
     await old;
     assert.equal(editor.options[0].goodsId, 20);
     assert.equal(editor.reading.options, false);
@@ -95,7 +115,12 @@ test('配件读取失败可恢复且旧失败不污染新结果', async () => {
     const {editor, calls} = fixture();
     const old = editor.loadOptions();
     const latest = editor.loadOptions();
-    calls[1].resolve({data: {code: 0, data: [{id: 200}]}});
+    calls[1].resolve({
+        data: {
+            code: 0,
+            data: {records: [{id: 200}], total: [{id: 200}].length, current: 1, size: 20},
+        },
+    });
     await latest;
     calls[0].reject(new Error('旧请求失败'));
     await old;
@@ -106,7 +131,9 @@ test('配件读取失败可恢复且旧失败不污染新结果', async () => {
     await failure;
     assert.ok(editor.readErrors.options);
     editor.retryReads();
-    calls[3].resolve({data: {code: 0, data: []}});
+    calls[3].resolve({
+        data: {code: 0, data: {records: [], total: [].length, current: 1, size: 20}},
+    });
     await new Promise(setImmediate);
     assert.equal(editor.readErrors.options, '');
 });
@@ -177,7 +204,7 @@ test('停用配件确认后重新检查商品上下文', async () => {
     const {editor, calls} = fixture();
     const confirmation = deferred();
     editor.$confirm = () => confirmation.promise;
-    const removing = editor.deleteOption({id: 100, name: '测试配件'});
+    const removing = editor.disableOption({id: 100, name: '测试配件'});
     editor.resetProduct();
     confirmation.resolve();
     await removing;
@@ -208,7 +235,12 @@ test('定制配置离页隔离全部在途结果', async () => {
     const loading = editor.loadOptions();
     const saving = editor.saveProduct();
     component.deactivated.call(editor);
-    calls[0].resolve({data: {code: 0, data: [{id: 200}]}});
+    calls[0].resolve({
+        data: {
+            code: 0,
+            data: {records: [{id: 200}], total: [{id: 200}].length, current: 1, size: 20},
+        },
+    });
     calls[1].resolve({data: {code: 0}});
     await Promise.all([loading, saving]);
     assert.equal(editor.options.length, 0);
@@ -271,4 +303,25 @@ test('配饰计长选择随材料保存且不丢失原始元数据', async () =>
     assert.equal(rules.provisionalName, true);
     calls[0].resolve({data: {code: 0}});
     await saving;
+});
+
+/** 搜索及翻页由服务器处理, 迟到旧响应不能覆盖当前页和总数. */
+test('配置分页搜索保留最新页', async () => {
+    const {editor, calls} = fixture();
+    const old = editor.loadGoods();
+    const latest = editor.searchGoods('南洋');
+    assert.equal(calls[1].params.keyword, '南洋');
+    assert.equal(calls[1].params.page, 1);
+    calls[1].resolve({
+        data: {code: 0, data: {records: [{id: 2}], total: 41, current: 1, size: 20}},
+    });
+    await latest;
+    calls[0].resolve({data: {code: 0, data: {records: [{id: 1}], total: 1, current: 1, size: 20}}});
+    await old;
+    assert.equal(editor.goods[0].id, 2);
+    assert.equal(editor.pagination.goods.total, 41);
+    const next = editor.changePage('goods', 2);
+    assert.equal(calls[2].params.page, 2);
+    calls[2].resolve({data: {code: 0, data: {records: [], total: 41, current: 2, size: 20}}});
+    await next;
 });

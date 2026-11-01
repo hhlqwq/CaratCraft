@@ -302,6 +302,26 @@ function serve(request, response) {
         ) {
             return response.end(JSON.stringify({code: 503, msg: '隔离模拟配件读取失败'}));
         }
+        const result = routes[endpoint];
+        if (
+            Array.isArray(result) &&
+            (endpoint.startsWith('/custom/configuration/') ||
+                endpoint.startsWith('/custom/work-order/log/'))
+        ) {
+            const page = Number(url.searchParams.get('page') || 1);
+            const size = Number(url.searchParams.get('size') || 20);
+            return response.end(
+                JSON.stringify({
+                    code: 0,
+                    data: {
+                        records: result.slice((page - 1) * size, page * size),
+                        total: result.length,
+                        current: page,
+                        size,
+                    },
+                })
+            );
+        }
         return response.end(
             JSON.stringify({code: 0, data: routes[endpoint] || {records: [], total: 0, list: []}})
         );

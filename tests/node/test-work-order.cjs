@@ -80,9 +80,29 @@ test('工单日志绑定工单与弹窗生命周期', async () => {
     const {page, calls} = fixture();
     const old = page.showLogs({id: 10});
     const latest = page.showLogs({id: 20});
-    calls[1].resolve({data: {code: 0, data: [{remark: '当前日志'}]}});
+    calls[1].resolve({
+        data: {
+            code: 0,
+            data: {
+                records: [{remark: '当前日志'}],
+                total: [{remark: '当前日志'}].length,
+                current: 1,
+                size: 20,
+            },
+        },
+    });
     await latest;
-    calls[0].resolve({data: {code: 0, data: [{remark: '旧日志'}]}});
+    calls[0].resolve({
+        data: {
+            code: 0,
+            data: {
+                records: [{remark: '旧日志'}],
+                total: [{remark: '旧日志'}].length,
+                current: 1,
+                size: 20,
+            },
+        },
+    });
     await old;
     assert.equal(page.logs[0].remark, '当前日志');
     const closing = page.showLogs({id: 30});

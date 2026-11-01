@@ -45,6 +45,8 @@
                             <el-select
                                 v-model="product.goodsId"
                                 filterable
+                                remote
+                                :remote-method="searchGoods"
                                 placeholder="请选择商品"
                                 class="full-width"
                             >
@@ -55,6 +57,14 @@
                                     :label="`${item.name}（ID: ${item.id}）`"
                                 ></el-option>
                             </el-select>
+                            <el-pagination
+                                small
+                                layout="prev, pager, next"
+                                :total="pagination.goods.total"
+                                :page-size="pagination.goods.size"
+                                :current-page="pagination.goods.page"
+                                @current-change="changePage('goods', $event)"
+                            />
                         </el-form-item>
                     </el-col>
                     <el-col :xs="24" :sm="12" :lg="12"
@@ -192,6 +202,13 @@
                     ></el-table-column
                 >
             </el-table>
+            <el-pagination
+                layout="total, prev, pager, next"
+                :total="pagination.products.total"
+                :page-size="pagination.products.size"
+                :current-page="pagination.products.page"
+                @current-change="changePage('products', $event)"
+            />
         </el-card>
 
         <el-card class="card" shadow="never">
@@ -249,7 +266,7 @@
                 </el-row>
                 <el-row :gutter="18">
                     <el-col :xs="24" :sm="12" :lg="12"
-                        ><el-form-item label="加价"
+                        ><el-form-item label="每实例加价"
                             ><el-input-number
                                 v-model="option.priceDelta"
                                 :precision="2"
@@ -376,11 +393,17 @@
                 >
                 <el-button @click="resetOption">新建配件</el-button>
             </el-form>
+            <el-input
+                v-model="optionKeyword"
+                placeholder="搜索材料名称或代码"
+                clearable
+                @change="searchOptions"
+            />
             <el-table :data="options" border class="table-space">
                 <el-table-column prop="componentType" label="类型" width="110"></el-table-column>
                 <el-table-column prop="optionCode" label="代码" min-width="130"></el-table-column>
                 <el-table-column prop="name" label="名称" min-width="130"></el-table-column>
-                <el-table-column prop="priceDelta" label="加价" width="90"></el-table-column>
+                <el-table-column prop="priceDelta" label="每实例加价" width="90"></el-table-column>
                 <el-table-column
                     prop="assetUrl"
                     label="2D 图层"
@@ -395,12 +418,19 @@
                             v-if="isAuth('custom:config:update')"
                             type="text"
                             class="danger-action"
-                            @click="deleteOption(scope.row)"
+                            @click="disableOption(scope.row)"
                             >停用</el-button
                         >
                     </template>
                 </el-table-column>
             </el-table>
+            <el-pagination
+                layout="total, prev, pager, next"
+                :total="pagination.options.total"
+                :page-size="pagination.options.size"
+                :current-page="pagination.options.page"
+                @current-change="changePage('options', $event)"
+            />
         </el-card>
     </div>
 </template>
@@ -438,6 +468,13 @@ export default {
             catalogDownloading: false,
             reading: {goods: false, products: false, options: false},
             readErrors: {goods: '', products: '', options: ''},
+            pagination: {
+                goods: {page: 1, size: 20, total: 0},
+                products: {page: 1, size: 20, total: 0},
+                options: {page: 1, size: 20, total: 0},
+            },
+            goodsKeyword: '',
+            optionKeyword: '',
             goods: [],
             products: [],
             options: [],
@@ -514,6 +551,26 @@ export default {
         this.pageEpoch++;
     },
     methods: {
+        /** 独立翻页并继续复用读取代次隔离. */
+        changePage(name, page) {
+            this.pagination[name].page = page;
+            if (name === 'goods') {
+                return this.loadGoods();
+            }
+            if (name === 'products') {
+                return this.loadProducts();
+            }
+            return this.loadOptions();
+        },
+        /** 商品名称由服务端搜索, 不限于本页已加载选项. */
+        searchGoods(keyword) {
+            this.goodsKeyword = keyword;
+            return this.changePage('goods', 1);
+        },
+        /** 材料搜索从第一页开始并保留当前编辑表单. */
+        searchOptions() {
+            return this.changePage('options', 1);
+        },
         /** 捕获当前商品编辑上下文, 不让回调切换或重置其他商品. */
         configurationContext(option) {
             return {
@@ -582,15 +639,20 @@ export default {
                 const {data} = await this.$http({
                     url: `/custom/configuration/${name}`,
                     method: 'get',
-                    params,
+                    params: {
+                        ...params,
+                        page: this.pagination[name].page,
+                        size: this.pagination[name].size,
+                    },
                 });
                 if (!current()) {
                     return;
                 }
-                if (!data || data.code !== 0 || !Array.isArray(data.data)) {
+                if (!data || data.code !== 0 || !Array.isArray(data.data?.records)) {
                     throw new Error('配置读取失败');
                 }
-                this[field] = data.data;
+                this[field] = data.data.records;
+                this.pagination[name].total = data.data.total;
             } catch (error) {
                 if (current()) {
                     this[field] = [];
@@ -654,7 +716,7 @@ export default {
         },
         // 加载商城商品 / Loads mall products.
         loadGoods() {
-            return this.readConfiguration('goods', 'goods');
+            return this.readConfiguration('goods', 'goods', {keyword: this.goodsKeyword});
         },
         // 加载定制商品配置 / Loads custom product configurations.
         loadProducts() {
@@ -709,6 +771,8 @@ export default {
         // 选择待配置商品 / Selects a product for component configuration.
         selectProduct(row) {
             this.options = [];
+            this.pagination.options.page = 1;
+            this.optionKeyword = '';
             this.selectedGoodsId = row.goodsId;
             this.product = Object.assign(createProduct(), row);
             this.resetOption();
@@ -719,7 +783,10 @@ export default {
             if (!this.selectedGoodsId) {
                 return;
             }
-            return this.readConfiguration('options', 'options', {goodsId: this.selectedGoodsId});
+            return this.readConfiguration('options', 'options', {
+                goodsId: this.selectedGoodsId,
+                keyword: this.optionKeyword,
+            });
         },
         // 重置配件编辑表单 / Resets the component editor.
         resetOption() {
@@ -807,22 +874,22 @@ export default {
                 }
             );
         },
-        // 停用配件并保留历史库存 / Deletes a component option and its stock.
-        deleteOption(row) {
+        /** 停用配件并保留历史库存. */
+        disableOption(row) {
             if (this.writing) {
                 return;
             }
             const context = this.configurationContext();
             return this.$confirm(
-                `确定删除“${row.name}”吗？材料将停用, 历史订单和库存会保留。`,
-                '删除配件',
+                `确定停用“${row.name}”吗？材料将停用, 历史订单和库存会保留。`,
+                '停用配件',
                 {
                     type: 'warning',
                 }
             )
                 .then(() =>
                     this.writeConfiguration(
-                        '/custom/configuration/option/delete',
+                        '/custom/configuration/option/disable',
                         undefined,
                         context,
                         '配件已停用',
@@ -841,7 +908,7 @@ export default {
                         error !== 'cancel' &&
                         error !== 'close'
                     ) {
-                        this.$message.error(`删除失败：${error.message || error}`);
+                        this.$message.error(`停用失败: ${error.message || error}`);
                     }
                 });
         },

@@ -27,7 +27,8 @@ class FootprintPaginationTest {
                                 query ->
                                         query.get("page").equals(2)
                                                 && query.get("limit").equals(5)
-                                                && query.get("offset").equals(5)
+                                                && query.get("offset") instanceof Number offset
+                                                && offset.longValue() == 5L
                                                 && query.get("referrer").equals(7L)));
     }
 
