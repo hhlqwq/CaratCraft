@@ -1,7 +1,7 @@
 package com.platform.modules.custom.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.platform.common.utils.JsonContract;
 import com.platform.modules.custom.dto.CustomQuoteRequest;
 
 import java.math.BigDecimal;
@@ -15,19 +15,19 @@ public final class FinishedLengthRules {
     private FinishedLengthRules() {}
 
     /** 保存时校验完整规则, 空规则允许暂存但不能据此下单. */
-    public static JSONObject parse(String json) {
+    public static JsonNode parse(String json) {
         if (json == null || json.isBlank()) {
             return null;
         }
-        JSONObject rules;
+        JsonNode rules;
         try {
-            rules = JSON.parseObject(json);
+            rules = JsonContract.object(json);
         } catch (RuntimeException error) {
             throw new IllegalArgumentException("成品长度规则须为JSON对象");
         }
         if (rules == null
-                || (!"SUM".equals(rules.getString("mode"))
-                        && !"OVERLAY_MAX".equals(rules.getString("mode")))) {
+                || (!"SUM".equals(rules.path("mode").asText())
+                        && !"OVERLAY_MAX".equals(rules.path("mode").asText()))) {
             throw new IllegalArgumentException("长度计算方式须为SUM或OVERLAY_MAX");
         }
         for (String field : List.of("claspMm", "connectionMm", "lossMm", "toleranceMm")) {
@@ -55,7 +55,7 @@ public final class FinishedLengthRules {
         }
         result.put("neckCircumferenceMm", neck);
         result.put("targetLengthMm", target);
-        JSONObject rules = parse(json);
+        JsonNode rules = parse(json);
         result.put("rules", rules);
         result.put("ready", false);
         String reason = "请商家补齐成品长度工艺规则";
@@ -64,24 +64,24 @@ public final class FinishedLengthRules {
                 reason = "请填写实测颈围及目标成品长度";
             } else if (target.compareTo(neck) < 0) {
                 reason = "目标成品长度不能小于实测颈围";
-            } else if (target.compareTo(rules.getBigDecimal("minLengthMm")) < 0
-                    || target.compareTo(rules.getBigDecimal("maxLengthMm")) > 0) {
+            } else if (target.compareTo(rules.path("minLengthMm").decimalValue()) < 0
+                    || target.compareTo(rules.path("maxLengthMm").decimalValue()) > 0) {
                 reason = "目标长度超出商家可制作范围";
             } else if (materialLength(rules, arrangement) == null) {
                 reason = "材料实测尺寸不完整, 请联系商家补齐";
             } else {
                 BigDecimal material = materialLength(rules, arrangement);
                 BigDecimal finished =
-                        material.add(rules.getBigDecimal("claspMm"))
-                                .add(rules.getBigDecimal("connectionMm"))
-                                .subtract(rules.getBigDecimal("lossMm"));
+                        material.add(rules.path("claspMm").decimalValue())
+                                .add(rules.path("connectionMm").decimalValue())
+                                .subtract(rules.path("lossMm").decimalValue());
                 result.put("materialLengthMm", material);
                 result.put("estimatedFinishedLengthMm", finished);
                 boolean ready =
                         finished.signum() > 0
                                 && finished.subtract(target)
                                                 .abs()
-                                                .compareTo(rules.getBigDecimal("toleranceMm"))
+                                                .compareTo(rules.path("toleranceMm").decimalValue())
                                         <= 0;
                 result.put("ready", ready);
                 reason = ready ? "长度符合商家配置的制作容差" : "排列估算长度与目标长度不符, 请调整材料或联系商家";
@@ -92,7 +92,7 @@ public final class FinishedLengthRules {
     }
 
     /** 扣件按工艺规则计入, 配饰明确串接或悬挂后再计算周长, 未知归属拒绝猜测. */
-    private static BigDecimal materialLength(JSONObject rules, Map<String, Object> arrangement) {
+    private static BigDecimal materialLength(JsonNode rules, Map<String, Object> arrangement) {
         BigDecimal chain = BigDecimal.ZERO;
         BigDecimal beads = BigDecimal.ZERO;
         @SuppressWarnings("unchecked")
@@ -130,14 +130,18 @@ public final class FinishedLengthRules {
         if (!measured) {
             return null;
         }
-        return "SUM".equals(rules.getString("mode")) ? beads.add(chain) : beads.max(chain);
+        return "SUM".equals(rules.path("mode").asText()) ? beads.add(chain) : beads.max(chain);
     }
 
     /** 统一毫米精度与范围校验, 空值和非数字不能被隐式当成零. */
     private static BigDecimal decimal(Object raw, String label, boolean zeroAllowed) {
         try {
-            BigDecimal value = new BigDecimal(String.valueOf(raw));
-            if (value.signum() < (zeroAllowed ? 0 : 1)
+            BigDecimal value =
+                    raw instanceof JsonNode node && node.isNumber()
+                            ? node.decimalValue()
+                            : raw instanceof BigDecimal number ? number : null;
+            if (value == null
+                    || value.signum() < (zeroAllowed ? 0 : 1)
                     || value.compareTo(new BigDecimal("3000")) > 0
                     || value.scale() > 3) {
                 throw new IllegalArgumentException();

@@ -1,7 +1,7 @@
 package com.platform.modules.custom.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.platform.common.utils.JsonContract;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 
 import java.util.HashSet;
@@ -11,7 +11,6 @@ import java.util.Set;
 /** 商家可配置的单件用量及跨组件规则, 不虚构真实工艺限制. */
 public record ComponentRules(
         int quantity, String unit, Set<String> incompatible, Set<String> required) {
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /** 默认一件用一单位, 支持虚拟选项用量0, 无规则时不增加臆测限制. */
     public static ComponentRules parse(String json) {
@@ -22,7 +21,7 @@ public record ComponentRules(
             if (json.length() > 8192) {
                 throw new IllegalArgumentException();
             }
-            JsonNode root = MAPPER.readTree(json);
+            JsonNode root = JsonContract.object(json);
             if (!root.isObject()) {
                 throw new IllegalArgumentException();
             }

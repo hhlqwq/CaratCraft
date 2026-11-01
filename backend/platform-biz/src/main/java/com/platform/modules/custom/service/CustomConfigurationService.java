@@ -179,8 +179,8 @@ public class CustomConfigurationService {
         ComponentRules.parse(row.getMaterialParams());
         if ("accessory".equals(row.getComponentType())
                 && !Integer.valueOf(0).equals(row.getEnabled())) {
-            var params = com.alibaba.fastjson.JSON.parseObject(row.getMaterialParams());
-            if (params == null || params.getString("lengthRole") == null) {
+            var params = com.platform.common.utils.JsonContract.object(row.getMaterialParams());
+            if (params == null || !params.path("lengthRole").isTextual()) {
                 throw new IllegalArgumentException("启用配饰前请明确串接计长或悬挂不计长");
             }
         }

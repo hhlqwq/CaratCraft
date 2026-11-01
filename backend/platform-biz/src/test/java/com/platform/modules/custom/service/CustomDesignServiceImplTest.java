@@ -57,7 +57,13 @@ class CustomDesignServiceImplTest {
         stockDao = mock(ComponentStockDao.class);
         service =
                 new CustomDesignServiceImpl(
-                        snapshotDao, bindingDao, workOrderDao, quoteService, stockDao);
+                        snapshotDao,
+                        bindingDao,
+                        workOrderDao,
+                        quoteService,
+                        stockDao,
+                        org.mockito.Mockito.mock(
+                                com.platform.modules.custom.dao.WorkOrderLogDao.class));
         when(stockDao.restoreStock(any(), any(), any(), anyInt())).thenReturn(1);
         when(stockDao.deductStock(any(), any(), any(), anyInt())).thenReturn(1);
         when(stockDao.logMovement(any(), any(), any(), anyInt(), any(), any())).thenReturn(1);
@@ -207,7 +213,13 @@ class CustomDesignServiceImplTest {
                 new CustomQuoteServiceImpl(goodsService, optionDao, productDao, stockDao);
         CustomDesignServiceImpl workflowService =
                 new CustomDesignServiceImpl(
-                        snapshotDao, bindingDao, workOrderDao, realQuoteService, stockDao);
+                        snapshotDao,
+                        bindingDao,
+                        workOrderDao,
+                        realQuoteService,
+                        stockDao,
+                        org.mockito.Mockito.mock(
+                                com.platform.modules.custom.dao.WorkOrderLogDao.class));
 
         CustomQuoteRequest request = new CustomQuoteRequest();
         request.setGoodsId(1999105);

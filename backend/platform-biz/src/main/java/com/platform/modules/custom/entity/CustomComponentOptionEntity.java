@@ -28,4 +28,16 @@ public class CustomComponentOptionEntity implements Serializable {
     private String materialParams;
     private Integer zIndex;
     private Integer enabled;
+
+    /** 固定图层JSON名称, 避免JavaBean将其推断为zindex. */
+    @com.fasterxml.jackson.annotation.JsonProperty("zIndex")
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    /** 接收唯一图层字段名并保留显式顺序. */
+    @com.fasterxml.jackson.annotation.JsonProperty("zIndex")
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
+    }
 }

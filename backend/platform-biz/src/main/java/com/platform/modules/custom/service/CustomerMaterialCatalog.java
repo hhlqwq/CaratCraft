@@ -1,6 +1,6 @@
 package com.platform.modules.custom.service;
 
-import com.alibaba.fastjson.JSON;
+import com.platform.common.utils.JsonContract;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 
@@ -23,9 +23,12 @@ public final class CustomerMaterialCatalog {
         try (var input =
                 new ClassPathResource("catalog/customer-material-catalog.json").getInputStream()) {
             var catalog =
-                    JSON.parseObject(new String(input.readAllBytes(), StandardCharsets.UTF_8));
+                    JsonContract.object(new String(input.readAllBytes(), StandardCharsets.UTF_8));
             var options =
-                    catalog.getJSONArray("options").toJavaList(CustomComponentOptionEntity.class);
+                    java.util.Arrays.asList(
+                            JsonContract.read(
+                                    catalog.path("options").toString(),
+                                    CustomComponentOptionEntity[].class));
             for (var option : options) {
                 MaterialTypes.require(option.getComponentType());
                 option.setGoodsId(goodsId);
@@ -47,11 +50,11 @@ public final class CustomerMaterialCatalog {
                     "replaceOptions",
                     false,
                     "catalogNotice",
-                    catalog.getString("notice"),
+                    catalog.path("notice").asText(),
                     "accessorySourceText",
-                    catalog.getString("accessorySourceText"),
+                    catalog.path("accessorySourceText").asText(),
                     "sourceSha256",
-                    catalog.getString("sourceSha256"));
+                    catalog.path("sourceSha256").asText());
         } catch (IOException error) {
             throw new IllegalStateException("客户候选材料目录无法读取", error);
         }

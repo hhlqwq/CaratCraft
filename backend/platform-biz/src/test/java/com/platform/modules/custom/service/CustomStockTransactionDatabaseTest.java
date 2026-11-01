@@ -76,7 +76,9 @@ class CustomStockTransactionDatabaseTest {
                         sessions.getMapper(CustomOrderCustomizationDao.class),
                         sessions.getMapper(ProductionWorkOrderDao.class),
                         null,
-                        sessions.getMapper(ComponentStockDao.class));
+                        sessions.getMapper(ComponentStockDao.class),
+                        org.mockito.Mockito.mock(
+                                com.platform.modules.custom.dao.WorkOrderLogDao.class));
         var proxy = new ProxyFactory(target);
         proxy.addAdvice(
                 TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));

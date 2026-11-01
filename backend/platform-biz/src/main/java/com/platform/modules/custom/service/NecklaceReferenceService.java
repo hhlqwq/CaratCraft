@@ -72,12 +72,12 @@ public class NecklaceReferenceService {
                                 length ->
                                         rules == null
                                                 || (length.compareTo(
-                                                                        rules.getBigDecimal(
-                                                                                "minLengthMm"))
+                                                                        rules.path("minLengthMm")
+                                                                                .decimalValue())
                                                                 >= 0
                                                         && length.compareTo(
-                                                                        rules.getBigDecimal(
-                                                                                "maxLengthMm"))
+                                                                        rules.path("maxLengthMm")
+                                                                                .decimalValue())
                                                                 <= 0))
                         .toList();
         String reason =

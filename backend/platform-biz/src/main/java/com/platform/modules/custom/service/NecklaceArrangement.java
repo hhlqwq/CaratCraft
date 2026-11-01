@@ -1,7 +1,7 @@
 package com.platform.modules.custom.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.platform.common.utils.JsonContract;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 
 import java.math.BigDecimal;
@@ -26,10 +26,10 @@ public final class NecklaceArrangement {
         boolean complete = true;
         for (Long id : ids) {
             CustomComponentOptionEntity option = indexed.get(id);
-            JSONObject params =
+            JsonNode params =
                     option.getMaterialParams() == null || option.getMaterialParams().isBlank()
-                            ? new JSONObject()
-                            : JSON.parseObject(option.getMaterialParams());
+                            ? JsonContract.object("{}")
+                            : JsonContract.object(option.getMaterialParams());
             boolean pearl = "pearl".equalsIgnoreCase(option.getComponentType());
             boolean isChain = "chain".equalsIgnoreCase(option.getComponentType());
             BigDecimal size =
@@ -43,18 +43,24 @@ public final class NecklaceArrangement {
             item.put("sizeMm", size);
             item.put("assetUrl", option.getAssetUrl());
             if ("accessory".equals(option.getComponentType())) {
-                item.put("lengthRole", params.getString("lengthRole"));
+                item.put("lengthRole", params.path("lengthRole").asText(null));
             }
             if (pearl) {
                 item.put(
                         "shape",
-                        params.getString("shape") == null ? "近正圆" : params.getString("shape"));
+                        params.path("shape").asText(null) == null
+                                ? "近正圆"
+                                : params.path("shape").asText(null));
                 item.put(
                         "luster",
-                        params.getString("luster") == null ? "极光" : params.getString("luster"));
+                        params.path("luster").asText(null) == null
+                                ? "极光"
+                                : params.path("luster").asText(null));
                 item.put(
                         "blemish",
-                        params.getString("blemish") == null ? "微瑕" : params.getString("blemish"));
+                        params.path("blemish").asText(null) == null
+                                ? "微瑕"
+                                : params.path("blemish").asText(null));
             }
             arrangement.add(item);
             if (size == null) {
@@ -74,12 +80,15 @@ public final class NecklaceArrangement {
     }
 
     /** 只接受商家配置的正数尺寸, 不取规格区间中点或用户传入尺寸. */
-    private static BigDecimal dimension(JSONObject params, String key) {
-        if (!params.containsKey(key) || params.get(key) == null) {
+    private static BigDecimal dimension(JsonNode params, String key) {
+        if (!params.hasNonNull(key)) {
             return null;
         }
         try {
-            BigDecimal value = new BigDecimal(String.valueOf(params.get(key)));
+            if (!params.get(key).isNumber()) {
+                throw new IllegalArgumentException();
+            }
+            BigDecimal value = params.get(key).decimalValue();
             if (value.signum() <= 0
                     || value.compareTo(new BigDecimal("3000")) > 0
                     || value.scale() > 3) {

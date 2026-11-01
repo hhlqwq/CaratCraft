@@ -49,7 +49,13 @@ class MaterialHistoryTest {
         quotes = mock(CustomQuoteService.class);
         designs =
                 new CustomDesignServiceImpl(
-                        snapshots, bindings, mock(ProductionWorkOrderDao.class), quotes, stock);
+                        snapshots,
+                        bindings,
+                        mock(ProductionWorkOrderDao.class),
+                        quotes,
+                        stock,
+                        org.mockito.Mockito.mock(
+                                com.platform.modules.custom.dao.WorkOrderLogDao.class));
         draft = new CustomDesignSnapshotEntity();
         draft.setId(88L);
         draft.setVersion(1L);

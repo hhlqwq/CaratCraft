@@ -1,11 +1,9 @@
 package com.platform.modules.custom.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.platform.common.utils.JsonContract;
 import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomDesignSnapshotDao;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
@@ -39,8 +37,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     private final CustomQuoteService quoteService;
     private final ComponentStockDao componentStockDao;
 
-    @org.springframework.beans.factory.annotation.Autowired
-    private com.platform.modules.custom.dao.WorkOrderLogDao workOrderLogDao;
+    private final com.platform.modules.custom.dao.WorkOrderLogDao workOrderLogDao;
 
     /** 注入草稿、订单、工单、报价和库存的唯一持久化来源. */
     public CustomDesignServiceImpl(
@@ -48,12 +45,14 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             CustomOrderCustomizationDao orderCustomizationDao,
             ProductionWorkOrderDao workOrderDao,
             CustomQuoteService quoteService,
-            ComponentStockDao componentStockDao) {
+            ComponentStockDao componentStockDao,
+            com.platform.modules.custom.dao.WorkOrderLogDao workOrderLogDao) {
         this.snapshotDao = snapshotDao;
         this.orderCustomizationDao = orderCustomizationDao;
         this.workOrderDao = workOrderDao;
         this.quoteService = quoteService;
         this.componentStockDao = componentStockDao;
+        this.workOrderLogDao = workOrderLogDao;
     }
 
     /** 保存设计草稿，并固化当时的服务端报价 / Saves a draft and its server quote. */
@@ -78,8 +77,8 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         }
         snapshot.setUserId(userId);
         snapshot.setGoodsId(request.getGoodsId());
-        snapshot.setConfigurationJson(JSON.toJSONString(request));
-        snapshot.setPriceBreakdownJson(JSON.toJSONString(quote));
+        snapshot.setConfigurationJson(JsonContract.write(request));
+        snapshot.setPriceBreakdownJson(JsonContract.write(quote));
         snapshot.setPreviewUrl(previewUrl(request.getPreviewUrl(), quote));
         snapshot.setStatus("DRAFT");
         snapshot.setUpdateTime(new Date());
@@ -166,17 +165,6 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         return snapshot;
     }
 
-    /** 按创建时间倒序查询用户设计 / Lists user designs by creation time. */
-    @Override
-    public List<CustomDesignSnapshotEntity> listOwned(Long userId) {
-        return snapshotDao.selectList(
-                new LambdaQueryWrapper<CustomDesignSnapshotEntity>()
-                        .eq(CustomDesignSnapshotEntity::getUserId, userId)
-                        .ne(CustomDesignSnapshotEntity::getStatus, "ARCHIVED")
-                        .orderByDesc(CustomDesignSnapshotEntity::getCreateTime)
-                        .last("LIMIT 100"));
-    }
-
     /** 批量装配设计与订单关联, 避免列表逐条查询 / Batch assembles design-order relations. */
     @Override
     public Map<String, Object> listOwnedWithOrders(Long userId, int page, int limit) {
@@ -233,7 +221,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     public Map<String, Object> quoteOwned(Long snapshotId, Long userId) {
         CustomDesignSnapshotEntity snapshot = getOwned(snapshotId, userId);
         CustomQuoteRequest request =
-                JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+                JsonContract.read(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
         Map<String, Object> quote = quoteService.quote(request);
         requireFinishedLength(quote);
         return quote;
@@ -248,7 +236,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
             throw new IllegalArgumentException("该设计正在结算或已提交订单");
         }
         CustomQuoteRequest request =
-                JSON.parseObject(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
+                JsonContract.read(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
         Map<String, Object> quote = quoteService.quote(request);
         BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
         requireFinishedLength(quote);
@@ -260,7 +248,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                                 .eq("user_id", userId)
                                 .eq("status", "DRAFT")
                                 .eq("version", snapshot.getVersion())
-                                .set("price_breakdown_json", JSON.toJSONString(quote))
+                                .set("price_breakdown_json", JsonContract.write(quote))
                                 .setSql("version=version+1")
                                 .set("status", "LOCKED")
                                 .set("update_time", new Date()));
@@ -344,29 +332,34 @@ public class CustomDesignServiceImpl implements CustomDesignService {
 
     /** 库存变动前校验完整清单, 拒绝缺项、隐式数值转换和重复材料身份. */
     private List<FrozenStockLine> frozenStockLines(CustomDesignSnapshotEntity snapshot) {
-        JSONObject quote;
+        JsonNode quote;
         try {
-            quote = JSON.parseObject(snapshot.getPriceBreakdownJson());
-        } catch (JSONException error) {
+            quote = JsonContract.object(snapshot.getPriceBreakdownJson());
+        } catch (IllegalArgumentException error) {
             throw new IllegalStateException("冻结材料清单无效, 请重新生成设计快照");
         }
         if (quote == null
-                || !(quote.get("components") instanceof JSONArray components)
-                || components.isEmpty()) {
+                || !quote.path("components").isArray()
+                || quote.path("components").isEmpty()) {
             throw new IllegalStateException("冻结材料清单缺失, 请重新生成设计快照");
         }
         var result = new ArrayList<FrozenStockLine>();
         var identities = new HashSet<List<String>>();
-        for (Object value : components) {
-            if (!(value instanceof JSONObject line)
-                    || !(line.get("quantity") instanceof Integer quantity)
+        for (JsonNode line : quote.path("components")) {
+            JsonNode count = line.path("quantity");
+            int quantity = count.intValue();
+            String type = line.path("componentType").asText();
+            String code = line.path("optionCode").asText();
+            if (!line.isObject()
+                    || !count.isIntegralNumber()
+                    || !count.canConvertToInt()
                     || quantity < 0
                     || quantity > 10000
-                    || !(line.get("componentType") instanceof String type)
+                    || !line.path("componentType").isTextual()
                     || type.isBlank()
                     || !type.equals(type.trim())
                     || type.length() > 32
-                    || !(line.get("optionCode") instanceof String code)
+                    || !line.path("optionCode").isTextual()
                     || code.isBlank()
                     || !code.equals(code.trim())
                     || code.length() > 64

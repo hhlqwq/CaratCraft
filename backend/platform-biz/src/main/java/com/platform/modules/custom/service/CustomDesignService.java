@@ -4,7 +4,6 @@ import com.platform.modules.custom.dto.CustomQuoteRequest;
 import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Map;
 
 /** 定制设计服务 / Custom design service. */
@@ -17,9 +16,6 @@ public interface CustomDesignService {
 
     /** 获取当前用户的设计 / Gets an owned design. */
     CustomDesignSnapshotEntity getOwned(Long snapshotId, Long userId);
-
-    /** 查询当前用户的设计列表 / Lists owned designs. */
-    List<CustomDesignSnapshotEntity> listOwned(Long userId);
 
     /** 查询带订单关联的设计列表 / Lists owned designs with related orders. */
     Map<String, Object> listOwnedWithOrders(Long userId, int page, int limit);
