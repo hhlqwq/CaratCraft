@@ -2,6 +2,23 @@
 const assert = require('node:assert/strict');
 const {start} = require('./serve-admin-ui-fixture.cjs');
 
+/** 按真实关闭按钮收起当前弹窗, 避免直接导航遗留模态遮罩. */
+async function closeDialogs(page, confirmUnsaved = false) {
+    while (await page.locator('[role="dialog"]:visible').count()) {
+        const dialog = page.locator('[role="dialog"]:visible').last();
+        const element = await dialog.elementHandle();
+        const draft = confirmUnsaved && (await dialog.getAttribute('aria-label')) === '新增';
+        await dialog.locator('.el-dialog__headerbtn').first().click();
+        if (draft) {
+            await page.getByRole('button', {name: '离开', exact: true}).click();
+        }
+        await page.waitForFunction(
+            (node) => !node.isConnected || node.getClientRects().length === 0,
+            element
+        );
+    }
+}
+
 /** 覆盖组件注册、素材分页/切换、菜单选择器、消息转义和草稿弹窗. */
 async function main() {
     const packages = process.env.CARATCRAFT_NODE_MODULES;
@@ -105,7 +122,10 @@ async function main() {
         await page.getByRole('button', {name: '取消', exact: true}).click();
         await page.goto(base + '/#/wx-wx-assets');
         await page.getByText('隔离图片第1页', {exact: true}).waitFor();
-        assert.equal((await page.locator('.el-pagination .number.is-active').textContent()).trim(), '1');
+        assert.equal(
+            (await page.locator('.el-pagination .number.is-active').textContent()).trim(),
+            '1'
+        );
         await page.locator('.el-pagination .btn-next').click();
         await page.getByText('隔离图片第2页', {exact: true}).waitFor();
         assert.deepEqual(filePages.slice(0, 2), [1, 2]);
@@ -117,12 +137,14 @@ async function main() {
         await page.locator('.menu-item-title').getByText('隔离菜单', {exact: true}).click();
         await page.getByText('从图片库中选择', {exact: true}).click();
         await page.getByRole('dialog').getByText('隔离图片第1页', {exact: true}).waitFor();
+        await closeDialogs(page);
         await page.goto(base + '/#/wx-msg-reply-rule');
         await page.getByRole('button', {name: '新增', exact: true}).click();
         await page
             .getByRole('dialog', {name: '新增', exact: true})
             .getByPlaceholder('规则名称')
             .waitFor();
+        await closeDialogs(page);
         await page.goto(base + '/#/wx-wx-draft');
         await page.getByText('隔离图文', {exact: true}).waitFor();
         await page.getByRole('button', {name: '新增', exact: true}).click();
@@ -132,6 +154,7 @@ async function main() {
             .getByText('从素材库中选择', {exact: true})
             .click();
         await page.getByRole('dialog').getByText('隔离图片第1页', {exact: true}).waitFor();
+        await closeDialogs(page, true);
         await page.goto(base + '/#/wx-wx-draft');
         await page.getByRole('button', {name: '修改', exact: true}).click();
         await page.getByRole('dialog', {name: '修改', exact: true}).waitFor();
