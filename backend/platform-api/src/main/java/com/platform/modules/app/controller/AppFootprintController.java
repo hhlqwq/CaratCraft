@@ -1,124 +1,56 @@
 package com.platform.modules.app.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.annotation.LoginUser;
-import com.platform.common.utils.DateUtils;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.mall.entity.MallFootprintEntity;
+import com.platform.modules.mall.service.FootprintApplicationService;
+import com.platform.modules.mall.service.FootprintApplicationService.FootprintPage;
 import com.platform.modules.mall.service.MallFootprintService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
- * 作者: @author hehailong <br>
- * 时间: 2017-08-11 08:32<br>
+ * 本人足迹入口只提供认证归属和分页输入.
  *
- * <p>描述: AppController <br>
+ * @author hehailong
  */
 @Tag(name = "会员足迹-AppFootprintController")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/app/footprint")
 public class AppFootprintController extends AppBaseController {
-    @Autowired private MallFootprintService footprintService;
+    private final MallFootprintService footprintService;
+    private final FootprintApplicationService footprints;
 
-    /** 按本人归属删除指定浏览足迹. */
-    @Operation(summary = "删除足迹")
+    /** 删除本人所选商品的浏览记录, 不用外部记录推导商品身份. */
     @PostMapping("delete")
-    public RestResponse<Map<String, Object>> delete(
-            @LoginUser WxUserEntity loginUser, Integer footprintId) {
-        if (footprintId == null) {
-            return RestResponse.fail("删除出错");
-        }
-        // 删除当天的同一个商品的足迹
-        MallFootprintEntity footprintEntity = footprintService.getById(footprintId);
-        //
-        if (loginUser == null
-                || loginUser.getId() == null
-                || footprintEntity == null
-                || footprintEntity.getGoodsId() == null) {
-            return RestResponse.fail("删除出错");
-        }
-
-        Map<String, Object> param = new HashMap<String, Object>();
-        param.put("userId", loginUser.getId());
-        param.put("goodsId", footprintEntity.getGoodsId());
-        footprintService.deleteByParam(param);
-
+    public RestResponse<String> delete(
+            @LoginUser WxUserEntity user, @RequestParam Integer footprintId) {
+        footprints.delete(user.getId(), footprintId);
         return RestResponse.ok("删除成功");
     }
 
-    /** 分页查询本人浏览足迹并按日期分组展示. */
-    @Operation(summary = "获取足迹列表")
+    /** 使用唯一标准分页返回本人每商品最新浏览. */
     @PostMapping("list")
-    public RestResponse<Map<String, Object>> list(
-            @LoginUser WxUserEntity loginUser, @RequestParam Map<String, Object> params) {
-        Map<String, Object> resultObj = new HashMap<String, Object>();
-
-        // 查询列表数据
-        List<MallFootprintEntity> footprintVos =
-                footprintService.queryListFootprint(loginUser.getId() + "");
-
-        Page<MallFootprintEntity> page = new Query<MallFootprintEntity>(params).getPage();
-        page.setRecords(footprintVos);
-
-        //
-        Map<String, List<MallFootprintEntity>> footPrintMap =
-                new TreeMap<String, List<MallFootprintEntity>>(
-                        new Comparator<String>() {
-                            /*
-                             * int compare(Object o1, Object o2) 返回一个基本类型的整型，
-                             * 返回负数表示：o1 小于o2，
-                             * 返回0 表示：o1和o2相等，
-                             * 返回正数表示：o1大于o2。
-                             */
-                            @Override
-                            public int compare(String o1, String o2) {
-
-                                // 指定排序器按照降序排列
-                                return o2.compareTo(o1);
-                            }
-                        });
-
-        List<List<MallFootprintEntity>> footprintVoList =
-                new ArrayList<List<MallFootprintEntity>>();
-        if (null != footprintVos && footprintVos.size() > 0) {
-            for (MallFootprintEntity footprintVo : footprintVos) {
-                String addTime =
-                        DateUtils.timeToStr(footprintVo.getAddTime(), DateUtils.DATE_PATTERN);
-                List<MallFootprintEntity> tmpList = footPrintMap.get(addTime);
-                if (null == footPrintMap.get(addTime)) {
-                    tmpList = new ArrayList<MallFootprintEntity>();
-                }
-                tmpList.add(footprintVo);
-                footPrintMap.put(addTime, tmpList);
-            }
-            for (Map.Entry<String, List<MallFootprintEntity>> entry : footPrintMap.entrySet()) {
-                footprintVoList.add(entry.getValue());
-            }
-        }
-        resultObj.put("count", footprintVos == null ? 0 : footprintVos.size());
-        resultObj.put("totalPages", page.getPages());
-        resultObj.put("numsPerPage", page.getSize());
-        resultObj.put("currentPage", page.getCurrent());
-        resultObj.put("data", footprintVoList);
-
-        return RestResponse.ok(resultObj);
+    public RestResponse<FootprintPage> list(
+            @LoginUser WxUserEntity user,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return RestResponse.ok(footprints.list(user.getId(), page, size));
     }
 
     /** 查询当前用户作为分享来源的商品浏览记录. */

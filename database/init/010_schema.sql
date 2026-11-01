@@ -837,7 +837,8 @@ CREATE TABLE `mall_footprint` (
     `goods_id` int NOT NULL DEFAULT '0' COMMENT '商品id',
     `add_time` int NOT NULL DEFAULT '0' COMMENT '记录时间',
     `referrer` int DEFAULT NULL COMMENT '转发人',
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `ix_footprint_owner_goods` (`user_id`,`goods_id`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 CREATE TABLE `mall_goods` (
     `id` int unsigned NOT NULL AUTO_INCREMENT,

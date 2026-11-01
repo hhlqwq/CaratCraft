@@ -1,25 +1,28 @@
 <view class="container">
     <view class="footprint">
-        <view class="day-item" wx:for="{{footprintList}}" wx:key="index">
-            <view class="day-hd">{{item[0].addTime}}</view>
+        <view class="day-item" wx:for="{{footprintGroups}}" wx:key="date">
+            <view class="day-hd">{{item.date}}</view>
             <view class="day-list">
-                <view class="item" data-footprint="{{iitem}}" bindtouchstart="touchStart" bindtouchend="touchEnd" bindtap="deleteItem" wx:for="{{item}}"  wx:for-item="iitem" wx:key="id">
-                    <image class="img" src="{{iitem.listPicUrl}}" webp="{{true}}"></image>
+                <view class="item" data-id="{{row.id}}" bindtap="openItem" catchlongpress="deleteItem" wx:for="{{item.items}}" wx:for-item="row" wx:key="id">
+                    <image class="img" src="{{row.listPicUrl}}" webp="{{true}}" />
                     <view class="info">
-                        <view class="name">{{iitem.name}}</view>
-                        <view class="subtitle">{{iitem.goodsBrief}}</view>
-                        <view class="price">￥{{iitem.retailPrice}}</view>
+                        <view class="name">{{row.name}}</view>
+                        <view class="subtitle">{{row.goodsBrief}}</view>
+                        <view class="price">￥{{row.retailPrice}}</view>
                     </view>
                 </view>
             </view>
         </view>
     </view>
-    <view class="empty-state" wx:if="{{footprintList.length === 0}}">
+    <view wx:if="{{loading}}">正在读取足迹...</view>
+    <view wx:elif="{{error}}" bindtap="retryLoad">{{error}}，点击重试</view>
+    <view class="empty-state" wx:elif="{{records.length === 0}}">
         <view class="empty-icon">◇</view>
         <view class="empty-title">暂无浏览足迹</view>
         <view class="empty-desc">浏览珠宝商品后，这里会留下记录</view>
         <navigator class="empty-action" url="/pages/index/index" open-type="switchTab">去逛逛</navigator>
     </view>
+    <view wx:elif="{{nomore}}">已显示全部足迹</view>
 </view>
 
 <merchant-contact />

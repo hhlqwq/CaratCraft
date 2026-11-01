@@ -10,7 +10,6 @@ import com.platform.modules.mall.service.MallFootprintService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /** 分享足迹分页不得重复读取第一页, 不允许越界或偏移溢出. */
 class FootprintPaginationTest {
@@ -54,9 +53,7 @@ class FootprintPaginationTest {
 
     /** 构造只使用隔离持久化边界的入口. */
     private AppFootprintController controller(MallFootprintService footprints) {
-        var controller = new AppFootprintController();
-        ReflectionTestUtils.setField(controller, "footprintService", footprints);
-        return controller;
+        return new AppFootprintController(footprints, null);
     }
 
     /** 使用明确认证ID, 不读取真实用户资料. */

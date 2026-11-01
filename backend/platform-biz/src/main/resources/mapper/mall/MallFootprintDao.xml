@@ -96,32 +96,26 @@
         </if>
     </select>
 
-    <select id="queryListFootprint" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
-        SELECT
-            f.id,
-            f.user_id,
-            f.goods_id,
-            f.add_time,
-            f.referrer,
-            g.NAME,
-            g.list_pic_url,
-            g.goods_brief AS goods_brief,
-            g.retail_price AS retail_price
-        FROM
-            mall_footprint f
-            INNER JOIN (
-                SELECT
-                    MAX(id) AS id
-                FROM
-                    mall_footprint
-                WHERE
-                    user_id = #{0}
-                GROUP BY
-                    goods_id
-            ) latest ON latest.id = f.id
-            LEFT JOIN mall_goods g ON f.goods_id = g.id
-        WHERE g.is_delete = 0
-        ORDER BY
-            f.id DESC
+    <sql id="ownedLatest">
+        FROM mall_footprint f
+        JOIN (SELECT MAX(id) id FROM mall_footprint WHERE user_id=#{userId} GROUP BY goods_id) latest
+            ON latest.id=f.id
+        JOIN mall_goods g ON g.id=f.goods_id AND g.is_delete=0
+    </sql>
+
+    <select id="countOwned" resultType="long">
+        SELECT COUNT(*) <include refid="ownedLatest"/>
     </select>
+
+    <select id="listOwned" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        SELECT f.id,f.user_id,f.goods_id,f.add_time,g.name,g.list_pic_url,g.goods_brief,g.retail_price
+        <include refid="ownedLatest"/>
+        ORDER BY f.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <delete id="deleteOwnedGoods">
+        DELETE f FROM mall_footprint f
+        JOIN mall_footprint chosen ON chosen.goods_id=f.goods_id AND chosen.user_id=f.user_id
+        WHERE chosen.id=#{footprintId} AND chosen.user_id=#{userId}
+    </delete>
 </mapper>

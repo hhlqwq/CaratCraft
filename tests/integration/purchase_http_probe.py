@@ -137,6 +137,19 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
         request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
         assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND content='隔离反馈😀'") == "1"
+        sql("DELETE FROM mall_footprint WHERE user_id IN(9000001,9000002)")
+        sql("INSERT INTO mall_footprint(id,user_id,goods_id,add_time) VALUES"
+            f"(19950101,9000001,{goods_id},1735749000),(19950102,9000001,{goods_id},1735749000),"
+            f"(19950103,9000001,1999105,1735749000),(19950104,9000002,{goods_id},1735749000)")
+        footprints = request("/app/footprint/list?page=1&size=1", {})
+        next_footprints = request("/app/footprint/list?page=2&size=1", {})
+        assert footprints["total"] == next_footprints["total"] == 2
+        assert footprints["records"][0]["id"] == 19950103 and next_footprints["records"][0]["id"] == 19950102
+        request("/app/footprint/list?page=1&size=101", {}, expected=400)
+        request("/app/footprint/delete?footprintId=19950104", {}, expected=404)
+        request("/app/footprint/delete?footprintId=19950102", {})
+        assert sql(f"SELECT COUNT(*) FROM mall_footprint WHERE user_id=9000001 AND goods_id={goods_id}") == "0"
+        assert sql("SELECT COUNT(*) FROM mall_footprint WHERE id=19950104") == "1"
         goods_page = request("/custom/configuration/goods?page=1&size=1", management=True)
         assert len(goods_page["records"]) == 1 and goods_page["total"] >= 1
         assert set(goods_page["records"][0]) == {"id", "name"}

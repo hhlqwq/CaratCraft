@@ -1,97 +1,73 @@
 const util = require('../../../utils/util.js');
 const api = require('../../../config/api.js');
+const {createPagedFeed} = require('../../../services/paged-feed.js');
+const {withPageReads} = require('../../../services/page-read.js');
+const {performPageAction} = require('../../../services/page-action.js');
 
-Page({
-    data: {
-        footprintList: [],
-    },
-    /** 下拉时重新加载页面数据并结束刷新提示. */
-    onPullDownRefresh() {
-        // 增加下拉刷新数据的功能
-        this.getFootprintList(true);
-    },
-    /** 读取本人浏览足迹并按日期更新展示集合. */
-    getFootprintList(stopRefresh) {
-        let tmpFootPrint;
-        util.request(api.FootprintList)
-            .then((res) => {
-                if (res.code === 0) {
-                    if (res.data.data != undefined) {
-                        tmpFootPrint = res.data.data;
-                    } else {
-                        tmpFootPrint = [];
+const feed = createPagedFeed({
+    url: api.FootprintList,
+    listField: 'records',
+    responseField: 'records',
+    refreshOnShow: true,
+});
+
+Page(
+    withPageReads({
+        ...feed,
+        data: {...feed.data, footprintGroups: []},
+        /** 清除旧日期分组, 读取和账号隔离继续复用共享分页. */
+        resetFeed() {
+            this.setData({footprintGroups: []});
+            return feed.resetFeed.call(this);
+        },
+        /** 将当前已成功读取的分页记录按服务端明确日期分组. */
+        readFeed(page) {
+            return feed.readFeed.call(this, page).then((success) => {
+                if (success) {
+                    const groups = new Map();
+                    for (const row of this.data.records) {
+                        if (!groups.has(row.date)) {
+                            groups.set(row.date, []);
+                        }
+                        groups.get(row.date).push(row);
                     }
-
                     this.setData({
-                        footprintList: tmpFootPrint,
+                        footprintGroups: Array.from(groups, ([date, items]) => ({date, items})),
                     });
                 }
-                if (stopRefresh) {
-                    wx.stopPullDownRefresh();
-                }
-            })
-            .catch(function () {
-                if (stopRefresh) {
-                    wx.stopPullDownRefresh();
-                }
+                return success;
             });
-    },
-    /** 删除本人指定浏览足迹并更新列表. */
-    deleteItem(event) {
-        const footprint = event.currentTarget.dataset.footprint;
-        const touchTime = this.data.touch_end - this.data.touch_start;
-        //如果按下时间大于350为长按
-        if (touchTime > 350) {
-            wx.showModal({
-                title: '',
-                content: '要删除所选足迹？',
-                success: (res) => {
-                    if (res.confirm) {
-                        util.request(api.FootprintDelete, {footprintId: footprint.id}).then(
-                            (res) => {
-                                if (res.code === 0) {
-                                    wx.showToast({
-                                        title: res.msg,
-                                        icon: 'success',
-                                        duration: 2000,
-                                        complete: () => {
-                                            this.getFootprintList();
-                                        },
-                                    });
-                                } else {
-                                    util.showErrorToast(res.msg);
-                                }
-                            }
-                        );
-                    }
+        },
+        /** 只从当前已加载列表解析事件身份, 不信任外部对象. */
+        selectedRow(event) {
+            const id = Number(event.currentTarget.dataset.id);
+            return this.data.records.find((row) => row.id === id);
+        },
+        /** 普通点击进入当前商品, 确认和写入期间不跳转. */
+        openItem(event) {
+            const row = this.selectedRow(event);
+            if (row && !this.data.actionBusy) {
+                wx.navigateTo({url: '/pages/goods/goods?id=' + row.goodsId});
+            }
+        },
+        /** 长按从确认开始防重, 删除成功重新读取第一页, 失败保留原列表. */
+        deleteItem(event) {
+            const row = this.selectedRow(event);
+            if (!row) {
+                return Promise.resolve(false);
+            }
+            return performPageAction(this, {
+                confirmation: '删除该商品的全部浏览足迹？',
+                canRun: () =>
+                    !this.data.loading &&
+                    !this.data.error &&
+                    this.data.records.some((item) => item.id === row.id),
+                request: () => util.request(api.FootprintDelete, {footprintId: row.id}),
+                onSuccess: () => {
+                    wx.showToast({title: '已删除', icon: 'success'});
+                    this.resetFeed();
                 },
             });
-        } else {
-            wx.navigateTo({
-                url: '/pages/goods/goods?id=' + footprint.goodsId,
-            });
-        }
-    },
-    /** 初始化浏览足迹状态并读取页面所需数据. */
-    onLoad(options) {
-        this.getFootprintList();
-    },
-
-    /** 页面再次展示时刷新浏览足迹状态. */
-    onShow() {
-        this.getFootprintList();
-    },
-
-    //按下事件开始
-    touchStart(e) {
-        this.setData({
-            touch_start: e.timeStamp,
-        });
-    },
-    //按下事件结束
-    touchEnd(e) {
-        this.setData({
-            touch_end: e.timeStamp,
-        });
-    },
-});
+        },
+    })
+);

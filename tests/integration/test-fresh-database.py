@@ -3,10 +3,12 @@
 import argparse
 from datetime import datetime
 import importlib.util
+import hashlib
 import json
 import os
 from pathlib import Path
 import secrets
+from decimal import Decimal
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location("isolated", ROOT / "tests/integration/run-community-regressions.py")
@@ -28,6 +30,7 @@ def verify(mysql, env):
         "noMigrationLedger": sql("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='CC_SCHEMA_MIGRATION'") == "0",
         "noBridgeGoods": sql("SELECT COUNT(*) FROM mall_goods WHERE goods_sn='DEMO-BRIDGE-001'") == "0",
         "feedbackUnicode": sql("SELECT TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_feedback'") == "utf8mb4_unicode_ci",
+        "footprintOwnerIndex": sql("SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_footprint' AND INDEX_NAME='ix_footprint_owner_goods'") == "user_id,goods_id,id",
     }
     catalog = json.loads((ROOT / "backend/platform-biz/src/main/resources/catalog/customer-material-catalog.json").read_text("utf-8"))
     actual = sql("SELECT option_code,component_type,name,material_params,z_index,enabled,price_delta FROM CC_COMPONENT_OPTION WHERE goods_id=1999105 AND option_code LIKE 'client-%' ORDER BY option_code")
@@ -35,7 +38,7 @@ def verify(mysql, env):
     checks["catalogExact"] = len(rows) == len(catalog["options"]) == 112
     for expected in catalog["options"]:
         row = rows.get(expected["optionCode"])
-        if row is None or [row[0], row[1], json.loads(row[2]), int(row[3]), int(row[4]), float(row[5])] != [expected["componentType"], expected["name"], json.loads(expected["materialParams"]), expected["zIndex"], 0, 0]:
+        if row is None or [row[0], row[1], json.loads(row[2]), int(row[3]), int(row[4]), Decimal(row[5])] != [expected["componentType"], expected["name"], json.loads(expected["materialParams"]), expected["zIndex"], 0, 0]:
             checks["catalogExact"] = False
     checks["candidateStockZero"] = sql("SELECT COUNT(*) FROM CC_COMPONENT_STOCK WHERE goods_id=1999105 AND option_code LIKE 'client-%' AND stock=0") == "112"
     spec = importlib.util.spec_from_file_location("encoding", ROOT / "tools/database/check-text-encoding.py")
@@ -45,6 +48,8 @@ def verify(mysql, env):
     text = encoding.inspect_database(env["MYSQL_DATABASE"])
     report = {"schemaVersion": 1, "checks": checks, "encoding": text,
               "businessDatabaseChanged": False, "initializationFiles": sorted(path.name for path in (ROOT / "database/init").iterdir())}
+    report["initializationSha256"] = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                                      for path in sorted((ROOT / "database/init").iterdir())}
     if not all(checks.values()) or not text["ok"]:
         raise AssertionError(json.dumps(report, ensure_ascii=False))
     return report
