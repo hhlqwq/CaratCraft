@@ -68,7 +68,25 @@ class MaterialHistoryTest {
     @Test
     void editUpdatesOwnedVersion() {
         when(snapshots.update(any(), any())).thenReturn(1);
+        when(quotes.quote(any()))
+                .thenReturn(
+                        Map.of("components", List.of(Map.of("assetUrl", "/upload/preview.png"))));
         var result = designs.saveDraft(7L, request);
+        assertEquals("/upload/preview.png", draft.getPreviewUrl());
+        verify(snapshots)
+                .update(
+                        any(),
+                        org.mockito.ArgumentMatchers.argThat(
+                                wrapper -> {
+                                    var update =
+                                            (com.baomidou.mybatisplus.core.conditions.update
+                                                                    .UpdateWrapper<
+                                                            CustomDesignSnapshotEntity>)
+                                                    wrapper;
+                                    update.getSqlSet();
+                                    return update.getParamNameValuePairs()
+                                            .containsValue("/upload/preview.png");
+                                }));
         assertEquals(88L, result.get("snapshotId"));
         assertEquals(2L, result.get("version"));
         verify(snapshots, never()).insert(any(CustomDesignSnapshotEntity.class));
@@ -78,11 +96,11 @@ class MaterialHistoryTest {
     @Test
     void rejectsStaleForeignAndOrderedDrafts() {
         request.setVersion(0L);
-        assertThrows(IllegalArgumentException.class, () -> designs.saveDraft(7L, request));
+        assertThrows(IllegalStateException.class, () -> designs.saveDraft(7L, request));
         request.setVersion(1L);
         assertThrows(IllegalArgumentException.class, () -> designs.saveDraft(9L, request));
         draft.setStatus("ORDERED");
-        assertThrows(IllegalArgumentException.class, () -> designs.saveDraft(7L, request));
+        assertThrows(IllegalStateException.class, () -> designs.saveDraft(7L, request));
         verify(snapshots, never()).update(any(), any());
     }
 

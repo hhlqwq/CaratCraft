@@ -64,6 +64,23 @@ class CustomDesignServiceImplTest {
         when(snapshotDao.insert(any(CustomDesignSnapshotEntity.class))).thenReturn(1);
     }
 
+    /** 新建草稿采用材料缩略图, 拒绝用户注入外部图片地址. */
+    @Test
+    void draftPersistsTrustedPreview() {
+        when(quoteService.quote(any()))
+                .thenReturn(
+                        Map.of("components", List.of(Map.of("assetUrl", "/upload/preview.png"))));
+        var request = new CustomQuoteRequest();
+        request.setGoodsId(10);
+        service.saveDraft(7L, request);
+        var captured = org.mockito.ArgumentCaptor.forClass(CustomDesignSnapshotEntity.class);
+        verify(snapshotDao).insert(captured.capture());
+        assertEquals("/upload/preview.png", captured.getValue().getPreviewUrl());
+        request.setPreviewUrl("https://untrusted.invalid/image.png");
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class, () -> service.saveDraft(7L, request));
+    }
+
     /** 验证设计保存、锁价和订单绑定 / Verifies save, price lock, and order binding. */
     @Test
     void designCanBeSavedLockedAndBound() {

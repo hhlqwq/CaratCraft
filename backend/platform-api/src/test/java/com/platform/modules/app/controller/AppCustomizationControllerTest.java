@@ -17,8 +17,6 @@ import com.platform.modules.custom.service.CustomQuoteService;
 import com.platform.modules.wx.entity.WxUserEntity;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Method;
 
@@ -35,12 +33,8 @@ class AppCustomizationControllerTest {
         AppCustomizationController controller =
                 new AppCustomizationController(productService, quoteService, designService);
 
-        ResponseEntity<RestResponse<Object>> response = controller.quote(new CustomQuoteRequest());
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getCode());
-        assertEquals("请选择必选组件：style", response.getBody().getMsg());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class, () -> controller.quote(new CustomQuoteRequest()));
     }
 
     /** 验证设计详情只通过本人查询服务返回 / Verifies owned snapshot detail lookup. */
@@ -59,11 +53,56 @@ class AppCustomizationControllerTest {
         WxUserEntity user = new WxUserEntity();
         user.setId(7L);
 
-        ResponseEntity<RestResponse<Object>> response = controller.detail(user, 88L);
+        RestResponse<Object> response = controller.detail(user, 88L);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(snapshot, response.getBody().getData());
+        assertNotNull(response);
+        assertEquals(snapshot, response.getData());
+    }
+
+    /** 通过真实MVC检查读取方法和错误状态, 控制器不得吞掉409冲突. */
+    @Test
+    void mvcPreservesStatusAndReadMethod() throws Exception {
+        var products = mock(CustomProductService.class);
+        var quotes = mock(CustomQuoteService.class);
+        var mvc =
+                org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup(
+                                new AppCustomizationController(
+                                        products, quotes, mock(CustomDesignService.class)))
+                        .setControllerAdvice(
+                                new com.platform.common.exception.BusinessExceptionHandler(),
+                                new com.platform.common.exception.RestStatusAdvice())
+                        .build();
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                        "/app/customization/config")
+                                .param("goodsId", "10"))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isOk());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                "/app/customization/config"))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isMethodNotAllowed());
+        org.mockito.Mockito.doThrow(new IllegalStateException("并发冲突")).when(quotes).quote(any());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        "/app/customization/quote")
+                                .contentType("application/json")
+                                .content("{\"goodsId\":10}"))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isConflict());
+        org.mockito.Mockito.doThrow(new IllegalArgumentException("参数无效")).when(quotes).quote(any());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        "/app/customization/quote")
+                                .contentType("application/json")
+                                .content("{\"goodsId\":10}"))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isBadRequest());
     }
 
     /** 验证商品详情接口允许匿名访问 / Verifies anonymous access annotation. */

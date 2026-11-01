@@ -74,15 +74,14 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                         || request.getVersion() == null
                         || !request.getVersion().equals(snapshot.getVersion())
                         || !request.getGoodsId().equals(snapshot.getGoodsId()))) {
-            throw new IllegalArgumentException("草稿已被修改或锁定, 请刷新后再编辑");
+            throw new IllegalStateException("草稿已被修改或锁定, 请刷新后再编辑");
         }
         snapshot.setUserId(userId);
         snapshot.setGoodsId(request.getGoodsId());
         snapshot.setConfigurationJson(JSON.toJSONString(request));
         snapshot.setPriceBreakdownJson(JSON.toJSONString(quote));
-        snapshot.setPreviewUrl(request.getPreviewUrl());
+        snapshot.setPreviewUrl(previewUrl(request.getPreviewUrl(), quote));
         snapshot.setStatus("DRAFT");
-        snapshot.setPreviewUrl(null);
         snapshot.setUpdateTime(new Date());
         if (creating) {
             snapshot.setVersion(0L);
@@ -98,7 +97,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                                     .eq("version", request.getVersion())
                                     .set("configuration_json", snapshot.getConfigurationJson())
                                     .set("price_breakdown_json", snapshot.getPriceBreakdownJson())
-                                    .set("preview_url", null)
+                                    .set("preview_url", snapshot.getPreviewUrl())
                                     .set("update_time", new Date())
                                     .setSql("version=version+1"))
                     != 1) {
@@ -113,6 +112,28 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         result.put("status", snapshot.getStatus());
         result.put("quote", quote);
         return result;
+    }
+
+    /** 仅选用当前材料的可信图层作缩略图, 不将任意用户URL作为预览来源. */
+    private static String previewUrl(String requested, Map<String, Object> quote) {
+        String fallback = null;
+        boolean matched = false;
+        if (quote.get("components") instanceof List<?> components) {
+            for (Object value : components) {
+                if (value instanceof Map<?, ?> line
+                        && line.get("assetUrl") instanceof String url
+                        && !url.isBlank()) {
+                    if (fallback == null) {
+                        fallback = url;
+                    }
+                    matched |= url.equals(requested);
+                }
+            }
+        }
+        if (requested != null && !requested.isBlank() && !matched) {
+            throw new IllegalArgumentException("预览图片须来自当前设计材料");
+        }
+        return matched ? requested : fallback;
     }
 
     /** 仅归档本人可编辑草稿, 不物理删除订单历史. */
@@ -244,7 +265,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                                 .set("status", "LOCKED")
                                 .set("update_time", new Date()));
         if (updated != 1) {
-            throw new IllegalArgumentException("设计已被其他结算请求占用");
+            throw new IllegalStateException("设计已被其他结算请求占用");
         }
         return totalPrice;
     }
