@@ -103,8 +103,8 @@ public class AppPayController extends AppBaseController {
                 return RestResponse.fail("查询失败,error=" + tradeState);
             }
         } catch (WxPayException e) {
-            e.printStackTrace();
-            return RestResponse.fail("下单失败,error=" + e.getMessage());
+            log.warn("查询订单支付状态失败, orderId={}", orderId, e);
+            return RestResponse.fail("支付结果待确认, 请稍后重试");
         }
     }
 
@@ -115,7 +115,7 @@ public class AppPayController extends AppBaseController {
      */
     @Operation(hidden = true)
     @IgnoreAuth
-    @RequestMapping("/notify")
+    @PostMapping("/notify")
     public void notify(HttpServletRequest request, HttpServletResponse response) {
         try {
             request.setCharacterEncoding("UTF-8");
