@@ -1,11 +1,8 @@
 package com.platform.modules.app.controller;
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.github.qcloudsms.SmsSingleSenderResult;
 import com.platform.annotation.LoginUser;
-import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
-import com.platform.common.utils.SmsUtil;
 import com.platform.common.utils.StringUtils;
 import com.platform.modules.app.request.ApiUserBindMobileRequest;
 import com.platform.modules.app.request.ApiUserProfileRequest;
@@ -14,8 +11,8 @@ import com.platform.modules.app.service.MobileVerificationService;
 import com.platform.modules.app.vo.LoginUserInfo;
 import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.sys.entity.SmsConfig;
-import com.platform.modules.sys.service.SysConfigService;
 import com.platform.modules.wx.entity.WxUserEntity;
+import com.platform.modules.wx.service.MobileVerificationSmsService;
 import com.platform.modules.wx.service.WxUserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,18 +37,18 @@ public class AppUserController extends AppBaseController {
     private static final Pattern MOBILE_PATTERN = Pattern.compile("^1[3-9]\\d{9}$");
     private static final int MAX_NICKNAME_LENGTH = 32;
     private final WxUserService userService;
-    private final SysConfigService sysConfigService;
+    private final MobileVerificationSmsService sms;
     private final MobileVerificationService verification;
     private final LegalDocumentService legalDocuments;
 
     /** 注入本人资料、短信验证及当前协议检查, 不从客户端接收其他用户身份. */
     public AppUserController(
             WxUserService userService,
-            SysConfigService sysConfigService,
+            MobileVerificationSmsService sms,
             MobileVerificationService verification,
             LegalDocumentService legalDocuments) {
         this.userService = userService;
-        this.sysConfigService = sysConfigService;
+        this.sms = sms;
         this.verification = verification;
         this.legalDocuments = legalDocuments;
     }
@@ -62,37 +59,22 @@ public class AppUserController extends AppBaseController {
     public RestResponse<String> smscode(
             @LoginUser WxUserEntity loginUser, @RequestBody ApiUserSmsCodeRequest request) {
         legalDocuments.requireAccepted(loginUser.getId());
-        String phone = request.getPhone();
+        String phone = request == null ? null : request.getPhone();
         if (StringUtils.isNullOrEmpty(phone)) {
             return RestResponse.fail("手机号不能为空");
         }
         if (!isValidMobile(phone)) {
             return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
         }
+        SmsConfig config = sms.configuration();
+        String configError = sms.configurationError(config);
+        if (configError != null) {
+            return RestResponse.fail(configError);
+        }
         String smsCode = verification.begin(loginUser.getId(), phone);
-        SmsConfig config =
-                sysConfigService.getConfigObject(Constant.SMS_CONFIG_KEY, SmsConfig.class);
-        if (StringUtils.isNullOrEmpty(config)) {
-            return RestResponse.fail("请先配置短信平台信息");
-        }
-        if (StringUtils.isNullOrEmpty(config.getAppid())) {
-            return RestResponse.fail("请先配置短信平台APPID");
-        }
-        if (StringUtils.isNullOrEmpty(config.getAppkey())) {
-            return RestResponse.fail("请先配置短信平台KEY");
-        }
-        if (StringUtils.isNullOrEmpty(config.getSign())) {
-            return RestResponse.fail("请先配置短信平台签名");
-        }
-        try {
-            SmsSingleSenderResult result =
-                    SmsUtil.crSendSms(
-                            config.getAppid(), config.getAppkey(), 0, "86", phone, smsCode);
-            if (result.result != 0) {
-                return RestResponse.fail("短信发送失败");
-            }
-        } catch (Exception e) {
-            return RestResponse.fail("短信发送失败");
+        String sendError = sms.send(config, phone, smsCode);
+        if (sendError != null) {
+            return RestResponse.fail(sendError);
         }
         verification.issued(loginUser.getId(), phone, smsCode);
         return RestResponse.ok("短信发送成功");

@@ -20,6 +20,7 @@ package com.platform.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.platform.common.utils.ThreadSafeDateFormat;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -28,7 +29,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,21 +43,19 @@ public class WebConfigurer implements WebMvcConfigurer {
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         for (HttpMessageConverter<?> messageConverter : converters) {
-            if (messageConverter instanceof MappingJackson2HttpMessageConverter) {
-                // 设置日期格式
-                ObjectMapper objectMapper = new ObjectMapper();
+            if (messageConverter instanceof MappingJackson2HttpMessageConverter converter) {
+                // 复用Spring Boot已注册模块的映射器, 避免新建实例丢失项目模块.
+                ObjectMapper objectMapper = converter.getObjectMapper().copy();
                 // 反序列化忽略实体中不存在的参数
                 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                // jackson时间格式化
-                objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-                ((MappingJackson2HttpMessageConverter) messageConverter)
-                        .setObjectMapper(objectMapper);
+                // jackson时间格式化使用线程安全格式器, 避免并发请求共享SimpleDateFormat.
+                objectMapper.setDateFormat(new ThreadSafeDateFormat("yyyy-MM-dd HH:mm:ss"));
+                converter.setObjectMapper(objectMapper);
 
                 // 设置中文编码格式
                 List<MediaType> list = new ArrayList<>();
                 list.add(new MediaType("application", "json", StandardCharsets.UTF_8));
-                ((MappingJackson2HttpMessageConverter) messageConverter)
-                        .setSupportedMediaTypes(list);
+                converter.setSupportedMediaTypes(list);
             }
         }
     }

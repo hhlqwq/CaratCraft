@@ -11,6 +11,7 @@ import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
+import com.platform.modules.mall.service.CustomerReviewService;
 import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
@@ -50,6 +51,7 @@ public class AppOrderController extends AppBaseController {
     private final MallOrderService orderService;
     private final com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
     private final MallOrderGoodsService orderGoodsService;
+    private final CustomerReviewService reviews;
 
     private final CustomOrderCustomizationDao customOrderCustomizationDao;
     private final CustomDesignSnapshotDao customDesignSnapshotDao;
@@ -140,6 +142,10 @@ public class AppOrderController extends AppBaseController {
 
         // 订单可操作的选择,删除，支付，收货，评论，退换货
         Map<String, Object> handleOption = orderInfo.getHandleOption();
+        if (Boolean.TRUE.equals(handleOption.get("comment"))
+                && Integer.valueOf(2).equals(orderInfo.getPayStatus())) {
+            reviews.markReviewed(loginUser.getId(), orderGoods);
+        }
         //
         resultObj.put("orderInfo", orderInfo);
         resultObj.put("legalDocuments", legalDocuments.orderDocuments(orderId, loginUser.getId()));

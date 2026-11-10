@@ -60,6 +60,7 @@ class FeedbackApplicationServiceTest {
         assertEquals(20_000_000L, row.getUserId());
         assertEquals("😀".repeat(60), row.getUserName());
         assertEquals("建议完善说明", row.getContent());
+        assertEquals(0, row.getStatus());
     }
 
     /** 写入失败不向用户报告成功. */

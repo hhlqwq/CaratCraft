@@ -45,7 +45,7 @@ public class FeedbackApplicationService {
         row.setMobile(request.getMobile().trim());
         row.setContent(request.getContent().trim());
         row.setFeedType(request.getIndex());
-        row.setStatus(1);
+        row.setStatus(0);
         row.setAddTime(new Date());
         if (feedback.insert(row) != 1) {
             throw new IllegalStateException("反馈保存失败, 请稍后核对");

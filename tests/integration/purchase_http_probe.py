@@ -136,7 +136,7 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         request("/app/feedback/save", {"index": 1, "mobile": "13800000000", "content": "  隔离反馈😀  "})
         request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
         request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
-        assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND content='隔离反馈😀'") == "1"
+        assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND status=0 AND feed_type=1 AND content='隔离反馈😀'") == "1"
         sql("DELETE FROM mall_footprint WHERE user_id IN(9000001,9000002)")
         sql("INSERT INTO mall_footprint(id,user_id,goods_id,add_time) VALUES"
             f"(19950101,9000001,{goods_id},1735749000),(19950102,9000001,{goods_id},1735749000),"
@@ -145,6 +145,9 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         next_footprints = request("/app/footprint/list?page=2&size=1", {})
         assert footprints["total"] == next_footprints["total"] == 2
         assert footprints["records"][0]["id"] == 19950103 and next_footprints["records"][0]["id"] == 19950102
+        sql("UPDATE mall_footprint SET referrer=9000001 WHERE id=19950102")
+        shared = request("/app/footprint/sharelist?page=1&size=20", {})["data"]
+        assert [(row["id"], row["nickname"]) for row in shared] == [(19950102, "隔离HTTP用户")]
         request("/app/footprint/list?page=1&size=101", {}, expected=400)
         request("/app/footprint/delete?footprintId=19950104", {}, expected=404)
         request("/app/footprint/delete?footprintId=19950102", {})

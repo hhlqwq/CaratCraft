@@ -1,3 +1,4 @@
+import {h} from 'vue';
 import cookie from '@/utils/cookie';
 import router from '@/router';
 import store from '@/store';
@@ -170,10 +171,17 @@ export function transDict(code, value) {
  * @param imageUrl
  */
 export function openImg(imageUrl) {
-    this.$alert('<img style="width: 100%;height: 100%;" src="' + imageUrl + '"/>', '预览', {
-        dangerouslyUseHTMLString: true,
-        callback: function () {},
-    });
+    const url = String(imageUrl || '').trim();
+    const allowed = /^(?:https?:\/\/|\/\/|\/(?:upload|static)\/)/i.test(url);
+    if (!allowed || url.length > 2048 || /["'<>\s]/.test(url)) {
+        this.$message({message: '图片地址无效', type: 'warning'});
+        return;
+    }
+    this.$alert(
+        h('img', {src: url, alt: '预览图片', style: {width: '100%', height: '100%'}}),
+        '预览',
+        {callback: () => {}}
+    );
 }
 
 /**

@@ -40,6 +40,7 @@
                     </view>
                     <view class="attr">{{item.goodsSpecifitionNameValue||''}}</view>
                     <view class="price">￥{{item.retailPrice}}</view>
+                    <view wx:if="{{handleOption.comment && item.reviewed === false && !loading && !error}}" class="comment-link" data-goods-id="{{item.goodsId}}" bindtap="openReview">评价商品</view>
                 </view>
             </view>
         </view>

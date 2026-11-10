@@ -104,9 +104,11 @@ Page({
             }
         });
     },
-    /** 账号变化时清空私人订单内容, 不用旧订单向新账号自动重放请求. */
+    /** 账号变化时清空私人订单内容, 同账号从评价页返回时刷新评价资格. */
     onShow() {
         const token = wx.getStorageSync('token') || '';
+        const refreshReview = this._reviewPageOpened;
+        this._reviewPageOpened = false;
         if (this._sessionToken !== undefined && token !== this._sessionToken) {
             this._detailVersion = (this._detailVersion || 0) + 1;
             this.setData({
@@ -124,8 +126,34 @@ Page({
                 loading: false,
                 error: '账号已切换, 请从本人订单重新进入',
             });
+        } else if (refreshReview) {
+            return this.getOrderDetail();
         }
         this._sessionToken = token;
+    },
+    /** 仅为当前订单可评价商品打开发布页, 返回时重新读取订单. */
+    openReview(event) {
+        const goodsId = Number(event.currentTarget.dataset.goodsId);
+        if (
+            this._reviewPageOpened ||
+            this._sessionToken !== (wx.getStorageSync('token') || '') ||
+            this.data.loading ||
+            this.data.error ||
+            !this.data.handleOption.comment ||
+            !this.data.orderGoods.some(
+                (item) => item.goodsId === goodsId && item.reviewed === false
+            )
+        ) {
+            return;
+        }
+        this._reviewPageOpened = true;
+        wx.navigateTo({
+            url: '/pages/commentPost/commentPost?typeId=0&valueId=' + goodsId,
+            fail: () => {
+                this._reviewPageOpened = false;
+                util.showErrorToast('评价页面打开失败, 请重试');
+            },
+        });
     },
     /** 离页后废弃详情、支付及后续状态回调. */
     onUnload() {
