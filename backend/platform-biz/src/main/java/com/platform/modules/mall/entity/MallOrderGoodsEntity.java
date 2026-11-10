@@ -19,6 +19,7 @@
 package com.platform.modules.mall.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -79,4 +80,8 @@ public class MallOrderGoodsEntity implements Serializable {
 
     /** 商品图片 */
     private String listPicUrl;
+
+    /** 当前用户是否已评价, 仅用于订单详情响应组装 */
+    @TableField(exist = false)
+    private Boolean reviewed;
 }

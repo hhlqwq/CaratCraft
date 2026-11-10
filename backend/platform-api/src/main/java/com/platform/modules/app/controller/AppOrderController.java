@@ -12,6 +12,7 @@ import com.platform.modules.custom.entity.CustomDesignSnapshotEntity;
 import com.platform.modules.custom.entity.CustomOrderCustomizationEntity;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
+import com.platform.modules.mall.service.CustomerReviewService;
 import com.platform.modules.mall.service.LegalDocumentService;
 import com.platform.modules.mall.service.MallOrderGoodsService;
 import com.platform.modules.mall.service.MallOrderService;
@@ -49,6 +50,7 @@ public class AppOrderController extends AppBaseController {
     @Autowired private MallOrderService orderService;
     @Autowired private com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
     @Autowired private MallOrderGoodsService orderGoodsService;
+    @Autowired private CustomerReviewService reviews;
 
     @Autowired private CustomOrderCustomizationDao customOrderCustomizationDao;
     @Autowired private CustomDesignSnapshotDao customDesignSnapshotDao;
@@ -128,6 +130,7 @@ public class AppOrderController extends AppBaseController {
         orderGoodsParam.put("orderId", orderId);
         // 订单的商品
         List<MallOrderGoodsEntity> orderGoods = orderGoodsService.queryList(orderGoodsParam);
+        reviews.markReviewed(loginUser.getId(), orderGoods);
         // 订单最后支付时间
         if (orderInfo.getOrderStatus() == 0) {
             // if (moment().subtract(60, 'minutes') < moment(orderInfo.addTime)) {

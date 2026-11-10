@@ -99,6 +99,7 @@ page {
 }
 
 .order-goods .item {
+    position: relative;
     display: flex;
     align-items: center;
     height: 192rpx;
@@ -167,6 +168,18 @@ page {
     line-height: 30rpx;
     color: #333;
     font-size: 30rpx;
+}
+
+.order-goods .item .comment-link {
+    position: absolute;
+    right: 31.25rpx;
+    bottom: 20rpx;
+    padding: 4rpx 18rpx;
+    border: 1rpx solid #b47a3f;
+    border-radius: 20rpx;
+    color: #b47a3f;
+    font-size: 24rpx;
+    line-height: 32rpx;
 }
 
 .order-bottom {

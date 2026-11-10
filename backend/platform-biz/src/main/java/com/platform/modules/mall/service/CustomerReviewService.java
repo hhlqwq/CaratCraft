@@ -7,6 +7,7 @@ import com.platform.modules.mall.dao.MallCommentPictureDao;
 import com.platform.modules.mall.dao.MallUserCouponDao;
 import com.platform.modules.mall.entity.MallCommentEntity;
 import com.platform.modules.mall.entity.MallCommentPictureEntity;
+import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.entity.MallUserCouponEntity;
 import com.platform.modules.wx.dao.WxUserDao;
 import com.platform.modules.wx.entity.WxUserEntity;
@@ -156,6 +157,35 @@ public class CustomerReviewService {
         }
         result.put("message", "评价已提交, 审核通过后展示");
         return result;
+    }
+
+    /** 聚合本人评价状态到订单商品, 单次查询后标记已评价商品. */
+    public void markReviewed(Long userId, List<MallOrderGoodsEntity> goods) {
+        if (userId == null || goods == null || goods.isEmpty()) {
+            return;
+        }
+        List<Integer> goodsIds =
+                goods.stream()
+                        .map(MallOrderGoodsEntity::getGoodsId)
+                        .filter(java.util.Objects::nonNull)
+                        .distinct()
+                        .toList();
+        if (goodsIds.isEmpty()) {
+            return;
+        }
+        var reviewed =
+                comments
+                        .selectList(
+                                new QueryWrapper<MallCommentEntity>()
+                                        .eq("user_id", userId)
+                                        .eq("type_id", 0)
+                                        .in("value_id", goodsIds))
+                        .stream()
+                        .map(MallCommentEntity::getValueId)
+                        .collect(java.util.stream.Collectors.toSet());
+        for (MallOrderGoodsEntity item : goods) {
+            item.setReviewed(reviewed.contains(item.getGoodsId()));
+        }
     }
 
     /** 列表和总数使用完全相同的目标、审核状态和有图过滤. */

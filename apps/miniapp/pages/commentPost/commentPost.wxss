@@ -46,6 +46,13 @@ page,
     height: 108rpx;
 }
 
+.post-comment .notice {
+    padding: 16rpx 20rpx;
+    color: #b4282d;
+    font-size: 26rpx;
+    background: #fff0f0;
+}
+
 .post-comment .close {
     float: left;
     height: 108rpx;

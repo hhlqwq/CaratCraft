@@ -40,6 +40,7 @@
                     </view>
                     <view class="attr">{{item.goodsSpecifitionNameValue||''}}</view>
                     <view class="price">￥{{item.retailPrice}}</view>
+                    <navigator wx:if="{{orderInfo.handleOption.comment && !item.reviewed}}" class="comment-link" url="/pages/commentPost/commentPost?typeId=0&valueId={{item.goodsId}}">评价商品</navigator>
                 </view>
             </view>
         </view>

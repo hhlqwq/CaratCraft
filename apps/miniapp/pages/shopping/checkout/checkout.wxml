@@ -1,4 +1,9 @@
 <view class="container">
+    <view class="checkout-status" wx:if="{{loading}}">正在加载结算信息...</view>
+    <view class="checkout-status error" wx:if="{{loadError && !loading}}">
+        <text>{{loadError}}</text>
+        <text class="retry" bindtap="getCheckoutInfo">重试</text>
+    </view>
     <view wx:if="{{designQuote}}" class="address-box" style="height:auto;padding:24rpx;box-sizing:border-box">
         <view>定制材料确认 · {{designQuote.arrangement.length || 0}}个实例</view>
         <view wx:for="{{designQuote.components}}" wx:key="optionId" style="font-size:24rpx;line-height:1.8">{{item.name}} × {{item.instances || 1}} / 用量{{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
@@ -85,7 +90,7 @@
 
     <view class="order-total">
         <view class="l">实付：￥{{actualPrice}}</view>
-        <button class="r" bindtap="submitOrder" disabled="{{submitting}}" loading="{{submitting}}">{{submitting ? '提交中' : '去付款'}}</button>
+        <button class="r" bindtap="submitOrder" disabled="{{submitting || loading || !!loadError}}" loading="{{submitting}}">{{submitting ? '提交中' : '去付款'}}</button>
     </view>
 </view>
 

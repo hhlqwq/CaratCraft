@@ -164,6 +164,21 @@ test('结算先读取所选地址, 提交按钮阻止重复请求', async () => 
     );
     page.onShow();
     assert.equal(calls[0].data.addressId, 12);
+    const completeLoad = complete;
+    completeLoad({
+        code: 0,
+        data: {
+            designSnapshotId: null,
+            goodsTotalPrice: 12,
+            orderTotalPrice: 12,
+            actualPrice: 12,
+            couponPrice: 0,
+            freightPrice: 0,
+            checkedAddress: {id: 12},
+            checkedGoodsList: [],
+        },
+    });
+    await new Promise((resolve) => setImmediate(resolve));
     calls.length = 0;
     const submitted = page.submitOrder();
     page.submitOrder();
