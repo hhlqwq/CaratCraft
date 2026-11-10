@@ -31,6 +31,7 @@ import java.util.Map;
  */
 public class Query<T> extends LinkedHashMap<String, Object> {
     private static final long serialVersionUID = 1L;
+    private static final int MAX_LIMIT = 100;
 
     /** mybatis-plus分页参数 */
     private Page<T> page;
@@ -50,15 +51,18 @@ public class Query<T> extends LinkedHashMap<String, Object> {
         String strLimit = "limit";
         this.putAll(params);
 
-        // 分页参数
-        if (params.get(strPage) != null) {
-            currPage = Integer.parseInt(params.get("page").toString());
+        // 分页参数: 非法数字或非正数明确拒绝, 不透传负偏移和无限列表.
+        currPage = positiveInteger(params.get(strPage), 1, "页码");
+        limit = positiveInteger(params.get(strLimit), 10, "每页条数");
+        if (limit > MAX_LIMIT) {
+            throw new IllegalArgumentException("每页条数不能超过" + MAX_LIMIT);
         }
-        if (params.get(strLimit) != null) {
-            limit = Integer.parseInt(params.get("limit").toString());
+        long offset = (long) (currPage - 1) * limit;
+        if (offset > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("分页偏移超出允许范围");
         }
 
-        this.put("offset", (currPage - 1) * limit);
+        this.put("offset", (int) offset);
         this.put("page", currPage);
         this.put("limit", limit);
 
@@ -78,6 +82,22 @@ public class Query<T> extends LinkedHashMap<String, Object> {
             } else {
                 this.page.addOrder(OrderItem.desc(sidx));
             }
+        }
+    }
+
+    /** 解析正整数字符串, 缺省使用默认值, 非法或非正数抛出参数错误. */
+    private static int positiveInteger(Object value, int fallback, String name) {
+        if (value == null || value.toString().isBlank()) {
+            return fallback;
+        }
+        try {
+            int parsed = Integer.parseInt(value.toString().trim());
+            if (parsed < 1) {
+                throw new IllegalArgumentException(name + "必须为正整数");
+            }
+            return parsed;
+        } catch (NumberFormatException error) {
+            throw new IllegalArgumentException(name + "必须为数字");
         }
     }
 
