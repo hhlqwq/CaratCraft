@@ -9,16 +9,14 @@
     <view>
         <view class="login-title">关联手机号</view>
         <form bindsubmit="bindLoginMobilecode">
-            <form bindsubmit="bindGetPassCode">
-                <view class="login">
-                    <view class="first-line"><input type="digit" name="mobile" bindinput="bindInputMobile" placeholder="输入手机号" value="{{mobile}}" auto-focus/></view>
-                    <view class="second-line">
-                        <input type="digit" name="code" placeholder="四位验证码"/>
-                        <button bindtap="countDownPassCode" disabled="{{disableGetMobileCode}}">{{getCodeButtonText}}</button>
-                    </view>
+            <view class="login">
+                <view class="first-line"><input type="number" name="mobile" bindinput="bindInputMobile" placeholder="输入手机号" value="{{mobile}}" maxlength="11" auto-focus/></view>
+                <view class="second-line">
+                    <input type="number" name="code" placeholder="六位验证码" maxlength="6"/>
+                    <button type="default" bindtap="countDownPassCode" disabled="{{disableGetMobileCode}}">{{getCodeButtonText}}</button>
                 </view>
-            </form>
-            <view class="third-line"><button formType="submit" disabled="{{disableSubmitMobileCode}}">提交</button></view>
+            </view>
+            <view class="third-line"><button formType="submit" disabled="{{disableSubmitMobileCode || submitting}}">{{submitting ? '提交中...' : '提交'}}</button></view>
         </form>
     </view>
 </view>

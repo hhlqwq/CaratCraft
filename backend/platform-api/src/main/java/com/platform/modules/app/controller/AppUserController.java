@@ -62,40 +62,95 @@ public class AppUserController extends AppBaseController {
     public RestResponse<String> smscode(
             @LoginUser WxUserEntity loginUser, @RequestBody ApiUserSmsCodeRequest request) {
         legalDocuments.requireAccepted(loginUser.getId());
-        String phone = request.getPhone();
+        String phone = request == null ? null : request.getPhone();
         if (StringUtils.isNullOrEmpty(phone)) {
             return RestResponse.fail("手机号不能为空");
         }
         if (!isValidMobile(phone)) {
             return RestResponse.fail("手机号格式不正确，仅支持中国大陆手机号");
         }
-        String smsCode = verification.begin(loginUser.getId(), phone);
         SmsConfig config =
                 sysConfigService.getConfigObject(Constant.SMS_CONFIG_KEY, SmsConfig.class);
-        if (StringUtils.isNullOrEmpty(config)) {
-            return RestResponse.fail("请先配置短信平台信息");
+        String configError = validateSmsConfig(config);
+        if (configError != null) {
+            return RestResponse.fail(configError);
         }
-        if (StringUtils.isNullOrEmpty(config.getAppid())) {
-            return RestResponse.fail("请先配置短信平台APPID");
-        }
-        if (StringUtils.isNullOrEmpty(config.getAppkey())) {
-            return RestResponse.fail("请先配置短信平台KEY");
-        }
-        if (StringUtils.isNullOrEmpty(config.getSign())) {
-            return RestResponse.fail("请先配置短信平台签名");
-        }
-        try {
-            SmsSingleSenderResult result =
-                    SmsUtil.crSendSms(
-                            config.getAppid(), config.getAppkey(), 0, "86", phone, smsCode);
-            if (result.result != 0) {
-                return RestResponse.fail("短信发送失败");
-            }
-        } catch (Exception e) {
-            return RestResponse.fail("短信发送失败");
+        String smsCode = verification.begin(loginUser.getId(), phone);
+        String sendError = sendSmsCode(config, phone, smsCode);
+        if (sendError != null) {
+            return RestResponse.fail(sendError);
         }
         verification.issued(loginUser.getId(), phone, smsCode);
         return RestResponse.ok("短信发送成功");
+    }
+
+    /** 校验当前短信平台配置是否具备发送验证码所需字段. */
+    private static String validateSmsConfig(SmsConfig config) {
+        if (config == null) {
+            return "请先配置短信平台信息";
+        }
+        if (StringUtils.isNullOrEmpty(config.getSign())) {
+            return "请先配置短信平台签名";
+        }
+        if (Integer.valueOf(2).equals(config.getType())) {
+            if (StringUtils.isNullOrEmpty(config.getAccessKeyId())) {
+                return "请先配置短信平台AccessKeyId";
+            }
+            if (StringUtils.isNullOrEmpty(config.getAccessSecret())) {
+                return "请先配置短信平台AccessSecret";
+            }
+            if (StringUtils.isNullOrEmpty(config.getTemplateCode())) {
+                return "请先配置短信平台模板CODE";
+            }
+            return null;
+        }
+        if (Integer.valueOf(1).equals(config.getType())) {
+            if (config.getAppid() <= 0) {
+                return "请先配置短信平台APPID";
+            }
+            if (StringUtils.isNullOrEmpty(config.getAppkey())) {
+                return "请先配置短信平台KEY";
+            }
+            if (config.getTemplateId() == null || config.getTemplateId() <= 0) {
+                return "请先配置短信平台模板ID";
+            }
+            return null;
+        }
+        return "请选择短信平台类型";
+    }
+
+    /** 按配置的腾讯云或阿里云模板发送六位验证码, 成功返回空字符串. */
+    private static String sendSmsCode(SmsConfig config, String phone, String code) {
+        try {
+            if (Integer.valueOf(2).equals(config.getType())) {
+                var response =
+                        SmsUtil.aliSendSms(
+                                config.getAccessKeyId(),
+                                config.getAccessSecret(),
+                                phone,
+                                config.getTemplateCode(),
+                                java.util.Map.<String, Object>of("code", code),
+                                config.getSign());
+                return response != null
+                                && response.getBody() != null
+                                && "OK".equals(response.getBody().getCode())
+                        ? null
+                        : "短信发送失败";
+            }
+            SmsSingleSenderResult result =
+                    new com.github.qcloudsms.SmsSingleSender(config.getAppid(), config.getAppkey())
+                            .sendWithParam(
+                                    "86",
+                                    phone,
+                                    config.getTemplateId(),
+                                    new String[] {code},
+                                    config.getSign(),
+                                    "",
+                                    "");
+            return result != null && result.result == 0 ? null : "短信发送失败";
+        } catch (Exception error) {
+            return "短信发送失败";
+        }
     }
 
     /** 获取当前会员等级 */
