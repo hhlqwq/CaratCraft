@@ -62,5 +62,9 @@ public interface MallFootprintDao extends BaseMapper<MallFootprintEntity> {
     List<MallFootprintEntity> queryList(Map<String, Object> param);
 
     /** 按用户及分页条件查询浏览足迹. */
-    List<MallFootprintEntity> queryListFootprint(String userId);
+    List<MallFootprintEntity> queryListFootprint(
+            @Param("userId") String userId, @Param("offset") int offset, @Param("limit") int limit);
+
+    /** 统计用户去重后可展示的浏览足迹数量. */
+    int countListFootprint(@Param("userId") String userId);
 }

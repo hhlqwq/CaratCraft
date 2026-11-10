@@ -1,6 +1,5 @@
 package com.platform.modules.app.controller;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.DateUtils;
 import com.platform.common.utils.Query;
@@ -42,23 +41,25 @@ public class AppFootprintController extends AppBaseController {
     @PostMapping("delete")
     public RestResponse<Map<String, Object>> delete(
             @LoginUser WxUserEntity loginUser, Integer footprintId) {
-        if (footprintId == null) {
+        if (footprintId == null || loginUser == null || loginUser.getId() == null) {
             return RestResponse.fail("删除出错");
         }
-        // 删除当天的同一个商品的足迹
         MallFootprintEntity footprintEntity = footprintService.getById(footprintId);
-        //
-        if (loginUser == null
-                || loginUser.getId() == null
-                || footprintEntity == null
+        if (footprintEntity == null
+                || !loginUser.getId().equals(footprintEntity.getUserId())
                 || footprintEntity.getGoodsId() == null) {
-            return RestResponse.fail("删除出错");
+            return RestResponse.fail(404, "足迹不存在或无权删除");
         }
 
-        Map<String, Object> param = new HashMap<String, Object>();
-        param.put("userId", loginUser.getId());
-        param.put("goodsId", footprintEntity.getGoodsId());
-        footprintService.deleteByParam(param);
+        boolean deleted =
+                footprintService.remove(
+                        new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<
+                                        MallFootprintEntity>()
+                                .eq("user_id", loginUser.getId())
+                                .eq("goods_id", footprintEntity.getGoodsId()));
+        if (!deleted) {
+            return RestResponse.fail(404, "足迹不存在或无权删除");
+        }
 
         return RestResponse.ok("删除成功");
     }
@@ -68,16 +69,22 @@ public class AppFootprintController extends AppBaseController {
     @PostMapping("list")
     public RestResponse<Map<String, Object>> list(
             @LoginUser WxUserEntity loginUser, @RequestParam Map<String, Object> params) {
+        Integer page = positiveInteger(params.get("page"), 1);
+        Integer size = positiveInteger(params.get("limit"), 20);
+        if (page == null || size == null || size > 100) {
+            return RestResponse.fail("分页参数无效, 每页须为1到100条");
+        }
+        long offset = (long) (page - 1) * size;
+        if (offset > Integer.MAX_VALUE) {
+            return RestResponse.fail("分页参数无效");
+        }
         Map<String, Object> resultObj = new HashMap<String, Object>();
 
-        // 查询列表数据
         List<MallFootprintEntity> footprintVos =
-                footprintService.queryListFootprint(loginUser.getId() + "");
+                footprintService.queryListFootprint(loginUser.getId() + "", (int) offset, size);
+        int returned = footprintVos == null ? 0 : footprintVos.size();
+        int total = footprintService.countListFootprint(loginUser.getId() + "");
 
-        Page<MallFootprintEntity> page = new Query<MallFootprintEntity>(params).getPage();
-        page.setRecords(footprintVos);
-
-        //
         Map<String, List<MallFootprintEntity>> footPrintMap =
                 new TreeMap<String, List<MallFootprintEntity>>(
                         new Comparator<String>() {
@@ -97,7 +104,7 @@ public class AppFootprintController extends AppBaseController {
 
         List<List<MallFootprintEntity>> footprintVoList =
                 new ArrayList<List<MallFootprintEntity>>();
-        if (null != footprintVos && footprintVos.size() > 0) {
+        if (returned > 0) {
             for (MallFootprintEntity footprintVo : footprintVos) {
                 String addTime =
                         DateUtils.timeToStr(footprintVo.getAddTime(), DateUtils.DATE_PATTERN);
@@ -112,13 +119,27 @@ public class AppFootprintController extends AppBaseController {
                 footprintVoList.add(entry.getValue());
             }
         }
-        resultObj.put("count", footprintVos == null ? 0 : footprintVos.size());
-        resultObj.put("totalPages", page.getPages());
-        resultObj.put("numsPerPage", page.getSize());
-        resultObj.put("currentPage", page.getCurrent());
+        resultObj.put("count", total);
+        resultObj.put("totalPages", (total + size - 1) / size);
+        resultObj.put("numsPerPage", size);
+        resultObj.put("currentPage", page);
+        resultObj.put("hasMore", offset + returned < total);
         resultObj.put("data", footprintVoList);
 
         return RestResponse.ok(resultObj);
+    }
+
+    /** 解析正整数分页参数, 缺省使用默认值, 非法文本返回空以拒绝请求. */
+    private static Integer positiveInteger(Object value, int fallback) {
+        if (value == null || value.toString().isBlank()) {
+            return fallback;
+        }
+        try {
+            int parsed = Integer.parseInt(value.toString().trim());
+            return parsed > 0 ? parsed : null;
+        } catch (NumberFormatException error) {
+            return null;
+        }
     }
 
     /** 查询当前用户作为分享来源的商品浏览记录. */

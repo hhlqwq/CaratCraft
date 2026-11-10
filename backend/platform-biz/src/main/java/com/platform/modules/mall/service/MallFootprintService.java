@@ -90,12 +90,12 @@ public interface MallFootprintService extends IService<MallFootprintEntity> {
      */
     boolean deleteBatch(Integer[] ids);
 
-    /** 按明确的查询条件删除匹配记录. */
-    void deleteByParam(Map<String, Object> param);
-
     /** 按条件读取可展示的分享列表. */
     List<MallFootprintEntity> shareList(Map<String, Object> params);
 
     /** 按用户及分页条件查询浏览足迹. */
-    List<MallFootprintEntity> queryListFootprint(String userId);
+    List<MallFootprintEntity> queryListFootprint(String userId, int offset, int limit);
+
+    /** 统计用户去重后可展示的浏览足迹数量. */
+    int countListFootprint(String userId);
 }
