@@ -105,7 +105,10 @@ async function main() {
         await page.getByRole('button', {name: '取消', exact: true}).click();
         await page.goto(base + '/#/wx-wx-assets');
         await page.getByText('隔离图片第1页', {exact: true}).waitFor();
-        assert.equal((await page.locator('.el-pagination .number.is-active').textContent()).trim(), '1');
+        assert.equal(
+            (await page.locator('.el-pagination .number.is-active').textContent()).trim(),
+            '1'
+        );
         await page.locator('.el-pagination .btn-next').click();
         await page.getByText('隔离图片第2页', {exact: true}).waitFor();
         assert.deepEqual(filePages.slice(0, 2), [1, 2]);
