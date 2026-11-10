@@ -24,8 +24,9 @@
     },
     "miniapp": {
         "compile": {
-            "status": "pending",
-            "blocker": "修复已识别的协议模板编译错误, 等待用户手动编译结果; 自动化运行时超时."
+            "status": "passed",
+            "evidence": "小程序编译验证.json#launchReview20261109",
+            "blocker": "官方WCC/WCSC于2026-11-09通过40页43个WXML/48个WXSS及60个JS语法检查; IDE逐页显示和操作仍待."
         },
         "desktop": "不接管鼠标键盘, 不切换或新开窗口.",
         "pages": [
