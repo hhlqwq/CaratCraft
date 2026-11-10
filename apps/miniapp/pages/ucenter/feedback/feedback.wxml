@@ -16,14 +16,11 @@
     <view class="fb-mobile">
         <view class="label">手机号码</view>
         <view class="mobile-box">
-            <input class="mobile" maxlength="11" type="number" placeholder="方便我们与你联系" bindinput ="mobileInput" value="{{mobile}}"/>
-            <!--
-            <image class="clear-icon" src="/static/images/clear_input.png" bindtap="cleanMobile"></image>
-            -->
+            <input class="mobile" maxlength="11" type="number" placeholder="方便我们与你联系" bindinput="mobileInput" value="{{mobile}}"/>
         </view>
     </view>
 
-    <view class="fb-btn" bindtap="sbmitFeedback">提交</view>
+    <view class="fb-btn {{submitting ? 'disabled' : ''}}" bindtap="sbmitFeedback">{{submitting ? '提交中...' : '提交'}}</view>
 </view>
 
 <merchant-contact />

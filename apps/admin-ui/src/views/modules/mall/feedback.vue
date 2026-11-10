@@ -208,7 +208,7 @@ export default {
             const ids = id
                 ? [id]
                 : this.dataListSelections.map((item) => {
-                      return item.id;
+                      return item.msgId;
                   });
             this.$confirm('确定对所选项进行[删除]操作?', '提示', {
                 confirmButtonText: '确定',

@@ -17,75 +17,85 @@ Page({
         content: '',
         contentLength: 0,
         mobile: '',
+        submitting: false,
     },
     /** 同步当前选择的反馈类型. */
-    bindPickerChange(e) {
+    bindPickerChange(event) {
+        this.setData({index: Number(event.detail.value)});
+    },
+    /** 仅保留数字并同步反馈联系手机号输入. */
+    mobileInput(event) {
         this.setData({
-            index: e.detail.value,
+            mobile: String(event.detail.value || '')
+                .replace(/[^0-9]/g, '')
+                .slice(0, 11),
         });
     },
-    /** 同步反馈联系手机号输入. */
-    mobileInput(e) {
-        this.setData({
-            mobile: e.detail.value,
-        });
+    /** 同步反馈正文和实际字符数, 超长输入不写入页面. */
+    contentInput(event) {
+        const value = String(event.detail.value || '');
+        if (value.length > 500) {
+            return;
+        }
+        this.setData({content: value, contentLength: value.length});
     },
-    /** 同步反馈正文输入. */
-    contentInput(e) {
-        this.setData({
-            contentLength: e.detail.cursor,
-            content: e.detail.value,
-        });
-    },
-    /** 清空反馈联系手机号. */
-    cleanMobile() {},
-    /** 校验反馈内容和联系方式后提交反馈. */
-    sbmitFeedback(e) {
-        if (this.data.index == 0) {
+    /** 校验反馈内容和联系方式后提交, 失败释放锁并保留输入. */
+    sbmitFeedback() {
+        if (this.data.submitting) {
+            return false;
+        }
+        if (this.data.index === 0) {
             util.showErrorToast('请选择反馈类型');
             return false;
         }
-
-        if (this.data.content == '') {
+        const content = this.data.content.trim();
+        if (!content) {
             util.showErrorToast('请输入反馈内容');
             return false;
         }
-
-        if (this.data.mobile == '') {
-            util.showErrorToast('请输入手机号码');
+        if (content.length > 500) {
+            util.showErrorToast('反馈内容不能超过500字');
             return false;
         }
-        wx.showLoading({
-            title: '提交中...',
-            mask: true,
-            success() {},
-        });
-
-        util.request(
-            api.FeedbackAdd,
-            {mobile: this.data.mobile, index: this.data.index, content: this.data.content},
-            'POST',
-            'application/json'
-        ).then((res) => {
-            if (res.code === 0) {
-                wx.hideLoading();
-
-                wx.showToast({
-                    title: res.data,
-                    icon: 'success',
-                    duration: 2000,
-                    complete: () => {
-                        this.setData({
-                            index: 0,
-                            content: '',
-                            contentLength: 0,
-                            mobile: '',
-                        });
-                    },
-                });
-            } else {
-                util.showErrorToast(res.msg);
-            }
-        });
+        if (!/^1[3-9][0-9]{9}$/.test(this.data.mobile)) {
+            util.showErrorToast('请输入有效的手机号码');
+            return false;
+        }
+        const token = wx.getStorageSync('token') || '';
+        const current = () => !this._unloaded && token === (wx.getStorageSync('token') || '');
+        this.setData({submitting: true});
+        return util
+            .request(
+                api.FeedbackAdd,
+                {mobile: this.data.mobile, index: this.data.index, content: content},
+                'POST',
+                'application/json'
+            )
+            .then((res) => {
+                if (!current()) {
+                    return false;
+                }
+                if (res.code !== 0) {
+                    throw new Error(res.msg || '反馈提交失败');
+                }
+                this.setData({index: 0, content: '', contentLength: 0, mobile: ''});
+                wx.showToast({title: '感谢反馈', icon: 'success', duration: 2000});
+                return true;
+            })
+            .catch((error) => {
+                if (current()) {
+                    util.showErrorToast(error.message || '反馈提交失败, 请稍后重试');
+                }
+                return false;
+            })
+            .finally(() => {
+                if (current()) {
+                    this.setData({submitting: false});
+                }
+            });
+    },
+    /** 页面卸载后拒绝迟到反馈结果写入界面. */
+    onUnload() {
+        this._unloaded = true;
     },
 });
