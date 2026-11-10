@@ -87,6 +87,8 @@
 </template>
 
 <script>
+import {sanitizeHtml} from '../../../components/rich-text-editor';
+
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -114,11 +116,11 @@ export default {
         };
     },
     methods: {
-        /** 打开指定记录的详情展示. */
+        /** 打开指定记录的详情展示, 预览前统一过滤可执行HTML. */
         openDetail() {
             this.$alert(
-                `<div style="width: 720px;height: 720px;overflow-y: auto;overflow-x: hidden"">${this.dataForm.content}</div>`,
-                this.dataForm.title,
+                `<div style="width: 720px;height: 720px;overflow-y: auto;overflow-x: hidden">${sanitizeHtml(this.dataForm.content)}</div>`,
+                sanitizeHtml(this.dataForm.title),
                 {
                     dangerouslyUseHTMLString: true,
                     closeOnClickModal: true,

@@ -170,7 +170,19 @@ export function transDict(code, value) {
  * @param imageUrl
  */
 export function openImg(imageUrl) {
-    this.$alert('<img style="width: 100%;height: 100%;" src="' + imageUrl + '"/>', '预览', {
+    const url = String(imageUrl || '').trim();
+    const allowed = /^(?:https?:\/\/|\/\/|\/(?:upload|static)\/)/i.test(url);
+    if (!allowed || url.length > 2048 || /["'<>\s]/.test(url)) {
+        this.$message({message: '图片地址无效', type: 'warning'});
+        return;
+    }
+    const escaped = url
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    this.$alert('<img style="width: 100%;height: 100%;" src="' + escaped + '"/>', '预览', {
         dangerouslyUseHTMLString: true,
         callback: function () {},
     });
