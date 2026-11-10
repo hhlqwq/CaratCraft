@@ -114,7 +114,7 @@ process.stdout.write(JSON.stringify(product));
     return json.loads(result.stdout)
 
 
-def verify_chain(admin, api, admin_token, token_a, token_b, category_id):
+def verify_chain(admin, api, admin_token, token_a, token_b, category_id, sql):
     """串联实际后台保存、客户端选规格、加购、结算及账号与库存失败边界."""
     checks = []
     request(admin, "/mall/goods/aggregate/1", method="GET", success=False)
@@ -190,6 +190,28 @@ def verify_chain(admin, api, admin_token, token_a, token_b, category_id):
     product = dict(template["product"], enabled=1)
     request(admin, "/custom/configuration/product/save", admin_token, payload=product, success=False)
     checks.append("HTTP拒绝旧材料分类、未确认计长的配饰及未补齐真实材料库存的候选发布")
+    sql(
+        "INSERT INTO mall_footprint(user_id,goods_id,add_time,referrer) VALUES"
+        f"(900001,{goods_id},UNIX_TIMESTAMP(),900001),"
+        f"(900001,{goods_id},UNIX_TIMESTAMP(),0),"
+        f"(900002,{goods_id},UNIX_TIMESTAMP(),0);"
+    )
+    footprints = request(api, "/app/footprint/list", token_a, form={"page": "1", "limit": "20"})
+    assert footprints["count"] == 1 and footprints["hasMore"] is False
+    assert footprints["data"][0][0]["goodsId"] == goods_id
+    footprint_id = footprints["data"][0][0]["id"]
+    request(api, "/app/footprint/delete", token_b, form={"footprintId": footprint_id}, success=False)
+    shared = request(api, "/app/footprint/sharelist", token_a, form={"page": "1", "size": "20"})
+    assert len(shared["data"]) == 1 and shared["data"][0]["nickname"] == "隔离用户A"
+    request(api, "/app/footprint/delete", token_a, form={"footprintId": footprint_id})
+    assert sql("SELECT COUNT(*) FROM mall_footprint WHERE user_id=900001") == "0"
+    checks.append("HTTP足迹分页去重、分享昵称关联及本人删除, 拒绝他人删除")
+    request(api, "/app/feedback/save", token_a,
+            payload={"mobile": "123", "index": 2, "content": "隔离反馈"}, success=False)
+    request(api, "/app/feedback/save", token_a,
+            payload={"mobile": "13800000000", "index": 2, "content": "隔离反馈"})
+    assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=900001 AND status=0 AND feed_type=2") == "1"
+    checks.append("HTTP反馈拒绝非法手机号并以未读状态写入认证用户")
     return checks
 
 
@@ -249,7 +271,8 @@ def main():
             wait_until(lambda: request(bases[module], "/internal/health/ready", method="GET"), timeout=150)
             print(module + "最新JAR已通过真实HTTP就绪检查", flush=True)
         checks = verify_chain(bases["admin"], bases["api"], admin_token,
-                              user_token(900001, secret), user_token(900002, secret), category_id)
+                              user_token(900001, secret), user_token(900002, secret), category_id,
+                              lambda statement: sql(mysql, statement))
         evidence = {"date": args.date, "database": database, "checks": checks, "passed": True,
                     "backendImage": args.backend_image,
                     "scope": "最新两应用真实HTTP、认证器、MyBatis/MySQL及Redis; 合成身份, 不调用微信或支付"}

@@ -1,6 +1,6 @@
 {
-    "date": "2026-10-24",
-    "database": "caratcraft_init_audit_20261024_d77aa7",
+    "date": "2026-11-09",
+    "database": "caratcraft_init_audit_20261109_a021e0",
     "checks": [
         "真实认证器拒绝无令牌请求",
         "后台具名组合经真实HTTP由小程序SKU模块唯一选择",
@@ -10,9 +10,11 @@
         "真实Redis立即购买上下文及跨账号拒绝",
         "下架后旧购物车结算重新复核可售状态",
         "真实权限下下载112项客户四类目录并以停用状态完整导入",
-        "HTTP拒绝旧材料分类、未确认计长的配饰及未补齐真实材料库存的候选发布"
+        "HTTP拒绝旧材料分类、未确认计长的配饰及未补齐真实材料库存的候选发布",
+        "HTTP足迹分页去重、分享昵称关联及本人删除, 拒绝他人删除",
+        "HTTP反馈拒绝非法手机号并以未读状态写入认证用户"
     ],
     "passed": true,
-    "backendImage": "carat-craft-backend:verified-20261024-materials",
+    "backendImage": null,
     "scope": "最新两应用真实HTTP、认证器、MyBatis/MySQL及Redis; 合成身份, 不调用微信或支付"
 }
