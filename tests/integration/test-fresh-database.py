@@ -29,6 +29,7 @@ def verify(mysql, env):
         "regions": sql("SELECT COUNT(*) FROM sys_region") == "46181",
         "noMigrationLedger": sql("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='CC_SCHEMA_MIGRATION'") == "0",
         "noBridgeGoods": sql("SELECT COUNT(*) FROM mall_goods WHERE goods_sn='DEMO-BRIDGE-001'") == "0",
+        "formalLegalV1": sql("SELECT COUNT(*) FROM CC_LEGAL_HEAD h JOIN CC_LEGAL_DOCUMENT d ON d.kind=h.kind AND d.version=h.published_version WHERE h.revision=1 AND h.published_version=1 AND d.status='PUBLISHED' AND d.content LIKE '版本：1%'") == "2",
         "feedbackUnicode": sql("SELECT TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_feedback'") == "utf8mb4_unicode_ci",
         "footprintOwnerIndex": sql("SELECT GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='mall_footprint' AND INDEX_NAME='ix_footprint_owner_goods'") == "user_id,goods_id,id",
     }

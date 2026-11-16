@@ -52,6 +52,22 @@ class RepositoryStructureTest(unittest.TestCase):
         self.assertNotIn("DEMO-BRIDGE-001", seed)
         self.assertNotIn("CC_SCHEMA_MIGRATION", seed)
 
+    def test_formal_legal_documents_have_portable_initial_versions(self):
+        """新环境初始化必须提供正式首版正文, 后续修订继续使用不可变版本."""
+        seed = (ROOT / "database/init/020_seed.sql").read_text("utf-8")
+        self.assertEqual(seed.count("INSERT INTO `CC_LEGAL_DOCUMENT`"), 2)
+        for kind, title in (("TERMS", "克拉匠造用户协议"), ("PRIVACY", "克拉匠造隐私政策")):
+            self.assertIn(
+                f"VALUES ('{kind}',1,'{title}','版本：1\n", seed,
+            )
+            self.assertIn(
+                f"INSERT INTO `CC_LEGAL_HEAD` (`kind`, `revision`, `published_version`)"
+                f" VALUES ('{kind}',1,1);",
+                seed,
+            )
+        self.assertEqual(seed.count("'PUBLISHED','system-init'"), 2)
+        self.assertNotIn("隔离测试协议", seed)
+
     def test_runtime_configuration_and_assets_have_one_source(self):
         """运行配置和素材台账不得重新引入已删除的备用入口或无用副本."""
         configuration = ROOT / "apps/admin-ui/static/config"

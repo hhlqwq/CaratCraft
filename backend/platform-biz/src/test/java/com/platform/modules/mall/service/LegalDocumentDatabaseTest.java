@@ -38,6 +38,11 @@ class LegalDocumentDatabaseTest {
                 new DriverManagerDataSource(
                         url, "root", System.getenv("CARATCRAFT_DATABASE_TEST_PASSWORD"));
         jdbc = new JdbcTemplate(source);
+        // 正式首版正文由初始化用例单独核验, 本类从空白状态验证草稿、发布和确认边界.
+        jdbc.update("DELETE FROM CC_ORDER_LEGAL");
+        jdbc.update("DELETE FROM CC_LEGAL_ACCEPTANCE");
+        jdbc.update("DELETE FROM CC_LEGAL_DOCUMENT");
+        jdbc.update("UPDATE CC_LEGAL_HEAD SET revision=0,published_version=0");
         transactions = new DataSourceTransactionManager(source);
         var proxy = new ProxyFactory(new LegalDocumentService(jdbc));
         proxy.setProxyTargetClass(true);

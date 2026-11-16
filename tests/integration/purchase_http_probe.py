@@ -2,7 +2,9 @@
 
 from decimal import Decimal
 import json
+import os
 import secrets
+import shutil
 import subprocess
 import time
 
@@ -63,15 +65,26 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
                                   "retailPrice": "99.00", "goodsSn": "HTTP-GOLD"}]}
         goods_id = request("/mall/goods/aggregate/save", aggregate, management=True)
         detail = request("/app/goods/detail?id=" + str(goods_id), {})
-        script = """const fs=require('node:fs'); const sku=require(process.argv[1]);
-const d=JSON.parse(fs.readFileSync(0,'utf8')); const groups=d.specificationList;
-const index=sku.prepare(d.productList,groups);
-const ids=groups.map(g=>String(g.valueList.find(v=>v.value==='白色').id));
-const selected=sku.findProduct(index,ids);
-process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(selected),price:selected.retailPrice}));"""
-        selected = json.loads(subprocess.run(
-            ["node", "-e", script, str(root / "apps/miniapp/services/goods-sku.js")],
-            input=json.dumps(detail), text=True, encoding="utf-8", capture_output=True, check=True).stdout)
+        script = (
+            "const fs=require('node:fs'); const sku=require(process.env.CARATCRAFT_SKU_MODULE);"
+            "const d=JSON.parse(fs.readFileSync(0,'utf8')); const groups=d.specificationList;"
+            "const index=sku.prepare(d.productList,groups);"
+            "const ids=groups.map(g=>String(g.valueList.find(v=>v.value==='白色').id));"
+            "const selected=sku.findProduct(index,ids);"
+            "process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(selected),"
+            "price:selected.retailPrice}));"
+        )
+        node = shutil.which("node")
+        if node is None:
+            raise RuntimeError("未找到Node命令, 无法执行真实小程序SKU选择器")
+        node_env = os.environ.copy()
+        node_env["CARATCRAFT_SKU_MODULE"] = str(root / "apps/miniapp/services/goods-sku.js")
+        selected_result = subprocess.run(
+            [node, "-e", script], env=node_env,
+            input=json.dumps(detail), text=True, encoding="utf-8", capture_output=True)
+        if selected_result.returncode:
+            raise RuntimeError("小程序SKU选择器执行失败: " + selected_result.stderr.strip())
+        selected = json.loads(selected_result.stdout)
         assert selected["stock"] == 8 and Decimal(str(selected["price"])) == Decimal("88.50")
         cases.append({"name": "actual_miniapp_sku_selector", "status": "passed"})
         product_id = selected["id"]
@@ -113,11 +126,10 @@ process.stdout.write(JSON.stringify({id:selected.id,stock:sku.availableStock(sel
         sql("UPDATE mall_address SET user_id=9000001 WHERE id=" + str(address_id))
         request("/app/address/delete", {"id": address_id})
         assert sql("SELECT COUNT(*) FROM mall_address WHERE id=" + str(address_id)) == "0"
-        # 合成正文只存在本轮随机测试库, 不作为商家正式协议发布.
-        sql("INSERT INTO CC_LEGAL_DOCUMENT(kind,version,title,content,status,operator_id) VALUES"
-            "('TERMS',1,'隔离协议','仅测试','PUBLISHED','test'),('PRIVACY',1,'隔离隐私','仅测试','PUBLISHED','test');"
-            "UPDATE CC_LEGAL_HEAD SET published_version=1;"
-            "INSERT INTO CC_LEGAL_ACCEPTANCE(user_id,kind,version) VALUES(9000001,'TERMS',1),(9000001,'PRIVACY',1);")
+        # 合成账号确认本轮初始化实际发布的版本, 不重复插入或改写正式正文.
+        sql("INSERT INTO CC_LEGAL_ACCEPTANCE(user_id,kind,version) "
+            "SELECT 9000001,kind,published_version FROM CC_LEGAL_HEAD "
+            "WHERE kind IN('TERMS','PRIVACY') AND published_version>0;")
         address = request("/app/address/save", {"userName": "隔离订单收货人", "provinceName": "隔离省",
             "cityName": "隔离市", "countyName": "隔离区", "detailInfo": "仅供下单测试", "telNumber": "13800000000"})
         cart_checkout = request("/app/cart/checkout?type=cart&addressId=" + str(address["id"]), {})
