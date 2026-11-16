@@ -40,6 +40,8 @@ class BuildRevisionTest(unittest.TestCase):
             script.parent.mkdir(parents=True, exist_ok=True)
             script.write_text("host operation\n", "utf-8")
             command = r'''$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$OutputEncoding = [Console]::OutputEncoding
 $WorkspaceRoot = $env:CARATCRAFT_REVISION_FIXTURE
 $ProjectRoot = $WorkspaceRoot
 $EnvExample = Join-Path $ProjectRoot 'deploy/.env.example'
@@ -60,7 +62,7 @@ Write-Output ('RESULT=' + ($Results -join ','))
             environment = dict(os.environ, CARATCRAFT_REVISION_FIXTURE=str(fixture),
                                CARATCRAFT_REVISION_SOURCE=str(ROOT / "deploy/scripts/dev.ps1"))
             result = subprocess.run([powershell, "-NoProfile", "-Command", command],
-                                    capture_output=True, text=True, encoding="utf-8",
+                                    capture_output=True, text=True, encoding="utf-8", errors="replace",
                                     env=environment, check=True)
             revisions = result.stdout.strip().splitlines()[-1].removeprefix("RESULT=").split(",")
             self.assertEqual(len(revisions), 5)
@@ -91,6 +93,8 @@ Write-Output ('RESULT=' + ($Results -join ','))
         manifest = "".join(f"{name}:{files[name]}\n" for name in sorted(files))
         expected = hashlib.sha256(manifest.encode("utf-8")).hexdigest()
         command = r'''$ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$OutputEncoding = [Console]::OutputEncoding
 $ProjectRoot = (Get-Location).Path
 $WorkspaceRoot = $ProjectRoot
 $EnvExample = Join-Path $ProjectRoot 'deploy/.env.example'
@@ -103,7 +107,7 @@ Set-BuildRevision
 Write-Output $env:BUILD_REVISION
 '''
         result = subprocess.run([powershell, "-NoProfile", "-Command", command], cwd=ROOT,
-                                capture_output=True, text=True, encoding="utf-8", check=True)
+                                capture_output=True, text=True, encoding="utf-8", errors="replace", check=True)
         self.assertEqual(expected, result.stdout.strip().splitlines()[-1])
         command = 'source <(sed \'/^if \\[\\[ \\$# -gt 0/,$d\' deploy/scripts/dev.sh); ROOT_DIR="$PWD"; ENV_EXAMPLE="$ROOT_DIR/deploy/.env.example"; set_build_revision; printf "%s\\n" "$BUILD_REVISION"'
         result = subprocess.run([bash, "-c", command], cwd=ROOT, capture_output=True,
