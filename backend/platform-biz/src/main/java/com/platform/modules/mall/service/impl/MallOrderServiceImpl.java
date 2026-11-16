@@ -538,8 +538,11 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                                         MallOrderGoodsEntity>()
                                 .eq(MallOrderGoodsEntity::getOrderId, orderId));
         for (MallOrderGoodsEntity item : goods) {
-            productDao.restoreStock(item.getProductId(), item.getNumber());
+            if (productDao.restoreStock(item.getProductId(), item.getNumber()) != 1) {
+                throw new IllegalStateException("商品库存恢复失败, 本次取消或退款已回滚");
+            }
         }
+        // 未使用优惠券的订单释放0行属于正常情况, 不作为恢复失败.
         userCouponDao.releaseByOrder(orderId);
     }
 }

@@ -12,7 +12,11 @@ import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import com.platform.modules.custom.dao.CustomOrderCustomizationDao;
 import com.platform.modules.custom.dao.ProductionWorkOrderDao;
+import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallOrderDao;
+import com.platform.modules.mall.dao.MallOrderGoodsDao;
+import com.platform.modules.mall.dao.MallProductDao;
+import com.platform.modules.mall.dao.MallUserCouponDao;
 import com.platform.modules.mall.dao.OrderPriceLogDao;
 import com.platform.modules.mall.service.impl.MallOrderServiceImpl;
 import com.platform.support.TransactionTestSupport;
@@ -41,6 +45,7 @@ class OrderTransactionDatabaseTest {
     private DriverManagerDataSource source;
     private JdbcTemplate jdbc;
     private OrderLifecycleService service;
+    private MallOrderServiceImpl orders;
     private OrderPriceLogDao logs;
     private int orderId;
     private SqlSessionTemplate sessions;
@@ -69,6 +74,8 @@ class OrderTransactionDatabaseTest {
         for (Class<?> mapper :
                 new Class<?>[] {
                     MallOrderDao.class,
+                    MallOrderGoodsDao.class,
+                    MallProductDao.class,
                     CustomOrderCustomizationDao.class,
                     ProductionWorkOrderDao.class,
                     com.platform.modules.custom.dao.ComponentStockDao.class,
@@ -77,11 +84,23 @@ class OrderTransactionDatabaseTest {
             factory.getObject().getConfiguration().addMapper(mapper);
         }
         sessions = new SqlSessionTemplate(factory.getObject());
-        MallOrderServiceImpl orders =
+        orders =
                 new MallOrderServiceImpl(
                         null, null, null, null, null, null, null, null, null, null, null, null);
         ReflectionTestUtils.setField(orders, "legalDocuments", mock(LegalDocumentService.class));
         ReflectionTestUtils.setField(orders, "baseMapper", sessions.getMapper(MallOrderDao.class));
+        ReflectionTestUtils.setField(
+                orders, "orderGoodsDao", sessions.getMapper(MallOrderGoodsDao.class));
+        ReflectionTestUtils.setField(
+                orders, "productDao", sessions.getMapper(MallProductDao.class));
+        ReflectionTestUtils.setField(orders, "userCouponDao", mock(MallUserCouponDao.class));
+        ReflectionTestUtils.setField(
+                orders, "customDesignService", mock(CustomDesignService.class));
+        ProxyFactory orderProxy = new ProxyFactory(orders);
+        orderProxy.setProxyTargetClass(true);
+        orderProxy.addAdvice(
+                TransactionTestSupport.interceptor(new DataSourceTransactionManager(source)));
+        orders = (MallOrderServiceImpl) orderProxy.getProxy();
         logs = mock(OrderPriceLogDao.class);
         OrderLifecycleService target =
                 new OrderLifecycleService(
@@ -111,8 +130,31 @@ class OrderTransactionDatabaseTest {
             jdbc.update("DELETE FROM CC_STOCK_LOG WHERE goods_id=?", orderId);
             jdbc.update("DELETE FROM CC_COMPONENT_STOCK WHERE goods_id=?", orderId);
             jdbc.update("DELETE FROM CC_COMPONENT_OPTION WHERE goods_id=?", orderId);
+            jdbc.update("DELETE FROM mall_order_goods WHERE order_id=?", orderId);
             jdbc.update("DELETE FROM mall_order WHERE id=?", orderId);
         }
+    }
+
+    /** 退款库存恢复失败时, 真实事务必须回滚已更新的订单状态. */
+    @Test
+    void missingProductRollsBackRefundStatus() {
+        jdbc.update("UPDATE mall_order SET order_status=201,pay_status=2 WHERE id=?", orderId);
+        jdbc.update(
+                "INSERT INTO mall_order_goods(order_id,goods_id,product_id,number) VALUES(?,?,?,1)",
+                orderId,
+                orderId,
+                orderId);
+
+        assertThrows(IllegalStateException.class, () -> orders.completeRefund(orderId, 401));
+
+        assertEquals(
+                201,
+                jdbc.queryForObject(
+                        "SELECT order_status FROM mall_order WHERE id=?", Integer.class, orderId));
+        assertEquals(
+                2,
+                jdbc.queryForObject(
+                        "SELECT pay_status FROM mall_order WHERE id=?", Integer.class, orderId));
     }
 
     /** 库存写入后流水失败时, Spring事务必须同时回滚余额. */

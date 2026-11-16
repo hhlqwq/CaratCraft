@@ -17,8 +17,10 @@ import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallOrderDao;
 import com.platform.modules.mall.dao.MallOrderGoodsDao;
+import com.platform.modules.mall.dao.MallProductDao;
 import com.platform.modules.mall.dao.MallUserCouponDao;
 import com.platform.modules.mall.entity.MallOrderEntity;
+import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.service.impl.MallOrderServiceImpl;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -110,5 +112,44 @@ class OrderCancellationServiceTest {
         when(gateway.queryOrder("", order.getOrderSn())).thenThrow(new WxPayException("连接失败"));
         assertThrows(IllegalStateException.class, () -> service.cancelUnpaid(10, 7L));
         verify(orders, never()).cancelUnpaid(10, 7L);
+    }
+
+    /** 商品已经不存在时必须中止取消, 由事务回滚订单状态. */
+    @Test
+    void missingProductPreventsCancellationFromCommitting() {
+        MallOrderGoodsEntity item = new MallOrderGoodsEntity();
+        item.setProductId(12);
+        item.setNumber(3);
+        MallOrderGoodsDao goods = mock(MallOrderGoodsDao.class);
+        MallProductDao products = mock(MallProductDao.class);
+        when(goods.selectList(any())).thenReturn(List.of(item));
+        when(products.restoreStock(12, 3)).thenReturn(0);
+        ReflectionTestUtils.setField(service, "orderGoodsDao", goods);
+        ReflectionTestUtils.setField(service, "productDao", products);
+        when(provider.getIfAvailable()).thenReturn(null);
+        order.setPayStatus(0);
+        order.setPayId("0");
+
+        assertThrows(IllegalStateException.class, () -> service.cancelUnpaid(10, 7L));
+    }
+
+    /** 库存恢复成功时, 没有优惠券的订单也应正常取消. */
+    @Test
+    void restoredStockAllowsCancellationWithoutCoupon() {
+        MallOrderGoodsEntity item = new MallOrderGoodsEntity();
+        item.setProductId(12);
+        item.setNumber(3);
+        MallOrderGoodsDao goods = mock(MallOrderGoodsDao.class);
+        MallProductDao products = mock(MallProductDao.class);
+        when(goods.selectList(any())).thenReturn(List.of(item));
+        when(products.restoreStock(12, 3)).thenReturn(1);
+        ReflectionTestUtils.setField(service, "orderGoodsDao", goods);
+        ReflectionTestUtils.setField(service, "productDao", products);
+        when(provider.getIfAvailable()).thenReturn(null);
+        order.setPayStatus(0);
+        order.setPayId("0");
+
+        assertTrue(service.cancelUnpaid(10, 7L));
+        verify(products).restoreStock(12, 3);
     }
 }
