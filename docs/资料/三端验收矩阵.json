@@ -35,7 +35,7 @@
         "node": {"passed": 310, "failed": 0, "skipped": 0},
         "python": {"tests": 40, "passed": 39, "failed": 0, "skipped": 1, "skipScope": "未安装pwsh, 仅跳过两平台摘要对照"},
         "admin": {"productionBuild": "passed", "eslint": "passed", "isolatedBrowserSuites": 3},
-        "miniapp": {"officialCompile": "passed", "pages": 40, "wxml": 43, "wxss": 48, "javascriptSyntax": 60, "pluginCompileWrapper": "failed_pinned_compiler_unavailable", "ideRendering": "designer_page_observed_recompile_pending"},
+        "miniapp": {"officialCompile": "passed", "pages": 40, "wxml": 43, "wxss": 48, "javascriptSyntax": 60, "pluginCompileWrapper": "failed_pinned_compiler_unavailable", "ideRendering": "passed_four_main_tabs"},
         "sourceQuality": {"javaDescriptionFiles": 650, "javaAospFiles": 650, "frontendFormattingFiles": 368, "frontendFormattingDifferences": 0},
         "requirements": {"wordReviewed": true, "r01ToR10": "implemented", "ai": "next_version"},
         "externalAcceptance": "pending_real_wechat_payment_sms_and_production",
@@ -54,8 +54,11 @@
             "configHttp": 400,
             "configMessage": "该商品暂未开放定制",
             "configAssessment": "符合默认停用契约, 未为测试启用模板或修改材料",
-            "ideDesignerPageObserved": true,
-            "ideRecompile": "pending_window_activation_failed"
+            "ideRecompile": "passed",
+            "ideControlScope": "only_wechat_devtools_window",
+            "idePagesObserved": ["pages/index/index", "pages/designer/designer", "pages/community/index", "pages/ucenter/index/index"],
+            "ideHomeConsole": {"errors": 0, "warnings": 5, "old502Recurred": false, "newGoodsPostHttp": 200, "hotGoodsPostHttp": 200},
+            "ideDiyConsole": {"errors": 1, "warnings": 5, "expectedConfigHttp": 400, "disabledActionsVerified": ["保存", "下一步"]}
         }
     },
     "currentNodeRegression": {

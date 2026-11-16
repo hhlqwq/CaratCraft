@@ -87,5 +87,18 @@
         "nodeTests": 291,
         "ideRecompilePerformed": false,
         "desktopControlled": false
+    },
+    "currentParentRepositoryVerification": {
+        "date": "2026-11-16",
+        "ideVersion": "Stable 2.02.2608060",
+        "ideRecompilePerformed": true,
+        "controlScope": "仅已打开的微信开发者工具窗口, 未操作其他应用窗口",
+        "pagesObserved": ["pages/index/index", "pages/designer/designer", "pages/community/index", "pages/ucenter/index/index"],
+        "home": {"rendered": true, "errors": 0, "warnings": 5, "newGoodsPostHttp": 200, "hotGoodsPostHttp": 200},
+        "designer": {"rendered": true, "configHttp": 400, "configMessage": "该商品暂未开放定制", "saveDisabled": true, "nextDisabled": true},
+        "community": {"rendered": true, "emptyState": true},
+        "ucenter": {"rendered": true, "guestState": true},
+        "realWechatLoginPaymentSms": "pending",
+        "uploaded": false
     }
 }
