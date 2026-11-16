@@ -1,11 +1,15 @@
 package com.platform.modules.mall.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.modules.mall.entity.MallGoodsSpecificationEntity;
 import com.platform.modules.mall.entity.MallRelatedGoodsEntity;
 
@@ -51,6 +55,36 @@ class CatalogApplicationServiceTest {
                                                 && Integer.valueOf(0).equals(params.get("isDelete"))
                                                 && Integer.valueOf(1)
                                                         .equals(params.get("isOnSale"))));
+    }
+
+    /** 不存在的分类应返回明确业务错误, 而不是空指针. */
+    @Test
+    void rejectsUnknownCategoryWithoutNullPointer() {
+        var service = new CatalogApplicationService();
+        var categories = mock(MallCategoryService.class);
+        ReflectionTestUtils.setField(service, "categoryService", categories);
+        when(categories.getById(404)).thenReturn(null);
+
+        var error = assertThrows(IllegalArgumentException.class, () -> service.category(404));
+        assertEquals("分类不存在", error.getMessage());
+    }
+
+    /** 公开商品总数必须同时排除下架和已删除商品. */
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void countsOnlyVisibleGoods() {
+        var service = new CatalogApplicationService();
+        var goods = mock(MallGoodsService.class);
+        ReflectionTestUtils.setField(service, "goodsService", goods);
+        when(goods.count(any())).thenReturn(0L);
+
+        service.count();
+
+        var wrapper = org.mockito.ArgumentCaptor.forClass(QueryWrapper.class);
+        verify(goods).count(wrapper.capture());
+        String sql = wrapper.getValue().getSqlSegment();
+        assertTrue(sql.contains("is_on_sale"));
+        assertTrue(sql.contains("is_delete"));
     }
 
     /** 构建最小规格样本, 不引入无关商品或价格依赖. */

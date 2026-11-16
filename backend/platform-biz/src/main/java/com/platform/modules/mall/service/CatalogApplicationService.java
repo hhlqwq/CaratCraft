@@ -287,6 +287,9 @@ public class CatalogApplicationService {
     public RestResponse<Object> category(Integer id) {
         Map<String, Object> resultObj = new HashMap<>();
         MallCategoryEntity currentCategory = categoryService.getById(id);
+        if (currentCategory == null) {
+            throw new IllegalArgumentException("分类不存在");
+        }
         MallCategoryEntity parentCategory = categoryService.getById(currentCategory.getParentId());
         Map<String, Object> params = new HashMap<>();
         params.put("parentId", currentCategory.getParentId());
@@ -531,7 +534,8 @@ public class CatalogApplicationService {
     public RestResponse<Object> count() {
         Map<String, Object> resultObj = new HashMap<>();
         long goodsCount =
-                goodsService.count(new QueryWrapper<MallGoodsEntity>().eq("is_on_sale", 1));
+                goodsService.count(
+                        new QueryWrapper<MallGoodsEntity>().eq("is_on_sale", 1).eq("is_delete", 0));
         resultObj.put("goodsCount", goodsCount);
         return RestResponse.ok(resultObj);
     }
