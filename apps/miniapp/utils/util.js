@@ -104,7 +104,7 @@ function expireSession(token) {
         if (!pages.length || pages[pages.length - 1].route !== 'pages/auth/btnAuth/btnAuth') {
             wx.navigateTo({
                 url: '/pages/auth/btnAuth/btnAuth',
-                fail() {
+                complete() {
                     authRedirecting = false;
                 },
             });

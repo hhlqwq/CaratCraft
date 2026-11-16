@@ -22,7 +22,7 @@ function load(relative, dependencies = {}, extras = {}) {
 /** 提供可控的请求队列和会话存储, 观察加载及导航次数. */
 function requestFixture() {
     const storage = {token: 'old-token'};
-    const calls = {requests: [], shown: 0, hidden: 0, navigation: 0};
+    const calls = {requests: [], navigations: [], shown: 0, hidden: 0, navigation: 0};
     const app = {globalData: {}};
     const wx = {
         getStorageSync: (key) => storage[key],
@@ -36,8 +36,9 @@ function requestFixture() {
             calls.hidden++;
         },
         request: (request) => calls.requests.push(request),
-        navigateTo: () => {
+        navigateTo: (options) => {
             calls.navigation++;
+            calls.navigations.push(options);
         },
     };
     const util = load(
@@ -83,6 +84,22 @@ test('401导航去重并隔离旧令牌的迟到响应', async () => {
     await nextResult;
     assert.equal(storage.token, 'new-token');
     assert.equal(calls.navigation, 1);
+});
+
+/** 登录页跳转完成后释放导航锁, 后续独立失效会话仍可进入登录页. */
+test('401登录导航完成后允许后续跳转', async () => {
+    const {util, calls} = requestFixture();
+    const first = Promise.allSettled([util.request('/first')]);
+    calls.requests[0].success({statusCode: 401, data: {code: 401}});
+    calls.requests[0].complete();
+    await first;
+    assert.equal(calls.navigation, 1);
+    calls.navigations[0].complete();
+    const second = Promise.allSettled([util.request('/second')]);
+    calls.requests[1].success({statusCode: 401, data: {code: 401}});
+    calls.requests[1].complete();
+    await second;
+    assert.equal(calls.navigation, 2);
 });
 
 /** 预下单网络拒绝必须到达调用方, 不触发支付弹窗. */
