@@ -34,6 +34,15 @@ function initialDesignerState() {
         loadingConfig: false,
         configError: '',
         showOptional: false,
+        activeGroupType: '',
+        activeGroupName: '',
+        activeGroupRequired: false,
+        activeGroupHasSelection: false,
+        activeOptions: [],
+        stageChainImage: '',
+        activeName: '',
+        showSizing: false,
+        showDetail: false,
         referencePreferences: ['较短', '中等', '较长'],
         referencePreferenceIndex: 1,
         referenceLoading: false,
@@ -292,7 +301,9 @@ Page({
                     loadingConfig: false,
                     configError: '',
                     activeIndex: -1,
+                    activeGroupType: componentGroups.length ? componentGroups[0].type : '',
                 });
+                this.refreshActiveGroup(componentGroups);
                 this._history = [];
                 this.updateArrangement(
                     restoredConfiguration ? restoredOptionIds : selectedOptionIds,
@@ -395,11 +406,14 @@ Page({
                 ),
                 true
             );
+            const nextIndex = Math.min(
+                this.data.arrangementOptionIds.length - 1,
+                this.data.activeIndex + 1
+            );
+            const node = this.data.arrangementNodes[nextIndex];
             this.setData({
-                activeIndex: Math.min(
-                    this.data.arrangementOptionIds.length - 1,
-                    this.data.activeIndex + 1
-                ),
+                activeIndex: nextIndex,
+                activeName: node ? node.name : '',
             });
         } catch (error) {
             wx.showToast({title: error.message, icon: 'none'});
@@ -408,7 +422,9 @@ Page({
 
     /** 选中实例以插入、复制、删除或调序, 重复材料保持独立位置. */
     selectInstance(event) {
-        this.setData({activeIndex: Number(event.currentTarget.dataset.index)});
+        const index = Number(event.currentTarget.dataset.index);
+        const node = this.data.arrangementNodes[index];
+        this.setData({activeIndex: index, activeName: node ? node.name : ''});
     },
 
     /** 批量复制数量仅影响当前选中材料, 超限时整次操作不执行. */
@@ -437,13 +453,19 @@ Page({
             return group;
         });
         const nodes = arrangement.preview(ids, options);
+        const chainNode = nodes.filter(function (node) {
+            return String(node.type).toLowerCase() === 'chain' && node.image;
+        })[0];
+        const nextActiveIndex = Math.min(this.data.activeIndex, ids.length - 1);
         this.setData({
             arrangementOptionIds: ids.slice(),
             arrangementNodes: nodes,
             selectedOptionIds: Array.from(new Set(ids)),
             componentGroups: groups,
             canUndo: Boolean(this._history && this._history.length),
-            activeIndex: Math.min(this.data.activeIndex, ids.length - 1),
+            activeIndex: nextActiveIndex,
+            stageChainImage: chainNode ? chainNode.image : '',
+            activeName: nextActiveIndex >= 0 && nodes[nextActiveIndex] ? nodes[nextActiveIndex].name : '',
             dimensionNotice: nodes.some(function (node) {
                 return !node.known;
             })
@@ -453,7 +475,40 @@ Page({
                 return node.name;
             }),
         });
+        this.refreshActiveGroup(groups);
         return this.refreshQuote();
+    },
+
+    /** 同步当前材料分组的选项到独立字段, 避免模板直接依赖嵌套下标. */
+    refreshActiveGroup(groups) {
+        const list = groups || this.data.componentGroups;
+        const current = list.filter((group) => group.type === this.data.activeGroupType)[0];
+        this.setData({
+            activeGroupName: current ? current.name : '',
+            activeGroupRequired: current ? current.required : false,
+            activeGroupHasSelection: current ? Boolean(current.hasSelection) : false,
+            activeOptions: current ? current.options : [],
+        });
+    },
+
+    /** 切换底部材料分组, 插入操作仍落在当前选中实例之后. */
+    switchGroup(event) {
+        const type = event.currentTarget.dataset.type;
+        if (!type || type === this.data.activeGroupType) {
+            return;
+        }
+        this.setData({activeGroupType: type});
+        this.refreshActiveGroup();
+    },
+
+    /** 展开或收起尺寸与规则参考面板. */
+    toggleSizing() {
+        this.setData({showSizing: !this.data.showSizing});
+    },
+
+    /** 展开或收起报价明细. */
+    toggleDetail() {
+        this.setData({showDetail: !this.data.showDetail});
     },
 
     /** 撤回最后一次排列操作, 不修改已下单快照. */
@@ -498,18 +553,23 @@ Page({
             }
             this.updateArrangement(next, true);
             if (action === 'left' || action === 'right') {
+                const moved = Math.max(
+                    0,
+                    Math.min(
+                        this.data.arrangementOptionIds.length - 1,
+                        index + (action === 'left' ? -1 : 1)
+                    )
+                );
+                const node = this.data.arrangementNodes[moved];
                 this.setData({
-                    activeIndex: Math.max(
-                        0,
-                        Math.min(
-                            this.data.arrangementOptionIds.length - 1,
-                            index + (action === 'left' ? -1 : 1)
-                        )
-                    ),
+                    activeIndex: moved,
+                    activeName: node ? node.name : '',
                 });
             }
             if (action === 'copy') {
-                this.setData({activeIndex: index + count});
+                const copied = Math.min(index + count, this.data.arrangementOptionIds.length - 1);
+                const node = this.data.arrangementNodes[copied];
+                this.setData({activeIndex: copied, activeName: node ? node.name : ''});
             }
         } catch (error) {
             wx.showToast({title: error.message, icon: 'none'});

@@ -476,7 +476,7 @@ public class CatalogApplicationService {
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
         bannerInfo.put("name", "匠心设计，为你呈现璀璨珠宝");
-        bannerInfo.put("imgUrl", "/static/images/demo/demo-platinum-pearl-necklace.webp");
+        bannerInfo.put("imgUrl", "/static/images/demo/product-pearl-necklace-diy.webp");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }
@@ -487,7 +487,7 @@ public class CatalogApplicationService {
         Map<String, Object> bannerInfo = new HashMap<>();
         bannerInfo.put("url", "");
         bannerInfo.put("name", "人气珠宝与灵感设计");
-        bannerInfo.put("imgUrl", "/static/images/demo/demo-gold-solitaire-necklace.webp");
+        bannerInfo.put("imgUrl", "/static/images/demo/product-akoya-necklace.webp");
         resultObj.put("bannerInfo", bannerInfo);
         return RestResponse.ok(resultObj);
     }

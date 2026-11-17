@@ -235,8 +235,9 @@ def write_svg(path):
 
 def main():
     """批量重建项目资产并输出可复核的来源与哈希清单."""
+    # product- 开头的是AI生成的演示商品图, 不参与几何重建.
     files = [path for path in WX_IMAGES.rglob("*") if path.suffix.lower() in
-             {".png", ".webp", ".svg"}]
+             {".png", ".webp", ".svg"} and not path.name.startswith("product-")]
     files += list((UI / "src/icons/svg").glob("*.svg"))
     files += [UI / "static/img/favicon.ico",
               ROOT / "backend/platform-api/src/main/resources/favicon.ico",
@@ -261,6 +262,12 @@ def main():
             print(f"资产重建进度: {index}/{len(files)}", flush=True)
     output = ROOT / "legal/project-assets.json"
     output.parent.mkdir(parents=True, exist_ok=True)
+    # 保留清单中非本脚本生成的条目(如AI生成的product-演示商品图).
+    if output.exists():
+        kept = [item for item in json.loads(output.read_text(encoding="utf-8"))
+                if item.get("source") != "tools/assets/generate-project-assets.py中的几何绘图"]
+        generated = {item["file"] for item in records}
+        records += [item for item in kept if item.get("file") not in generated]
     output.write_text(json.dumps(records, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 

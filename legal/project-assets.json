@@ -186,27 +186,33 @@
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {
-    "file": "apps/miniapp/static/images/demo/demo-gold-solitaire-necklace.webp",
-    "sha256": "b033f72393cf42d52fc3b7e8c7298482e2698aa9adc7f2984a234c82f66879d0",
-    "source": "tools/assets/generate-project-assets.py中的几何绘图",
+    "file": "apps/miniapp/static/images/demo/product-pearl-necklace-diy.webp",
+    "sha256": "22ac5f5877097900b8487b1cee961efb2668581db09ba20d95d318b5fff4dd39",
+    "source": "image_generation 插件AI生成的演示商品图",
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {
-    "file": "apps/miniapp/static/images/demo/demo-platinum-pearl-necklace.webp",
-    "sha256": "e9d474e9916946cdc81c2f40decce6a0bc5a76b4924604df9a9ecbfe2050e2dc",
-    "source": "tools/assets/generate-project-assets.py中的几何绘图",
+    "file": "apps/miniapp/static/images/demo/product-pearl-earrings-diy.webp",
+    "sha256": "8eb23889e60ac9fa37847240013ecaa2cd7bdf914914d8ad7de34b617fea61e8",
+    "source": "image_generation 插件AI生成的演示商品图",
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {
-    "file": "apps/miniapp/static/images/demo/demo-rose-heart-necklace.webp",
-    "sha256": "585361e53122900314c6b2207378b1839fc6e14051e0e600c9539ac05935c47c",
-    "source": "tools/assets/generate-project-assets.py中的几何绘图",
+    "file": "apps/miniapp/static/images/demo/product-freshwater-bracelet.webp",
+    "sha256": "aec2563c359a86e127570c559d801eecbc30eb366de5ca71f5af3761d69e1208",
+    "source": "image_generation 插件AI生成的演示商品图",
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {
-    "file": "apps/miniapp/static/images/demo/demo-sapphire-constellation-necklace.webp",
-    "sha256": "f4f9677e131c8aec440bbbf8c599799588f63c873f5f2fc55cc56d972deb0a32",
-    "source": "tools/assets/generate-project-assets.py中的几何绘图",
+    "file": "apps/miniapp/static/images/demo/product-akoya-ring.webp",
+    "sha256": "66c94fa05171d50bba5088caab5c0e0c9d03f6b0069a5adad48ca042356dd1a3",
+    "source": "image_generation 插件AI生成的演示商品图",
+    "purpose": "界面图标或明确标注的演示示意图"
+  },
+  {
+    "file": "apps/miniapp/static/images/demo/product-akoya-necklace.webp",
+    "sha256": "8d7233f688c0e67956c1d60a849bd269be0287f62b268e088c6ccda11bffa40f",
+    "source": "image_generation 插件AI生成的演示商品图",
     "purpose": "界面图标或明确标注的演示示意图"
   },
   {

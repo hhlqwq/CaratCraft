@@ -14,7 +14,7 @@ const script = component.script.content
     .replace('export function sanitizeHtml', 'function sanitizeHtml')
     .replace('export default {', 'const Editor = {');
 const image = fs.readFileSync(
-    path.join(root, 'apps/miniapp/static/images/demo/demo-platinum-pearl-necklace.webp')
+    path.join(root, 'apps/miniapp/static/images/demo/product-pearl-necklace-diy.webp')
 );
 const html = `<!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <title>HTML编辑组件隔离验证</title><style>
