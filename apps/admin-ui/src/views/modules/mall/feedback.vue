@@ -162,6 +162,7 @@ export default {
                     nickname: this.searchForm.nickname,
                     mobile: this.searchForm.mobile,
                     status: this.searchForm.status,
+                    todo: this.$route?.query?.todo,
                     feedType: this.searchForm.feedType,
                 },
             }).then(({data}) => {

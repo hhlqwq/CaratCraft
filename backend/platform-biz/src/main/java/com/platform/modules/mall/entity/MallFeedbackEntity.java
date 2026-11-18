@@ -37,6 +37,8 @@ import java.util.Date;
 @Data
 @TableName("mall_feedback")
 public class MallFeedbackEntity implements Serializable {
+    @com.fasterxml.jackson.annotation.JsonIgnore private String scopeOrgNo;
+    private String staffReply;
     private static final long serialVersionUID = 1L;
 
     /** 主键 */

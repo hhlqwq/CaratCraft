@@ -10,6 +10,15 @@
         T.CREATE_DATE
         FROM SYS_OSS T
         WHERE 1=1
+        <if test="params.ossOrgNos != null">
+            <choose>
+                <when test="params.ossOrgNos.size() > 0">
+                    AND T.CREATE_USER_ORG_NO IN
+                    <foreach collection="params.ossOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
         <if test="params.url != null and params.url.trim() != ''">
             AND T.URL LIKE CONCAT('%', #{params.url}, '%')
         </if>

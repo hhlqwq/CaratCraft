@@ -18,14 +18,20 @@
  */
 package com.platform.modules.sys.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.Query;
 import com.platform.common.utils.TokenGenerator;
+import com.platform.modules.sys.dao.SysUserDao;
 import com.platform.modules.sys.dao.SysUserTokenDao;
+import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
 import com.platform.modules.sys.service.SysUserTokenService;
+
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,11 +44,14 @@ import java.util.Map;
  * @author hehailong
  */
 @Service("sysUserTokenService")
+@RequiredArgsConstructor
 public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenEntity>
         implements SysUserTokenService {
+    private final SysUserDao users;
 
     @Override
-    public String createToken(String userId) {
+    @Transactional(rollbackFor = Exception.class)
+    public String createToken(String userId, String verifiedPasswordHash) {
         // 生成一个token
         String token = TokenGenerator.generateValue();
 
@@ -50,6 +59,21 @@ public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUse
         Date now = new Date();
         // 过期时间
         Date expireTime = new Date(now.getTime() + Constant.EXPIRE * 1000);
+        // 锁定账号并校验凭据版本, 避免同时发生的改密或停用留下新会话.
+        SysUserEntity active =
+                users.selectOne(
+                        new QueryWrapper<SysUserEntity>()
+                                .select("PASSWORD", "STATUS")
+                                .eq("USER_ID", userId)
+                                .last("FOR UPDATE"));
+        if (active == null
+                || !Integer.valueOf(1).equals(active.getStatus())
+                || !verifiedPasswordHash.equals(active.getPassword())) {
+            return null;
+        }
+        users.update(
+                null,
+                new UpdateWrapper<SysUserEntity>().eq("USER_ID", userId).set("LAST_LOGIN_AT", now));
 
         // 判断是否生成过token
         SysUserTokenEntity tokenEntity = this.getById(userId);

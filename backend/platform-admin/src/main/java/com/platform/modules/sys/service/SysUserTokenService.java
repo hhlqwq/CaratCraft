@@ -32,12 +32,13 @@ import java.util.Map;
 public interface SysUserTokenService extends IService<SysUserTokenEntity> {
 
     /**
-     * 生成token
+     * 账号仍有效且已校验的密码版本未变化时签发令牌.
      *
      * @param userId 用户Id
-     * @return Map
+     * @param verifiedPasswordHash 已校验的密码版本
+     * @return 令牌, 员工状态或凭据发生变化时为空
      */
-    String createToken(String userId);
+    String createToken(String userId, String verifiedPasswordHash);
 
     /**
      * 退出，修改token值

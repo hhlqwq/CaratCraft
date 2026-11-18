@@ -116,6 +116,12 @@ export default {
             },
         },
     },
+    /** 从登录页发起改密时打开已认证的现有对话框. */
+    mounted() {
+        if (this.$route.query.changePassword === '1') {
+            this.updatePasswordHandle();
+        }
+    },
     methods: {
         /** 打开主题设置面板并初始化其当前选项. */
         showTheme() {

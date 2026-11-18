@@ -18,6 +18,9 @@
             <el-form-item label="备注" prop="remark">
                 <el-input type="textarea" v-model="dataForm.remark" placeholder="备注"></el-input>
             </el-form-item>
+            <el-form-item v-if="String($store.state.user.id) === '1'" label="批准委派">
+                <el-checkbox v-model="dataForm.delegable">允许有授权的管理员分配此角色</el-checkbox>
+            </el-form-item>
             <el-form-item size="small" label="功能权限">
                 <el-tree
                     check-strictly
@@ -76,6 +79,7 @@ export default {
                 id: '',
                 roleName: '',
                 remark: '',
+                delegable: false,
             },
             dataRule: {
                 roleName: [
@@ -116,6 +120,7 @@ export default {
                             if (data && data.code === 0) {
                                 this.dataForm.roleName = data.data.roleName;
                                 this.dataForm.remark = data.data.remark;
+                                this.dataForm.delegable = Boolean(data.data.delegable);
                                 this.$refs.menuListTree.setCheckedKeys(data.data.menuIdList);
                                 this.$refs.orgListTree.setCheckedKeys(data.data.orgNoList);
                             }
@@ -134,6 +139,7 @@ export default {
                             roleId: this.dataForm.id || undefined,
                             roleName: this.dataForm.roleName,
                             remark: this.dataForm.remark,
+                            delegable: this.dataForm.delegable,
                             menuIdList: [].concat(
                                 this.$refs.menuListTree.getCheckedKeys(),
                                 this.$refs.menuListTree.getHalfCheckedKeys()

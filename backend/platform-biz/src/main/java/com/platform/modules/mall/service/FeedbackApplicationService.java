@@ -17,6 +17,9 @@ import java.util.Date;
 public class FeedbackApplicationService {
     private final MallFeedbackDao feedback;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.platform.modules.sys.service.BusinessOrganization businessOrganization;
+
     /** 校验反馈并保存, 失败不报告成功或截断认证ID. */
     @Transactional(rollbackFor = Exception.class)
     public void submit(Long userId, String nickname, FeedbackSaveRequest request) {
@@ -35,6 +38,9 @@ public class FeedbackApplicationService {
             throw new IllegalArgumentException("请选择反馈类型, 填写1到500字正文和有效手机号");
         }
         var row = new MallFeedbackEntity();
+        if (businessOrganization != null) {
+            row.setScopeOrgNo(businessOrganization.defaultOrganization());
+        }
         row.setUserId(userId);
         String name = nickname == null ? "" : nickname;
         row.setUserName(

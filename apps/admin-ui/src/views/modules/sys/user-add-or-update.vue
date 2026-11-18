@@ -20,6 +20,16 @@
                     class="width200"
                 ></el-input>
             </el-form-item>
+            <el-form-item v-if="!dataForm.id" label="初始密码" prop="initialPassword">
+                <el-input
+                    v-model="dataForm.initialPassword"
+                    type="password"
+                    show-password
+                    autocomplete="new-password"
+                    placeholder="为员工单独设置，12到128位"
+                    class="width200"
+                />
+            </el-form-item>
             <el-form-item label="状态" prop="status">
                 <el-radio-group v-model="dataForm.status" class="width200">
                     <el-radio-button :label="0">禁用</el-radio-button>
@@ -119,7 +129,7 @@ export default {
                 userName: '',
                 sex: '',
                 realName: '',
-                salt: '',
+                initialPassword: '',
                 email: '',
                 mobile: '',
                 orgNo: '',
@@ -127,6 +137,14 @@ export default {
                 status: 1,
             },
             dataRule: {
+                initialPassword: [
+                    {
+                        required: true,
+                        pattern: /^[!-~]{12,128}$/,
+                        message: '请单独设置12到128位员工密码',
+                        trigger: 'blur',
+                    },
+                ],
                 userName: [
                     {
                         required: true,
@@ -178,7 +196,6 @@ export default {
                                 this.dataForm.userName = data.data.userName;
                                 this.dataForm.sex = data.data.sex.toString();
                                 this.dataForm.realName = data.data.realName;
-                                this.dataForm.salt = data.data.salt;
                                 this.dataForm.email = data.data.email;
                                 this.dataForm.mobile = data.data.mobile;
                                 this.dataForm.orgNo = data.data.orgNo;
@@ -210,7 +227,7 @@ export default {
                             userName: this.dataForm.userName,
                             sex: this.dataForm.sex,
                             realName: this.dataForm.realName,
-                            salt: this.dataForm.salt,
+                            password: this.dataForm.id ? undefined : this.dataForm.initialPassword,
                             email: this.dataForm.email,
                             mobile: this.dataForm.mobile,
                             orgNo: this.dataForm.orgNo,
@@ -219,6 +236,12 @@ export default {
                         },
                     }).then(({data}) => {
                         if (data && data.code === 0) {
+                            if (!this.dataForm.id) {
+                                this.$message.info(
+                                    '员工可用此用户名和你设置的初始密码登录，请通过安全渠道单独告知。'
+                                );
+                            }
+                            this.dataForm.initialPassword = '';
                             this.visible = false;
                             this.$message({
                                 message: '操作成功',

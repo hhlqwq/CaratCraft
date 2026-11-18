@@ -13,11 +13,21 @@
 		T.ROLE_ID,
 		T.ROLE_NAME,
 		T.REMARK,
+		T.DELEGABLE,
 		T.CREATE_USER_ID,
 		T.CREATE_USER_ORG_NO,
 		T.CREATE_TIME
 		FROM SYS_ROLE T
 		WHERE 1=1
+		<if test="params.roleViewer != null">
+			AND (T.CREATE_USER_ID=#{params.roleViewer}
+			<if test="params.roleOrgNos.size() > 0">
+				OR (T.DELEGABLE=1 AND EXISTS (SELECT 1 FROM SYS_ROLE_ORG O WHERE O.ROLE_ID=T.ROLE_ID)
+					AND NOT EXISTS (SELECT 1 FROM SYS_ROLE_ORG O WHERE O.ROLE_ID=T.ROLE_ID AND O.ORG_NO NOT IN
+					<foreach collection="params.roleOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach> ))
+			</if>
+			)
+		</if>
 		<if test="params.roleName != null and params.roleName.trim() != ''">
 			AND T.ROLE_NAME LIKE CONCAT('%', #{params.roleName}, '%')
 		</if>

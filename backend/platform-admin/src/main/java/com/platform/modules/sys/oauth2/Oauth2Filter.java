@@ -68,6 +68,8 @@ public class Oauth2Filter extends AuthenticatingFilter {
         String token = getRequestToken((HttpServletRequest) request);
         if (StringUtils.isBlank(token)) {
             HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpResponse.setContentType("application/json;charset=utf-8");
             httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
             httpResponse.setHeader("Access-Control-Allow-Origin", "*");
 
@@ -93,6 +95,7 @@ public class Oauth2Filter extends AuthenticatingFilter {
             // 旧会话已过期(StoppedSessionException 等), 清理后要求重新登录 /
             // The stale session has expired; ask the client to re-authenticate.
             HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpResponse.setContentType("application/json;charset=utf-8");
             httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
             httpResponse.setHeader("Access-Control-Allow-Origin", "*");
@@ -110,6 +113,7 @@ public class Oauth2Filter extends AuthenticatingFilter {
             ServletRequest request,
             ServletResponse response) {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+        httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         httpResponse.setContentType("application/json;charset=utf-8");
         httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
         httpResponse.setHeader("Access-Control-Allow-Origin", "*");

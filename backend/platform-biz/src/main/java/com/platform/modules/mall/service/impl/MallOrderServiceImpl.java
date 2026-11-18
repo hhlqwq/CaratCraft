@@ -70,6 +70,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEntity>
         implements MallOrderService {
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.platform.modules.sys.service.BusinessOrganization businessOrganization;
+
     private final MallAddressDao addressDao;
     private final MallCartDao cartDao;
     private final MallProductDao productDao;
@@ -320,6 +323,9 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
 
         //
         MallOrderEntity orderInfo = new MallOrderEntity();
+        if (businessOrganization != null) {
+            orderInfo.setScopeOrgNo(businessOrganization.defaultOrganization());
+        }
         orderInfo.setOrderSn(StringUtils.generateOrderNumber());
         orderInfo.setRequestKey(requestKey);
         orderInfo.setRequestDigest(digest);

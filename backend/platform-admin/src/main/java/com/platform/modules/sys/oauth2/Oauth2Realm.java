@@ -87,7 +87,7 @@ public class Oauth2Realm extends AuthorizingRealm {
         // 查询用户信息
         SysUserEntity user = shiroService.queryUser(tokenEntity.getUserId());
         // 账号锁定
-        if (user.getStatus() == 0) {
+        if (user == null || !Integer.valueOf(1).equals(user.getStatus())) {
             throw new LockedAccountException("账号已被锁定,请联系管理员");
         }
 

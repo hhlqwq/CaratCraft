@@ -98,9 +98,9 @@ public class SysLogAspect {
             sysLog.setIp(IpUtils.getIpAddr(request));
 
             // 用户名
-            String userName =
-                    ((SysUserEntity) SecurityUtils.getSubject().getPrincipal()).getUserName();
-            sysLog.setUserName(userName);
+            var actor = (SysUserEntity) SecurityUtils.getSubject().getPrincipal();
+            sysLog.setUserName(actor.getUserName());
+            sysLog.setScopeOrgNo(actor.getOrgNo());
 
             sysLog.setTime(time);
             // 保存系统日志

@@ -105,8 +105,7 @@ async function main() {
                           },
             });
         });
-        await page.goto(origin + '/#/mall-order');
-        await page.getByRole('button', {name: '退款售后', exact: true}).click();
+        await page.goto(origin + '/#/mall-refund');
         const refunds = page.getByRole('dialog', {name: '退款与售后审核'});
         await refunds.getByText('隔离售后读取失败', {exact: false}).waitFor();
         assert.equal(
@@ -118,6 +117,47 @@ async function main() {
         assert.equal(await refunds.getByRole('button', {name: '通过', exact: true}).count(), 0);
         await page.setViewportSize({width: 624, height: 900});
         await page.screenshot({path: path.join(output, 'refund-retry-narrow.png'), fullPage: true});
+        await page.route('**/fixture-api/mall/dashboard/summary', (route) =>
+            route.fulfill({json: {code: 0, data: {toShip: 3, workMaking: 2}}})
+        );
+        await page.goto(origin + '/#/home');
+        const workbench = page.locator('.merchant-home');
+        const shipping = workbench.getByRole('button', {name: '待发货 3'});
+        await shipping.waitFor();
+        assert.equal(await workbench.getByRole('button', {name: /退款|商品管理|员工/}).count(), 0);
+        const queueRequest = page.waitForRequest((request) => {
+            const url = new URL(request.url());
+            return (
+                url.pathname.endsWith('/mall/order/list') &&
+                url.searchParams.get('todo') === 'toShip'
+            );
+        });
+        await shipping.click();
+        await queueRequest;
+        const fulfillment = await browser.newPage();
+        await fulfillment.route('**/fixture-api/sys/menu/nav', (route) =>
+            route.fulfill({
+                json: {
+                    code: 0,
+                    data: {
+                        menuList: [{menuId: 1, name: '订单管理', url: 'mall/order', list: []}],
+                        permissions: ['mall:order:list', 'mall:order:ship'],
+                    },
+                },
+            })
+        );
+        let forbiddenRefundRequests = 0;
+        fulfillment.on('request', (request) => {
+            if (new URL(request.url()).pathname.endsWith('/mall/refund/list')) {
+                forbiddenRefundRequests++;
+            }
+        });
+        await fulfillment.goto(origin + '/#/mall-refund');
+        await fulfillment.waitForURL('**/#/404');
+        assert.equal(forbiddenRefundRequests, 0);
+        await fulfillment.goto(origin + '/#/login');
+        await fulfillment.getByRole('button', {name: '忘记密码', exact: true}).click();
+        await fulfillment.getByText('请联系单位的后台管理员核验个人身份', {exact: false}).waitFor();
         assert.deepEqual(errors, []);
         fs.writeFileSync(
             path.join(output, 'result.json'),
@@ -127,6 +167,9 @@ async function main() {
                     scenarios: [
                         'stock_conflict_preserves_reason_and_requires_reload',
                         'refund_read_retry_and_processing_has_no_approve',
+                        'workbench_uses_scoped_cards_and_opens_shipping_queue',
+                        'fulfillment_route_denies_direct_refund_page',
+                        'login_links_to_staff_recovery',
                     ],
                     realBackend: false,
                     productionBundle: true,

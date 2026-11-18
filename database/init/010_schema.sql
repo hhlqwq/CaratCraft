@@ -44,6 +44,9 @@ CREATE TABLE `CC_COMMUNITY_POST` (
     `moderation_reason` varchar(300) NOT NULL DEFAULT '',
     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `scope_org_no` varchar(10) DEFAULT NULL,
+    `staff_deleted` tinyint NOT NULL DEFAULT 0,
+    KEY `ix_community_scope_org` (`scope_org_no`),
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_post_request` (`user_id`,`request_key`),
     KEY `ix_post_feed` (`status`,`id`),
@@ -230,6 +233,12 @@ CREATE TABLE `CC_REFUND` (
     `next_check_time` datetime DEFAULT NULL,
     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `review_result` varchar(12) DEFAULT NULL,
+    `review_note` varchar(200) DEFAULT NULL,
+    `reviewed_by` varchar(32) DEFAULT NULL,
+    `reviewed_at` datetime DEFAULT NULL,
+    `support_note` varchar(200) DEFAULT NULL,
+    `support_handled_at` datetime DEFAULT NULL,
     PRIMARY KEY (`order_id`),
     UNIQUE KEY `uk_refund_no` (`refund_no`),
     KEY `ix_refund_retry` (`status`,`next_check_time`)
@@ -464,7 +473,9 @@ CREATE TABLE `SYS_LOG` (
     `TIME` bigint NOT NULL COMMENT '执行时长(毫秒)',
     `IP` varchar(64) DEFAULT NULL COMMENT 'IP地址',
     `CREATE_TIME` datetime NOT NULL COMMENT '创建时间',
-    PRIMARY KEY (`ID`)
+    `SCOPE_ORG_NO` varchar(10) DEFAULT NULL COMMENT '操作人当时所属机构',
+    PRIMARY KEY (`ID`),
+    KEY `ix_log_scope_org` (`SCOPE_ORG_NO`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='系统日志';
 CREATE TABLE `SYS_MENU` (
     `MENU_ID` varchar(8) NOT NULL,
@@ -504,6 +515,7 @@ CREATE TABLE `SYS_ROLE` (
     `CREATE_USER_ID` varchar(32) DEFAULT NULL COMMENT '创建者ID',
     `CREATE_USER_ORG_NO` varchar(32) DEFAULT NULL COMMENT '创建者所属机构',
     `CREATE_TIME` datetime NOT NULL COMMENT '创建时间',
+    `DELEGABLE` tinyint NOT NULL DEFAULT 0,
     PRIMARY KEY (`ROLE_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='角色';
 CREATE TABLE `SYS_ROLE_MENU` (
@@ -547,6 +559,7 @@ CREATE TABLE `SYS_USER` (
     `CREATE_USER_ID` varchar(32) DEFAULT NULL COMMENT '创建者ID',
     `CREATE_USER_ORG_NO` varchar(32) DEFAULT NULL COMMENT '创建人所属机构',
     `CREATE_TIME` datetime NOT NULL COMMENT '创建时间',
+    `LAST_LOGIN_AT` datetime DEFAULT NULL,
     PRIMARY KEY (`USER_ID`),
     UNIQUE KEY `USERNAME` (`USER_NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='系统用户';
@@ -828,6 +841,9 @@ CREATE TABLE `mall_feedback` (
     `content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '详细内容',
     `status` tinyint unsigned NOT NULL DEFAULT '0' COMMENT '状态',
     `add_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '反馈时间',
+    `scope_org_no` varchar(10) DEFAULT NULL,
+    `staff_reply` varchar(500) DEFAULT NULL,
+    KEY `ix_feedback_scope_org` (`scope_org_no`),
     PRIMARY KEY (`msg_id`),
     KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -888,6 +904,8 @@ CREATE TABLE `mall_goods` (
     `pearl_diameter_max` decimal(8,3) DEFAULT NULL,
     `video_media_id` bigint NOT NULL DEFAULT '0',
     `video_url` varchar(1000) NOT NULL DEFAULT '',
+    `scope_org_no` varchar(10) DEFAULT NULL,
+    KEY `ix_goods_scope_org` (`scope_org_no`),
     PRIMARY KEY (`id`),
     KEY `goods_sn` (`goods_sn`),
     KEY `cat_id` (`category_id`),
@@ -994,6 +1012,8 @@ CREATE TABLE `mall_order` (
     `order_type` varchar(1) DEFAULT NULL,
     `request_key` varchar(80) DEFAULT NULL,
     `request_digest` varchar(64) DEFAULT NULL,
+    `scope_org_no` varchar(10) DEFAULT NULL,
+    KEY `ix_order_scope_org` (`scope_org_no`),
     PRIMARY KEY (`id`),
     UNIQUE KEY `order_sn` (`order_sn`),
     UNIQUE KEY `uk_order_request` (`user_id`,`request_key`),

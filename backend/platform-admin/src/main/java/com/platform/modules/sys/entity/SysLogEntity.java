@@ -45,6 +45,9 @@ public class SysLogEntity implements Serializable {
     /** 用户操作 */
     private String operation;
 
+    /** 审计事件发生时的操作人机构. */
+    private String scopeOrgNo;
+
     /** 请求方法 */
     private String method;
 

@@ -21,6 +21,8 @@ package com.platform.modules.mall.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
+import com.platform.datascope.StaffAuthority;
+import com.platform.datascope.StaffAuthority.Resource;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.entity.MallOrderGoodsEntity;
 import com.platform.modules.mall.service.MallOrderGoodsService;
@@ -65,6 +67,7 @@ public class MallOrderController extends AbstractController {
     private final MallOrderService mallOrderService;
     private final com.platform.modules.mall.service.OrderLifecycleService lifecycleService;
     private final MallOrderGoodsService mallOrderGoodsService;
+    private final StaffAuthority authority;
 
     /**
      * 查询所有订单列表。
@@ -76,7 +79,9 @@ public class MallOrderController extends AbstractController {
     @GetMapping("/queryAll")
     @RequiresPermissions("mall:order:list")
     public RestResponse<List<MallOrderEntity>> queryAll(@RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallOrderService.queryAll(params));
+        applyScope(params);
+        return RestResponse.ok(
+                mallOrderService.queryAll(params).stream().map(this::listProjection).toList());
     }
 
     /**
@@ -89,7 +94,23 @@ public class MallOrderController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("mall:order:list")
     public RestResponse<Page<MallOrderEntity>> list(@RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallOrderService.queryPage(params));
+        applyScope(params);
+        Page<MallOrderEntity> result = mallOrderService.queryPage(params);
+        var info = authority.scope("mall:order:info");
+        var shipment = authority.scope("mall:order:ship");
+        var price = authority.scope("mall:order:price:update");
+        for (var row : result.getRecords()) {
+            String org = row.getScopeOrgNo();
+            row.setCanReadDetails(info.permits(org));
+            row.setCanShip(shipment.permits(org));
+            row.setCanAdjustPrice(
+                    price.permits(org)
+                            && (row.getPayId() == null
+                                    || row.getPayId().isBlank()
+                                    || "0".equals(row.getPayId())));
+            listProjection(row);
+        }
+        return RestResponse.ok(result);
     }
 
     /**
@@ -112,13 +133,14 @@ public class MallOrderController extends AbstractController {
     @GetMapping("/info/{id}")
     @RequiresPermissions("mall:order:info")
     public RestResponse<MallOrderEntity> info(@PathVariable("id") Integer id) {
+        authority.require("mall:order:info", Resource.ORDER, id);
         Map<String, Object> params = new HashMap<>();
         params.put("id", String.valueOf(id));
         List<MallOrderEntity> list = mallOrderService.queryAll(params);
         if (list.isEmpty()) {
-            return RestResponse.ok(mallOrderService.getById(id));
+            return RestResponse.ok(detailProjection(mallOrderService.getById(id)));
         }
-        return RestResponse.ok(list.get(0));
+        return RestResponse.ok(detailProjection(list.get(0)));
     }
 
     /**
@@ -132,6 +154,7 @@ public class MallOrderController extends AbstractController {
     @RequiresPermissions("mall:order:info")
     public RestResponse<List<MallOrderGoodsEntity>> goods(@PathVariable("id") Integer id) {
         Map<String, Object> params = new HashMap<>();
+        authority.require("mall:order:info", Resource.ORDER, id);
         params.put("orderId", String.valueOf(id));
         return RestResponse.ok(mallOrderGoodsService.queryAll(params));
     }
@@ -159,7 +182,7 @@ public class MallOrderController extends AbstractController {
     @Operation(summary = "修改", description = "修改")
     @SysLog("修改订单")
     @PostMapping("/update")
-    @RequiresPermissions("mall:order:update")
+    @RequiresPermissions("mall:order:price:update")
     public RestResponse<String> update(@RequestBody MallOrderEntity mallOrder) {
         return RestResponse.fail("订单不支持通用修改，请使用“发货”或“改价”操作");
     }
@@ -194,6 +217,7 @@ public class MallOrderController extends AbstractController {
             return RestResponse.fail("订单ID格式错误");
         }
 
+        authority.require("mall:order:ship", Resource.ORDER, id);
         lifecycleService.ship(id, String.valueOf(shippingNameObj), String.valueOf(shippingNoObj));
         return RestResponse.ok("发货成功");
     }
@@ -207,7 +231,7 @@ public class MallOrderController extends AbstractController {
     @Operation(summary = "支付前改价", description = "仅允许未支付订单修改实付金额")
     @SysLog("支付前修改订单价格")
     @PostMapping("/adjustPrice")
-    @RequiresPermissions("mall:order:update")
+    @RequiresPermissions("mall:order:price:update")
     public RestResponse<String> adjustPrice(@RequestBody Map<String, Object> params) {
         Object idObj = params.get("id");
         Object priceObj = params.get("actualPrice");
@@ -227,6 +251,7 @@ public class MallOrderController extends AbstractController {
             return RestResponse.fail("参数格式错误");
         }
 
+        authority.require("mall:order:price:update", Resource.ORDER, id);
         lifecycleService.adjustPrice(
                 id,
                 actualPrice,
@@ -247,5 +272,41 @@ public class MallOrderController extends AbstractController {
     @RequiresPermissions("mall:order:delete")
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
         return RestResponse.fail("订单属于交易凭证, 不支持物理删除");
+    }
+
+    /** 订单查询只使用当前查询动作的范围, 丢弃客户端携带的范围键. */
+    private void applyScope(Map<String, Object> params) {
+        params.remove("businessOrgNos");
+        params.remove("readyToShip");
+        var scope = authority.scope("mall:order:list");
+        if ("toShip".equals(params.get("todo"))) {
+            scope = scope.intersect(authority.scope("mall:order:ship"));
+            params.put("readyToShip", true);
+        }
+        if (!scope.emergency()) {
+            params.put("businessOrgNos", scope.organizations());
+        }
+    }
+
+    /** 列表不返回完整收件资料和支付流水. */
+    private MallOrderEntity listProjection(MallOrderEntity order) {
+        order.setConsignee(null);
+        order.setAddress(null);
+        order.setMobile(null);
+        order.setPayId(null);
+        order.setPostscript(null);
+        return order;
+    }
+
+    /** 仅有该订单的发货权限时可看到完整物流资料, 支付流水单独隐藏. */
+    private MallOrderEntity detailProjection(MallOrderEntity order) {
+        if (order == null) {
+            return null;
+        }
+        order.setPayId(null);
+        if (!authority.scope("mall:order:ship").permits(order.getScopeOrgNo())) {
+            return listProjection(order);
+        }
+        return order;
     }
 }

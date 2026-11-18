@@ -111,7 +111,25 @@
                     </el-button>
                 </template>
             </el-table-column>
+            <el-table-column prop="lastLoginAt" label="最近登录" width="180" />
+            <el-table-column label="角色与权限" width="110">
+                <template #default="scope">
+                    <el-button
+                        v-if="isAuth('sys:user:info')"
+                        link
+                        @click="showPermissions(scope.row.userId)"
+                        >查看来源</el-button
+                    >
+                </template>
+            </el-table-column>
         </el-table>
+        <el-dialog v-model="permissionsVisible" title="员工角色与权限来源">
+            <el-table :data="permissionRows">
+                <el-table-column prop="roleName" label="角色" />
+                <el-table-column prop="orgNo" label="机构" />
+                <el-table-column prop="permissions" label="权限" />
+            </el-table>
+        </el-dialog>
         <el-pagination
             @size-change="sizeChangeHandle"
             @current-change="currentChangeHandle"
@@ -150,6 +168,8 @@ export default {
             totalPage: 0,
             dataListSelections: [],
             addOrUpdateVisible: false,
+            permissionsVisible: false,
+            permissionRows: [],
         };
     },
     components: {
@@ -160,6 +180,17 @@ export default {
         this.getDataList();
     },
     methods: {
+        /** 读取服务端确认的人员角色、机构及授权来源. */
+        async showPermissions(userId) {
+            const {data} = await this.$http({
+                url: '/sys/user/permissions/' + userId,
+                method: 'get',
+            });
+            if (data && data.code === 0) {
+                this.permissionRows = data.data;
+                this.permissionsVisible = true;
+            }
+        },
         // 获取数据列表
         getDataList(page) {
             if (page) {
@@ -210,29 +241,26 @@ export default {
         },
         /** 清空筛选或编辑条件并恢复初始查询状态. */
         resetHandle() {
-            const userIds = this.dataListSelections.map((item) => {
-                return item.userId;
-            });
-            this.$confirm(`重置后的密码为 888888 ，是否确定？`, '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning',
+            if (this.dataListSelections.length !== 1) {
+                this.$message.warning('请选择一个员工单独重置密码');
+                return;
+            }
+            const userId = this.dataListSelections[0].userId;
+            this.$prompt('请输入为该员工设置的新密码。成功后旧会话失效。', '重置员工密码', {
+                inputType: 'password',
+                inputPattern: /^[!-~]{12,128}$/,
+                inputErrorMessage: '请输入12到128位不含空格的密码',
             })
-                .then(() => {
-                    this.$http({
+                .then(async ({value}) => {
+                    const {data} = await this.$http({
                         url: '/sys/user/resetPw',
                         method: 'post',
-                        data: userIds,
-                    }).then(({data}) => {
-                        if (data && data.code === 0) {
-                            this.$message({
-                                message: '操作成功',
-                                type: 'success',
-                                duration: 1500,
-                            });
-                            this.getDataList();
-                        }
+                        data: {userId, password: value},
                     });
+                    if (data && data.code === 0) {
+                        this.$message.success('密码已重置，请通过安全渠道单独告知该员工');
+                        this.getDataList();
+                    }
                 })
                 .catch(() => {});
         },

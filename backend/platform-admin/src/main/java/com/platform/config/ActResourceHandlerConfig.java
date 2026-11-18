@@ -30,6 +30,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Component
 public class ActResourceHandlerConfig implements WebMvcConfigurer {
+    private final com.platform.datascope.StaffAuthority authority;
+
+    /** 注入管理操作权限服务, 为尚未定义数据归属的旧入口保留应急访问. */
+    public ActResourceHandlerConfig(com.platform.datascope.StaffAuthority authority) {
+        this.authority = authority;
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -46,5 +52,23 @@ public class ActResourceHandlerConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new RequestUriLogInterceptor()).addPathPatterns("/**");
+        registry.addInterceptor(new EmergencyDataInterceptor(authority))
+                .addPathPatterns(
+                        "/mall/ordergoods/**",
+                        "/mall/address/**",
+                        "/mall/cart/**",
+                        "/mall/collect/**",
+                        "/mall/footprint/**",
+                        "/mall/usercoupon/**",
+                        "/manage/wxUser/**",
+                        "/manage/wxUserTags/**",
+                        "/sys/usertoken/**",
+                        "/sys/org/**",
+                        "/mall/goodsattribute/**",
+                        "/mall/goodsgallery/**",
+                        "/mall/goodsspecification/**",
+                        "/mall/goodsissue/**",
+                        "/mall/comment/**",
+                        "/mall/commentpicture/**");
     }
 }

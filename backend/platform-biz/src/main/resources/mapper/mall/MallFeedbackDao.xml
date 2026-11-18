@@ -12,16 +12,27 @@
         T.FEED_TYPE,
         T.CONTENT,
         T.STATUS,
+        T.STAFF_REPLY,
         T.ADD_TIME,
         U.NICKNAME
         FROM mall_feedback T
         LEFT JOIN WX_USER U ON T.USER_ID = U.ID
         WHERE 1=1
+        <if test="params.businessOrgNos != null">
+            <choose>
+                <when test="params.businessOrgNos.size() > 0">
+                    AND T.SCOPE_ORG_NO IN
+                    <foreach collection="params.businessOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
+        <if test="params.status != null and params.status != ''">AND T.STATUS = #{params.status}</if>
         <if test="params.id != null and params.id.trim() != ''">
-            AND T.ID = #{params.id}
+            AND T.MSG_ID = #{params.id}
         </if>
         <if test="params.name != null and params.name.trim() != ''">
-            AND T.NAME LIKE CONCAT('%', #{params.name}, '%')
+            AND T.USER_NAME LIKE CONCAT('%', #{params.name}, '%')
         </if>
     </sql>
 

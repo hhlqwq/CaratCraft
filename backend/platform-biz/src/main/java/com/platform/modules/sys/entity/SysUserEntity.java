@@ -70,10 +70,12 @@ public class SysUserEntity implements Serializable {
     private String orgNo;
 
     /** 密码 */
+    @com.fasterxml.jackson.annotation.JsonProperty(
+            access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     /** 盐 */
-    private String salt;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String salt;
 
     /** 邮箱服务器地址 */
     private String emailHost;
@@ -85,13 +87,16 @@ public class SysUserEntity implements Serializable {
     private String email;
 
     /** 邮箱密码 */
-    private String emailPw;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String emailPw;
 
     /** 手机号 */
     private String mobile;
 
     /** 状态 0：禁用 1：正常 */
     private Integer status;
+
+    /** 最近一次成功建立管理端会话的时间. */
+    private Date lastLoginAt;
 
     /** 角色ID列表 */
     @TableField(exist = false)

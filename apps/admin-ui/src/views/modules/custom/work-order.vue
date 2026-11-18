@@ -209,7 +209,7 @@ export default {
                 const {data} = await this.$http({
                     url: '/custom/work-order/list',
                     method: 'get',
-                    params: {status: this.status, page, limit: 20},
+                    params: {status: this.status, page, limit: 20, todo: this.$route?.query?.todo},
                     showError: false,
                 });
                 if (!this.pageActive || epoch !== this.pageEpoch || version !== this._listVersion) {

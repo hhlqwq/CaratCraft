@@ -22,10 +22,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
-import com.platform.common.validator.AbstractAssert;
 import com.platform.common.validator.ValidatorUtils;
 import com.platform.common.validator.group.AddGroup;
 import com.platform.common.validator.group.UpdateGroup;
+import com.platform.datascope.StaffAuthority;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.form.PasswordForm;
 import com.platform.modules.sys.service.SysUserRoleService;
@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.crypto.hash.Sha256Hash;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -64,6 +63,8 @@ public class SysUserController extends AbstractController {
 
     private final SysUserService sysUserService;
     private final SysUserRoleService sysUserRoleService;
+    private final StaffAuthority authority;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     /**
      * 查看所有列表
@@ -73,8 +74,9 @@ public class SysUserController extends AbstractController {
      */
     @Operation(summary = "查看所有列表", description = "查看所有列表")
     @GetMapping("/queryAll")
-    @RequiresPermissions("sys:dict:list")
+    @RequiresPermissions("sys:user:list")
     public RestResponse<List<SysUserEntity>> queryAll(@RequestParam Map<String, Object> params) {
+        applyStaffScope(params);
         List<SysUserEntity> list = sysUserService.queryAll(params);
 
         return RestResponse.ok(list);
@@ -92,7 +94,7 @@ public class SysUserController extends AbstractController {
     public RestResponse<Page<SysUserEntity>> list(@RequestParam Map<String, Object> params) {
 
         // 如需数据权限，在参数中添加DataScope
-        params.put("dataScope", getDataScope());
+        applyStaffScope(params);
 
         Page<SysUserEntity> page = sysUserService.queryPage(params);
 
@@ -120,15 +122,12 @@ public class SysUserController extends AbstractController {
     @SysLog("修改密码")
     @PostMapping("/password")
     public RestResponse<String> password(@RequestBody PasswordForm form) {
-        AbstractAssert.isBlank(form.getNewPassword(), "新密码不为能空");
-
-        // sha256加密
-        String password = new Sha256Hash(form.getPassword(), getUser().getSalt()).toHex();
-        // sha256加密
-        String newPassword = new Sha256Hash(form.getNewPassword(), getUser().getSalt()).toHex();
-
-        // 更新密码
-        boolean flag = sysUserService.updatePassword(getUserId(), password, newPassword);
+        if (form.getPassword() == null || form.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("请输入当前密码");
+        }
+        boolean flag =
+                sysUserService.updatePassword(
+                        getUserId(), form.getPassword(), form.getNewPassword());
         if (!flag) {
             return RestResponse.fail("原密码不正确");
         }
@@ -147,6 +146,7 @@ public class SysUserController extends AbstractController {
     @RequiresPermissions("sys:user:info")
     public RestResponse<SysUserEntity> info(@PathVariable("userId") String userId) {
         SysUserEntity user = sysUserService.getById(userId);
+        authority.requireEmployee("sys:user:info", user, false);
 
         // 获取用户所属的角色列表
         List<String> roleIdList = sysUserRoleService.queryRoleIdList(userId);
@@ -169,7 +169,6 @@ public class SysUserController extends AbstractController {
         ValidatorUtils.validateEntity(user, AddGroup.class);
 
         Map<String, Object> params = new HashMap<>(2);
-        params.put("dataScope", getDataScope());
 
         user.setCreateUserId(getUserId());
         user.setCreateUserOrgNo(getOrgNo());
@@ -192,7 +191,6 @@ public class SysUserController extends AbstractController {
         ValidatorUtils.validateEntity(user, UpdateGroup.class);
 
         Map<String, Object> params = new HashMap<>(2);
-        params.put("dataScope", getDataScope());
 
         user.setCreateUserId(getUserId());
         user.setCreateUserOrgNo(getOrgNo());
@@ -225,27 +223,40 @@ public class SysUserController extends AbstractController {
         return RestResponse.ok();
     }
 
-    /**
-     * 重置密码
-     *
-     * @param userIds userIds
-     * @return RestResponse
-     */
-    @Operation(summary = "重置密码", description = "重置密码")
-    @SysLog("重置密码")
+    /** 使用专用入口为单个员工重置密码, 请求内容不进入审计日志. */
     @PostMapping("/resetPw")
     @RequiresPermissions("sys:user:resetPw")
-    public RestResponse<String> resetPw(@RequestBody String[] userIds) {
-        if (ArrayUtils.contains(userIds, Constant.SUPER_ADMIN)) {
-            return RestResponse.fail("系统管理员不能重置");
-        }
-
-        if (ArrayUtils.contains(userIds, getUserId())) {
-            return RestResponse.fail("当前用户不能重置");
-        }
-
-        sysUserService.resetPw(userIds);
-
+    public RestResponse<String> resetPw(@RequestBody PasswordReset form) {
+        sysUserService.resetPw(form.userId(), form.password());
         return RestResponse.ok();
     }
+
+    /** 查询范围内员工的角色、机构和权限来源, 不包含认证材料. */
+    @GetMapping("/permissions/{userId}")
+    @RequiresPermissions("sys:user:info")
+    public RestResponse<List<Map<String, Object>>> permissions(@PathVariable String userId) {
+        authority.requireEmployee("sys:user:info", sysUserService.getById(userId), false);
+        return RestResponse.ok(
+                jdbc.queryForList(
+                        "SELECT DISTINCT r.ROLE_ID AS roleId,r.ROLE_NAME AS roleName,ro.ORG_NO AS"
+                            + " orgNo,m.PERMS AS permissions FROM SYS_USER_ROLE ur JOIN SYS_ROLE r"
+                            + " ON r.ROLE_ID=ur.ROLE_ID LEFT JOIN SYS_ROLE_ORG ro ON"
+                            + " ro.ROLE_ID=r.ROLE_ID LEFT JOIN SYS_ROLE_MENU rm ON"
+                            + " rm.ROLE_ID=r.ROLE_ID LEFT JOIN SYS_MENU m ON m.MENU_ID=rm.MENU_ID"
+                            + " AND m.PERMS IS NOT NULL AND m.PERMS<>'' WHERE ur.USER_ID=? ORDER BY"
+                            + " r.ROLE_ID,ro.ORG_NO,m.PERMS",
+                        userId));
+    }
+
+    /** 替换客户端提供的范围参数, 员工列表与详情同样按动作计算. */
+    private void applyStaffScope(Map<String, Object> params) {
+        params.remove("staffOrgNos");
+        var scope = authority.scope("sys:user:list");
+        if (!scope.emergency()) {
+            params.put("staffOrgNos", scope.organizations());
+        }
+    }
+
+    /** 员工密码重置只接受目标和管理员明确设置的新密码. */
+    public record PasswordReset(String userId, String password) {}
 }

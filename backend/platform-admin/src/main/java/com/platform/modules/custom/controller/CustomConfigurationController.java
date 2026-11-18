@@ -1,6 +1,8 @@
 package com.platform.modules.custom.controller;
 
 import com.platform.common.utils.RestResponse;
+import com.platform.datascope.StaffAuthority;
+import com.platform.datascope.StaffAuthority.Resource;
 import com.platform.modules.custom.dto.CustomConfigurationImportRequest;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
@@ -26,6 +28,8 @@ import java.util.Map;
 @RequestMapping("custom/configuration")
 @Tag(name = "CustomConfigurationController|定制配置")
 public class CustomConfigurationController {
+    private final StaffAuthority authority;
+    private final com.platform.modules.custom.dao.CustomComponentOptionDao componentOptionDao;
     private final com.platform.modules.custom.service.ConfigurationQueryService queries;
     private final com.platform.modules.custom.service.CustomConfigurationService configuration;
 
@@ -33,6 +37,7 @@ public class CustomConfigurationController {
     @GetMapping("catalog-template")
     @RequiresPermissions("custom:config:list")
     public RestResponse<Map<String, Object>> catalogTemplate(@RequestParam Integer goodsId) {
+        authority.require("custom:config:list", Resource.GOODS, goodsId);
         return RestResponse.ok(
                 com.platform.modules.custom.service.CustomerMaterialCatalog.template(goodsId));
     }
@@ -44,7 +49,7 @@ public class CustomConfigurationController {
     public RestResponse<Map<String, Object>> products(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return RestResponse.ok(queries.products(page, size));
+        return RestResponse.ok(queries.products(page, size, authority.scope("custom:config:list")));
     }
 
     /** 查询可配置的商城商品 / Lists mall products available for configuration. */
@@ -55,7 +60,8 @@ public class CustomConfigurationController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword) {
-        return RestResponse.ok(queries.goods(page, size, keyword));
+        return RestResponse.ok(
+                queries.goods(page, size, keyword, authority.scope("custom:config:list")));
     }
 
     /** 保存定制商品配置 / Saves a custom product configuration. */
@@ -63,6 +69,7 @@ public class CustomConfigurationController {
     @PostMapping("product/save")
     @RequiresPermissions("custom:config:update")
     public RestResponse<String> saveProduct(@RequestBody CustomProductEntity product) {
+        authority.require("custom:config:update", Resource.GOODS, product.getGoodsId());
         configuration.saveProduct(product);
         return RestResponse.ok();
     }
@@ -76,6 +83,7 @@ public class CustomConfigurationController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String keyword) {
+        authority.require("custom:config:list", Resource.GOODS, goodsId);
         return RestResponse.ok(queries.options(goodsId, page, size, keyword));
     }
 
@@ -84,6 +92,14 @@ public class CustomConfigurationController {
     @PostMapping("option/save")
     @RequiresPermissions("custom:config:update")
     public RestResponse<String> saveOption(@RequestBody CustomComponentOptionEntity option) {
+        authority.require("custom:config:update", Resource.GOODS, option.getGoodsId());
+        if (option.getId() != null) {
+            var existing = componentOptionDao.selectById(option.getId());
+            authority.require(
+                    "custom:config:update",
+                    Resource.GOODS,
+                    existing == null ? null : existing.getGoodsId());
+        }
         configuration.saveOption(option);
         return RestResponse.ok();
     }
@@ -93,6 +109,11 @@ public class CustomConfigurationController {
     @PostMapping("option/disable")
     @RequiresPermissions("custom:config:update")
     public RestResponse<String> disableOption(@RequestParam Long id) {
+        var option = componentOptionDao.selectById(id);
+        authority.require(
+                "custom:config:update",
+                Resource.GOODS,
+                option == null ? null : option.getGoodsId());
         configuration.disable(id);
         return RestResponse.ok();
     }
@@ -106,6 +127,11 @@ public class CustomConfigurationController {
         if (request == null) {
             throw new IllegalArgumentException("缺少导入配置");
         }
+        if (request.getProduct() == null) {
+            throw new IllegalArgumentException("缺少定制商品");
+        }
+        authority.require(
+                "custom:config:update", Resource.GOODS, request.getProduct().getGoodsId());
         configuration.importConfiguration(
                 request.getProduct(),
                 request.getOptions(),

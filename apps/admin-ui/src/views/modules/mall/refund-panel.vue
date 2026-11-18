@@ -29,29 +29,51 @@
                     statusName(scope.row.status)
                 }}</template></el-table-column
             >
-            <el-table-column prop="decision_note" label="审核说明" min-width="180" />
+            <el-table-column prop="review_result" label="审核结论" min-width="110" />
+            <el-table-column prop="review_note" label="审核记录" min-width="150" />
+            <el-table-column prop="decision_note" label="执行说明" min-width="180" />
             <el-table-column label="操作" min-width="160"
                 ><template #default="scope">
+                    <el-button
+                        v-if="
+                            scope.row.status === 'PENDING_REVIEW' &&
+                            scope.row.can_review &&
+                            isAuth('mall:refund:review')
+                        "
+                        link
+                        :disabled="writing || loading || needsReload || Boolean(listError)"
+                        @click="review(scope.row)"
+                        >记录审核</el-button
+                    >
                     <template
                         v-if="
-                            scope.row.status === 'PENDING_REVIEW' && isAuth('mall:refund:execute')
+                            scope.row.status === 'PENDING_REVIEW' &&
+                            scope.row.review_result &&
+                            scope.row.can_execute &&
+                            isAuth('mall:refund:execute')
                         "
                     >
                         <el-button
+                            v-if="scope.row.review_result === 'APPROVE'"
                             type="text"
                             :disabled="writing || loading || needsReload || Boolean(listError)"
                             @click="decide(scope.row, true)"
-                            >通过</el-button
+                            >执行退款</el-button
                         >
                         <el-button
+                            v-if="scope.row.review_result === 'REJECT'"
                             type="text"
                             :disabled="writing || loading || needsReload || Boolean(listError)"
                             @click="decide(scope.row, false)"
-                            >拒绝</el-button
+                            >确认拒绝</el-button
                         >
                     </template>
                     <el-button
-                        v-else-if="scope.row.status === 'RETRY' && isAuth('mall:refund:retry')"
+                        v-else-if="
+                            scope.row.status === 'RETRY' &&
+                            scope.row.can_retry &&
+                            isAuth('mall:refund:retry')
+                        "
                         type="text"
                         :disabled="writing || loading || needsReload || Boolean(listError)"
                         @click="retry(scope.row)"
@@ -129,7 +151,7 @@ export default {
                 const {data} = await this.$http({
                     url: '/mall/refund/list',
                     method: 'get',
-                    params: {page, limit: 20},
+                    params: {page, limit: 20, todo: this.$route?.query?.todo},
                     showError: false,
                 });
                 if (!this.visible || epoch !== this.panelEpoch || version !== this._readVersion) {
@@ -161,7 +183,7 @@ export default {
             this.writeError = text + ', 请重新读取并核对状态';
         },
         /** 确认前防重, 确认后复核申请仍待审核, 不将审核通过当作退款成功. */
-        async decide(row, approved) {
+        async decide(row, approved, reviewOnly = false) {
             if (
                 this.writing ||
                 this.loading ||
@@ -179,7 +201,7 @@ export default {
             try {
                 const {value} = await this.$prompt(
                     approved ? '请确认退货/免退货安排并填写审核说明' : '请填写拒绝理由',
-                    '售后审核',
+                    reviewOnly ? '记录非资金审核' : '确认退款执行',
                     {
                         inputValue:
                             this.decisionDraft.orderId === orderId ? this.decisionDraft.note : '',
@@ -207,7 +229,7 @@ export default {
                 }
                 submitted = true;
                 const {data} = await this.$http({
-                    url: '/mall/refund/decide',
+                    url: reviewOnly ? '/mall/refund/review' : '/mall/refund/decide',
                     method: 'post',
                     showError: false,
                     data: {orderId, approved, note: value.trim()},
@@ -219,7 +241,9 @@ export default {
                     throw new Error(data?.msg || '审核失败');
                 }
                 this.decisionDraft = {orderId: null, note: ''};
-                this.$message.success('审核已保存, 退款结果以对账为准');
+                this.$message.success(
+                    reviewOnly ? '审核记录已保存' : '处理结果已保存，退款进度以渠道为准'
+                );
                 await this.load();
             } catch (error) {
                 if (
@@ -236,6 +260,27 @@ export default {
                 }
             } finally {
                 this.writing = false;
+            }
+        },
+        /** 单独收集审核建议, 选择结论后复用必填备注和写入锁. */
+        async review(row) {
+            let approved;
+            const epoch = this.panelEpoch;
+            try {
+                await this.$confirm('该操作只记录审核意见，请选择结论。', '退款审核', {
+                    confirmButtonText: '建议通过',
+                    cancelButtonText: '建议拒绝',
+                    distinguishCancelAndClose: true,
+                });
+                approved = true;
+            } catch (error) {
+                if (error !== 'cancel') {
+                    return;
+                }
+                approved = false;
+            }
+            if (this.visible && epoch === this.panelEpoch) {
+                await this.decide(row, approved, true);
             }
         },
         /** 触发仅查单的批量写回. */

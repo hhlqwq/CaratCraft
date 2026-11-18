@@ -21,6 +21,8 @@ package com.platform.modules.mall.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
+import com.platform.datascope.StaffAuthority;
+import com.platform.datascope.StaffAuthority.Resource;
 import com.platform.modules.mall.dto.GoodsAggregateDTO;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsAggregateService;
@@ -60,6 +62,8 @@ public class MallGoodsController extends AbstractController {
 
     private final MallGoodsService mallGoodsService;
     private final MallGoodsAggregateService mallGoodsAggregateService;
+    private final StaffAuthority authority;
+    private final com.platform.modules.sys.service.BusinessOrganization businessOrganization;
 
     /**
      * 查看所有列表
@@ -71,6 +75,7 @@ public class MallGoodsController extends AbstractController {
     @GetMapping("/queryAll")
     @RequiresPermissions("mall:goods:list")
     public RestResponse<List<MallGoodsEntity>> queryAll(@RequestParam Map<String, Object> params) {
+        applyScope(params, "mall:goods:list");
         List<MallGoodsEntity> list = mallGoodsService.queryAll(params);
 
         return RestResponse.ok(list);
@@ -86,6 +91,7 @@ public class MallGoodsController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("mall:goods:list")
     public RestResponse<Page<MallGoodsEntity>> list(@RequestParam Map<String, Object> params) {
+        applyScope(params, "mall:goods:list");
         Page<MallGoodsEntity> page = mallGoodsService.queryPage(params);
 
         return RestResponse.ok(page);
@@ -102,6 +108,7 @@ public class MallGoodsController extends AbstractController {
     @RequiresPermissions("mall:goods:recycle:list")
     public RestResponse<Page<MallGoodsEntity>> recycleList(
             @RequestParam Map<String, Object> params) {
+        applyScope(params, "mall:goods:recycle:list");
         return RestResponse.ok(mallGoodsService.queryRecyclePage(params));
     }
 
@@ -125,6 +132,7 @@ public class MallGoodsController extends AbstractController {
     @GetMapping("/info/{id}")
     @RequiresPermissions("mall:goods:info")
     public RestResponse<MallGoodsEntity> info(@PathVariable("id") Integer id) {
+        authority.require("mall:goods:info", Resource.GOODS, id);
         MallGoodsEntity mallGoods = mallGoodsService.getById(id);
 
         return RestResponse.ok(mallGoods);
@@ -135,6 +143,7 @@ public class MallGoodsController extends AbstractController {
     @GetMapping("/aggregate/{id}")
     @RequiresPermissions("mall:goods:info")
     public RestResponse<GoodsAggregateDTO> aggregate(@PathVariable("id") Integer id) {
+        authority.require("mall:goods:info", Resource.GOODS, id);
         return RestResponse.ok(mallGoodsAggregateService.getAggregate(id));
     }
 
@@ -150,6 +159,8 @@ public class MallGoodsController extends AbstractController {
     @RequiresPermissions("mall:goods:save")
     public RestResponse<String> save(@RequestBody MallGoodsEntity mallGoods) {
 
+        mallGoods.setId(null);
+        assignOrganization(mallGoods);
         mallGoodsService.add(mallGoods);
 
         return RestResponse.ok();
@@ -161,6 +172,10 @@ public class MallGoodsController extends AbstractController {
     @PostMapping("/aggregate/save")
     @RequiresPermissions("mall:goods:save")
     public RestResponse<Integer> saveAggregate(@RequestBody GoodsAggregateDTO aggregateDTO) {
+        if (aggregateDTO == null || aggregateDTO.getGoods() == null) {
+            throw new IllegalArgumentException("缺少商品资料");
+        }
+        assignOrganization(aggregateDTO.getGoods());
         return RestResponse.ok(mallGoodsAggregateService.saveAggregate(aggregateDTO));
     }
 
@@ -176,6 +191,7 @@ public class MallGoodsController extends AbstractController {
     @RequiresPermissions("mall:goods:update")
     public RestResponse<String> update(@RequestBody MallGoodsEntity mallGoods) {
 
+        authority.require("mall:goods:update", Resource.GOODS, mallGoods.getId());
         mallGoodsService.update(mallGoods);
 
         return RestResponse.ok();
@@ -187,6 +203,10 @@ public class MallGoodsController extends AbstractController {
     @PostMapping("/aggregate/update")
     @RequiresPermissions("mall:goods:update")
     public RestResponse<Integer> updateAggregate(@RequestBody GoodsAggregateDTO aggregateDTO) {
+        if (aggregateDTO == null || aggregateDTO.getGoods() == null) {
+            throw new IllegalArgumentException("缺少商品资料");
+        }
+        authority.require("mall:goods:update", Resource.GOODS, aggregateDTO.getGoods().getId());
         return RestResponse.ok(mallGoodsAggregateService.updateAggregate(aggregateDTO));
     }
 
@@ -201,6 +221,7 @@ public class MallGoodsController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("mall:goods:delete")
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
+        authority.require("mall:goods:delete", Resource.GOODS, java.util.Arrays.asList(ids));
         mallGoodsService.deleteBatch(ids);
 
         return RestResponse.ok("商品已移入回收站，三十天内可恢复");
@@ -217,6 +238,8 @@ public class MallGoodsController extends AbstractController {
     @PostMapping("/recycle/restore")
     @RequiresPermissions("mall:goods:recycle:restore")
     public RestResponse<String> restore(@RequestBody Integer[] ids) {
+        authority.require(
+                "mall:goods:recycle:restore", Resource.GOODS, java.util.Arrays.asList(ids));
         mallGoodsService.restoreBatch(ids);
         return RestResponse.ok("商品已恢复，请检查后手动上架");
     }
@@ -232,7 +255,25 @@ public class MallGoodsController extends AbstractController {
     @PostMapping("/recycle/delete")
     @RequiresPermissions("mall:goods:recycle:delete")
     public RestResponse<Integer> permanentlyDelete(@RequestBody Integer[] ids) {
+        authority.require(
+                "mall:goods:recycle:delete", Resource.GOODS, java.util.Arrays.asList(ids));
         int deletedCount = mallGoodsService.permanentlyDeleteBatch(ids);
         return RestResponse.ok("已永久删除 " + deletedCount + " 个商品", deletedCount);
+    }
+
+    /** 由当前动作替换请求中的商品查询范围. */
+    private void applyScope(Map<String, Object> params, String action) {
+        params.remove("businessOrgNos");
+        var scope = authority.scope(action);
+        if (!scope.emergency()) {
+            params.put("businessOrgNos", scope.organizations());
+        }
+    }
+
+    /** 服务端为新增商品确定组织, 客户端无权指定或改写. */
+    private void assignOrganization(MallGoodsEntity goods) {
+        goods.setScopeOrgNo(
+                authority.organizationForCreation(
+                        "mall:goods:save", businessOrganization.defaultOrganization()));
     }
 }

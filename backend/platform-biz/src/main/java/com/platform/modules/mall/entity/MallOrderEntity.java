@@ -48,6 +48,22 @@ public class MallOrderEntity implements Serializable {
     private static final long serialVersionUID = 1L;
     @com.fasterxml.jackson.annotation.JsonIgnore private String requestKey;
     @com.fasterxml.jackson.annotation.JsonIgnore private String requestDigest;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String scopeOrgNo;
+
+    @TableField(exist = false)
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Boolean canShip;
+
+    @TableField(exist = false)
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Boolean canAdjustPrice;
+
+    @TableField(exist = false)
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Boolean canReadDetails;
 
     /** 主键ID（自增） */
     @TableId(type = IdType.AUTO)

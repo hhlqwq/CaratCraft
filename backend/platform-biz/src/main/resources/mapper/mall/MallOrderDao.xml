@@ -7,6 +7,7 @@
         SELECT
         T.ID,
         T.ORDER_SN,
+        T.SCOPE_ORG_NO,
         T.USER_ID,
         U.NICKNAME USER_NICKNAME,
         T.ORDER_STATUS,
@@ -44,6 +45,18 @@
         FROM mall_order T
         LEFT JOIN WX_USER U ON U.ID = T.USER_ID
         WHERE 1=1
+        <if test="params.readyToShip == true">
+            AND T.ORDER_STATUS=201 AND T.PAY_STATUS=2 AND T.SHIPPING_STATUS=0
+        </if>
+        <if test="params.businessOrgNos != null">
+            <choose>
+                <when test="params.businessOrgNos.size() > 0">
+                    AND T.SCOPE_ORG_NO IN
+                    <foreach collection="params.businessOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
         <if test="params.id != null and params.id.trim() != ''">
             AND T.ID = #{params.id}
         </if>

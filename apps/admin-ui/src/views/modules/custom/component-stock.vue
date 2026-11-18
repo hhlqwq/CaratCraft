@@ -147,7 +147,12 @@ export default {
                 const {data} = await this.$http({
                     url: '/custom/component-stock/list',
                     method: 'get',
-                    params: {goodsId: this.goodsId || undefined, page, limit: 20},
+                    params: {
+                        goodsId: this.goodsId || undefined,
+                        page,
+                        limit: 20,
+                        todo: this.$route?.query?.todo,
+                    },
                     showError: false,
                 });
                 if (!this.pageActive || epoch !== this.pageEpoch || version !== this._listVersion) {

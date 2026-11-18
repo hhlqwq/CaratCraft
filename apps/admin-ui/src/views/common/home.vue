@@ -2,9 +2,7 @@
     <main class="merchant-home">
         <header class="workbench-heading">
             <div>
-                <p class="eyebrow">CARAT CRAFT</p>
                 <h1>商家工作台</h1>
-                <p>从订单、制作和库存开始处理今天的工作。</p>
             </div>
             <div class="heading-actions">
                 <el-button
@@ -25,23 +23,17 @@
                     v-for="card in visibleCards"
                     :key="card.key"
                     class="task-card"
-                    @click="go(card.route)"
+                    @click="go(card)"
                 >
-                    <span>{{ card.label }}</span
-                    ><strong>{{ summary[card.key] }}</strong
-                    ><small>{{ card.help }} →</small>
+                    <span>{{ card.label }}</span>
+                    <strong v-if="typeof summary[card.key] === 'number'">{{
+                        summary[card.key]
+                    }}</strong>
                 </button>
             </div>
             <p v-if="!loading && !error && !visibleCards.length" class="empty-note">
                 当前账号暂无业务查看权限, 请联系管理员配置角色。
             </p>
-            <section class="workbench-guide">
-                <h2>处理顺序</h2>
-                <p>
-                    先审核售后和待制作工单, 再核对材料库存。成品通过质检后安排发货,
-                    退款完成以支付侧查单为准。
-                </p>
-            </section>
         </section>
     </main>
 </template>
@@ -59,33 +51,75 @@ export default {
             error: '',
             monitorVisible: false,
             cards: [
-                {key: 'unpaid', label: '待付款订单', help: '查看订单', route: 'mall-order'},
-                {key: 'toShip', label: '待发货订单', help: '安排发货', route: 'mall-order'},
-                {key: 'refundReview', label: '待审核售后', help: '处理售后', route: 'mall-order'},
-                {
-                    key: 'refundAttention',
-                    label: '退款需关注',
-                    help: '核对退款记录',
-                    route: 'mall-order',
-                },
-                {
-                    key: 'workReview',
-                    label: '待审核工单',
-                    help: '核对制作要求',
-                    route: 'custom-work-order',
-                },
-                {
-                    key: 'workMaking',
-                    label: '制作与质检',
-                    help: '查看生产进度',
-                    route: 'custom-work-order',
-                },
+                {key: 'goods', label: '商品管理', route: 'mall-goods'},
                 {
                     key: 'stockOut',
-                    label: '缺货材料',
-                    help: '检查可用库存',
+                    label: '库存异常',
                     route: 'custom-component-stock',
+                    todo: 'stockOut',
                 },
+                {key: 'diy', label: 'DIY 材料维护', route: 'custom-configuration'},
+                {
+                    key: 'workReview',
+                    label: '待处理工单',
+                    route: 'custom-work-order',
+                    todo: 'PENDING_REVIEW',
+                },
+                {key: 'workMaking', label: '待制作', route: 'custom-work-order', todo: 'MAKING'},
+                {
+                    key: 'workQuality',
+                    label: '待质检',
+                    route: 'custom-work-order',
+                    todo: 'QUALITY_CHECK',
+                },
+                {key: 'toShip', label: '待发货', route: 'mall-order', todo: 'toShip'},
+                {
+                    key: 'supportPending',
+                    label: '待处理售后',
+                    route: 'mall-aftersale',
+                    todo: 'supportPending',
+                },
+                {key: 'feedback', label: '客户反馈', route: 'mall-feedback'},
+                {
+                    key: 'feedbackPending',
+                    label: '待回复事项',
+                    route: 'mall-feedback',
+                    todo: 'feedbackPending',
+                },
+                {
+                    key: 'refundReview',
+                    label: '待审核退款',
+                    route: 'mall-refund',
+                    todo: 'refundReview',
+                },
+                {
+                    key: 'refundExecute',
+                    label: '待执行退款',
+                    route: 'mall-refund',
+                    todo: 'refundExecute',
+                },
+                {
+                    key: 'refundRetry',
+                    label: '待重试退款',
+                    route: 'mall-refund',
+                    todo: 'refundRetry',
+                },
+                {
+                    key: 'refundAttention',
+                    label: '待对账退款',
+                    route: 'mall-refund',
+                    todo: 'refundAttention',
+                },
+                {
+                    key: 'communityReview',
+                    label: '待审核社区内容',
+                    route: 'community-posts',
+                    todo: 'communityReview',
+                },
+                {key: 'employees', label: '员工账号管理', route: 'sys-user'},
+                {key: 'roles', label: '角色管理', route: 'sys-role'},
+                {key: 'permissions', label: '权限配置', route: 'sys-menu'},
+                {key: 'audit', label: '系统审计', route: 'sys-log'},
             ],
         };
     },
@@ -123,8 +157,10 @@ export default {
             }
         },
         /** 使用已有菜单路由进入实际业务页面. */
-        go(route) {
-            this.$router.push({name: route}).catch(() => {});
+        go(card) {
+            this.$router
+                .push({name: card.route, query: card.todo ? {todo: card.todo} : {}})
+                .catch(() => {});
         },
     },
 };
@@ -144,11 +180,6 @@ export default {
     flex-wrap: wrap;
     gap: 20px;
     padding: 12px 0 24px;
-}
-.eyebrow {
-    color: #8a7953;
-    letter-spacing: 3px;
-    font-size: 12px;
 }
 h1 {
     margin: 10px 0;

@@ -38,6 +38,7 @@ import java.util.Date;
 @Data
 @TableName("mall_goods")
 public class MallGoodsEntity implements Serializable {
+    @com.fasterxml.jackson.annotation.JsonIgnore private String scopeOrgNo;
     private static final long serialVersionUID = 1L;
 
     @TableId(type = IdType.AUTO)

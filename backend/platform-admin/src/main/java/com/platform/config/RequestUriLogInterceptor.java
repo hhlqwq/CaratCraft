@@ -92,6 +92,11 @@ public class RequestUriLogInterceptor implements AsyncHandlerInterceptor {
         Map<String, Object> map = new HashMap<>(8);
         while (enume.hasMoreElements()) {
             String key = enume.nextElement();
+            if ("token".equalsIgnoreCase(key)
+                    || "password".equalsIgnoreCase(key)
+                    || "newPassword".equalsIgnoreCase(key)) {
+                continue;
+            }
             String value = request.getParameter(key);
             map.put(key, value);
         }

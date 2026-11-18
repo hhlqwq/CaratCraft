@@ -48,6 +48,7 @@ import java.util.Map;
 public class SysLogController {
 
     private final SysLogService sysLogService;
+    private final com.platform.datascope.StaffAuthority authority;
 
     /**
      * 列表
@@ -59,6 +60,7 @@ public class SysLogController {
     @GetMapping("/list")
     @RequiresPermissions("sys:log:list")
     public RestResponse<Page<SysLogEntity>> list(@RequestParam Map<String, Object> params) {
+        params.put("auditScope", authority.scope("sys:log:list"));
         Page<SysLogEntity> page = sysLogService.queryPage(params);
 
         return RestResponse.ok(page);

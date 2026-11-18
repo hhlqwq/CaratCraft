@@ -70,6 +70,17 @@
                                 >登录</el-button
                             >
                         </el-form-item>
+                        <el-form-item>
+                            <el-button link type="primary" @click="showPasswordRecovery"
+                                >忘记密码</el-button
+                            >
+                            <el-button link type="primary" @click="preparePasswordChange"
+                                >修改密码</el-button
+                            >
+                        </el-form-item>
+                        <p v-if="changeAfterLogin">
+                            请先使用当前密码登录，系统将打开修改密码窗口。
+                        </p>
                     </el-form>
                 </div>
 
@@ -123,6 +134,7 @@ export default {
             },
             captchaPath: '',
             loginSubmitting: false,
+            changeAfterLogin: false,
         };
     },
     /** 创建组件时准备所需的依赖数据. */
@@ -130,6 +142,17 @@ export default {
         this.getCaptcha();
     },
     methods: {
+        /** 告知员工如何通过已授权管理员安全重置忘记的密码. */
+        showPasswordRecovery() {
+            this.$alert(
+                '请联系单位的后台管理员核验个人身份并为你重置密码。拿到新密码后可在此登录并修改。',
+                '忘记密码'
+            );
+        },
+        /** 先通过既有图形验证码和当前密码登录, 再打开改密对话框. */
+        preparePasswordChange() {
+            this.changeAfterLogin = true;
+        },
         // 提交表单
         dataFormSubmit() {
             if (this.loginSubmitting) {
@@ -171,11 +194,17 @@ export default {
                                     this.getCaptcha();
                                     return;
                                 }
-                                return this.$router.replace({path: '/home'}).catch((error) => {
-                                    if (!isNavigationFailure(error)) {
-                                        throw error;
-                                    }
-                                });
+                                return this.$router
+                                    .replace(
+                                        this.changeAfterLogin
+                                            ? {path: '/home', query: {changePassword: '1'}}
+                                            : {path: '/home'}
+                                    )
+                                    .catch((error) => {
+                                        if (!isNavigationFailure(error)) {
+                                            throw error;
+                                        }
+                                    });
                             } else {
                                 this.showLoginError(
                                     (data && data.msg) || '账号、密码或验证码不正确'

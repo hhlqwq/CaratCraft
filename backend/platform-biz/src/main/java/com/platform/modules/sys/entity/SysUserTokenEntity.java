@@ -42,7 +42,7 @@ public class SysUserTokenEntity implements Serializable {
     @TableId private String userId;
 
     /** token */
-    private String token;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String token;
 
     /** 过期时间 */
     private Date expireTime;

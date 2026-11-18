@@ -73,6 +73,16 @@
                             >删除</el-button
                         >
                     </template>
+                    <el-button
+                        v-if="
+                            isAuth('community:post:moderate') &&
+                            (scope.row.status === 'HIDDEN' || scope.row.restorable)
+                        "
+                        link
+                        :disabled="busy || loading"
+                        @click="moderate(scope.row, 'RESTORE')"
+                        >恢复待审核</el-button
+                    >
                     <el-button type="text" @click="showLogs(scope.row.id)">日志</el-button>
                 </template></el-table-column
             >
@@ -123,6 +133,15 @@
                             @click="moderate(row, 'DELETED')"
                             >删除</el-button
                         ></template
+                    ><el-button
+                        v-if="
+                            isAuth('community:post:moderate') &&
+                            (row.status === 'HIDDEN' || row.restorable)
+                        "
+                        size="small"
+                        :disabled="busy || loading"
+                        @click="moderate(row, 'RESTORE')"
+                        >恢复审核</el-button
                     ><el-button size="small" @click="showLogs(row.id)">日志</el-button>
                 </div>
             </article>
@@ -201,7 +220,12 @@ export default {
                 const {data} = await this.$http({
                     url: '/community/posts/list',
                     method: 'get',
-                    params: {status: this.status, page: this.page, limit: 20},
+                    params: {
+                        status: this.status,
+                        page: this.page,
+                        limit: 20,
+                        todo: this.$route?.query?.todo,
+                    },
                 });
                 if (!data || data.code !== 0) {
                     throw new Error((data && data.msg) || '社区列表加载失败');
@@ -230,7 +254,7 @@ export default {
         async moderate(row, status) {
             try {
                 const {value} = await this.$prompt(
-                    `确认将此分享设为“${this.statuses[status]}”, 请填写审核原因`,
+                    `确认将此分享设为“${this.statuses[status === 'RESTORE' ? 'PENDING' : status]}”, 请填写审核原因`,
                     '社区审核',
                     {
                         inputType: 'textarea',

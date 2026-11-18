@@ -1,9 +1,5 @@
 <template>
     <div class="mod-order">
-        <el-button v-if="isAuth('mall:order:list')" @click="$refs.refunds.open()"
-            >退款售后</el-button
-        >
-        <refund-panel ref="refunds" />
         <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
             <el-form-item>
                 <el-input v-model="searchForm.orderSn" placeholder="订单编号" clearable></el-input>
@@ -114,14 +110,18 @@
             >
                 <template #default="scope">
                     <el-button
-                        v-if="isAuth('mall:order:info')"
+                        v-if="scope.row.canReadDetails && isAuth('mall:order:info')"
                         type="text"
                         size="small"
                         @click="showDetails(scope.row.id)"
                         >查看
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:order:update') && canAdjustPrice(scope.row)"
+                        v-if="
+                            scope.row.canAdjustPrice &&
+                            isAuth('mall:order:price:update') &&
+                            canAdjustPrice(scope.row)
+                        "
                         type="text"
                         size="small"
                         :disabled="writing || loading || needsReload || Boolean(listError)"
@@ -129,7 +129,7 @@
                         >改价
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:order:ship') && canShip(scope.row)"
+                        v-if="scope.row.canShip && isAuth('mall:order:ship') && canShip(scope.row)"
                         type="text"
                         size="small"
                         :disabled="writing || loading || needsReload || Boolean(listError)"
@@ -210,10 +210,9 @@
 
 <script>
 import OrderDetail from './order-detail';
-import RefundPanel from './refund-panel';
 
 export default {
-    components: {OrderDetail, RefundPanel},
+    components: {OrderDetail},
     /** 保存分页及独立读写状态, 不保留通用订单新增删除入口. */
     data() {
         return {
@@ -272,7 +271,6 @@ export default {
             this.loading = false;
             this.shipDialogVisible = false;
             this.$refs.orderDetail?.close?.();
-            this.$refs.refunds?.close?.();
         },
         /** 快递字典读取失败提供独立重试, 不影响订单列表分页. */
         async loadShippingCompanies() {
@@ -319,7 +317,7 @@ export default {
                     url: '/mall/order/list',
                     method: 'get',
                     showError: false,
-                    params: {page, limit, ...this.searchForm},
+                    params: {page, limit, ...this.searchForm, todo: this.$route?.query?.todo},
                 });
                 if (!this.pageActive || epoch !== this.pageEpoch || version !== this._listVersion) {
                     return;

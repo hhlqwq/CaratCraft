@@ -2,6 +2,7 @@ name: platform-wxshop
 
 x-application-environment: &application-environment
   TZ: ${TZ:-Asia/Shanghai}
+  CARATCRAFT_DEFAULT_BUSINESS_ORG: ${CARATCRAFT_DEFAULT_BUSINESS_ORG:-}
   MYSQL_HOST: mysql
   MYSQL_PORT: 3306
   MYSQL_DATABASE: ${MYSQL_DATABASE:-platform}

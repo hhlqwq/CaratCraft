@@ -21,8 +21,9 @@ package com.platform.modules.sys.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.common.exception.BusinessException;
-import com.platform.common.utils.Constant;
 import com.platform.common.utils.Query;
+import com.platform.common.utils.ShiroUtils;
+import com.platform.datascope.StaffAuthority;
 import com.platform.modules.sys.dao.SysRoleDao;
 import com.platform.modules.sys.dao.SysUserDao;
 import com.platform.modules.sys.entity.SysRoleEntity;
@@ -50,8 +51,10 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleDao, SysRoleEntity>
 
     private final SysRoleMenuService sysRoleMenuService;
     private final SysUserDao sysUserDao;
+    private final com.platform.modules.sys.dao.SysMenuDao menuDao;
     private final SysUserRoleService sysUserRoleService;
     private final SysRoleOrgService sysRoleOrgService;
+    private final StaffAuthority authority;
 
     @Override
     public Page<SysRoleEntity> queryPage(Map<String, Object> params) {
@@ -70,35 +73,63 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleDao, SysRoleEntity>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void add(SysRoleEntity role) {
-        this.save(role);
-
-        // 检查权限是否越权
+        role.setRoleId(null);
+        checkRoleOrganizations(role, "sys:role:save");
         checkPrems(role);
+        role.setDelegable(authority.emergency() && Boolean.TRUE.equals(role.getDelegable()));
+        this.save(role);
 
         // 保存角色与菜单关系
         sysRoleMenuService.saveOrUpdate(role.getRoleId(), role.getMenuIdList());
 
         // 保存角色与机构关系
         sysRoleOrgService.saveOrUpdate(role.getRoleId(), role.getOrgNoList());
+        authority.audit(
+                "保存角色权限",
+                role.getRoleId(),
+                "菜单节点="
+                        + role.getMenuIdList()
+                        + ", 机构="
+                        + role.getOrgNoList()
+                        + ", 可委派="
+                        + role.getDelegable());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void update(SysRoleEntity role) {
-        this.updateById(role);
-
-        // 检查权限是否越权
+        SysRoleEntity current = validateExistingRole(role.getRoleId(), "sys:role:update");
+        role.setCreateTime(current.getCreateTime());
+        role.setCreateUserId(current.getCreateUserId());
+        role.setCreateUserOrgNo(current.getCreateUserOrgNo());
+        if (!authority.emergency()) {
+            role.setDelegable(current.getDelegable());
+        }
+        checkRoleOrganizations(role, "sys:role:update");
         checkPrems(role);
+        this.updateById(role);
 
         // 更新角色与菜单关系
         sysRoleMenuService.saveOrUpdate(role.getRoleId(), role.getMenuIdList());
         // 保存角色与机构关系
         sysRoleOrgService.saveOrUpdate(role.getRoleId(), role.getOrgNoList());
+        authority.audit(
+                "保存角色权限",
+                role.getRoleId(),
+                "菜单节点="
+                        + role.getMenuIdList()
+                        + ", 机构="
+                        + role.getOrgNoList()
+                        + ", 可委派="
+                        + role.getDelegable());
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteBatch(String[] roleIds) {
+        for (String roleId : roleIds) {
+            validateExistingRole(roleId, "sys:role:delete");
+        }
         // 删除角色
         this.removeByIds(Arrays.asList(roleIds));
 
@@ -117,19 +148,66 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleDao, SysRoleEntity>
         return baseMapper.queryRoleIdList(params);
     }
 
+    /** 普通管理员只能编辑自己创建的非委派角色, 且角色当前未分派给本人. */
+    private SysRoleEntity validateExistingRole(String roleId, String action) {
+        SysRoleEntity target =
+                lambdaQuery().eq(SysRoleEntity::getRoleId, roleId).last("FOR UPDATE").one();
+        String actor = ShiroUtils.getUserEntity().getUserId();
+        if (target == null
+                || (!authority.emergency()
+                        && (!actor.equals(target.getCreateUserId())
+                                || Boolean.TRUE.equals(target.getDelegable())
+                                || sysUserRoleService.queryRoleIdList(actor).contains(roleId)
+                                || !sysRoleOrgService.queryOrgNoList(roleId).stream()
+                                        .allMatch(authority.scope(action)::permits)))) {
+            throw new org.apache.shiro.authz.UnauthorizedException("该角色由权限管理员维护");
+        }
+        return target;
+    }
+
+    /** 拟配置的机构必须落在对应角色管理动作范围内. */
+    private void checkRoleOrganizations(SysRoleEntity role, String action) {
+        var scope = authority.scope(action);
+        if (role.getOrgNoList() != null && !role.getOrgNoList().stream().allMatch(scope::permits)) {
+            throw new org.apache.shiro.authz.UnauthorizedException("机构超出角色管理范围");
+        }
+    }
+
     /** 检查权限是否越权 */
     private void checkPrems(SysRoleEntity role) {
         // 如果不是超级管理员，则需要判断角色的权限是否超过自己的权限
-        if (Constant.SUPER_ADMIN.equals(role.getCreateUserId())) {
+        if (authority.emergency()) {
             return;
         }
 
         // 查询用户所拥有的菜单列表
-        List<String> menuIdList = sysUserDao.queryAllMenuId(role.getCreateUserId());
+        List<String> menuIdList = sysUserDao.queryAllMenuId(ShiroUtils.getUserEntity().getUserId());
 
         // 判断是否越权
-        if (!menuIdList.containsAll(role.getMenuIdList())) {
+        if (role.getMenuIdList() == null
+                || !menuIdList.containsAll(role.getMenuIdList())
+                || !role.getMenuIdList().stream().allMatch(id -> transferableMenu(id, role))) {
             throw new BusinessException("新增角色的权限，已超出你的权限范围");
         }
+    }
+
+    /** 管理面权限由应急管理员签发, 非业务菜单目录可加入普通自定义角色. */
+    private boolean transferableMenu(String menuId, SysRoleEntity role) {
+        var menu = menuDao.selectById(menuId);
+        if (menu == null) {
+            return false;
+        }
+        if (menu.getPerms() == null || menu.getPerms().isBlank()) {
+            return true;
+        }
+        List<String> organizations = role.getOrgNoList() == null ? List.of() : role.getOrgNoList();
+        return Arrays.stream(menu.getPerms().split(","))
+                .map(String::trim)
+                .allMatch(
+                        action ->
+                                !action.startsWith("sys:")
+                                        && !action.contains("*")
+                                        && organizations.stream()
+                                                .allMatch(authority.scope(action)::permits));
     }
 }

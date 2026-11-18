@@ -62,6 +62,8 @@ public class ShiroConfig {
     @Bean("securityManager")
     public SecurityManager securityManager(Oauth2Realm oAuth2Realm, SessionManager sessionManager) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        oAuth2Realm.setAuthenticationCachingEnabled(false);
+        oAuth2Realm.setAuthorizationCachingEnabled(false);
         securityManager.setRealm(oAuth2Realm);
         securityManager.setSessionManager(sessionManager);
         DefaultSessionStorageEvaluator storageEvaluator = new DefaultSessionStorageEvaluator();

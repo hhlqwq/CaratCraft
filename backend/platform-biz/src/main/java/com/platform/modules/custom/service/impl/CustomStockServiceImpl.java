@@ -29,7 +29,11 @@ public class CustomStockServiceImpl implements CustomStockService {
     /** 查询组件选项及库存, 以选项为主左联库存 / Lists options left-joined with stock rows. */
     @Override
     public com.baomidou.mybatisplus.extension.plugins.pagination.Page<ComponentStockView> listStock(
-            Integer goodsId, int page, int limit) {
+            Integer goodsId,
+            int page,
+            int limit,
+            boolean stockOut,
+            com.platform.modules.sys.service.OrgActionScope scope) {
         if (page < 1 || limit < 1 || limit > 100) {
             throw new IllegalArgumentException("分页参数不正确");
         }
@@ -38,6 +42,22 @@ public class CustomStockServiceImpl implements CustomStockService {
                         new com.baomidou.mybatisplus.extension.plugins.pagination.Page<
                                 CustomComponentOptionEntity>(page, limit),
                         new LambdaQueryWrapper<CustomComponentOptionEntity>()
+                                .apply(
+                                        !scope.emergency(),
+                                        "goods_id IN (SELECT id FROM mall_goods WHERE "
+                                                + scope.mybatisCondition("scope_org_no")
+                                                + ")",
+                                        scope.organizations().toArray())
+                                .apply(
+                                        stockOut,
+                                        "id IN (SELECT o.id FROM CC_COMPONENT_OPTION o JOIN"
+                                            + " mall_goods g ON o.goods_id=g.id LEFT JOIN"
+                                            + " CC_COMPONENT_STOCK s ON o.goods_id=s.goods_id AND"
+                                            + " o.component_type=s.component_type AND"
+                                            + " o.option_code=s.option_code WHERE g.is_delete=0 AND"
+                                            + " o.enabled=1 AND "
+                                                + BELOW_REQUIRED_STOCK
+                                                + ")")
                                 .eq(
                                         goodsId != null,
                                         CustomComponentOptionEntity::getGoodsId,

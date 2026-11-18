@@ -29,6 +29,39 @@
         "existingEnvironmentRoleAssignmentsChanged": false,
         "deployment": "pending"
     },
+    "adminJobPermissionAcceptance": {
+        "date": "2026-11-18",
+        "baselineCommit": "6b8b5c3",
+        "runId": "20261118-8970798a9292",
+        "java": {"passed": 257, "failed": 0, "skipped": 0, "cleanPackage": "passed"},
+        "node": {"passed": 312, "failed": 0, "skipped": 0},
+        "realHttp": {
+            "class": "OrderPermissionHttpTest",
+            "passed": 9,
+            "environment": "隔离 MySQL 和 Redis、真实 Shiro、普通员工账号、微信退款替身",
+            "coverage": [
+                "发货、各退款动作及旧权限和调度入口隔离, 拒绝请求无订单、退款或库存副作用",
+                "商品、履约、客服和系统岗位的入口、商品图片库及系统参数脱敏",
+                "多角色叠加按机构和动作计算, 角色撤销、停用账号及禁止自授权",
+                "独立初始密码、真实登录、最后登录时间、重置和自行改密撤销旧令牌",
+                "订单详情、列表、工作台、旧批量接口和审计隔离"
+            ]
+        },
+        "databaseUpgrade": {
+            "runId": "admin-jobs-upgrade-dd4f1403f68b",
+            "status": "passed",
+            "checks": ["重复执行", "旧授权保留", "显式归属回填", "冲突回填拒绝", "已有绑定时拒绝回滚", "无绑定时回滚"]
+        },
+        "admin": {
+            "eslint": "passed",
+            "productionBuild": "passed",
+            "edgeFixtureScenarios": 5,
+            "fixtureRealBackend": false
+        },
+        "pendingExternal": ["目标环境岗位分派和旧授权盘点", "实际营业数据及全岗位页面验收", "员工自助短信或邮件重置尚未接入"],
+        "productionDatabaseModified": false,
+        "realRefundSent": false
+    },
     "integrationAcceptance": {
         "baseCommit": "ab9dbdb430519f395aaf879588f950023af37d61",
         "historicalReviewCommit": "adb8989d641b21d0694d72b12e393a2b70565c72",

@@ -59,6 +59,7 @@ public class SysRoleController extends AbstractController {
     private final SysRoleService sysRoleService;
     private final SysRoleMenuService sysRoleMenuService;
     private final SysRoleOrgService sysRoleOrgService;
+    private final com.platform.datascope.StaffAuthority authority;
 
     /**
      * 角色列表
@@ -71,8 +72,7 @@ public class SysRoleController extends AbstractController {
     @RequiresPermissions("sys:role:list")
     public RestResponse<Page<SysRoleEntity>> list(@RequestParam Map<String, Object> params) {
 
-        // 如需数据权限，在参数中添加DataScope
-        params.put("dataScope", getDataScope());
+        applyRoleView(params, "sys:role:list");
 
         Page<SysRoleEntity> page = sysRoleService.queryPage(params);
 
@@ -89,11 +89,20 @@ public class SysRoleController extends AbstractController {
     @RequiresPermissions("sys:role:select")
     public RestResponse<List<SysRoleEntity>> select() {
         Map<String, Object> params = new HashMap<>(2);
-        params.put("dataScope", getDataScope());
+        applyRoleView(params, "sys:role:select");
 
         List<SysRoleEntity> list = sysRoleService.selectListByMap(params);
+        if (!authority.emergency()) {
+            list = list.stream().filter(role -> authority.canAssign(role.getRoleId())).toList();
+        }
 
         return RestResponse.ok(list);
+    }
+
+    /** 覆盖客户端传入的机构和操作人, 角色列表按动作计算机构范围. */
+    private void applyRoleView(Map<String, Object> params, String action) {
+        params.put("roleViewer", authority.emergency() ? null : getUserId());
+        params.put("roleOrgNos", authority.scope(action).organizations());
     }
 
     /**
@@ -107,6 +116,14 @@ public class SysRoleController extends AbstractController {
     @RequiresPermissions("sys:role:info")
     public RestResponse<SysRoleEntity> info(@PathVariable("roleId") String roleId) {
         SysRoleEntity role = sysRoleService.getById(roleId);
+        if (role == null
+                || (!authority.emergency()
+                        && !getUserId().equals(role.getCreateUserId())
+                        && !(Boolean.TRUE.equals(role.getDelegable())
+                                && authority.withinOrganizations(
+                                        roleId, authority.scope("sys:role:info"))))) {
+            throw new org.apache.shiro.authz.UnauthorizedException("角色不在可查看范围内");
+        }
 
         // 查询角色对应的菜单
         List<String> menuIdList = sysRoleMenuService.queryMenuIdList(roleId);
@@ -152,8 +169,6 @@ public class SysRoleController extends AbstractController {
     public RestResponse<String> update(@RequestBody SysRoleEntity role) {
         ValidatorUtils.validateEntity(role);
 
-        role.setCreateUserId(getUserId());
-        role.setCreateUserOrgNo(getOrgNo());
         sysRoleService.update(role);
 
         return RestResponse.ok();

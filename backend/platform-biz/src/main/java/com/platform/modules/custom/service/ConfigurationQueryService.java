@@ -8,6 +8,7 @@ import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
+import com.platform.modules.sys.service.OrgActionScope;
 
 import lombok.RequiredArgsConstructor;
 
@@ -54,7 +55,7 @@ public class ConfigurationQueryService {
             Integer enabled) {}
 
     /** 搜索未回收商城商品, 只加载当前页最小字段. */
-    public Map<String, Object> goods(int page, int size, String keyword) {
+    public Map<String, Object> goods(int page, int size, String keyword, OrgActionScope scope) {
         validate(page, size, keyword);
         Page<MallGoodsEntity> result =
                 goods.page(
@@ -62,6 +63,10 @@ public class ConfigurationQueryService {
                         new LambdaQueryWrapper<MallGoodsEntity>()
                                 .select(MallGoodsEntity::getId, MallGoodsEntity::getName)
                                 .eq(MallGoodsEntity::getIsDelete, 0)
+                                .apply(
+                                        !scope.emergency(),
+                                        scope.mybatisCondition("scope_org_no"),
+                                        scope.organizations().toArray())
                                 .like(
                                         keyword != null && !keyword.isBlank(),
                                         MallGoodsEntity::getName,
@@ -75,12 +80,18 @@ public class ConfigurationQueryService {
     }
 
     /** 查询当前页定制配置, 同商品使用主键稳定排序. */
-    public Map<String, Object> products(int page, int size) {
+    public Map<String, Object> products(int page, int size, OrgActionScope scope) {
         validate(page, size, null);
         Page<CustomProductEntity> result =
                 products.selectPage(
                         new Page<>(page, size),
                         new LambdaQueryWrapper<CustomProductEntity>()
+                                .apply(
+                                        !scope.emergency(),
+                                        "goods_id IN (SELECT id FROM mall_goods WHERE "
+                                                + scope.mybatisCondition("scope_org_no")
+                                                + ")",
+                                        scope.organizations().toArray())
                                 .orderByAsc(CustomProductEntity::getGoodsId)
                                 .orderByAsc(CustomProductEntity::getId));
         return response(

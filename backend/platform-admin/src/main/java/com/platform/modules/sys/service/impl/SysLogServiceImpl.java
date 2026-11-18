@@ -44,10 +44,15 @@ public class SysLogServiceImpl extends ServiceImpl<SysLogDao, SysLogEntity>
         String ip = (String) params.get("ip");
 
         Page<SysLogEntity> page = new Query<SysLogEntity>(params).getPage();
+        var scope = (com.platform.modules.sys.service.OrgActionScope) params.get("auditScope");
 
         return baseMapper.selectPage(
                 page,
                 new QueryWrapper<SysLogEntity>()
+                        .apply(
+                                !scope.emergency(),
+                                scope.mybatisCondition("SCOPE_ORG_NO"),
+                                scope.organizations().toArray())
                         .like(StringUtils.isNotBlank(ip), "IP", ip)
                         .and(
                                 StringUtils.isNotBlank(key),

@@ -18,7 +18,6 @@
  */
 package com.platform.modules.sys.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.Constant;
@@ -29,13 +28,11 @@ import com.platform.common.validator.group.UpdateGroup;
 import com.platform.modules.sys.entity.SysDictEntity;
 import com.platform.modules.sys.entity.SysMenuEntity;
 import com.platform.modules.sys.entity.SysOrgEntity;
-import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.enums.MenuTypeEnum;
 import com.platform.modules.sys.service.ShiroService;
 import com.platform.modules.sys.service.SysDictService;
 import com.platform.modules.sys.service.SysMenuService;
 import com.platform.modules.sys.service.SysOrgService;
-import com.platform.modules.sys.service.SysUserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -72,7 +69,7 @@ public class SysMenuController extends AbstractController {
     private final ShiroService shiroService;
     private final SysDictService sysDictService;
     private final SysOrgService orgService;
-    private final SysUserService userService;
+    private final com.platform.datascope.StaffAuthority authority;
 
     /**
      * 导航菜单
@@ -88,15 +85,13 @@ public class SysMenuController extends AbstractController {
         Map<String, Object> map = new HashMap<>(2);
 
         List<SysDictEntity> dictList = sysDictService.queryAll(map);
-        List<SysOrgEntity> orgList = orgService.list();
-        List<SysUserEntity> userList =
-                userService.list(new QueryWrapper<SysUserEntity>().select("USER_ID,REAL_NAME"));
+        List<SysOrgEntity> orgList = permittedOrganizations();
         Map<String, Object> result = new HashMap<>(8);
         result.put("menuList", menuList);
         result.put("permissions", permissions);
         result.put("dictList", dictList);
         result.put("orgList", orgList);
-        result.put("userList", userList);
+        result.put("userList", List.of());
         return RestResponse.ok(result);
     }
 
@@ -169,6 +164,7 @@ public class SysMenuController extends AbstractController {
     @PostMapping("/save")
     @RequiresPermissions("sys:menu:save")
     public RestResponse<String> save(@RequestBody SysMenuEntity menu) {
+        requireEmergency();
         ValidatorUtils.validateEntity(menu, AddGroup.class);
         // 数据校验
         verifyForm(menu);
@@ -193,7 +189,24 @@ public class SysMenuController extends AbstractController {
         // 数据校验
         verifyForm(menu);
 
-        sysMenuService.updateById(menu);
+        if (authority.emergency()) {
+            sysMenuService.updateById(menu);
+        } else {
+            SysMenuEntity current = sysMenuService.getById(menu.getMenuId());
+            if (current == null
+                    || !java.util.Objects.equals(current.getPerms(), menu.getPerms())
+                    || !java.util.Objects.equals(current.getUrl(), menu.getUrl())
+                    || !java.util.Objects.equals(current.getParentId(), menu.getParentId())
+                    || !java.util.Objects.equals(current.getType(), menu.getType())) {
+                throw new org.apache.shiro.authz.UnauthorizedException("权限键及路由只允许应急管理员更改");
+            }
+            SysMenuEntity presentation = new SysMenuEntity();
+            presentation.setMenuId(current.getMenuId());
+            presentation.setName(menu.getName());
+            presentation.setIcon(menu.getIcon());
+            presentation.setOrderNum(menu.getOrderNum());
+            sysMenuService.updateById(presentation);
+        }
 
         return RestResponse.ok();
     }
@@ -209,6 +222,7 @@ public class SysMenuController extends AbstractController {
     @PostMapping("/delete/{menuId}")
     @RequiresPermissions("sys:menu:delete")
     public RestResponse<String> delete(@PathVariable("menuId") String menuId) {
+        requireEmergency();
 
         // 判断是否有子菜单或按钮
         List<SysMenuEntity> menuList = sysMenuService.queryListParentId(menuId);
@@ -263,6 +277,28 @@ public class SysMenuController extends AbstractController {
             if (parentType != MenuTypeEnum.MENU.getValue()) {
                 throw new BusinessException("上级菜单只能为菜单类型");
             }
+        }
+    }
+
+    /** 只返回用户管理和角色管理所需的机构名称. */
+    private List<SysOrgEntity> permittedOrganizations() {
+        if (authority.emergency()) {
+            return orgService.list();
+        }
+        var scopes =
+                List.of("sys:user:list", "sys:user:save", "sys:user:update", "sys:role:list")
+                        .stream()
+                        .map(authority::scope)
+                        .toList();
+        return orgService.list().stream()
+                .filter(org -> scopes.stream().anyMatch(scope -> scope.permits(org.getOrgNo())))
+                .toList();
+    }
+
+    /** 菜单增删会修改实际权限关系, 交由应急管理员处理. */
+    private void requireEmergency() {
+        if (!authority.emergency()) {
+            throw new org.apache.shiro.authz.UnauthorizedException("菜单权限关系只能由应急管理员调整");
         }
     }
 }

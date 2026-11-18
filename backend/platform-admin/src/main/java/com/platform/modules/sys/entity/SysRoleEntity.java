@@ -51,6 +51,9 @@ public class SysRoleEntity implements Serializable {
     /** 备注 */
     private String remark;
 
+    /** 由应急管理员显式批准此角色可委派. */
+    private Boolean delegable;
+
     /** 创建者ID */
     private String createUserId;
 

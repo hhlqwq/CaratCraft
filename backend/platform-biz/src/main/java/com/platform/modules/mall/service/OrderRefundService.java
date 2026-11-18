@@ -7,6 +7,7 @@ import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
+import com.platform.modules.sys.service.OrgActionScope;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,6 +16,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,11 +111,13 @@ public class OrderRefundService {
                             jdbc.update(
                                     "UPDATE CC_REFUND SET status=?,operator_name=?,decision_note=?,"
                                             + " update_time=NOW(),next_check_time=NOW() WHERE"
-                                            + " order_id=? AND status='PENDING_REVIEW'",
+                                            + " order_id=? AND status='PENDING_REVIEW' AND"
+                                            + " review_result=?",
                                     approved ? "APPROVED" : "REJECTED",
                                     operator,
                                     reason,
-                                    orderId);
+                                    orderId,
+                                    approved ? "APPROVE" : "REJECT");
                     if (changed != 1) {
                         throw new IllegalArgumentException("退款申请状态已变化, 请刷新");
                     }
@@ -125,20 +129,105 @@ public class OrderRefundService {
                 });
     }
 
-    /** 分页展示审核及对账结果, 不扫描全部订单. */
-    public Map<String, Object> page(int page, int limit) {
-        if (page < 1 || limit < 1 || limit > 100) {
+    /** 分页展示负责人所需字段, 不返回支付渠道标识、租约或客户联系方式. */
+    public RefundPage page(int page, int limit, String todo, OrgActionScope scope) {
+        if (page < 1 || page > 100000 || limit < 1 || limit > 100) {
             throw new IllegalArgumentException("分页参数不正确");
         }
+        List<Object> parameters = new ArrayList<>();
+        String filter =
+                " FROM CC_REFUND r JOIN mall_order o ON o.id=r.order_id WHERE 1=1"
+                        + scope.andWhere("o.scope_org_no", parameters);
+        filter +=
+                switch (todo == null ? "" : todo) {
+                    case "refundReview" ->
+                            " AND r.status='PENDING_REVIEW' AND r.review_result IS NULL";
+                    case "refundExecute" ->
+                            " AND r.status='PENDING_REVIEW' AND r.review_result IS NOT NULL";
+                    case "refundRetry" ->
+                            " AND r.status='RETRY' AND (r.next_check_time IS NULL OR"
+                                    + " r.next_check_time<=NOW())";
+                    case "refundAttention" ->
+                            " AND r.status IN ('PROCESSING','RETRY','MANUAL_REVIEW') AND"
+                                    + " (r.next_check_time IS NULL OR r.next_check_time<=NOW())";
+                    default -> "";
+                };
+        Long total =
+                jdbc.queryForObject("SELECT COUNT(*)" + filter, Long.class, parameters.toArray());
+        parameters.add(limit);
+        parameters.add((long) (page - 1) * limit);
+        return new RefundPage(
+                jdbc.queryForList(
+                        "SELECT"
+                            + " r.order_id,o.order_sn,o.scope_org_no,r.status,r.amount_fen,r.reason,r.decision_note,"
+                            + "r.review_result,r.review_note,r.reviewed_at,r.update_time"
+                                + filter
+                                + " ORDER BY r.update_time DESC,r.order_id LIMIT ? OFFSET ?",
+                        parameters.toArray()),
+                total == null ? 0L : total);
+    }
+
+    /** 管理端分页结果, 返回前由调用方以动作标记替换内部归属字段. */
+    public record RefundPage(List<Map<String, Object>> records, long total) {}
+
+    /** 非资金审核仅保存建议, 审核不会把申请置为可出款状态. */
+    @Transactional(rollbackFor = Exception.class)
+    public void review(Integer orderId, boolean approve, String operator, String note) {
+        requireOrder(orderId);
+        if (jdbc.update(
+                        "UPDATE CC_REFUND SET"
+                            + " review_result=?,review_note=?,reviewed_by=?,reviewed_at=NOW(),update_time=NOW()"
+                            + " WHERE order_id=? AND status='PENDING_REVIEW'",
+                        approve ? "APPROVE" : "REJECT",
+                        requireNote(note),
+                        operator,
+                        orderId)
+                != 1) {
+            throw new IllegalStateException("退款申请状态已变化");
+        }
+    }
+
+    /** 按客服权限读取处理队列, 省略支付流水、退款金额及审核内部字段. */
+    public Map<String, Object> supportPage(
+            int page, int limit, OrgActionScope scope, boolean pending) {
+        if (page < 1 || page > 100000 || limit < 1 || limit > 100) {
+            throw new IllegalArgumentException("分页参数不正确");
+        }
+        List<Object> parameters = new ArrayList<>();
+        String filter =
+                " FROM CC_REFUND r JOIN mall_order o ON o.id=r.order_id WHERE 1=1"
+                        + scope.andWhere("o.scope_org_no", parameters);
+        if (pending) {
+            filter += " AND r.support_handled_at IS NULL AND r.status='PENDING_REVIEW'";
+        }
+        Long total =
+                jdbc.queryForObject("SELECT COUNT(*)" + filter, Long.class, parameters.toArray());
+        parameters.add(limit);
+        parameters.add((long) (page - 1) * limit);
         return Map.of(
                 "records",
                 jdbc.queryForList(
-                        "SELECT r.*,o.order_sn FROM CC_REFUND r JOIN mall_order o ON"
-                                + " o.id=r.order_id ORDER BY r.update_time DESC LIMIT ? OFFSET ?",
-                        limit,
-                        (long) (page - 1) * limit),
+                        "SELECT r.order_id,o.order_sn,o.user_id AS"
+                            + " customer_id,r.status,r.reason,r.support_note,r.support_handled_at,r.update_time,CASE"
+                            + " WHEN CHAR_LENGTH(o.mobile)>=7 THEN RIGHT(o.mobile,4) END AS"
+                            + " mobile_hint"
+                                + filter
+                                + " ORDER BY r.update_time DESC,r.order_id LIMIT ? OFFSET ?",
+                        parameters.toArray()),
                 "total",
-                jdbc.queryForObject("SELECT COUNT(*) FROM CC_REFUND", Long.class));
+                total == null ? 0L : total);
+    }
+
+    /** 客服只能写入处理记录, 退款状态以及渠道动作保持独立. */
+    public void handleSupport(Integer orderId, String note) {
+        if (jdbc.update(
+                        "UPDATE CC_REFUND SET support_note=?,support_handled_at=NOW() WHERE"
+                                + " order_id=?",
+                        requireNote(note),
+                        orderId)
+                != 1) {
+            throw new IllegalStateException("售后记录不存在");
+        }
     }
 
     /** 本人查询退款详情, 不泄露商户支付凭证及他人订单. */
@@ -179,12 +268,12 @@ public class OrderRefundService {
 
     /** 系统任务处理已审核退款, 保留自动提交及补偿. */
     public int reconcile() {
-        return reconcileBatch(Reconciliation.AUTOMATIC);
+        return reconcileBatch(Reconciliation.AUTOMATIC, new OrgActionScope(true, List.of()));
     }
 
     /** 人工批量查单并写回, 不领取尚待首次提交的申请, 也不发起退款. */
-    public int reconcileWriteback() {
-        return reconcileBatch(Reconciliation.WRITEBACK);
+    public int reconcileWriteback(OrgActionScope scope) {
+        return reconcileBatch(Reconciliation.WRITEBACK, scope);
     }
 
     /** 重试指定退款, 仅允许状态为RETRY且租约已到期的申请. */
@@ -199,18 +288,23 @@ public class OrderRefundService {
     }
 
     /** 领取到期租约的退款每批最多处理50项, 返回实际领取数. */
-    private int reconcileBatch(Reconciliation mode) {
+    private int reconcileBatch(Reconciliation mode, OrgActionScope scope) {
         WxPayService pay = gateway.getIfAvailable();
         if (pay == null) {
             return 0;
         }
+        List<Object> parameters = new ArrayList<>();
+        String organization = scope.andWhere("o.scope_org_no", parameters);
         List<Integer> ids =
                 jdbc.queryForList(
-                        "SELECT order_id FROM CC_REFUND WHERE status IN ("
+                        "SELECT r.order_id FROM CC_REFUND r JOIN mall_order o ON o.id=r.order_id"
+                                + " WHERE r.status IN ("
                                 + mode.statuses
-                                + ") AND (next_check_time IS NULL OR next_check_time<=NOW())"
-                                + " ORDER BY update_time LIMIT 50",
-                        Integer.class);
+                                + ") AND (r.next_check_time IS NULL OR r.next_check_time<=NOW())"
+                                + organization
+                                + " ORDER BY r.update_time LIMIT 50",
+                        Integer.class,
+                        parameters.toArray());
         int processed = 0;
         for (Integer id : ids) {
             if (reconcileOne(id, pay, mode)) {

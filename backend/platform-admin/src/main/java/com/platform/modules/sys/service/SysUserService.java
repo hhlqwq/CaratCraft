@@ -100,7 +100,8 @@ public interface SysUserService extends IService<SysUserEntity> {
     /**
      * 重置密码
      *
-     * @param userIds 用户Ids
+     * @param userId 目标员工ID
+     * @param password 新密码
      */
-    void resetPw(String[] userIds);
+    void resetPw(String userId, String password);
 }

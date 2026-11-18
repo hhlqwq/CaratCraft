@@ -30,6 +30,9 @@ public class CommunityService {
     private final JdbcTemplate jdbc;
     private final CustomDesignService designs;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.platform.modules.sys.service.BusinessOrganization businessOrganization;
+
     /** 注入社区数据与本人设计读取服务. */
     public CommunityService(JdbcTemplate jdbc, CustomDesignService designs) {
         this.jdbc = jdbc;
@@ -178,8 +181,8 @@ public class CommunityService {
         long id =
                 insert(
                         "INSERT INTO"
-                            + " CC_COMMUNITY_POST(user_id,request_key,request_hash,kind,title,content,images_json,design_json)"
-                            + " VALUES(?,?,?,?,?,?,?,?)",
+                            + " CC_COMMUNITY_POST(user_id,request_key,request_hash,kind,title,content,images_json,design_json,scope_org_no)"
+                            + " VALUES(?,?,?,?,?,?,?,?,?)",
                         userId,
                         request.getRequestKey(),
                         hash,
@@ -187,7 +190,10 @@ public class CommunityService {
                         title,
                         content,
                         JSON.toJSONString(images),
-                        designJson);
+                        designJson,
+                        businessOrganization == null
+                                ? null
+                                : businessOrganization.defaultOrganization());
         return Map.of("id", id, "status", "PENDING");
     }
 
@@ -308,49 +314,70 @@ public class CommunityService {
             throw new IllegalArgumentException("只能删除本人分享");
         }
         if ("DELETED".equals(post.get("status"))) {
+            jdbc.update("UPDATE CC_COMMUNITY_POST SET staff_deleted=0 WHERE id=?", id);
             return;
         }
         changeStatus(post, id, "DELETED", "用户本人", "本人删除");
     }
 
-    /** 运营按状态分页, 所有查询参数使用绑定变量. */
-    public Map<String, Object> adminPage(String status, int page, int limit) {
+    /** 运营按授权机构和状态分页, 并区分可恢复的运营软删除. */
+    public Map<String, Object> adminPage(
+            String status,
+            int page,
+            int limit,
+            com.platform.modules.sys.service.OrgActionScope scope) {
         validatePage(page, limit);
         if (status == null || !STATUSES.contains(status)) {
             throw new IllegalArgumentException("审核状态无效");
         }
+        List<Object> parameters = new java.util.ArrayList<>();
+        parameters.add(status);
+        String filter =
+                " FROM CC_COMMUNITY_POST p WHERE p.status=?"
+                        + scope.andWhere("p.scope_org_no", parameters);
+        Long total =
+                jdbc.queryForObject("SELECT COUNT(*)" + filter, Long.class, parameters.toArray());
+        parameters.add(limit);
+        parameters.add((page - 1) * limit);
         return Map.of(
                 "records",
                 jdbc.queryForList(
                         "SELECT "
                                 + PUBLIC_COLUMNS
-                                + ",p.status,p.version,p.moderation_reason AS moderationReason FROM"
-                                + " CC_COMMUNITY_POST p WHERE p.status=? ORDER BY p.id DESC LIMIT ?"
-                                + " OFFSET ?",
-                        status,
-                        limit,
-                        (page - 1) * limit),
+                                + ",p.status,p.version,p.staff_deleted=1 AS restorable,"
+                                + "p.moderation_reason AS moderationReason"
+                                + filter
+                                + " ORDER BY p.id DESC LIMIT ? OFFSET ?",
+                        parameters.toArray()),
                 "total",
-                jdbc.queryForObject(
-                        "SELECT COUNT(*) FROM CC_COMMUNITY_POST WHERE status=?",
-                        Long.class,
-                        status));
+                total == null ? 0L : total);
     }
 
-    /** 审核必须匹配版本, 删除为终态, 操作和审计日志在同一事务提交. */
+    /** 审核必须匹配版本, 恢复仅适用于隐藏或运营软删除的内容. */
     @Transactional(rollbackFor = Exception.class)
     public void moderate(Long id, Long version, String status, String reason, String operator) {
-        if (!Set.of("PUBLISHED", "HIDDEN", "DELETED").contains(status == null ? "" : status)) {
+        if (!Set.of("PUBLISHED", "HIDDEN", "DELETED", "RESTORE")
+                .contains(status == null ? "" : status)) {
             throw new IllegalArgumentException("审核动作无效");
         }
         String explanation = text(reason, 1, 300, "操作原因");
         var post = locked(id);
-        if ("DELETED".equals(post.get("status"))
-                || version == null
-                || ((Number) post.get("version")).longValue() != version) {
-            throw new IllegalArgumentException("内容已变化或删除, 请刷新");
+        boolean deleted = "DELETED".equals(post.get("status"));
+        boolean staffDeleted =
+                post.get("staff_deleted") instanceof Number marker && marker.intValue() == 1;
+        boolean restore = "RESTORE".equals(status);
+        if (version == null
+                || ((Number) post.get("version")).longValue() != version
+                || (restore && !("HIDDEN".equals(post.get("status")) || (deleted && staffDeleted)))
+                || (!restore && deleted)) {
+            throw new IllegalArgumentException("内容已变化或不允许恢复, 请刷新");
         }
-        changeStatus(post, id, status, operator, explanation);
+        String target = restore ? "PENDING" : status;
+        changeStatus(post, id, target, operator, explanation);
+        jdbc.update(
+                "UPDATE CC_COMMUNITY_POST SET staff_deleted=? WHERE id=?",
+                "DELETED".equals(target) ? 1 : 0,
+                id);
     }
 
     /** 操作日志分页上限固定, 原始内容不会按HTML执行. */
@@ -366,8 +393,8 @@ public class CommunityService {
     private Map<String, Object> locked(Long id) {
         var rows =
                 jdbc.queryForList(
-                        "SELECT id,user_id,status,version FROM CC_COMMUNITY_POST WHERE id=? FOR"
-                                + " UPDATE",
+                        "SELECT id,user_id,status,version,staff_deleted FROM CC_COMMUNITY_POST"
+                                + " WHERE id=? FOR UPDATE",
                         id);
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("内容不存在");

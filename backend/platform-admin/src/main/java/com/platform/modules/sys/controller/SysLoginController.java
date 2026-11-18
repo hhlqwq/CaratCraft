@@ -117,12 +117,17 @@ public class SysLoginController extends AbstractController {
         }
 
         // 账号不存在
-        if (!user.getPassword().equals(new Sha256Hash(password, user.getSalt()).toHex())) {
+        if (user.getPassword() == null
+                || user.getSalt() == null
+                || !user.getPassword().equals(new Sha256Hash(password, user.getSalt()).toHex())) {
             return RestResponse.fail("账号或密码不正确");
         }
 
         // 生成token，并保存到数据库
-        String token = sysUserTokenService.createToken(user.getUserId());
+        String token = sysUserTokenService.createToken(user.getUserId(), user.getPassword());
+        if (token == null) {
+            return RestResponse.fail("账号或密码已变更, 请重新登录");
+        }
 
         return RestResponse.ok("登录成功", token);
     }

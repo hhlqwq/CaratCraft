@@ -55,6 +55,7 @@ import java.util.Map;
 public class SysConfigController extends AbstractController {
 
     private final SysConfigService sysConfigService;
+    private final com.platform.datascope.StaffAuthority authority;
 
     /**
      * 所有系统配置列表
@@ -67,7 +68,9 @@ public class SysConfigController extends AbstractController {
     @RequiresPermissions("sys:config:list")
     public RestResponse<Page<SysConfigEntity>> list(@RequestParam Map<String, Object> params) {
         Page<SysConfigEntity> page = sysConfigService.queryPage(params);
-
+        if (!authority.emergency()) {
+            page.getRecords().forEach(config -> config.setParamValue(null));
+        }
         return RestResponse.ok(page);
     }
 
@@ -85,7 +88,10 @@ public class SysConfigController extends AbstractController {
         List<Map<String, Object>> maps =
                 sysConfigService.listMaps(
                         new QueryWrapper<SysConfigEntity>()
-                                .select("PARAM_KEY", "PARAM_VALUE")
+                                .select(
+                                        authority.emergency()
+                                                ? List.of("PARAM_KEY", "PARAM_VALUE")
+                                                : List.of("PARAM_KEY"))
                                 .eq("STATUS", 0));
 
         return RestResponse.ok(maps);
@@ -102,7 +108,9 @@ public class SysConfigController extends AbstractController {
     @RequiresPermissions("sys:config:info")
     public RestResponse<SysConfigEntity> info(@PathVariable("id") String id) {
         SysConfigEntity config = sysConfigService.getById(id);
-
+        if (config != null && !authority.emergency()) {
+            config.setParamValue(null);
+        }
         return RestResponse.ok(config);
     }
 
@@ -117,6 +125,7 @@ public class SysConfigController extends AbstractController {
     @PostMapping("/save")
     @RequiresPermissions("sys:config:save")
     public RestResponse<String> save(@RequestBody SysConfigEntity config) {
+        requireEmergencyConfig();
         ValidatorUtils.validateEntity(config);
 
         sysConfigService.add(config);
@@ -135,6 +144,7 @@ public class SysConfigController extends AbstractController {
     @PostMapping("/update")
     @RequiresPermissions("sys:config:update")
     public RestResponse<String> update(@RequestBody SysConfigEntity config) {
+        requireEmergencyConfig();
         ValidatorUtils.validateEntity(config);
 
         sysConfigService.update(config);
@@ -153,6 +163,7 @@ public class SysConfigController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("sys:config:delete")
     public RestResponse<String> delete(@RequestBody String[] ids) {
+        requireEmergencyConfig();
         sysConfigService.deleteBatch(ids);
 
         return RestResponse.ok();
@@ -168,6 +179,7 @@ public class SysConfigController extends AbstractController {
     @GetMapping("/getConfigValue")
     @RequiresPermissions("sys:config:getConfigValue")
     public RestResponse<String> getConfigValue(String key) {
+        requireEmergencyConfig();
         String value = sysConfigService.getValue(key);
 
         return RestResponse.ok("操作成功", value);
@@ -184,7 +196,15 @@ public class SysConfigController extends AbstractController {
     @PostMapping("/saveConfigValue")
     @RequiresPermissions("sys:config:saveConfigValue")
     public RestResponse<String> saveConfigValue(@RequestBody SysConfigEntity config) {
+        requireEmergencyConfig();
         sysConfigService.updateValueByKey(config.getParamKey(), config.getParamValue());
         return RestResponse.ok();
+    }
+
+    /** 托管的访问凭据和全局参数值由应急管理员维护. */
+    private void requireEmergencyConfig() {
+        if (!authority.emergency()) {
+            throw new org.apache.shiro.authz.UnauthorizedException("系统参数值由应急管理员维护");
+        }
     }
 }

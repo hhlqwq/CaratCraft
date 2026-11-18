@@ -49,7 +49,10 @@ class RefundReconciliationTest {
                 new OrderRefundService(
                         orders, mock(CustomDesignService.class), jdbc, provider, manager);
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
-        when(jdbc.queryForList(contains("SELECT order_id FROM CC_REFUND"), eq(Integer.class)))
+        when(jdbc.queryForList(
+                        contains("SELECT r.order_id FROM CC_REFUND"),
+                        eq(Integer.class),
+                        any(Object[].class)))
                 .thenReturn(List.of(7));
         when(jdbc.queryForMap(anyString(), eq(7)))
                 .thenReturn(

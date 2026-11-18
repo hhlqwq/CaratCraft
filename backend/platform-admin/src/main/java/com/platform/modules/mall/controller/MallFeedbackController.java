@@ -21,6 +21,8 @@ package com.platform.modules.mall.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
+import com.platform.datascope.StaffAuthority;
+import com.platform.datascope.StaffAuthority.Resource;
 import com.platform.modules.mall.entity.MallFeedbackEntity;
 import com.platform.modules.mall.service.MallFeedbackService;
 import com.platform.modules.sys.controller.AbstractController;
@@ -57,6 +59,8 @@ import java.util.Map;
 public class MallFeedbackController extends AbstractController {
 
     private final MallFeedbackService mallFeedbackService;
+    private final StaffAuthority authority;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     /**
      * 查看所有列表
@@ -69,6 +73,7 @@ public class MallFeedbackController extends AbstractController {
     @RequiresPermissions("mall:feedback:list")
     public RestResponse<List<MallFeedbackEntity>> queryAll(
             @RequestParam Map<String, Object> params) {
+        applyScope(params);
         List<MallFeedbackEntity> list = mallFeedbackService.queryAll(params);
 
         return RestResponse.ok(list);
@@ -84,6 +89,7 @@ public class MallFeedbackController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("mall:feedback:list")
     public RestResponse<Page<MallFeedbackEntity>> list(@RequestParam Map<String, Object> params) {
+        applyScope(params);
         Page<MallFeedbackEntity> page = mallFeedbackService.queryPage(params);
 
         return RestResponse.ok(page);
@@ -109,6 +115,7 @@ public class MallFeedbackController extends AbstractController {
     @GetMapping("/info/{msgId}")
     @RequiresPermissions("mall:feedback:info")
     public RestResponse<MallFeedbackEntity> info(@PathVariable("msgId") Integer msgId) {
+        authority.require("mall:feedback:info", Resource.FEEDBACK, msgId);
         MallFeedbackEntity mallFeedback = mallFeedbackService.getById(msgId);
 
         return RestResponse.ok(mallFeedback);
@@ -126,6 +133,8 @@ public class MallFeedbackController extends AbstractController {
     @RequiresPermissions("mall:feedback:save")
     public RestResponse<String> save(@RequestBody MallFeedbackEntity mallFeedback) {
 
+        mallFeedback.setMsgId(null);
+        mallFeedback.setScopeOrgNo(authority.organizationForCreation("mall:feedback:save", null));
         mallFeedbackService.add(mallFeedback);
 
         return RestResponse.ok();
@@ -143,7 +152,15 @@ public class MallFeedbackController extends AbstractController {
     @RequiresPermissions("mall:feedback:update")
     public RestResponse<String> update(@RequestBody MallFeedbackEntity mallFeedback) {
 
-        mallFeedbackService.update(mallFeedback);
+        authority.require("mall:feedback:update", Resource.FEEDBACK, mallFeedback.getMsgId());
+        String reply = mallFeedback.getStaffReply();
+        if (reply == null || reply.isBlank() || reply.trim().length() > 500) {
+            throw new IllegalArgumentException("请填写1到500字的处理记录");
+        }
+        jdbc.update(
+                "UPDATE mall_feedback SET staff_reply=?,status=1 WHERE msg_id=?",
+                reply.trim(),
+                mallFeedback.getMsgId());
 
         return RestResponse.ok();
     }
@@ -159,8 +176,23 @@ public class MallFeedbackController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("mall:feedback:delete")
     public RestResponse<String> delete(@RequestBody Integer[] msgIds) {
+        authority.require(
+                "mall:feedback:delete", Resource.FEEDBACK, java.util.Arrays.asList(msgIds));
         mallFeedbackService.deleteBatch(msgIds);
 
         return RestResponse.ok();
+    }
+
+    /** 使用客服读取范围并允许筛选待处理状态. */
+    private void applyScope(Map<String, Object> params) {
+        params.remove("businessOrgNos");
+        var scope = authority.scope("mall:feedback:list");
+        if ("feedbackPending".equals(params.get("todo"))) {
+            scope = scope.intersect(authority.scope("mall:feedback:update"));
+            params.put("status", "0");
+        }
+        if (!scope.emergency()) {
+            params.put("businessOrgNos", scope.organizations());
+        }
     }
 }
