@@ -109,7 +109,10 @@ async function main() {
         await page.getByRole('button', {name: '退款售后', exact: true}).click();
         const refunds = page.getByRole('dialog', {name: '退款与售后审核'});
         await refunds.getByText('隔离售后读取失败', {exact: false}).waitFor();
-        assert.equal(await refunds.getByRole('button', {name: '执行对账'}).isDisabled(), true);
+        assert.equal(
+            await refunds.getByRole('button', {name: '对账并更新状态'}).isDisabled(),
+            true
+        );
         await refunds.getByRole('button', {name: '重新读取售后列表'}).click();
         await refunds.getByText('ISOLATED-REFUND', {exact: true}).waitFor();
         assert.equal(await refunds.getByRole('button', {name: '通过', exact: true}).count(), 0);

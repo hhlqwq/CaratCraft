@@ -25,6 +25,7 @@ import com.platform.common.utils.Query;
 import com.platform.modules.job.dao.ScheduleJobDao;
 import com.platform.modules.job.entity.ScheduleJobEntity;
 import com.platform.modules.job.service.ScheduleJobService;
+import com.platform.modules.job.utils.ScheduleRunnable;
 import com.platform.modules.job.utils.ScheduleUtils;
 
 import jakarta.annotation.PostConstruct;
@@ -80,6 +81,7 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void add(ScheduleJobEntity scheduleJob) {
+        ScheduleRunnable.requireNonRefundTarget(scheduleJob.getBeanName());
         scheduleJob.setCreateTime(new Date());
         scheduleJob.setStatus(Constant.ScheduleStatus.NORMAL.getValue());
         this.save(scheduleJob);
@@ -90,6 +92,7 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void update(ScheduleJobEntity scheduleJob) {
+        ScheduleRunnable.requireNonRefundTarget(scheduleJob.getBeanName());
         ScheduleUtils.updateScheduleJob(scheduler, scheduleJob);
 
         this.updateById(scheduleJob);
@@ -117,8 +120,15 @@ public class ScheduleJobServiceImpl extends ServiceImpl<ScheduleJobDao, Schedule
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void run(String[] jobIds) {
-        for (String jobId : jobIds) {
-            ScheduleUtils.run(scheduler, this.getById(jobId));
+        List<ScheduleJobEntity> jobs = Arrays.stream(jobIds).map(this::getById).toList();
+        for (ScheduleJobEntity job : jobs) {
+            if (job == null) {
+                throw new IllegalArgumentException("定时任务不存在");
+            }
+            ScheduleRunnable.requireNonRefundTarget(job.getBeanName());
+        }
+        for (ScheduleJobEntity job : jobs) {
+            ScheduleUtils.run(scheduler, job);
         }
     }
 

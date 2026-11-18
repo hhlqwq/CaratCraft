@@ -4,6 +4,31 @@
     "overall": "pending_external_acceptance",
     "codeAcceptance": "passed",
     "note": "codeCommit对应的基线代码和构建门禁通过. 本轮整合按integrationAcceptance记录, 微信模拟器逐页显示、真机及真实支付分别验收.",
+    "orderPermissionAcceptance": {
+        "date": "2026-11-18",
+        "baselineCommit": "937460d",
+        "runId": "20261118-64e27074493e",
+        "java": {"passed": 252, "failed": 0, "skipped": 0, "cleanPackage": "passed"},
+        "node": {"passed": 312, "failed": 0, "skipped": 0},
+        "admin": {"productionBuild": "passed", "eslint": "passed", "commerceBrowserFixture": "passed"},
+        "sourceQuality": {
+            "javaDescriptionAndAospFiles": 651,
+            "eslintAdminMiniappAndTools": "passed",
+            "changedFrontendFormatting": "passed",
+            "fullFrontendFormatting": "baseline_difference_in_apps/miniapp/pages/designer/designer.js"
+        },
+        "realHttpTest": {
+            "class": "OrderPermissionHttpTest",
+            "passed": 4,
+            "auth": "真实Shiro、普通账号、角色及菜单关系、隔离MySQL/Redis",
+            "scope": "发货和三种退款动作分权, HTTP及业务403, 订单/退款/库存无副作用, 旧权限和Quartz入口拦截",
+            "paymentChannel": "测试替身",
+            "realDisbursement": false
+        },
+        "localLegacyRolesFound": 0,
+        "existingEnvironmentRoleAssignmentsChanged": false,
+        "deployment": "pending"
+    },
     "integrationAcceptance": {
         "baseCommit": "ab9dbdb430519f395aaf879588f950023af37d61",
         "historicalReviewCommit": "adb8989d641b21d0694d72b12e393a2b70565c72",

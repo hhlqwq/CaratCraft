@@ -22,6 +22,21 @@ import java.util.Set;
 /** 持久化退款申请与对账, 外部受理不等于资金退款完成. */
 @Service
 public class OrderRefundService {
+    private enum Reconciliation {
+        AUTOMATIC("'APPROVED','PROCESSING','RETRY','MANUAL_REVIEW'", true),
+        WRITEBACK("'PROCESSING','RETRY','MANUAL_REVIEW'", false),
+        RETRY("'RETRY'", true);
+
+        private final String statuses;
+        private final boolean canSubmit;
+
+        /** 声明本入口的固定状态集合及渠道提交能力, 不接受客户端指定SQL. */
+        Reconciliation(String statuses, boolean canSubmit) {
+            this.statuses = statuses;
+            this.canSubmit = canSubmit;
+        }
+    }
+
     private final MallOrderService orders;
     private final CustomDesignService designs;
     private final JdbcTemplate jdbc;
@@ -162,38 +177,60 @@ public class OrderRefundService {
         return Map.of("records", records, "total", total == null ? 0L : total);
     }
 
-    /** 对有到期租约的退款每批最多处理50项, 异常保留重试信息供人工对账. */
+    /** 系统任务处理已审核退款, 保留自动提交及补偿. */
     public int reconcile() {
-        if (gateway.getIfAvailable() == null) {
-            return 0;
-        }
-        List<Integer> ids =
-                jdbc.queryForList(
-                        "SELECT order_id FROM CC_REFUND WHERE status IN"
-                                + " ('APPROVED','PROCESSING','RETRY','MANUAL_REVIEW') AND"
-                                + " (next_check_time IS NULL OR next_check_time<=NOW()) ORDER BY"
-                                + " update_time LIMIT 50",
-                        Integer.class);
-        for (Integer id : ids) {
-            reconcileOne(id);
-        }
-        return ids.size();
+        return reconcileBatch(Reconciliation.AUTOMATIC);
     }
 
-    /** 租约防止多实例重复并行, 同一退款号使网络超时重试仍保持幂等. */
-    public void reconcileOne(Integer id) {
+    /** 人工批量查单并写回, 不领取尚待首次提交的申请, 也不发起退款. */
+    public int reconcileWriteback() {
+        return reconcileBatch(Reconciliation.WRITEBACK);
+    }
+
+    /** 重试指定退款, 仅允许状态为RETRY且租约已到期的申请. */
+    public void retry(Integer orderId) {
         WxPayService pay = gateway.getIfAvailable();
         if (pay == null) {
             throw new IllegalStateException("支付服务尚未配置");
         }
+        if (!reconcileOne(orderId, pay, Reconciliation.RETRY)) {
+            throw new IllegalStateException("退款不在可重试状态或正在处理, 请刷新");
+        }
+    }
+
+    /** 领取到期租约的退款每批最多处理50项, 返回实际领取数. */
+    private int reconcileBatch(Reconciliation mode) {
+        WxPayService pay = gateway.getIfAvailable();
+        if (pay == null) {
+            return 0;
+        }
+        List<Integer> ids =
+                jdbc.queryForList(
+                        "SELECT order_id FROM CC_REFUND WHERE status IN ("
+                                + mode.statuses
+                                + ") AND (next_check_time IS NULL OR next_check_time<=NOW())"
+                                + " ORDER BY update_time LIMIT 50",
+                        Integer.class);
+        int processed = 0;
+        for (Integer id : ids) {
+            if (reconcileOne(id, pay, mode)) {
+                processed++;
+            }
+        }
+        return processed;
+    }
+
+    /** 租约防止多实例重复并行, 同一退款号使网络超时重试仍保持幂等. */
+    private boolean reconcileOne(Integer id, WxPayService pay, Reconciliation mode) {
         if (jdbc.update(
                         "UPDATE CC_REFUND SET next_check_time=DATE_ADD(NOW(),INTERVAL 2"
-                                + " MINUTE),attempts=attempts+1 WHERE order_id=? AND status IN"
-                                + " ('APPROVED','PROCESSING','RETRY','MANUAL_REVIEW') AND"
+                                + " MINUTE),attempts=attempts+1 WHERE order_id=? AND status IN ("
+                                + mode.statuses
+                                + ") AND"
                                 + " (next_check_time IS NULL OR next_check_time<=NOW())",
                         id)
                 != 1) {
-            return;
+            return false;
         }
         Map<String, Object> row = jdbc.queryForMap("SELECT * FROM CC_REFUND WHERE order_id=?", id);
         String refundNo = row.get("refund_no").toString();
@@ -207,9 +244,9 @@ public class OrderRefundService {
                 if (!"REFUNDNOTEXIST".equals(missing.getErrCode())) {
                     throw missing;
                 }
-                if ("MANUAL_REVIEW".equals(row.get("status"))) {
-                    // 人工处理中的申请只查单, 不再次提交退款请求.
-                    return;
+                if (!mode.canSubmit || "MANUAL_REVIEW".equals(row.get("status"))) {
+                    // 人工对账和渠道异常待处理的申请仅查单, 保持当前本地状态.
+                    return true;
                 }
                 MallOrderEntity order = orders.getById(id);
                 WxPayRefundRequest request = new WxPayRefundRequest();
@@ -227,7 +264,7 @@ public class OrderRefundService {
                             + " status='PROCESSING',provider_status='ACCEPTED',update_time=NOW()"
                             + " WHERE order_id=?",
                         id);
-                return;
+                return true;
             }
             if (!"SUCCESS".equals(result.getResultCode()) || result.getRefundRecords() == null) {
                 throw new IllegalStateException("退款查单未返回有效记录");
@@ -284,7 +321,7 @@ public class OrderRefundService {
             }
         } catch (Exception failure) {
             // 不记录支付响应正文或秘密, 租约到期后继续同号查单, 不提前恢复库存.
-            if ("MANUAL_REVIEW".equals(row.get("status"))) {
+            if (!mode.canSubmit || "MANUAL_REVIEW".equals(row.get("status"))) {
                 jdbc.update(
                         "UPDATE CC_REFUND SET"
                             + " provider_status='QUERY_OR_PROCESS_ERROR',update_time=NOW() WHERE"
@@ -298,6 +335,7 @@ public class OrderRefundService {
                         id);
             }
         }
+        return true;
     }
 
     /** 订单锁用于退款、发货、生产及支付状态之间的互斥. */

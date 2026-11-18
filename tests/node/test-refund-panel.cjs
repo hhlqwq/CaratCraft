@@ -139,6 +139,32 @@ test('售后对账防重并读取实际状态', async () => {
     assert.ok(messages.every((text) => !text.includes('退款成功')));
 });
 
+/** 退款重试确认后只提交当前订单, 等待读取真实状态再解除写入锁. */
+test('退款重试使用独立入口和单笔订单', async () => {
+    const {page, calls, messages} = fixture();
+    const confirm = deferred();
+    page.$confirm = () => confirm.promise;
+    await page.retry(page.rows[0]);
+    assert.equal(calls.length, 0);
+    page.rows[0].status = 'RETRY';
+    const pending = page.retry(page.rows[0]);
+    await page.reconcile();
+    assert.equal(calls.length, 0);
+    confirm.resolve();
+    await tick();
+    assert.equal(calls[0].url, '/mall/refund/retry');
+    assert.equal(calls[0].params.orderId, 10);
+    calls[0].resolve({data: {code: 0}});
+    await tick();
+    calls[1].resolve({
+        data: {code: 0, data: {records: [{order_id: 10, status: 'PROCESSING'}], total: 1}},
+    });
+    await pending;
+    assert.equal(page.rows[0].status, 'PROCESSING');
+    assert.equal(page.writing, false);
+    assert.ok(messages.every((text) => !text.includes('退款成功')));
+});
+
 /** 审核成功不等于退款成功, 仍展示服务端待提交状态. */
 test('售后审核成功后展示实际待退款状态', async () => {
     const {page, calls, prompts, messages} = fixture();

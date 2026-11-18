@@ -20,8 +20,11 @@ package com.platform.modules.job.utils;
 
 import com.platform.common.exception.BusinessException;
 import com.platform.common.utils.SpringContextUtils;
+import com.platform.modules.mall.service.OrderRefundService;
+import com.platform.modules.mall.service.RefundReconciliationScheduler;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -39,6 +42,7 @@ public class ScheduleRunnable implements Runnable {
     /** 解析定时任务目标组件、方法及调用参数. */
     public ScheduleRunnable(String beanName, String methodName, String params)
             throws NoSuchMethodException, SecurityException {
+        requireNonRefundTarget(beanName);
         this.target = SpringContextUtils.getBean(beanName);
         this.params = params;
 
@@ -46,6 +50,20 @@ public class ScheduleRunnable implements Runnable {
             this.method = target.getClass().getDeclaredMethod(methodName, String.class);
         } else {
             this.method = target.getClass().getDeclaredMethod(methodName);
+        }
+    }
+
+    /** 禁止可配置任务借组件名称或别名调用退款业务与系统退款调度. */
+    public static void requireNonRefundTarget(String beanName) {
+        Class<?> type =
+                SpringContextUtils.containsBean(beanName)
+                        ? SpringContextUtils.getType(beanName)
+                        : null;
+        if ("refundReconciliationScheduler".equals(beanName)
+                || (type != null
+                        && (OrderRefundService.class.isAssignableFrom(type)
+                                || RefundReconciliationScheduler.class.isAssignableFrom(type)))) {
+            throw new UnauthorizedException("退款只允许通过专用入口或系统调度处理");
         }
     }
 

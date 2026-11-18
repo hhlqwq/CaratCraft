@@ -10,11 +10,11 @@
             <el-button @click="load(requestedPage)">重新读取售后列表</el-button>
         </el-alert>
         <el-button
-            v-if="isAuth('mall:order:update')"
+            v-if="isAuth('mall:refund:reconcile')"
             :loading="writing"
             :disabled="loading || needsReload || Boolean(listError)"
             @click="reconcile"
-            >执行对账</el-button
+            >对账并更新状态</el-button
         >
         <el-table v-loading="loading" :data="rows" border style="width: 100%; margin-top: 16px">
             <el-table-column prop="order_sn" label="订单号" min-width="180" />
@@ -33,7 +33,9 @@
             <el-table-column label="操作" min-width="160"
                 ><template #default="scope">
                     <template
-                        v-if="scope.row.status === 'PENDING_REVIEW' && isAuth('mall:order:update')"
+                        v-if="
+                            scope.row.status === 'PENDING_REVIEW' && isAuth('mall:refund:execute')
+                        "
                     >
                         <el-button
                             type="text"
@@ -48,6 +50,13 @@
                             >拒绝</el-button
                         >
                     </template>
+                    <el-button
+                        v-else-if="scope.row.status === 'RETRY' && isAuth('mall:refund:retry')"
+                        type="text"
+                        :disabled="writing || loading || needsReload || Boolean(listError)"
+                        @click="retry(scope.row)"
+                        >重试退款</el-button
+                    >
                     <span v-else>{{
                         scope.row.status === 'MANUAL_REVIEW'
                             ? '请在微信商户平台处理异常'
@@ -229,8 +238,18 @@ export default {
                 this.writing = false;
             }
         },
-        /** 限制一次对账请求, 成功后展示服务端状态和实际处理数. */
-        async reconcile() {
+        /** 触发仅查单的批量写回. */
+        reconcile() {
+            return this.runCompensation();
+        },
+        /** 只允许从待重试记录发起单笔退款重试. */
+        retry(row) {
+            if (row.status === 'RETRY') {
+                return this.runCompensation(row.order_id);
+            }
+        },
+        /** 重试及对账共用写入锁, 失败后先重读服务端状态. */
+        async runCompensation(orderId = null) {
             if (
                 this.writing ||
                 this.loading ||
@@ -241,11 +260,33 @@ export default {
                 return;
             }
             const epoch = this.panelEpoch;
+            const retrying = orderId !== null;
             this.writing = true;
+            let submitted = false;
             try {
+                if (retrying) {
+                    await this.$confirm(
+                        '渠道查无记录时将按原退款号提交, 确认重试这笔退款?',
+                        '退款重试'
+                    );
+                    if (!this.visible || epoch !== this.panelEpoch) {
+                        return;
+                    }
+                    const current = this.rows.find((row) => row.order_id === orderId);
+                    if (
+                        this.loading ||
+                        this.listError ||
+                        this.needsReload ||
+                        current?.status !== 'RETRY'
+                    ) {
+                        throw new Error('售后状态已变化, 请重新读取后重试');
+                    }
+                }
+                submitted = true;
                 const {data} = await this.$http({
-                    url: '/mall/refund/reconcile',
+                    url: retrying ? '/mall/refund/retry' : '/mall/refund/reconcile',
                     method: 'post',
+                    params: retrying ? {orderId} : undefined,
                     showError: false,
                 });
                 if (!this.visible || epoch !== this.panelEpoch) {
@@ -254,19 +295,28 @@ export default {
                 if (
                     !data ||
                     data.code !== 0 ||
-                    !Number.isInteger(data.data?.processed) ||
-                    data.data.processed < 0
+                    (!retrying &&
+                        (!Number.isInteger(data.data?.processed) || data.data.processed < 0))
                 ) {
-                    throw new Error(data?.msg || '对账结果未确认');
+                    throw new Error(data?.msg || (retrying ? '重试结果未确认' : '对账结果未确认'));
                 }
                 this.$message.success(
-                    '本次处理 ' + data.data.processed + ' 项, 退款结果请核对实际状态'
+                    retrying
+                        ? '本次退款重试已处理, 请核对最新状态'
+                        : '本次处理 ' + data.data.processed + ' 项, 退款结果请核对实际状态'
                 );
                 await this.load();
             } catch (error) {
-                if (this.visible && epoch === this.panelEpoch) {
-                    const text = error.message || '对账结果未确认';
-                    this.requireReload(text);
+                if (
+                    this.visible &&
+                    epoch === this.panelEpoch &&
+                    error !== 'cancel' &&
+                    error !== 'close'
+                ) {
+                    const text = error.message || (retrying ? '重试结果未确认' : '对账结果未确认');
+                    if (submitted) {
+                        this.requireReload(text);
+                    }
                     this.$message.error(text);
                 }
             } finally {

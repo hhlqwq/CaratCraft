@@ -173,7 +173,7 @@ public class MallOrderController extends AbstractController {
     @Operation(summary = "订单发货", description = "已支付且未发货订单执行发货")
     @SysLog("订单发货")
     @PostMapping("/ship")
-    @RequiresPermissions("mall:order:update")
+    @RequiresPermissions("mall:order:ship")
     public RestResponse<String> ship(@RequestBody Map<String, Object> params) {
         Object idObj = params.get("id");
         Object shippingNoObj = params.get("shippingNo");

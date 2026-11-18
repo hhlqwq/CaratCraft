@@ -1,5 +1,6 @@
 package com.platform.modules.mall.controller;
 
+import com.platform.common.annotation.SysLog;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.mall.service.OrderRefundService;
 import com.platform.modules.sys.controller.AbstractController;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-/** 商家审核与退款对账入口, 复用订单管理权限. */
+/** 商家退款查询、审核和人工补偿入口. */
 @RestController
 @RequestMapping("/mall/refund")
 public class MallRefundController extends AbstractController {
@@ -36,7 +37,7 @@ public class MallRefundController extends AbstractController {
 
     /** 审核通过不宣称退款成功, 拒绝时解除冻结. */
     @PostMapping("decide")
-    @RequiresPermissions("mall:order:update")
+    @RequiresPermissions("mall:refund:execute")
     public RestResponse<Object> decide(@RequestBody Decision decision) {
         if (decision.approved() == null) {
             throw new IllegalArgumentException("请选择审核结果");
@@ -46,11 +47,21 @@ public class MallRefundController extends AbstractController {
         return RestResponse.ok("审核结果已保存, 通过的申请由后台对账处理");
     }
 
-    /** 手动触发有租约且限量的同号查单补偿. */
+    /** 仅对指定待重试申请按同一退款号处理, 已有渠道记录时按查单结果写回. */
+    @SysLog("重试退款")
+    @PostMapping("retry")
+    @RequiresPermissions("mall:refund:retry")
+    public RestResponse<String> retry(@RequestParam Integer orderId) {
+        refunds.retry(orderId);
+        return RestResponse.ok("已处理本次退款重试, 请核对最新状态");
+    }
+
+    /** 手动触发有租约且限量的同号查单与状态写回. */
+    @SysLog("退款对账写回")
     @PostMapping("reconcile")
-    @RequiresPermissions("mall:order:update")
+    @RequiresPermissions("mall:refund:reconcile")
     public RestResponse<Object> reconcile() {
-        return RestResponse.ok(Map.of("processed", refunds.reconcile()));
+        return RestResponse.ok(Map.of("processed", refunds.reconcileWriteback()));
     }
 
     /** 审核参数固定, 不允许客户端指定金额或退款号. */

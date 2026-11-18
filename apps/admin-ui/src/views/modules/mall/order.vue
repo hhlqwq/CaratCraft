@@ -129,7 +129,7 @@
                         >改价
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:order:update') && canShip(scope.row)"
+                        v-if="isAuth('mall:order:ship') && canShip(scope.row)"
                         type="text"
                         size="small"
                         :disabled="writing || loading || needsReload || Boolean(listError)"

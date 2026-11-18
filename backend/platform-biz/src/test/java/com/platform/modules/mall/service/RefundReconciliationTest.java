@@ -49,6 +49,8 @@ class RefundReconciliationTest {
                 new OrderRefundService(
                         orders, mock(CustomDesignService.class), jdbc, provider, manager);
         when(jdbc.update(anyString(), any(Object[].class))).thenReturn(1);
+        when(jdbc.queryForList(contains("SELECT order_id FROM CC_REFUND"), eq(Integer.class)))
+                .thenReturn(List.of(7));
         when(jdbc.queryForMap(anyString(), eq(7)))
                 .thenReturn(
                         Map.of(
@@ -77,7 +79,7 @@ class RefundReconciliationTest {
     @Test
     void processingNeverCompletesOrder() {
         record.setRefundStatus("PROCESSING");
-        refunds.reconcileOne(7);
+        refunds.reconcile();
         verify(orders, never()).completeRefund(any(), any());
     }
 
@@ -85,7 +87,7 @@ class RefundReconciliationTest {
     @Test
     void confirmedSuccessCompletesReceivedOrder() {
         record.setRefundStatus("SUCCESS");
-        refunds.reconcileOne(7);
+        refunds.reconcile();
         verify(orders).completeRefund(7, 402);
     }
 
@@ -94,7 +96,7 @@ class RefundReconciliationTest {
     void mismatchedAmountQueuesRetry() {
         record.setRefundFee(1);
         record.setRefundStatus("SUCCESS");
-        refunds.reconcileOne(7);
+        refunds.reconcile();
         verify(orders, never()).completeRefund(any(), any());
         verify(jdbc).update(contains("status='RETRY'"), eq(7));
     }
@@ -103,7 +105,7 @@ class RefundReconciliationTest {
     @Test
     void leasePreventsConcurrentGatewayCall() throws Exception {
         when(jdbc.update(contains("attempts=attempts+1"), eq(7))).thenReturn(0);
-        refunds.reconcileOne(7);
+        refunds.reconcile();
         verify(pay, never()).refundQuery(any(WxPayRefundQueryRequest.class));
     }
 }
