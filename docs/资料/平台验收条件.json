@@ -1,0 +1,23 @@
+{
+    "date": "2026-10-24",
+    "configurationPresent": {
+        "WX_MINIAPP_APPID": false,
+        "WX_MINIAPP_SECRET": false,
+        "WX_PAY_APPID": false,
+        "WX_PAY_MCH_ID": false,
+        "WX_PAY_MCH_KEY": false,
+        "WX_PAY_NOTIFY_URL": false
+    },
+    "paymentCertificatePresent": false,
+    "cloudEnvironmentConfigured": false,
+    "trialHttpsConfigured": false,
+    "releaseHttpsConfigured": false,
+    "publishedLegalKinds": 0,
+    "configuredMerchantContacts": 0,
+    "candidateRows": 112,
+    "enabledCandidates": 0,
+    "platformAcceptanceComplete": false,
+    "freshNetworkBuild": "等待对既有不自动下载约束的明确例外授权",
+    "secretsIncluded": false,
+    "requestsToExternalPlatforms": false
+}

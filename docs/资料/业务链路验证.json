@@ -1,0 +1,877 @@
+{
+    "date": "2026-10-23",
+    "java": {
+        "tests": 169,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "modules": {
+            "common": 17,
+            "biz": 124,
+            "admin": 3,
+            "api": 25
+        },
+        "database": "caratcraft_init_audit_20261023_06a072",
+        "databaseInitialization": "13份SQL和382个文本列编码检查通过",
+        "redis": "本轮独立容器, 回环16379, 无业务数据卷",
+        "dependencySource": "已有Docker构建层及工作区Maven缓存, 未下载新依赖"
+    },
+    "node": {
+        "businessTests": 146,
+        "httpProbe": 1,
+        "failures": 0,
+        "skipped": 0
+    },
+    "browser": {
+        "goodsEditor": [
+            "加载失败提示及禁止保存",
+            "正常商品读取",
+            "Vue3详情预览"
+        ],
+        "customConfiguration": [
+            "配件读取失败提示",
+            "禁止保存配件",
+            "显式重试",
+            "切换正常商品恢复"
+        ],
+        "workOrder": [
+            "冻结材料内容",
+            "工单日志",
+            "仅显示合法下一状态"
+        ],
+        "data": "隔离固定样例, 不连接业务库"
+    },
+    "limits": [
+        "当前业务容器尚未更新",
+        "未完成全部业务链路人工审阅",
+        "未进行真实微信、支付退款、正式AI及生产验收"
+    ],
+    "continuation": {
+        "baselineCommit": "85c2a4f",
+        "date": "2026-10-23",
+        "componentStock": {
+            "newTests": 8,
+            "status": "passed"
+        },
+        "orderFulfillment": {
+            "newTests": 13,
+            "status": "passed"
+        },
+        "refundPanel": {
+            "newTests": 8,
+            "status": "passed"
+        },
+        "python": {
+            "tests": 20,
+            "passed": 18,
+            "skipped": 2,
+            "reason": "CARATCRAFT_BASH未配置, 跨平台摘要及Bash启动替身未执行"
+        },
+        "frontendBuild": "passed_using_existing_local_dependencies",
+        "eslint": [
+            "admin-ui/src",
+            "admin-ui/static/config",
+            "miniapp",
+            "tools",
+            "tests"
+        ],
+        "formattedFrontendAndJavaScriptFiles": 342,
+        "javaRerun": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "browserVerification": "not_run_for_this_continuation",
+        "newDependenciesDownloaded": false,
+        "next": "商品聚合真实MyBatis端到端及跨层库存验证, 配套功能和跨链路收尾"
+    },
+    "goodsAggregateMybatis": {
+        "date": "2026-10-23",
+        "baselineCommit": "5ab5d29",
+        "java": {
+            "tests": 30,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "realMySqlTests": 6
+        },
+        "miniappPurchaseScriptTests": 17,
+        "database": {
+            "engine": "MySQL 8.0.36",
+            "storage": "isolated_tmpfs",
+            "businessDatabaseAccessed": false
+        },
+        "coverage": [
+            "default_sku_primary_reference",
+            "named_combination_identity",
+            "preserve_latest_stock_when_omitted",
+            "current_price_and_sale_state",
+            "stock_limit_and_goods_ownership",
+            "concurrent_deduction",
+            "reject_orphan_children",
+            "real_child_failure_transaction_rollback"
+        ],
+        "newDependenciesDownloaded": false,
+        "httpBrowserOrWeChatEndToEnd": "not_run",
+        "productionAcceptance": false
+    },
+    "customFrozenStock": {
+        "date": "2026-10-23",
+        "baselineCommit": "0ae87fe",
+        "java": {
+            "tests": 53,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "realMySqlTests": 4,
+            "invalidFrozenInputCases": 14
+        },
+        "contract": "frozen_components_only_no_option_id_fallback",
+        "coverage": [
+            "frozen_quantity_deduction_and_restore",
+            "one_restore_on_repeated_cancel",
+            "later_material_failure_rolls_back_balance_and_ledger",
+            "malformed_or_missing_snapshot_rolls_back_cancel_state"
+        ],
+        "newDependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "productionAcceptance": false
+    },
+    "favoriteService": {
+        "date": "2026-10-23",
+        "tests": 6,
+        "passed": 6,
+        "failed": 0,
+        "skipped": 0,
+        "framework": "JUnit Platform, explicit current-source javac compilation",
+        "persistence": "mock",
+        "contract": "authenticated_owner_goods_type_zero_transactional_user_lock",
+        "realDatabaseConcurrencyTest": false,
+        "clientApiChanged": false
+    },
+    "currentOfflineGate": {
+        "date": "2026-10-23",
+        "java": {
+            "distinctTestsPassed": 200,
+            "mavenDiscovery": {
+                "tests": 194,
+                "passed": 152,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 42
+            },
+            "skippedCasesActuallyRunSeparately": 42,
+            "additionalFavoriteTestsPassed": 6,
+            "realMySqlCasesPassed": 41,
+            "realRedisCasesPassed": 1,
+            "deduplication": "152 + 10 previously executed new database cases + 21 remaining service cases + 11 account/legal rerun + 6 new favorites",
+            "accountLegalInitialBlockedCases": 11,
+            "accountLegalRerunPassed": 11,
+            "accountLegalGuardChange": "optional allowPublicKeyRetrieval=true only; loopback and random database restriction retained"
+        },
+        "node": {
+            "tests": 147,
+            "passed": 147,
+            "failures": 0,
+            "skipped": 0
+        },
+        "javaFormatting": "Google Java Format 1.28.0 --aosp",
+        "projectConventions": "passed",
+        "gitWhitespace": "passed",
+        "rawLogsDirectory": ".tools/restructure",
+        "dependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "realHttpBrowserChain": "not_run",
+        "fullFinalDeliveryAndLicenseVerification": "not_run",
+        "productionAcceptance": false,
+        "remaining": [
+            "real_page_and_cross_feature_review",
+            "N05_N06_semantic_and_convention_closure",
+            "final_delivery_build_and_license_gate",
+            "real_WeChat_payment_refund_AI_and_production_acceptance"
+        ]
+    },
+    "v1Reference": {
+        "date": "2026-10-29",
+        "java": {
+            "tests": 198,
+            "passed": 198,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 162,
+                "admin": 3,
+                "api": 16
+            }
+        },
+        "node": {
+            "tests": 143,
+            "passed": 143,
+            "failed": 0,
+            "skipped": 0
+        },
+        "pythonFixtureGuards": {
+            "tests": 3,
+            "passed": 3
+        },
+        "format": {
+            "javaFiles": 644,
+            "frontendFiles": 339,
+            "passed": true
+        },
+        "aiRuntimeRemoved": true,
+        "ruleVersion": "necklace-reference-v1",
+        "dependenciesDownloaded": false,
+        "businessServicesUpdated": false,
+        "realHttp": {
+            "tests": 11,
+            "passed": 11,
+            "network": "container_loopback_actual_http",
+            "businessDatabaseAccessed": false
+        },
+        "package": "passed_offline_both_applications",
+        "productionAcceptance": false,
+        "pythonFullSuite": {
+            "tests": 25,
+            "passed": 14,
+            "errors": 8,
+            "skipped": 3,
+            "errorCause": "Sandbox denied writes to preconfigured external D:/tmp/hailongcodex directories; no permissions expanded"
+        },
+        "adminProductionBuild": "passed",
+        "license": {
+            "backendComponents": 256,
+            "frontendComponents": 28,
+            "projectAssets": 160,
+            "sourceBundles": 13,
+            "errors": []
+        }
+    },
+    "purchaseHttpClosure": {
+        "date": "2026-10-29",
+        "tests": 14,
+        "passed": 14,
+        "cases": [
+            "admin_aggregate_save_update",
+            "actual_miniapp_sku_selector",
+            "cart_and_buy_checkout_use_current_price",
+            "overstock_rejected",
+            "cross_goods_product_rejected",
+            "zero_stock_rejected",
+            "no_stock_consumption_before_order"
+        ],
+        "realHttp": true,
+        "realMySql": true,
+        "realRedis": true,
+        "realBrowser": false,
+        "realPayment": false,
+        "businessServicesChanged": false,
+        "dependenciesDownloaded": false
+    },
+    "commerceBrowserClosure": {
+        "date": "2026-10-29",
+        "productionBundle": true,
+        "fixtureData": true,
+        "passed": true,
+        "coverage": [
+            "stock_conflict_preserves_input_requires_reload",
+            "refund_read_retry",
+            "processing_refund_no_approve_action",
+            "624px_dialog"
+        ],
+        "existingBrowserSuite": "passed",
+        "pageErrors": 0
+    },
+    "finalPlanClosure": {
+        "date": "2026-10-29",
+        "scope": "confirmed_local_v1_plan",
+        "java": {
+            "distinctTests": 206,
+            "passed": 206,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 167,
+                "admin": 3,
+                "api": 19
+            },
+            "finalAddressLengthCasesRerun": 4,
+            "doNotAddRerunsToDistinctCount": true
+        },
+        "node": {
+            "tests": 154,
+            "passed": 154,
+            "failures": 0,
+            "skipped": 0
+        },
+        "python": {
+            "tests": 26,
+            "passed": 26,
+            "failures": 0,
+            "skipped": 0
+        },
+        "powershell": {
+            "groupsPerVersion": 5,
+            "versions": [
+                "5.1",
+                "7"
+            ],
+            "passed": true,
+            "dockerCalls": "stub"
+        },
+        "browser": {
+            "productionBundle": true,
+            "existingSuite": "passed",
+            "commerceSuite": "passed",
+            "fixtureData": true,
+            "pageErrors": 0
+        },
+        "contracts": [
+            "address_biz_single_input_and_application_service",
+            "published_goods_same_validation_on_create_and_update",
+            "no_empty_javadoc_or_raw_public_envelope_collections",
+            "miniapp_nested_method_documentation_gate",
+            "single_address_editor_with_retry_and_session_isolation",
+            "share_footprint_pagination_bounds_and_offset",
+            "address_input_lengths_match_schema_and_two_pages_share_editor"
+        ],
+        "http": {
+            "reference": {
+                "tests": 11,
+                "passed": 11
+            },
+            "purchaseAndAddress": {
+                "tests": 21,
+                "passed": 21
+            },
+            "actualApplicationPackages": true,
+            "realMySql": true,
+            "realRedis": true,
+            "hostPortsPublished": false
+        },
+        "delivery": {
+            "backendPackage": "passed",
+            "adminProductionBundle": "passed",
+            "license": {
+                "backendComponents": 256,
+                "frontendComponents": 28,
+                "projectAssets": 160,
+                "sourceBundles": 13,
+                "errors": []
+            },
+            "sourceArchivePolicy": "export_only_clean_committed_source",
+            "manifestDirectory": ".tools/copyright/release"
+        },
+        "productionAcceptance": false,
+        "aiVersion": "next",
+        "dependenciesDownloaded": false,
+        "businessDatabaseAccessed": false,
+        "businessServicesUpdated": false,
+        "externalAcceptanceRemaining": [
+            "real_WeChat_device",
+            "real_payment_refund",
+            "production_release"
+        ],
+        "format": {
+            "javaFiles": 647,
+            "frontendFiles": 343,
+            "passed": true,
+            "formatter": "Google Java Format 1.28.0 --aosp"
+        },
+        "repositoryPlanItems": "implemented_and_verified",
+        "rawLogsDirectory": ".tools/restructure"
+    },
+    "completion20261024": {
+        "baseCommit": "1e7134a",
+        "java": {
+            "tests": 200,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 155,
+                "admin": 3,
+                "api": 25
+            },
+            "method": "最终源码全量package及全新tmpfs MySQL/独立Redis补测, 最新Surefire报告去重汇总"
+        },
+        "node": {
+            "businessTests": 171,
+            "httpProbe": 1,
+            "failures": 0,
+            "skipped": 0
+        },
+        "style": {
+            "javaFiles": 644,
+            "frontendFiles": 350,
+            "javaAosp": true,
+            "chineseFunctionDescriptions": true,
+            "frontendAndToolsEslint": true,
+            "newRuleTests": {
+                "node": 7,
+                "python": 4
+            }
+        },
+        "build": "最新两应用JAR及管理端生产包构建通过",
+        "browser": "最新生产包及独立HTTP夹具的既有浏览器回归通过, 不连接业务接口",
+        "license": {
+            "actualNpmPackages": 25,
+            "backendComponents": 256,
+            "frontendInventoryComponents": 28,
+            "assets": 160,
+            "sourceBundles": 13,
+            "errors": []
+        },
+        "cleanup": "所有本轮MySQL、Redis、API、管理服务及Nginx测试容器已清理; 业务五个容器保持运行; 临时样本已清理",
+        "remaining": [
+            "联网依赖下载的客户全新Docker构建路径未重跑, 本轮为禁网编译与运行时封装",
+            "微信真机、真实支付退款、正式AI及生产发布需实际账号和环境"
+        ],
+        "deployed": false,
+        "python": {
+            "tests": 30,
+            "failures": 0,
+            "skipped": 0,
+            "switches": "显式启用Git Bash完整摘要对照和已有JDK镜像职责回归"
+        },
+        "powershell": {
+            "groups": 5,
+            "shells": [
+                "Windows PowerShell5.1",
+                "PowerShell7"
+            ],
+            "failed": 0,
+            "scope": "全部为隔离文件或替身, 不操作业务服务"
+        },
+        "commentSemantics": {
+            "javaAstFiles": 145,
+            "vueAstTemplateStyleFiles": 128,
+            "differences": 0
+        },
+        "httpBusiness": {
+            "checks": 7,
+            "passed": true,
+            "evidence": "docs/资料/HTTP业务链路验证.json",
+            "scope": "真实HTTP、认证器、MyBatis、MySQL、Redis与实际小程序SKU模块; 合成身份, 不调用真实微信或支付"
+        },
+        "images": {
+            "sourceRevision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+            "images": {
+                "carat-craft-backend:verified-20261024-cleanup": {
+                    "id": "sha256:b825a38b646b037acff8266ff187f889c2655410be4e95e4d26a91fe8ee3e44c",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+                    "user": "caratcraft"
+                },
+                "carat-craft-admin-ui:verified-20261024-cleanup": {
+                    "id": "sha256:574b8ad4f65773eb063bc8d483ac86f563dfc8c625fad29071d7a90a42d2813a",
+                    "revision": "f8a4fd7aa39933e8f3cb3d46a1e0d590b08921f1eee60e8cdd5397387711a676",
+                    "user": "",
+                    "httpStaticAssetsChecked": 19
+                }
+            },
+            "backendJarSha256": {
+                "admin": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                "api": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0"
+            },
+            "networkDownloads": false,
+            "productionServicesChanged": false,
+            "scope": "授权删除后新JAR及最新许可材料的禁网运行时封装"
+        },
+        "authorizedLegacyCleanup": {
+            "date": "2026-10-24",
+            "authorizedByUser": true,
+            "deleted": [
+                "RedisLock.java",
+                "RedisTemplateUtil.setIfAbsent",
+                "SkuCartesianHelper.java",
+                "AppPayController.callbakcXml"
+            ],
+            "artifactChecks": [
+                {
+                    "module": "platform-admin",
+                    "sha256": "f72f9b0767082f5fea1aea9b9d3874d37f2e74b0e1c4350e7be62a1f2b69cfdf",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                },
+                {
+                    "module": "platform-api",
+                    "sha256": "2e8dcf64e025c836521013c6602b0faa9c8557267da2316996979ebf1ffd72b0",
+                    "oldClassesAbsent": true,
+                    "oldMethodsAbsent": true
+                }
+            ],
+            "realPaymentXmlResponseRetained": true,
+            "cleanBuild": "离线缺少maven-clean-plugin, 核对路径后只删除四模块target并重新package成功, 未下载依赖",
+            "java": {
+                "tests": 200,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 0,
+                "modules": {
+                    "common": 17,
+                    "biz": 155,
+                    "admin": 3,
+                    "api": 25
+                }
+            },
+            "databaseCases": 41,
+            "redisCases": 1,
+            "httpBusinessChecks": 7,
+            "javaDescriptionFiles": 644,
+            "distributionLicenseErrors": [],
+            "nodePythonPowerShellBrowser": "沿用前批验证结果, 本批无对应源码变更, 未重复运行",
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
+        }
+    },
+    "latestVerification": "customerRequirementCompletion20261024",
+    "customerRequirementCompletion20261024": {
+        "baseCommit": "0a8e054",
+        "java": {
+            "tests": 207,
+            "failures": 0,
+            "errors": 0,
+            "skipped": 0,
+            "modules": {
+                "common": 17,
+                "biz": 162,
+                "admin": 3,
+                "api": 25
+            }
+        },
+        "node": {
+            "businessTests": 174,
+            "httpProbe": 1,
+            "failures": 0,
+            "skipped": 0
+        },
+        "python": {
+            "tests": 34,
+            "failures": 0,
+            "skipped": 0
+        },
+        "httpChecks": 9,
+        "style": {
+            "javaFiles": 647,
+            "javaAosp": true,
+            "frontendFiles": 350,
+            "frontendFormattingMethod": "349文件完整检查及开发者工具项目配置单文件检查",
+            "allEslintPassed": true
+        },
+        "miniappCompile": {
+            "officialWxml": 43,
+            "officialWxss": 48,
+            "javascriptSyntax": 58,
+            "ideErrors": 0,
+            "ideWarnings": 5,
+            "warningDetailsVerified": true,
+            "uploaded": false
+        },
+        "candidateCatalog": {
+            "items": 112,
+            "source": "backend/platform-biz/src/main/resources/catalog/customer-material-catalog.json",
+            "accessoryNamesProvisional": true,
+            "migration": "V20261024_01_material_catalog.sql"
+        },
+        "adminProductionBuild": "passed",
+        "adminBrowserFixture": "passed",
+        "artifactLicense": "passed, 256 backend / 28 frontend inventory / 25 actual npm / 160 assets / 13 source bundles",
+        "deployed": true,
+        "currentRoundVerificationImagesBuilt": true,
+        "remaining": [
+            "正式商家摄影、价格库存、工艺、客服及协议资料需维护; 候选及旧分类模板停用, 不能直接下单",
+            "真机、微信登录、真实支付退款及正式AI另行验收",
+            "客户联网从零Docker依赖下载构建未重跑"
+        ],
+        "verificationImages": {
+            "backend": "carat-craft-backend:verified-20261024-materials",
+            "adminUi": "carat-craft-admin-ui:verified-20261024-materials",
+            "evidence": "交付镜像验证.json",
+            "imageInternalJarHttpChecks": 9,
+            "staticResourcesChecked": 19,
+            "dependenciesDownloaded": false,
+            "businessServicesChanged": false,
+            "testContainersCleaned": true
+        },
+        "localDeployment": {
+            "evidence": "本机部署验证.json",
+            "backupSkippedByUser": true,
+            "missingMigrationApplied": "V20261024_01_material_catalog.sql",
+            "allServicesHealthy": true,
+            "mysqlRedisNotRestarted": true
+        },
+        "publicReadFix": {
+            "evidence": "小程序接口验证.json",
+            "realHttpCallsPassed": 4,
+            "nodeBusinessTests": 174,
+            "ideErrors": 0,
+            "ideWarnings": 5,
+            "warningDetailsVerified": true
+        }
+    },
+    "masterIntegration": {
+        "date": "2026-10-30",
+        "local": "944213f",
+        "remote": "9baed20",
+        "status": "source_merged_node_passed",
+        "note": "合并前的独立历史证据不代表合并后已完成构建验收",
+        "node": {
+            "tests": 291,
+            "passed": 291,
+            "failed": 0,
+            "skipped": 0
+        },
+        "build": "未重建应用或操作业务环境"
+    },
+    "repositoryCodeQuality": {
+        "date": "2026-10-30",
+        "baseline": "232bae1",
+        "status": "paused_by_user",
+        "scope": "全仓清理、现用代码诊断及首版三端验收, 分批验证后提交推送master",
+        "batches": [
+            {
+                "id": "Q01",
+                "scope": "数据权限/8个分页Mapper泛型及配置Controller冗余注入",
+                "java": {
+                    "tests": 213,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "databaseAndRedis": "全新独立夹具"
+                },
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "style": {
+                    "changedJava": 11,
+                    "javaDescriptions": 649,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 2,
+                    "test": 65
+                },
+                "notes": "参考夹具已修复停用模板假设, 未启用客户候选; 框架ResultHandler参数豁免已核对缓存JAR接口签名",
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q02",
+                "scope": "15个历史无入口类及7处冗余注入",
+                "deletedSources": [
+                    "backend/platform-api/src/main/java/com/platform/modules/app/entity/FullUserInfo.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/ApiAuthLoginByAliRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/ApiAuthLoginByWeixinRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/PhoneCodeRequest.java",
+                    "backend/platform-api/src/main/java/com/platform/modules/app/request/PhoneRequest.java",
+                    "backend/platform-biz/src/main/java/com/platform/builder/ImageBuilder.java",
+                    "backend/platform-biz/src/main/java/com/platform/common/validator/group/NoPetsGroup.java",
+                    "backend/platform-biz/src/main/java/com/platform/common/validator/group/PetsGroup.java",
+                    "backend/platform-biz/src/main/java/com/platform/modules/wx/form/WxUserTaggingForm.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/JsonUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/LatLgtUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/ObjectUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/PdfUtils.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/QRCodeUtil.java",
+                    "backend/platform-common/src/main/java/com/platform/common/utils/SeckillStatEnum.java"
+                ],
+                "cleanPackage": "passed",
+                "jarChecks": [
+                    {
+                        "module": "platform-admin",
+                        "removedClassesChecked": 15,
+                        "ownLibraries": [
+                            "BOOT-INF/lib/platform-biz-2.0.0.jar",
+                            "BOOT-INF/lib/platform-common-2.0.0.jar"
+                        ],
+                        "removedClassesAbsent": true,
+                        "sha256": "a5f69faa1d200274471ed054d5300ceb0c1aad9e81854be73f2fded8f2b91469"
+                    },
+                    {
+                        "module": "platform-api",
+                        "removedClassesChecked": 15,
+                        "ownLibraries": [
+                            "BOOT-INF/lib/platform-biz-2.0.0.jar",
+                            "BOOT-INF/lib/platform-common-2.0.0.jar"
+                        ],
+                        "removedClassesAbsent": true,
+                        "sha256": "c97bf42ab11fcbfcc32b2c0251d4afa35640df1084e99b9747d9253c23eae98b"
+                    }
+                ],
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "javaUnitRegression": "复用Q01的213项未变业务回归; 本批编译所有测试但不计为已执行",
+                "style": {
+                    "javaDescriptions": 634,
+                    "changedJava": 3,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 1,
+                    "test": 65
+                },
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false,
+                "unrelatedAuthorEditsIncluded": false
+            },
+            {
+                "id": "Q03",
+                "scope": "回归源码泛型与非废弃事务构造, 可选原生容器构建",
+                "java": {
+                    "tests": 213,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "modules": {
+                        "common": 17,
+                        "biz": 174,
+                        "admin": 3,
+                        "api": 19
+                    },
+                    "databaseAndRedis": "全新独立夹具"
+                },
+                "cleanPackage": "passed",
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "python": {
+                    "snapshotSafety": 3,
+                    "fixtureOwnership": 3
+                },
+                "style": {
+                    "javaDescriptions": 636,
+                    "changedJava": 21,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 1,
+                    "test": 0
+                },
+                "firstAttempt": "匹配器重载歧义已明确Wrapper类型后全量重跑; HTTP材料夹具混入旧演示选项已隔离后复验",
+                "mavenElapsedSeconds": 85,
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q04",
+                "scope": "过滤器固定区域校验和敏感参数日志, 缓存批量删除类型",
+                "java": {
+                    "tests": 219,
+                    "failures": 0,
+                    "errors": 0,
+                    "skipped": 0,
+                    "modules": {
+                        "common": 23,
+                        "biz": 174,
+                        "admin": 3,
+                        "api": 19
+                    },
+                    "newRegressionCases": 6
+                },
+                "cleanPackage": "passed",
+                "http": {
+                    "reference": 12,
+                    "purchaseAndAddress": 21
+                },
+                "style": {
+                    "javaDescriptions": 638,
+                    "changedJava": 4,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "remainingJavaDiagnostics": {
+                    "main": 0,
+                    "test": 0,
+                    "flags": [
+                        "rawtypes",
+                        "unchecked",
+                        "deprecation",
+                        "cast"
+                    ],
+                    "note": "不等同于全部IDE检查或第三方工具提示清零"
+                },
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q05",
+                "scope": "小程序售后唯一SUCCEEDED状态及官方编译临时目录约定",
+                "node": {
+                    "tests": 291,
+                    "passed": 291,
+                    "failed": 0,
+                    "skipped": 0
+                },
+                "officialMiniappCompile": {
+                    "pages": 40,
+                    "wxml": 43,
+                    "wxss": 48,
+                    "javascriptSyntax": 60,
+                    "officialWxmlWxssCompilePassed": true,
+                    "scope": "已有微信开发者工具官方WCC/WCSC编译, JS为Node语法检查; 不替代IDE运行、真机、微信登录或支付验收",
+                    "temporaryFilesCleaned": true,
+                    "uploaded": false
+                },
+                "realCompilerRegressionCases": 2,
+                "javaRegression": "未修改后端, 复用Q04结果, 未再次执行219项",
+                "style": {
+                    "javaDescriptions": 638,
+                    "changedJava": 0,
+                    "frontendFiles": 362,
+                    "eslint": "passed"
+                },
+                "desktopControlled": false,
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            },
+            {
+                "id": "Q06",
+                "scope": "管理端公众号组件导入、文本转义及素材分页/标签和弹窗标题",
+                "status": "committed_with_remaining_verification_by_user_request",
+                "productionBuild": "passed, 23.18 seconds",
+                "toolEslint": "passed",
+                "adminEslint": "根目录误用配置的193项错误不能作为有效门禁结果, 需从admin-ui正确目录核验",
+                "browser": {
+                    "messageEscapingAndReply": "passed",
+                    "stoppedAt": "素材首屏页码文本空白断言",
+                    "assertionCorrected": true,
+                    "rerun": "按用户明确要求暂停, 未重跑或计为通过"
+                },
+                "frontendFormat": "首次整理通过, 最后断言调整待检查",
+                "businessServicesChanged": false,
+                "dependenciesDownloaded": false
+            }
+        ],
+        "remaining": [
+            "Q06管理端正确目录ESLint、最终格式及后台浏览器回归",
+            "继续核对全仓历史无用入口、依赖和配置",
+            "结算/反馈/评价/足迹页面缺口",
+            "XSS请求处理并发及资源边界",
+            "微信逐页操作及真实平台验收",
+            "最终交付重建及许可核对"
+        ],
+        "userAuthorChange": {
+            "date": "2026-10-30",
+            "files": 429,
+            "authorization": "用户明确表示由本人修改并要求正常提交",
+            "nonAuthorContentsIdentical": true,
+            "businessChanges": false,
+            "copyrightLicenseLinesChanged": false,
+            "validation": "逐文件原文归一化比较及git diff --check, 不重复运行未变业务测试"
+        },
+        "pauseReason": "用户明确要求先提交推送并暂停, 当前额度不足"
+    }
+}

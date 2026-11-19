@@ -1,0 +1,23 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
+<scroll-view class="container">
+    <scroll-view class="content">
+        <rich-text nodes="{{topicDetailHtml}}"></rich-text>
+    </scroll-view>
+    <view class="topic-goods">
+    </view>
+
+    <scroll-view class="rec-box">
+        <view class="h">
+            <text class="txt">专题推荐</text>
+        </view>
+        <view class="b">
+            <navigator class="item" wx:for="{{topicList}}" wx:key="id" url="../topicDetail/topicDetail?id={{item.id}}">
+                <image class="img" src="{{item.scenePicUrl}}"></image>
+                <text class="title">{{item.title}}</text>
+            </navigator>
+        </view>
+    </scroll-view>
+</scroll-view>
+
+<merchant-contact />

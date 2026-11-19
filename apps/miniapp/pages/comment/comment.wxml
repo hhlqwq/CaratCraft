@@ -1,0 +1,31 @@
+<view class="comments">
+        <view class="h">
+                <view class="item {{ showType == 0 ? 'active' : ''}}" data-type="0" bindtap="switchTab">
+                        <view class="txt">全部({{allCount}})</view>
+                </view>
+                <view class="item {{ showType == 0 ? '' : 'active'}}" data-type="1" bindtap="switchTab">
+                        <view class="txt">有图({{hasPicCount}})</view>
+                </view>
+        </view>
+    <view class="b">
+        <view class="item" wx:for="{{comments}}" wx:key="id">
+            <view class="info">
+                <view class="user">
+                    <image src="{{item.userInfo.avatar}}"></image>
+                    <text>{{item.userInfo.nickname}}</text>
+                </view>
+                <view class="time">{{item.addTimeText}}</view>
+            </view>
+            <view class="comment">{{item.content}}</view>
+            <view class="imgs" wx:if="{{item.picList.length > 0}}">
+                <image class="img" wx:for="{{item.picList}}" wx:key="id" wx:for-item="pitem" src="{{pitem.picUrl}}"></image>
+            </view>
+        </view>
+
+    </view>
+</view>
+
+<view wx:if="{{loading}}" class="notice">正在加载评价...</view>
+<view wx:if="{{error}}" class="notice"><text>{{error}}</text><button bindtap="getCommentList">重试</button></view>
+<view wx:if="{{!loading && !error && comments.length === 0}}" class="notice">暂无审核通过的评价</view>
+<merchant-contact />

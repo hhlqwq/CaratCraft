@@ -1,0 +1,24 @@
+<view class="userinfo">
+    <image class="userinfo-avatar" src="{{userInfo.avatar}}" background-size="cover"></image>
+    <text class="userinfo-nickname">{{userInfo.nickname}}</text>
+</view>
+
+<view class="separate"></view>
+
+<view>
+    <view>
+        <view class="login-title">关联手机号</view>
+        <form bindsubmit="bindLoginMobilecode">
+            <view class="login">
+                <view class="first-line"><input type="number" name="mobile" bindinput="bindInputMobile" placeholder="输入手机号" value="{{mobile}}" maxlength="11" auto-focus/></view>
+                <view class="second-line">
+                    <input type="number" name="code" bindinput="bindInputCode" value="{{mobileCode}}" placeholder="六位验证码" maxlength="6"/>
+                    <button type="default" bindtap="countDownPassCode" disabled="{{disableGetMobileCode}}">{{getCodeButtonText}}</button>
+                </view>
+            </view>
+            <view class="third-line"><button formType="submit" disabled="{{disableSubmitMobileCode || submitting}}">{{submitting ? '提交中...' : '提交'}}</button></view>
+        </form>
+    </view>
+</view>
+
+<merchant-contact />

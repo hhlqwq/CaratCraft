@@ -1,0 +1,25 @@
+{
+    "date": "2026-10-24",
+    "sourceCommit": "4d8205dc9f3a300765de1002cd59f6c16693f55c",
+    "buildRevision": "858273ab7fd2bbb90e19a334090dff426b3437f999ac1fd962031eebc38cc78e",
+    "images": {
+        "carat-craft-backend:verified-20261024-materials": {
+            "id": "sha256:6157b9a17b38e870b78f629e4d6aac6a099d30e172fcfdfcb142b10c7bd80e2e",
+            "user": "caratcraft"
+        },
+        "carat-craft-admin-ui:verified-20261024-materials": {
+            "id": "sha256:5a832f7280d2b2c4e31ad41b3ef7f9708047f707868d34eb5da89ae5a50fb209",
+            "user": ""
+        }
+    },
+    "backendJars": {
+        "admin": "ccef2cd77f36cb8c8dcc4efe1c78ada21e378c8438bb1022b9c82d77c420d80c",
+        "api": "73fb345779af0d064fc3c03e785bd14681e73cd108913b0f7e1b25a24b1c0000"
+    },
+    "staticResourcesChecked": 19,
+    "nginxConfigPassed": true,
+    "testContainersCleaned": true,
+    "businessServicesChanged": false,
+    "dependenciesDownloaded": false,
+    "scope": "已有运行时与最新已验证产物禁网封装, 非客户联网依赖下载重建"
+}

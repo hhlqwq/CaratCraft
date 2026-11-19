@@ -1,0 +1,23 @@
+{
+    "sourceDirectories": {
+        "backend": "Java多模块服务",
+        "apps/admin-ui": "Vue3管理端",
+        "apps/miniapp": "微信小程序",
+        "database/init": "完整空库初始化",
+        "deploy": "构建与启动入口",
+        "tools": "维护工具",
+        "tests": "跨模块验证",
+        "legal": "许可及来源",
+        "docs": "四份主文档和机器证据"
+    },
+    "schemaVersion": 1,
+    "databaseInitialization": [
+        "010_schema.sql",
+        "020_seed.sql",
+        "030_material_catalog.sql",
+        "040_regions.sql",
+        "050_ready.sql",
+        "060_restrict_application_user.sh"
+    ],
+    "historicalUpgradeChain": false
+}

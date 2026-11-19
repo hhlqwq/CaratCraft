@@ -1,0 +1,1016 @@
+{
+    "sourceTitle": "珍珠信息合集",
+    "sourceSha256": "4cdb7d6266146989ee6bac5fbba25069612578aaa3f27ee3456a6b299c9f1c0f",
+    "notice": "客户候选目录, 全部停用且不代表可售库存或已确认价格. 尺寸区间不是实测值; 配饰按授权拆为14个暂定名称, 戴妃皇冠与皇冠分别保留, 商家核对后方可发布.",
+    "accessorySourceText": "万能扣戴妃皇冠小睫毛、大睫毛三钻、奶嘴四叶草瓜子扣满钻瓜子扣路路通大冰雪、小冰雪方糖皇冠",
+    "options": [
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-8-9",
+            "name": "澳白 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 0,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-9-10",
+            "name": "澳白 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 1,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-10-11",
+            "name": "澳白 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 2,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-11-12",
+            "name": "澳白 11-12mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 3,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":11,\"candidateDiameterMaxMm\":12,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-12-13",
+            "name": "澳白 12-13mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 4,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":12,\"candidateDiameterMaxMm\":13,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-white-13-14",
+            "name": "澳白 13-14mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 5,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"澳白\",\"candidateDiameterMinMm\":13,\"candidateDiameterMaxMm\":14,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-8-9",
+            "name": "金珠 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 6,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-9-10",
+            "name": "金珠 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 7,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-10-11",
+            "name": "金珠 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 8,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-11-12",
+            "name": "金珠 11-12mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 9,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":11,\"candidateDiameterMaxMm\":12,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-12-13",
+            "name": "金珠 12-13mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 10,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":12,\"candidateDiameterMaxMm\":13,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-southsea-gold-13-14",
+            "name": "金珠 13-14mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 11,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"金珠\",\"candidateDiameterMinMm\":13,\"candidateDiameterMaxMm\":14,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-8-9",
+            "name": "大溪地 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 12,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-9-10",
+            "name": "大溪地 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 13,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-10-11",
+            "name": "大溪地 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 14,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-11-12",
+            "name": "大溪地 11-12mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 15,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":11,\"candidateDiameterMaxMm\":12,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-12-13",
+            "name": "大溪地 12-13mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 16,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":12,\"candidateDiameterMaxMm\":13,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-tahiti-13-14",
+            "name": "大溪地 13-14mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 17,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"大溪地\",\"candidateDiameterMinMm\":13,\"candidateDiameterMaxMm\":14,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-white-4-5",
+            "name": "Akoya白色 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 18,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya白色\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-white-5-6",
+            "name": "Akoya白色 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 19,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya白色\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-white-6-7",
+            "name": "Akoya白色 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 20,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya白色\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-white-7-8",
+            "name": "Akoya白色 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 21,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya白色\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-white-8-9",
+            "name": "Akoya白色 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 22,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya白色\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-madama-4-5",
+            "name": "Akoya真多麻 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 23,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya真多麻\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-madama-5-6",
+            "name": "Akoya真多麻 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 24,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya真多麻\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-madama-6-7",
+            "name": "Akoya真多麻 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 25,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya真多麻\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-madama-7-8",
+            "name": "Akoya真多麻 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 26,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya真多麻\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-madama-8-9",
+            "name": "Akoya真多麻 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 27,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya真多麻\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-gold-4-5",
+            "name": "Akoya羽黄金 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 28,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya羽黄金\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-gold-5-6",
+            "name": "Akoya羽黄金 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 29,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya羽黄金\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-gold-6-7",
+            "name": "Akoya羽黄金 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 30,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya羽黄金\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-gold-7-8",
+            "name": "Akoya羽黄金 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 31,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya羽黄金\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-akoya-gold-8-9",
+            "name": "Akoya羽黄金 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 32,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"Akoya羽黄金\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-ak-4-5",
+            "name": "淡水AK 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 33,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水AK\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-ak-5-6",
+            "name": "淡水AK 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 34,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水AK\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-ak-6-7",
+            "name": "淡水AK 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 35,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水AK\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-ak-7-8",
+            "name": "淡水AK 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 36,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水AK\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-edison-9-10",
+            "name": "爱迪生 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 37,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"爱迪生\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-edison-10-11",
+            "name": "爱迪生 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 38,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"爱迪生\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-edison-11-12",
+            "name": "爱迪生 11-12mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 39,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"爱迪生\",\"candidateDiameterMinMm\":11,\"candidateDiameterMaxMm\":12,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-edison-12-13",
+            "name": "爱迪生 12-13mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 40,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"爱迪生\",\"candidateDiameterMinMm\":12,\"candidateDiameterMaxMm\":13,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-edison-13-14",
+            "name": "爱迪生 13-14mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 41,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"爱迪生\",\"candidateDiameterMinMm\":13,\"candidateDiameterMaxMm\":14,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-3-4",
+            "name": "淡水无核白 3-4mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 42,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":3,\"candidateDiameterMaxMm\":4,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-4-5",
+            "name": "淡水无核白 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 43,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-5-6",
+            "name": "淡水无核白 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 44,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-6-7",
+            "name": "淡水无核白 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 45,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-7-8",
+            "name": "淡水无核白 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 46,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-8-9",
+            "name": "淡水无核白 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 47,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-9-10",
+            "name": "淡水无核白 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 48,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-white-10-11",
+            "name": "淡水无核白 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 49,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核白\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-3-4",
+            "name": "淡水无核紫 3-4mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 50,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":3,\"candidateDiameterMaxMm\":4,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-4-5",
+            "name": "淡水无核紫 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 51,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-5-6",
+            "name": "淡水无核紫 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 52,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-6-7",
+            "name": "淡水无核紫 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 53,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-7-8",
+            "name": "淡水无核紫 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 54,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-8-9",
+            "name": "淡水无核紫 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 55,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-9-10",
+            "name": "淡水无核紫 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 56,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-purple-10-11",
+            "name": "淡水无核紫 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 57,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核紫\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-3-4",
+            "name": "淡水无核橙 3-4mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 58,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":3,\"candidateDiameterMaxMm\":4,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-4-5",
+            "name": "淡水无核橙 4-5mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 59,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":4,\"candidateDiameterMaxMm\":5,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-5-6",
+            "name": "淡水无核橙 5-6mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 60,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":5,\"candidateDiameterMaxMm\":6,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-6-7",
+            "name": "淡水无核橙 6-7mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 61,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":6,\"candidateDiameterMaxMm\":7,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-7-8",
+            "name": "淡水无核橙 7-8mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 62,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":7,\"candidateDiameterMaxMm\":8,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-8-9",
+            "name": "淡水无核橙 8-9mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 63,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":8,\"candidateDiameterMaxMm\":9,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-9-10",
+            "name": "淡水无核橙 9-10mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 64,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":9,\"candidateDiameterMaxMm\":10,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-freshwater-orange-10-11",
+            "name": "淡水无核橙 10-11mm",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 65,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"淡水无核橙\",\"candidateDiameterMinMm\":10,\"candidateDiameterMaxMm\":11,\"shape\":\"近正圆\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "pearl",
+            "optionCode": "client-baroque",
+            "name": "巴洛克, 实物规格待录入",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 66,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"颗\",\"candidateOnly\":true,\"variety\":\"巴洛克\",\"shape\":\"待实测\",\"luster\":\"极光\",\"blemish\":\"微瑕\"}"
+        },
+        {
+            "componentType": "clasp",
+            "optionCode": "client-extension",
+            "name": "延长链",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 67,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true}"
+        },
+        {
+            "componentType": "clasp",
+            "optionCode": "client-ingot",
+            "name": "元宝扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 68,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true}"
+        },
+        {
+            "componentType": "clasp",
+            "optionCode": "client-magnetic",
+            "name": "磁吸扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 69,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true}"
+        },
+        {
+            "componentType": "clasp",
+            "optionCode": "client-hug",
+            "name": "抱抱扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 70,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-01",
+            "name": "万能扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 71,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-02",
+            "name": "戴妃皇冠",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 72,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-03",
+            "name": "小睫毛",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 73,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-04",
+            "name": "大睫毛",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 74,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-05",
+            "name": "三钻",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 75,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-06",
+            "name": "奶嘴",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 76,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-07",
+            "name": "四叶草",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 77,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-08",
+            "name": "瓜子扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 78,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-09",
+            "name": "满钻瓜子扣",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 79,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-10",
+            "name": "路路通",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 80,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-11",
+            "name": "大冰雪",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 81,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-12",
+            "name": "小冰雪",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 82,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-13",
+            "name": "方糖",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 83,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "accessory",
+            "optionCode": "client-accessory-14",
+            "name": "皇冠",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 84,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"provisionalName\":true}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-steel-wire",
+            "name": "钢丝",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 85,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"钢丝\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cotton",
+            "name": "棉线",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 86,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"棉线\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-o-alloy",
+            "name": "o字链 / 合金",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 87,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"o字链\",\"material\":\"合金\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-o-s925-yellow",
+            "name": "o字链 / S925纯银镀金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 88,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"o字链\",\"material\":\"S925纯银镀金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-o-s925-white",
+            "name": "o字链 / S925纯银镀金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 89,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"o字链\",\"material\":\"S925纯银镀金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-o-18k-yellow",
+            "name": "o字链 / 18K金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 90,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"o字链\",\"material\":\"18K金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-o-18k-white",
+            "name": "o字链 / 18K金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 91,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"o字链\",\"material\":\"18K金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-chopin-alloy",
+            "name": "肖邦链 / 合金",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 92,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"肖邦链\",\"material\":\"合金\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-chopin-s925-yellow",
+            "name": "肖邦链 / S925纯银镀金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 93,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"肖邦链\",\"material\":\"S925纯银镀金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-chopin-s925-white",
+            "name": "肖邦链 / S925纯银镀金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 94,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"肖邦链\",\"material\":\"S925纯银镀金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-chopin-18k-yellow",
+            "name": "肖邦链 / 18K金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 95,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"肖邦链\",\"material\":\"18K金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-chopin-18k-white",
+            "name": "肖邦链 / 18K金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 96,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"肖邦链\",\"material\":\"18K金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-y-alloy",
+            "name": "Y字链 / 合金",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 97,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"Y字链\",\"material\":\"合金\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-y-s925-yellow",
+            "name": "Y字链 / S925纯银镀金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 98,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"Y字链\",\"material\":\"S925纯银镀金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-y-s925-white",
+            "name": "Y字链 / S925纯银镀金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 99,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"Y字链\",\"material\":\"S925纯银镀金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-y-18k-yellow",
+            "name": "Y字链 / 18K金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 100,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"Y字链\",\"material\":\"18K金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-y-18k-white",
+            "name": "Y字链 / 18K金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 101,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"Y字链\",\"material\":\"18K金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-box-alloy",
+            "name": "盒仔链 / 合金",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 102,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"盒仔链\",\"material\":\"合金\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-box-s925-yellow",
+            "name": "盒仔链 / S925纯银镀金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 103,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"盒仔链\",\"material\":\"S925纯银镀金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-box-s925-white",
+            "name": "盒仔链 / S925纯银镀金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 104,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"盒仔链\",\"material\":\"S925纯银镀金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-box-18k-yellow",
+            "name": "盒仔链 / 18K金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 105,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"盒仔链\",\"material\":\"18K金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-box-18k-white",
+            "name": "盒仔链 / 18K金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 106,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"盒仔链\",\"material\":\"18K金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cartier-alloy",
+            "name": "卡地亚链 / 合金",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 107,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"合金\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cartier-s925-yellow",
+            "name": "卡地亚链 / S925纯银镀金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 108,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"S925纯银镀金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cartier-s925-white",
+            "name": "卡地亚链 / S925纯银镀金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 109,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"S925纯银镀金白\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cartier-18k-yellow",
+            "name": "卡地亚链 / 18K金黄",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 110,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"18K金黄\"}"
+        },
+        {
+            "componentType": "chain",
+            "optionCode": "client-cartier-18k-white",
+            "name": "卡地亚链 / 18K金白",
+            "priceDelta": 0,
+            "enabled": 0,
+            "zIndex": 111,
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"18K金白\"}"
+        }
+    ]
+}

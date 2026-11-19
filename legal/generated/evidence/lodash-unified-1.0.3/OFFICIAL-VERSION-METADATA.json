@@ -1,0 +1,68 @@
+{
+  "dist": {
+    "shasum": "80b1eac10ed2eb02ed189f08614a29c27d07c894",
+    "tarball": "https://registry.npmjs.org/lodash-unified/-/lodash-unified-1.0.3.tgz",
+    "fileCount": 4,
+    "integrity": "sha512-WK9qSozxXOD7ZJQlpSqOT+om2ZfcT4yO+03FuzAHD0wF6S0l0090LRPDx3vhTTLZ8cFKpBn+IOcVXK6qOcIlfQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIE7D86bx/Wqp88RQltwvwgKpITMYZoBvHqiERv46vlm5AiEAgRKsIUki3qBDfUpMDBUC02+26jET8n+MaJ3/FRu438Q=",
+        "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+      }
+    ],
+    "unpackedSize": 724,
+    "npm-signature": "-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v4.10.10\r\nComment: https://openpgpjs.org\r\n\r\nwsFzBAEBCAAGBQJjY+INACEJED1NWxICdlZqFiEECWMYAoorWMhJKdjhPU1b\r\nEgJ2Vmo/CBAAoNP7oL7PLGe/pzqXVgHbkxgB5AZln9a4Wdm5htlzDlK5UydK\r\nAW7KbyxbDzwhpZTmYAdBu0SJ9q7FGE7pB2mcPuISFw5RBJJndQHlUVE9OBnJ\r\n9wSiDYQ+JIU8AQ7uTytabzsVLBzcmGwucfobszu59NgTXnxuKnT4PWscezJk\r\nyAp/S3iJ0fbAYb+iTD8ySPWLGRzzc8zecD+7Iyf/kCZG1J7bROyx3CxEavmj\r\nrvDf7KaWY3VhEck9/VEtZCDFESr2UhDup2cCY9RoVMSe59M8uRiL2NQHeWSn\r\nzJ71HkUzkYur1eTt1EPha/8THUzs3PVhBVZ5/yVYcp6cU0tn/Azp+4bOfBWr\r\nXWtNzBYEynzZcq5L48vHpNONpqYPVsKmjd4Nxt8O5ouoJ62JzQjXmgyQ8oPu\r\neQY+ArxAEPqur8OEINWM1KQDuWCvtK4CYBccNptbbQU1KoCWgUkRtimE06qt\r\n00ZuwMowYmiydx+uQOmWrgMf4JD+W/4TtKQItJMCS5P+abJmXgY8OHxiyY4U\r\nI5EYNgVIS6epQNdYkGA4irMi7cM30+GjfCkwBf3o0zXsKon27tI3fqU11NRQ\r\nKXd0MyjGym9lseBwZPJ51vQRBi1pe3y7dB2kck4xliU5K3Wgsc+NJrrDJztE\r\ngutVCaJH9ttZopa5mQQhjnlo8JK0CS6B3x4=\r\n=hi3O\r\n-----END PGP SIGNATURE-----\r\n"
+  },
+  "main": "./require.cjs",
+  "name": "lodash-unified",
+  "type": "module",
+  "_from": "file:lodash-unified-1.0.3.tgz",
+  "types": "./type.d.ts",
+  "author": {
+    "name": "Jack Works"
+  },
+  "exports": {
+    "import": {
+      "types": "./type.d.ts",
+      "default": "./import.js"
+    },
+    "require": {
+      "types": "./type.d.ts",
+      "default": "./require.cjs"
+    }
+  },
+  "license": "MIT",
+  "_npmUser": {
+    "name": "jackworks",
+    "email": "zjwpeter@gmail.com"
+  },
+  "_resolved": "C:\\Users\\Jack\\AppData\\Local\\Temp\\07e1d31aa7d8f037f2c1d0d7a190367a\\lodash-unified-1.0.3.tgz",
+  "_integrity": "sha512-WK9qSozxXOD7ZJQlpSqOT+om2ZfcT4yO+03FuzAHD0wF6S0l0090LRPDx3vhTTLZ8cFKpBn+IOcVXK6qOcIlfQ==",
+  "_npmVersion": "8.19.2",
+  "description": "A union entrypoint of lodash for both ESModule and Commonjs.",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "jackworks",
+      "email": "zjwpeter@gmail.com"
+    }
+  ],
+  "_nodeVersion": "18.11.0",
+  "_hasShrinkwrap": false,
+  "devDependencies": {
+    "lodash": "*",
+    "lodash-es": "*",
+    "@types/lodash-es": "*"
+  },
+  "peerDependencies": {
+    "lodash": "*",
+    "lodash-es": "*",
+    "@types/lodash-es": "*"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/lodash-unified_1.0.3_1667490317479_0.10753254757307973",
+    "host": "s3://npm-registry-packages"
+  },
+  "_id": "lodash-unified@1.0.3",
+  "version": "1.0.3"
+}

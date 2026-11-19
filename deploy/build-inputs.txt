@@ -1,0 +1,14 @@
+backend
+apps/admin-ui
+apps/miniapp/static/images
+deploy/Dockerfile.backend
+deploy/Dockerfile.admin-ui
+.dockerignore
+deploy/docker-compose.yml
+deploy/.env.example
+deploy/maven-settings.xml
+deploy/HealthCheck.java
+deploy/nginx
+deploy/build-inputs.txt
+database
+legal

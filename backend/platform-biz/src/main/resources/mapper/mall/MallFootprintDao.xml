@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallFootprintDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.USER_ID,
+        T.GOODS_ID,
+        T.ADD_TIME,
+        T.REFERRER,
+        U.NICKNAME
+        FROM mall_footprint T
+        LEFT JOIN WX_USER U ON T.USER_ID = U.ID
+        WHERE 1=1
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            AND T.USER_ID = #{params.userId}
+        </if>
+        <if test="params.name != null and params.name.trim() != ''">
+            AND T.NAME LIKE CONCAT('%', #{params.name}, '%')
+        </if>
+    </sql>
+
+    <select id="selectMallFootprintPage" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="shareList" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        select f.id,f.user_id,f.goods_id,f.add_time add_time,f.referrer,
+        g.name as name, g.list_pic_url, g.goods_brief as goods_brief,
+        g.retail_price as retail_price,
+        u.nickname as nickname,u.head_img_url as avatar
+        from mall_footprint f
+        left join mall_goods g on f.goods_id = g.id
+        left join WX_USER u on u.id = f.user_id
+        <where>
+            u.id is not null
+            and g.is_delete = 0
+            <if test="userId != null">
+                and f.user_id = #{userId}
+            </if>
+            <if test="referrer != null">
+                and f.referrer = #{referrer}
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by f.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        select f.id,f.user_id,f.goods_id,f.add_time add_time,f.referrer,
+        g.name as name, g.list_pic_url, g.goods_brief as goods_brief, g.retail_price as
+        retail_price
+        from mall_footprint f
+        <if test="maxFoot == true">
+            left join mall_footprint max on f.goods_id = max.goods_id and f.user_id = max.user_id
+            and max.add_time > f.add_time
+        </if>
+        left join mall_goods g on f.goods_id = g.id
+        <where>
+            g.is_delete = 0
+            <if test="userId != null">
+                and f.user_id = #{userId}
+            </if>
+            <if test="maxFoot == true">
+                and max.id is null
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by f.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <sql id="ownedLatest">
+        FROM mall_footprint f
+        JOIN (SELECT MAX(id) id FROM mall_footprint WHERE user_id=#{userId} GROUP BY goods_id) latest
+            ON latest.id=f.id
+        JOIN mall_goods g ON g.id=f.goods_id AND g.is_delete=0
+    </sql>
+
+    <select id="countOwned" resultType="long">
+        SELECT COUNT(*) <include refid="ownedLatest"/>
+    </select>
+
+    <select id="listOwned" resultType="com.platform.modules.mall.entity.MallFootprintEntity">
+        SELECT f.id,f.user_id,f.goods_id,f.add_time,g.name,g.list_pic_url,g.goods_brief,g.retail_price
+        <include refid="ownedLatest"/>
+        ORDER BY f.id DESC LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <delete id="deleteOwnedGoods">
+        DELETE f FROM mall_footprint f
+        JOIN mall_footprint chosen ON chosen.goods_id=f.goods_id AND chosen.user_id=f.user_id
+        WHERE chosen.id=#{footprintId} AND chosen.user_id=#{userId}
+    </delete>
+</mapper>

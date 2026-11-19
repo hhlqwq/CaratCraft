@@ -1,0 +1,312 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_DIR="$ROOT_DIR"
+COMPOSE_FILE="$PROJECT_DIR/deploy/docker-compose.yml"
+ENV_FILE="$PROJECT_DIR/deploy/.env"
+ENV_EXAMPLE="$PROJECT_DIR/deploy/.env.example"
+
+ACTION="start"
+RESET_DATA="false"
+NO_BUILD="false"
+
+# 输出脚本使用方式 / Prints script usage.
+usage() {
+    echo "用法: ./deploy/scripts/dev.sh [build|start|stop|restart|status|logs] [--reset-data] [--no-build]"
+}
+
+# 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
+assert_docker_ready() {
+    command -v docker >/dev/null 2>&1 || {
+        echo "未检测到 Docker。macOS 请安装 Docker Desktop，Ubuntu 请安装 Docker Engine 和 Compose Plugin。"
+        exit 1
+    }
+    docker compose version >/dev/null
+    docker info >/dev/null || {
+        echo "Docker 服务未运行，请先启动 Docker。"
+        exit 1
+    }
+}
+
+# 创建本地环境变量文件 / Creates the local environment file.
+initialize_environment() {
+    if [[ ! -f "$ENV_FILE" ]]; then
+        command -v openssl >/dev/null || { echo "请安装openssl或手动创建deploy/.env并配置独立强密钥"; exit 1; }
+        umask 077
+        local line key
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="${line%$'\r'}"
+            key="${line%%=*}"
+            case "$key" in
+                MYSQL_ROOT_PASSWORD|MYSQL_APP_PASSWORD|REDIS_PASSWORD|JWT_SECRET)
+                    printf '%s=%s\n' "$key" "$(openssl rand -base64 32)" ;;
+                *) printf '%s\n' "$line" ;;
+            esac
+        done < "$ENV_EXAMPLE" > "$ENV_FILE"
+        echo "已生成独立随机配置: $ENV_FILE, 密钥不在终端输出。"
+    fi
+}
+
+# 启动前校验必要配置, 不修改已有数据库账号或密码.
+assert_startup_configuration() {
+    local key value
+    for key in MYSQL_ROOT_PASSWORD MYSQL_APP_PASSWORD REDIS_PASSWORD JWT_SECRET; do
+        value="$(sed -n "s/^${key}=//p" "$ENV_FILE" | tail -n 1)"
+        [[ ${#value} -ge 24 ]] || { echo "$key 缺失或过弱, 请按当前模板配置本地开发密钥"; exit 1; }
+    done
+    value="$(sed -n 's/^MYSQL_APP_USER=//p' "$ENV_FILE" | tail -n 1)"
+    [[ "$value" != root ]] || { echo "应用账号不得使用root"; exit 1; }
+}
+
+
+# 计算单个文件的SHA256, 兼容Linux及macOS自带工具.
+sha256_file() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum | awk '{print toupper($1)}'
+    else
+        shasum -a 256 | awk '{print toupper($1)}'
+    fi
+}
+
+# 收集唯一清单中的构建输入, 拒绝链接且排除缓存及私人配置.
+build_source_files() {
+    local item="$1" name child
+    [[ ! -L "$item" ]] || { echo "构建输入不允许链接: $item" >&2; return 1; }
+    if [[ -d "$item" ]]; then
+        while IFS= read -r -d '' child; do
+            [[ ! -L "$child" ]] || { echo "构建输入不允许链接: $child" >&2; return 1; }
+            name="${child##*/}"
+            case "$name" in
+                application-local*|.env|.env.*|*.log|*.tmp|*.key|*.pem|*.p12)
+                    [[ "$child" == "$ENV_EXAMPLE" ]] || continue ;;
+            esac
+            printf '%s\n' "${child#"$ROOT_DIR/"}"
+        done < <(find "$item" \( -type d \( -name node_modules -o -name target -o -name dist -o -name .git -o -name .idea -o -name .vite -o -name .cache -o -name coverage \) \) -prune -o \( -type f -o -type l \) -print0)
+    else
+        [[ -f "$item" ]] || { echo "构建输入缺失: $item" >&2; return 1; }
+        printf '%s\n' "${item#"$ROOT_DIR/"}"
+    fi
+}
+
+# 根据输入路径和文件摘要计算源码标识, 不依赖Git元数据.
+set_build_revision() {
+    local relative files name manifest
+    files="$(while IFS= read -r relative || [[ -n "$relative" ]]; do
+        relative="${relative%$'\r'}"
+        build_source_files "$ROOT_DIR/$relative" || exit 1
+    done < "$ROOT_DIR/deploy/build-inputs.txt")" || return 1
+    files="$(printf '%s\n' "$files" | LC_ALL=C sort -u)"
+    manifest="$(while IFS= read -r name; do
+        printf '%s\0' "$ROOT_DIR/$name"
+    done <<< "$files" | if command -v sha256sum >/dev/null 2>&1; then
+        xargs -0 sha256sum
+    else
+        xargs -0 shasum -a 256
+    fi | awk -v root="$ROOT_DIR/" '{print substr($0, 67 + length(root)) ":" toupper(substr($0, 1, 64))}')" || return 1
+    BUILD_REVISION="$(printf '%s\n' "$manifest" | sha256_file | tr 'A-F' 'a-f')"
+    export BUILD_REVISION
+}
+
+# 联网构建但不启动服务, 使用公开模板而非私人运行配置.
+build_local_environment() {
+    echo "从m.daocloud.io拉取镜像, Maven和npm依赖使用国内来源。"
+    compose pull mysql redis
+    compose build --pull --no-cache
+    echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
+}
+
+# 仅重建归属核对通过的本项目开发卷, 自动恢复不重复确认, 上传卷保留.
+reset_test_data_volumes() {
+    local mysql_volume redis_volume project_name volume owner confirmation config metadata
+    config="$(compose config --format json)" || return 1
+    mysql_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["mysql-data"]["name"])')" || return 1
+    redis_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["redis-data"]["name"])')" || return 1
+    project_name="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])')" || return 1
+    for volume in "$mysql_volume" "$redis_volume"; do
+        [[ "$volume" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || return 1
+        metadata="$(docker volume inspect "$volume" 2>/dev/null)" || return 1
+        owner="$(printf '%s' "$metadata" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0].get("Labels",{}).get("com.docker.compose.project",""))')" || return 1
+        [[ -n "$owner" && "$owner" == "$project_name" ]] || return 1
+    done
+    echo "仅重建本项目MySQL及Redis开发数据, 上传卷保留。"
+    if [[ "${1:-manual}" != development ]]; then
+        read -r -p "输入 RESET_DATA 确认重建开发库和缓存: " confirmation
+        [[ "$confirmation" == RESET_DATA ]] || { echo "已取消数据重置"; return 1; }
+    fi
+    compose down --remove-orphans || return 1
+    for volume in "$mysql_volume" "$redis_volume"; do
+        docker volume rm "$volume" || return 1
+    done
+}
+
+# 执行统一的 Compose 命令 / Runs a unified Compose command.
+compose() {
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+# 校验免构建镜像的源码标识, 拒绝复用未提供新版探针的历史镜像.
+assert_local_images() {
+    local name revision
+    for name in m.daocloud.io/docker.io/library/mysql:8.0.36 m.daocloud.io/docker.io/library/redis:7.2-alpine carat-craft-backend:local carat-craft-admin-ui:local; do
+        revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$name" 2>/dev/null)" || {
+            echo "缺少镜像 $name, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
+        }
+        case "$name" in */mysql:*|*/redis:*) continue ;; esac
+        [[ "$revision" == "$BUILD_REVISION" ]] || {
+            echo "镜像 $name 与当前源码标识不一致, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
+        }
+    done
+}
+
+# 使用数据库容器自身凭据查询结构, 不输出密码或业务行.
+database_query() {
+    local output result=0
+    if [[ "${2:-root}" == application ]]; then
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysql -u"$MYSQL_USER" --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+    else
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+    fi
+    if [[ "$result" != 0 ]]; then
+        printf '%s\n' "$output" >&2
+        if grep -Eq 'ERROR[[:space:]]+(1044|1045|1049)([^0-9]|$)' <<< "$output"; then return 42; fi
+        return 1
+    fi
+    printf '%s\n' "$output"
+}
+
+# 核对唯一完整初始化版本, 旧开发结构返回恢复信号.
+assert_database_schema() {
+    local version
+    version="$(database_query 'SELECT version FROM CC_SCHEMA_VERSION WHERE id=1;')" || return $?
+    case "$version" in
+        1) return 0 ;;
+        ''|0) echo '本地开发库尚未完成当前完整初始化。'; return 42 ;;
+        *) echo '未知数据库结构版本, 停止启动。'; return 1 ;;
+    esac
+}
+
+# 在应用启动前识别部分初始化及未完成初始化的旧数据库.
+assert_database_ready() {
+    local tables name version
+    tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_VERSION');")" || return $?
+    for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION; do
+        if ! grep -Fxq "$name" <<< "$tables"; then
+            echo "本地开发库不是当前结构, 缺少$name。"
+            return 42
+        fi
+    done
+    assert_database_schema || return $?
+    version="$(database_query "SELECT 1;" application)" || return $?
+    [[ "$version" == 1 ]] || return 1
+}
+
+# 输出有限的容器状态和健康检查结果, 保留启动失败退出码.
+show_startup_diagnostics() {
+    compose ps --all || true
+    local name
+    for name in platform-admin platform-api; do
+        docker inspect --format '{{json .State.Health}}' "$name" 2>/dev/null || true
+    done
+    echo "日志: ./deploy/scripts/dev.sh logs。请按实际失败阶段排查本地开发环境。"
+}
+
+# 按镜像、数据服务、结构检查、应用就绪的顺序启动环境.
+start_local_environment() {
+    local result=0 rebuilt=false
+    assert_local_images || result=$?
+    if [[ "$result" != 0 ]]; then return "$result"; fi
+    while true; do
+        result=0
+        compose up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis || result=$?
+        if [[ "$result" == 0 ]]; then
+            assert_database_ready || result=$?
+            if [[ "$result" == 42 && "$rebuilt" == false ]]; then
+                rebuilt=true
+                echo "当前为未发布的本地开发环境, 重新初始化本项目MySQL及Redis数据后重试一次。"
+                reset_test_data_volumes development || return $?
+                continue
+            fi
+        fi
+        if [[ "$result" == 0 ]]; then
+            compose up --detach --no-build --pull never --wait --wait-timeout 300 || result=$?
+        fi
+        if [[ "$result" != 0 ]]; then show_startup_diagnostics; return "$result"; fi
+        show_access_info
+        return 0
+    done
+}
+
+# 输出本地访问地址 / Prints local access URLs.
+show_access_info() {
+    local port
+    port="$(sed -n 's/^NGINX_PORT=//p' "$ENV_FILE" | tail -n 1)"
+    port="${port:-8888}"
+    echo
+    echo "CaratCraft 已启动:"
+    echo "  管理台: http://localhost:$port"
+    echo "  后台接口: http://localhost:$port/platform-framework"
+    echo "  商城接口: http://localhost:$port/platform-framework-api"
+    echo "  小程序 API: http://localhost:$port/platform-framework-api/app/"
+}
+
+if [[ $# -gt 0 && "$1" != --* ]]; then
+    ACTION="$1"
+    shift
+fi
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --reset-data) RESET_DATA="true" ;;
+        --no-build) NO_BUILD="true" ;;
+        -h|--help) usage; exit 0 ;;
+        *) echo "未知参数: $1"; usage; exit 1 ;;
+    esac
+    shift
+done
+
+case "$ACTION" in
+    build|start|stop|restart|status|logs) ;;
+    *) echo "未知操作: $ACTION"; usage; exit 1 ;;
+esac
+
+if [[ "$RESET_DATA" == "true" && "$ACTION" != "start" && "$ACTION" != "restart" ]]; then
+    echo "--reset-data 只能与 start 或 restart 一起使用。"
+    exit 1
+fi
+
+if [[ "$ACTION" == build && "$NO_BUILD" == true ]]; then
+    echo "build不能与--no-build同时使用。"; exit 1
+fi
+assert_docker_ready
+if [[ "$ACTION" == build ]]; then ENV_FILE="$ENV_EXAMPLE"; else initialize_environment; fi
+
+case "$ACTION" in
+    build)
+        set_build_revision
+        build_local_environment
+        ;;
+    stop)
+        compose down --remove-orphans
+        ;;
+    status)
+        compose ps
+        ;;
+    logs)
+        compose logs --follow --tail=200
+        ;;
+    restart)
+        assert_startup_configuration
+        set_build_revision
+        assert_local_images
+        if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; else compose down --remove-orphans; fi
+        start_local_environment
+        ;;
+    start)
+        assert_startup_configuration
+        set_build_revision
+        if [[ "$RESET_DATA" == "true" ]]; then reset_test_data_volumes; fi
+        start_local_environment
+        ;;
+esac

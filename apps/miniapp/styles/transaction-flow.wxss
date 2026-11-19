@@ -1,0 +1,58 @@
+/* 交易流程页：采用清晰票据式层级，突出地址、金额和下一步操作。 */
+page {
+    background: #eef2ef;
+    color: #17352f;
+}
+
+page .address-box,
+page .coupon-box,
+page .order-box,
+page .goods-items,
+page .order-list .order,
+page .address-list .item,
+page .form-box,
+page .pay-result {
+    margin: 20rpx 24rpx;
+    overflow: hidden;
+    border: 1rpx solid rgba(23, 53, 47, 0.1);
+    border-radius: 22rpx;
+    background: #ffffff;
+    box-shadow: 0 12rpx 36rpx rgba(23, 53, 47, 0.06);
+}
+
+page .order-item,
+page .coupon-item,
+page .address-item,
+page .goods-items .item {
+    border-color: rgba(23, 53, 47, 0.09);
+}
+
+page .order-total,
+page .bottom-btn,
+page .save-btn {
+    border-top: 1rpx solid rgba(23, 53, 47, 0.12);
+    background: rgba(255, 255, 255, 0.97);
+    box-shadow: 0 -10rpx 28rpx rgba(23, 53, 47, 0.08);
+}
+
+page .order-total .r,
+page .bottom-btn .r,
+page .save-btn,
+page button[type='primary'] {
+    border-radius: 14rpx;
+    background: #17352f;
+    color: #ffffff;
+}
+
+page .price,
+page .actual-price,
+page .order-total .l {
+    color: #a46a2a;
+    font-weight: 700;
+}
+
+page input,
+page textarea,
+page picker {
+    color: #17352f;
+}

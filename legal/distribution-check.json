@@ -1,0 +1,9 @@
+{
+    "backendComponents": 249,
+    "frontendComponents": 28,
+    "projectAssets": 161,
+    "sourceBundles": 12,
+    "errors": [],
+    "validationScope": "当前后端发布JAR、实际前端构建图、许可原文、对应源码及素材哈希",
+    "currentBuildVerified": true
+}

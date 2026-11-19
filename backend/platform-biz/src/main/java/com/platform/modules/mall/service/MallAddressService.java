@@ -1,0 +1,98 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.modules.mall.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.platform.modules.mall.entity.MallAddressEntity;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Service接口
+ *
+ * @author hehailong
+ * @since 2024-07-19 20:53:40
+ */
+public interface MallAddressService extends IService<MallAddressEntity> {
+
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallAddressEntity> queryAll(Map<String, Object> params);
+
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallAddressEntity> queryAllByWrapper(QueryWrapper<MallAddressEntity> queryWrapper);
+
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallAddressEntity> queryPage(Map<String, Object> params);
+
+    /**
+     * 新增
+     *
+     * @param mallAddress
+     * @return 新增结果
+     */
+    boolean add(MallAddressEntity mallAddress);
+
+    /**
+     * 根据主键更新
+     *
+     * @param mallAddress
+     * @return 更新结果
+     */
+    boolean update(MallAddressEntity mallAddress);
+
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
+
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
+
+    /** 按给定条件查询当前领域记录列表. */
+    List<MallAddressEntity> queryList(Map<String, Object> param);
+
+    /** 按当前用户保存地址, 串行维护默认地址并拒绝跨用户更新. */
+    boolean saveOwned(MallAddressEntity address);
+}

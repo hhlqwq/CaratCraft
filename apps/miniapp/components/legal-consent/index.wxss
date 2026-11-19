@@ -1,0 +1,10 @@
+.legal-consent {
+    padding: 24rpx 0;
+    font-size: 26rpx;
+    line-height: 1.7;
+    color: #183d35;
+}
+.legal-link {
+    text-decoration: underline;
+    margin-bottom: 12rpx;
+}

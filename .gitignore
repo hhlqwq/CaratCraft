@@ -1,0 +1,33 @@
+# 本机依赖、生成产物和持久构建记录.
+.tools/
+.pnpm-store/
+**/node_modules/
+**/target/
+**/dist/
+**/__pycache__/
+*.pyc
+*.class
+*.log
+.idea/
+*.iml
+# 本机配置和秘密, 不进入Git或交付包.
+**/application-local*.yml
+**/application-local*.yaml
+deploy/.env
+**/.env
+**/.env.*
+!**/.env.example
+*.key
+*.pem
+*.p12
+deploy/data/
+deploy/packages/
+deploy/secrets/*
+!deploy/secrets/README.md
+!/legal/**
+apps/miniapp/project.private.config.json
+# 旧运行挂载和本机缓存仅留存, 无源码或运行时回退入口.
+/vendor/
+.start-local-test-*.ps1
+.stop-local-test-*.ps1
+stop-local-test.cmd

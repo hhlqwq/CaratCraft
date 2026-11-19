@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallCommentDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.TYPE_ID,
+        T.VALUE_ID,
+        G.NAME GOODS_NAME,
+        U.NICKNAME USER_NICKNAME,
+        T.CONTENT,
+        T.ADD_TIME,
+        T.STATUS,
+        T.USER_ID
+        FROM mall_comment T
+        LEFT JOIN mall_goods G ON G.ID = T.VALUE_ID
+        LEFT JOIN WX_USER U ON U.ID = T.USER_ID
+        WHERE 1=1
+        <if test="params.id != null and params.id != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.valueId != null and params.valueId != ''">
+            AND T.VALUE_ID = #{params.valueId}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            AND T.USER_ID = #{params.userId}
+        </if>
+    </sql>
+
+    <select id="selectMallCommentPage" resultType="com.platform.modules.mall.entity.MallCommentEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallCommentEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryTotal" resultType="int">
+        select count(c.id) from mall_comment c
+        where c.status=1
+        <if test="typeId != null">
+            and c.type_id = #{typeId}
+        </if>
+        <if test="valueId != null and valueId != ''">
+            and c.value_id = #{valueId}
+        </if>
+        <if test="goodsId != null and goodsId != ''">
+            and c.value_id = #{goodsId}
+        </if>
+    </select>
+
+    <select id="queryhasPicTotal" resultType="int">
+        select count(distinct c.id) from mall_comment c
+        left join mall_comment_picture cp on cp.comment_id = c.id
+        where c.status=1 and cp.id > 0
+        <if test="typeId != null">
+            and c.type_id = #{typeId}
+        </if>
+        <if test="valueId != null and valueId != ''">
+            and c.value_id = #{valueId}
+        </if>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallCommentEntity">
+        select distinct c.* from mall_comment c
+        <if test="hasPic != null and hasPic == 1">
+            left join mall_comment_picture cp on cp.comment_id = c.id
+        </if>
+        where c.status=1
+        <if test="typeId != null">
+            and c.type_id = #{typeId}
+        </if>
+        <if test="valueId != null and valueId != ''">
+            and c.value_id = #{valueId}
+        </if>
+        <if test="goodsId != null and goodsId != ''">
+            and c.value_id = #{goodsId}
+        </if>
+        <if test="userId != null and userId != ''">
+            and c.user_id = #{userId}
+        </if>
+        <if test="hasPic != null and hasPic == 1">
+            and cp.id is not null
+        </if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,17 @@
+<view class="legal-page">
+    <view class="title">协议与隐私</view>
+    <view wx:if="{{loading}}">正在加载...</view>
+    <view wx:if="{{error}}"><text>{{error}}</text><button bindtap="load">重新加载</button></view>
+    <view wx:if="{{!loading && !documents.length}}">商家尚未发布协议正文, 请联系客服.</view>
+    <view wx:for="{{documents}}" wx:key="kind" class="document">
+        <view class="title">{{item.title}}</view><view>版本 {{item.version}} · 发布于 {{item.published_at}}</view>
+        <text selectable class="content">{{item.content}}</text>
+    </view>
+    <view wx:if="{{token}}">
+        <legal-consent bindchange="consentChanged" />
+        <button bindtap="accept" disabled="{{!acceptance || saving}}" loading="{{saving}}">确认当前版本</button>
+        <view class="title">我的确认记录</view>
+        <navigator wx:for="{{history}}" wx:key="index" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.kind === 'TERMS' ? '用户协议' : '隐私政策'}} · 版本 {{item.version}} · {{item.accepted_at}}</navigator>
+    </view>
+</view>
+<merchant-contact />

@@ -1,0 +1,82 @@
+{
+    "desktop": [
+        {
+            "cellHeight": 25,
+            "iconLeft": 302.5,
+            "iconRight": 314.5,
+            "overlap": 0,
+            "text": "10",
+            "textHeight": 14,
+            "textLeft": 318,
+            "textRight": 331.359375
+        },
+        {
+            "cellHeight": 25,
+            "iconLeft": 318.5,
+            "iconRight": 330.5,
+            "overlap": 0,
+            "text": "1001",
+            "textHeight": 14,
+            "textLeft": 334,
+            "textRight": 360.703125
+        },
+        {
+            "cellHeight": 23,
+            "overlap": 0,
+            "text": "100101",
+            "textHeight": 14,
+            "textLeft": 350,
+            "textRight": 390.046875
+        }
+    ],
+    "organization": [
+        {
+            "cellHeight": 25,
+            "iconLeft": 302,
+            "iconRight": 314,
+            "overlap": 0,
+            "text": "100000000000",
+            "textHeight": 14,
+            "textLeft": 318,
+            "textRight": 398.09375
+        },
+        {
+            "cellHeight": 23,
+            "overlap": 0,
+            "text": "100000000001",
+            "textHeight": 14,
+            "textLeft": 334,
+            "textRight": 414.09375
+        }
+    ],
+    "date": "2026-10-23",
+    "baseline": {
+        "svgLeft": 320.5,
+        "svgRight": 332.5,
+        "textLeft": 323,
+        "textRight": 336.359375,
+        "overlap": 9.5,
+        "childCellHeight": 46
+    },
+    "narrowViewport": {
+        "width": 624,
+        "method": "同源iframe真实布局视口, 未用截图裁剪模拟视口",
+        "visibleIds": [
+            "10",
+            "1001",
+            "100101"
+        ],
+        "result": "三级ID单行显示, 原生横向滚动可用"
+    },
+    "category": {
+        "result": "两级分类实际展开正常, 名称与箭头分离"
+    },
+    "verification": {
+        "viteBuild": "通过",
+        "adminEslint": "全量通过",
+        "changedFilesPrettier": "通过",
+        "nodeChecks": 13,
+        "fixture": "模拟数据, 不连接业务库",
+        "deployment": "未更新运行中项目容器"
+    }
+}

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallCouponDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.NAME,
+        T.TYPE_MONEY,
+        T.SEND_TYPE,
+        T.MIN_AMOUNT,
+        T.MAX_AMOUNT,
+        T.SEND_START_DATE,
+        T.SEND_END_DATE,
+        T.USE_START_DATE,
+        T.USE_END_DATE,
+        T.MIN_GOODS_AMOUNT,
+        T.MIN_TRANSMIT_NUM
+        FROM mall_coupon T
+        WHERE 1=1
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.name != null and params.name.trim() != ''">
+            AND T.NAME LIKE CONCAT('%', #{params.name}, '%')
+        </if>
+    </sql>
+    <update id="updateUserCoupon">
+        update mall_user_coupon
+        <set>
+            <if test="couponStatus != null">`coupon_status` = #{couponStatus}</if>
+        </set>
+        where id = #{userCouponId}
+    </update>
+
+    <select id="selectMallCouponPage" resultType="com.platform.modules.mall.entity.MallCouponEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallCouponEntity">
+        <include refid="selectSql"/>
+    </select>
+    <select id="getUserCoupon" resultType="com.platform.modules.mall.entity.MallCouponEntity">
+        select a.*, b.coupon_number, b.user_id, b.coupon_status, b.id user_coupon_id
+        from mall_coupon a
+                 left join mall_user_coupon b on a.id = b.coupon_id
+        where 1 = 1
+          and b.id = #{id}
+          and b.user_id = #{userId}
+    </select>
+
+    <select id="queryMaxUserEnableCoupon" resultType="com.platform.modules.mall.entity.MallCouponEntity">
+        select a.`id`,
+        a.`name`,
+        a.`type_money` as type_money,
+        a.`send_type`,
+        a.`min_amount`,
+        a.`max_amount`,
+        a.`send_start_date`,
+        a.`send_end_date`,
+        a.`use_start_date`,
+        a.`use_end_date`,
+        a.`min_goods_amount`,
+        a.min_transmit_num
+        from mall_coupon a
+        left join mall_coupon b on a.send_type = b.send_type and b.type_money > a.type_money
+        where 1 = 1
+        and a.use_end_date >= now()
+        and now() >= a.use_start_date
+        and b.id is null
+        <if test="sendType != null">
+            and a.send_type = #{sendType}
+        </if>
+        limit 0, 1
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallCouponEntity">
+        select * from mall_coupon a
+        where 1 = 1
+        <if test="sendTypes != null">
+            and send_type in
+            <foreach item="item" collection="sendTypes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="enabled != null and enabled == true">
+            and a.use_end_date >= now()
+            and now() >= a.use_start_date
+        </if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by a.id desc
+            </otherwise>
+        </choose>
+    </select>
+</mapper>

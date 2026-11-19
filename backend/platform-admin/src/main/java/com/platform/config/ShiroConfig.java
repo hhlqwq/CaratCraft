@@ -1,0 +1,119 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.config;
+
+import com.platform.modules.sys.oauth2.Oauth2Filter;
+import com.platform.modules.sys.oauth2.Oauth2Realm;
+
+import jakarta.servlet.Filter;
+
+import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
+import org.apache.shiro.mgt.DefaultSubjectDAO;
+import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.spring.LifecycleBeanPostProcessor;
+import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
+import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Shiro配置
+ *
+ * @author hehailong
+ */
+@Configuration
+public class ShiroConfig {
+
+    /** 构建当前应用使用的会话管理器. */
+    @Bean("sessionManager")
+    public SessionManager sessionManager() {
+        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        // 管理端使用请求头令牌认证，不创建或读取共享 Web Session / Uses stateless header-token authentication.
+        sessionManager.setSessionValidationSchedulerEnabled(false);
+        sessionManager.setSessionIdCookieEnabled(false);
+        sessionManager.setSessionIdUrlRewritingEnabled(false);
+        return sessionManager;
+    }
+
+    /** 装配当前应用的安全管理器和认证领域. */
+    @Bean("securityManager")
+    public SecurityManager securityManager(Oauth2Realm oAuth2Realm, SessionManager sessionManager) {
+        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
+        oAuth2Realm.setAuthenticationCachingEnabled(false);
+        oAuth2Realm.setAuthorizationCachingEnabled(false);
+        securityManager.setRealm(oAuth2Realm);
+        securityManager.setSessionManager(sessionManager);
+        DefaultSessionStorageEvaluator storageEvaluator = new DefaultSessionStorageEvaluator();
+        storageEvaluator.setSessionStorageEnabled(false);
+        DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
+        subjectDAO.setSessionStorageEvaluator(storageEvaluator);
+        securityManager.setSubjectDAO(subjectDAO);
+
+        return securityManager;
+    }
+
+    /** 配置公开入口和需要认证的HTTP过滤规则. */
+    @Bean("shiroFilter")
+    public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
+        ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
+        shiroFilter.setSecurityManager(securityManager);
+
+        // oauth过滤
+        Map<String, Filter> filters = new HashMap<>(16);
+        filters.put("oauth2", new Oauth2Filter());
+        shiroFilter.setFilters(filters);
+
+        Map<String, String> filterMap = new LinkedHashMap<>();
+        filterMap.put("/internal/health/**", "anon");
+        filterMap.put("/druid/**", "noSessionCreation,oauth2");
+        filterMap.put("/sys/login", "anon");
+        filterMap.put("/captcha.jpg", "anon");
+        filterMap.put("/swagger-ui/**", "anon");
+        filterMap.put("/doc.html", "anon");
+        filterMap.put("/favicon.ico", "anon");
+        filterMap.put("/webjars/**", "anon");
+        filterMap.put("/v3/api-docs/**", "anon");
+        filterMap.put("/**", "noSessionCreation,oauth2");
+        shiroFilter.setFilterChainDefinitionMap(filterMap);
+
+        return shiroFilter;
+    }
+
+    /** 注册Shiro组件的生命周期处理器. */
+    @Bean("lifecycleBeanPostProcessor")
+    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
+        return new LifecycleBeanPostProcessor();
+    }
+
+    /** 启用Shiro权限注解的方法拦截能力. */
+    @Bean
+    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(
+            SecurityManager securityManager) {
+        AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
+        advisor.setSecurityManager(securityManager);
+        return advisor;
+    }
+}

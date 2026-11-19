@@ -1,0 +1,31 @@
+<view class="container">
+    <view wx:if="{{!loading && designList.length === 0}}" class="empty">暂未保存设计，去定制一件专属作品吧。</view>
+    <view wx:for="{{designList}}" wx:key="id" class="design-card">
+        <view class="preview" style="position:relative;overflow:hidden">
+            <block wx:if="{{item.arrangement.length}}"><view class="arrangement-count">{{item.arrangement.length}}个材料实例</view><scroll-view scroll-y style="height:130rpx"><view wx:for="{{item.arrangement}}" wx:for-item="part" wx:key="position" class="arrangement-part">{{part.position + 1}}. {{part.name}}</view></scroll-view></block>
+            <block wx:else><image wx:if="{{!item.layers.length}}" style="width:100%;height:100%" src="{{item.previewUrl}}" mode="aspectFit" /><image wx:for="{{item.layers}}" wx:for-item="layer" wx:key="optionId" style="position:absolute;width:100%;height:100%;left:0;top:0" src="{{layer.assetUrl}}" mode="aspectFit" /></block>
+        </view>
+        <view class="content">
+            <view class="title">设计 #{{item.id}}</view>
+            <view class="meta">{{item.statusText}} · {{item.createTime}}</view>
+            <view wx:if="{{item.sizing}}" class="meta">实测颈围: {{item.sizing.neckCircumferenceMm || '未填写'}}mm / 目标成品: {{item.sizing.targetLengthMm || '未填写'}}mm</view>
+            <view wx:if="{{item.sizing}}" class="meta">{{item.sizing.notice}}</view>
+            <view class="price">{{item.priceText}}</view>
+            <view class="actions">
+                <button wx:if="{{item.canContinue}}" size="mini" data-id="{{item.id}}" data-version="{{item.version}}" bindtap="archiveDesign">移除草稿</button>
+                <button wx:if="{{item.canContinue}}" class="continue" size="mini"
+                    data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
+                    bindtap="continueDesign">继续定制</button>
+                <button wx:if="{{item.canPay}}" class="pay" size="mini"
+                    loading="{{payingSnapshotId === item.id}}" disabled="{{payingSnapshotId > 0}}"
+                    data-goods-id="{{item.goodsId}}" data-snapshot-id="{{item.id}}"
+                    bindtap="payDesign">去付款</button>
+                <button wx:if="{{item.canViewOrder}}" class="pay" size="mini"
+                    data-order-id="{{item.orderId}}" bindtap="viewOrder">查看订单</button>
+            </view>
+        </view>
+    </view>
+    <button wx:if="{{designList.length < total}}" loading="{{loading}}" bindtap="loadMore">加载更多</button>
+</view>
+
+<merchant-contact />

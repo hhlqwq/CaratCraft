@@ -1,0 +1,74 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.config;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * 资源配置
+ *
+ * @author hehailong
+ */
+@Component
+public class ActResourceHandlerConfig implements WebMvcConfigurer {
+    private final com.platform.datascope.StaffAuthority authority;
+
+    /** 注入管理操作权限服务, 为尚未定义数据归属的旧入口保留应急访问. */
+    public ActResourceHandlerConfig(com.platform.datascope.StaffAuthority authority) {
+        this.authority = authority;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/swagger-ui/**")
+                .addResourceLocations("classpath:/static/swagger-ui/");
+        registry.addResourceHandler("/favicon.ico").addResourceLocations("classpath:/");
+        registry.addResourceHandler("/doc.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+    }
+
+    /** 注册打印请求拦截器 */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new RequestUriLogInterceptor()).addPathPatterns("/**");
+        registry.addInterceptor(new EmergencyDataInterceptor(authority))
+                .addPathPatterns(
+                        "/mall/ordergoods/**",
+                        "/mall/address/**",
+                        "/mall/cart/**",
+                        "/mall/collect/**",
+                        "/mall/footprint/**",
+                        "/mall/usercoupon/**",
+                        "/manage/wxUser/**",
+                        "/manage/wxUserTags/**",
+                        "/sys/usertoken/**",
+                        "/sys/org/**",
+                        "/mall/goodsattribute/**",
+                        "/mall/goodsgallery/**",
+                        "/mall/goodsspecification/**",
+                        "/mall/goodsissue/**",
+                        "/mall/comment/**",
+                        "/mall/commentpicture/**");
+    }
+}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallKeywordsDao">
+
+    <sql id="selectSql">
+        SELECT
+        <choose>
+            <when test="params.fields != null and params.fields != ''">
+                DISTINCT T.KEYWORD,
+                T.IS_HOT
+            </when>
+            <otherwise>
+                T.ID,
+                T.KEYWORD,
+                T.IS_HOT,
+                T.IS_DEFAULT,
+                T.IS_SHOW,
+                T.SORT_ORDER,
+                T.SCHEME_URL,
+                T.TYPE
+            </otherwise>
+        </choose>
+        FROM mall_keywords T
+        WHERE 1=1
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.isDefault != null and params.isDefault != ''">
+            AND T.IS_DEFAULT = #{params.isDefault}
+        </if>
+        <if test="params.keyword != null and params.keyword.trim() != ''">
+            AND T.KEYWORD LIKE CONCAT('%', #{params.keyword}, '%')
+        </if>
+    </sql>
+
+    <select id="selectMallKeywordsPage" resultType="com.platform.modules.mall.entity.MallKeywordsEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallKeywordsEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallKeywordsEntity">
+        select
+        <if test="fields != null and fields != ''">
+            ${fields}
+        </if>
+        <if test="fields == null or fields == ''">
+            *
+        </if>
+        from mall_keywords
+        <where>
+            <if test="keyword != null">
+                and keyword like concat('%',#{keyword},'%')
+            </if>
+        </where>
+        <choose>
+            <when test="fields != null and fields != '' and fields.toLowerCase().contains('distinct')">
+                order by keyword asc
+            </when>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by keyword desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+</mapper>

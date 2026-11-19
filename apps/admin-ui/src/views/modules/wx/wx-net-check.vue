@@ -1,0 +1,94 @@
+<template>
+    <el-dialog
+        title="网络检测"
+        :close-on-click-modal="false"
+        :lock-scroll="false"
+        v-model="visible"
+    >
+        <el-alert
+            style="margin: 0 0 30px 0"
+            title="为了帮助开发者排查回调连接失败的问题，提供这个网络检测的API。它可以对开发者URL做域名解析，然后对所有IP进行一次ping操作，得到丢包率和耗时。(请勿重复调用)"
+            type="warning"
+            :closable="false"
+            show-icon
+        >
+        </el-alert>
+        <el-card class="box-card">
+            <template #header
+                ><div class="clearfix">
+                    <span>DNS</span>
+                </div></template
+            >
+            <el-table :data="dataForm.dnsInfos">
+                <el-table-column property="realOperator" label="运营商">
+                    <template #default="scope">
+                        <span>{{ getOperator(scope.row.realOperator) }} </span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="ip" label="ip"></el-table-column>
+            </el-table>
+        </el-card>
+        <el-divider></el-divider>
+        <el-card class="box-card">
+            <template #header
+                ><div class="clearfix">
+                    <span>PING</span>
+                </div></template
+            >
+            <el-table :data="dataForm.pingInfos">
+                <el-table-column property="fromOperator" label="运营商">
+                    <template #default="scope">
+                        <span>{{ getOperator(scope.row.fromOperator) }} </span>
+                    </template>
+                </el-table-column>
+                <el-table-column property="ip" label="ip"></el-table-column>
+                <el-table-column property="packageLoss" label="丢包率"></el-table-column>
+                <el-table-column property="time" label="耗时"></el-table-column>
+            </el-table>
+        </el-card>
+    </el-dialog>
+</template>
+
+<script>
+export default {
+    /** 初始化当前组件的响应式界面和表单状态. */
+    data() {
+        return {
+            visible: false,
+            dataForm: {dnsInfos: [], pingInfos: []},
+        };
+    },
+    methods: {
+        /** 按传入上下文初始化当前界面的数据和选择状态. */
+        init() {
+            this.visible = true;
+            this.$nextTick(() => {
+                this.$http({
+                    url: `/manage/wxMenu/netCheck`,
+                    method: 'get',
+                    params: {
+                        action: 'all',
+                    },
+                }).then(({data}) => {
+                    if (data && data.code === 0) {
+                        this.dataForm = data.data;
+                    }
+                });
+            });
+        },
+        /** 将网络运营商编码映射为中文名称. */
+        getOperator(operator) {
+            switch (operator) {
+                case 'CHINANET':
+                    return '电信';
+                case 'UNICOM':
+                    return '联通';
+                case 'CAP':
+                    return '腾讯自建';
+                default:
+                    return '';
+            }
+        },
+    },
+};
+</script>

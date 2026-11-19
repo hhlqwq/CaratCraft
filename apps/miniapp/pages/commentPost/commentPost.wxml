@@ -1,0 +1,14 @@
+<view class="container">
+    <view class="post-comment">
+        <view class="input-box">
+            <textarea class="content" focus="true" bindinput="bindInputValue" value="{{content}}" disabled="{{actionBusy || posted}}" maxlength="500" placeholder="留言经过筛选后，对所有人可见" />
+            <text class="count">{{500 - content.length}}</text>
+        </view>
+        <view class="btns">
+            <button class="close" disabled="{{actionBusy}}" bindtap="onClose">取消</button>
+            <button class="post" loading="{{actionBusy}}" disabled="{{actionBusy || posted}}" bindtap="onPost">{{posted ? '已提交审核' : '发表'}}</button>
+        </view>
+    </view>
+</view>
+
+<merchant-contact />

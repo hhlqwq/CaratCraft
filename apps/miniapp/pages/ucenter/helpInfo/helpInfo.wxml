@@ -1,0 +1,12 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
+<view class="container">
+    <view class="help-container" wx:for="{{helpList}}" wx:key="index">
+        <view class="help-box">
+            <view class="help-title">{{item.question}}</view>
+            <view class="help-content">{{item.answer}}</view>
+        </view>
+    </view>
+</view>
+
+<merchant-contact />

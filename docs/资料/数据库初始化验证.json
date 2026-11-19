@@ -1,0 +1,53 @@
+{
+    "schemaVersion": 1,
+    "checks": {
+        "completeVersion": true,
+        "regions": true,
+        "noMigrationLedger": true,
+        "noBridgeGoods": true,
+        "formalLegalV1": true,
+        "feedbackUnicode": true,
+        "footprintOwnerIndex": true,
+        "catalogExact": true,
+        "candidateStockZero": true
+    },
+    "encoding": {
+        "textColumnsScanned": 380,
+        "suspectTextColumns": [],
+        "suspectComments": {
+            "column_comments": 0,
+            "table_comments": 0
+        },
+        "seedAssertions": {
+            "系统菜单": true,
+            "社区菜单": true,
+            "商家菜单": true,
+            "协议菜单": true,
+            "字典分组": true,
+            "字典备注": true,
+            "订单超时任务": true,
+            "地区字典": true,
+            "字典表注释": true,
+            "字典列注释": true
+        },
+        "ok": true
+    },
+    "businessDatabaseChanged": false,
+    "initializationFiles": [
+        "010_schema.sql",
+        "020_seed.sql",
+        "030_material_catalog.sql",
+        "040_regions.sql",
+        "050_ready.sql",
+        "060_restrict_application_user.sh"
+    ],
+    "initializationSha256": {
+        "010_schema.sql": "66fa1badffb1329d019418c32c5a01d3676e7b39f943383e877259bae74c4113",
+        "020_seed.sql": "75dbf603817bf15c6a2ff531f516db9369458db3bc824e06f87073720ed4c909",
+        "030_material_catalog.sql": "8447dd555bbfd5a342c9290be3889dc8965c930b6568fde1b268179c882315d2",
+        "040_regions.sql": "ef0bdecbc560003ec61b0df79e285bd4207f2fa43df8e56dce17dd28206e0b58",
+        "050_ready.sql": "e6073a3ffa02d57f5b276ab4885a8fa8d310028e9ae0c1b6787d56ebe0f50223",
+        "060_restrict_application_user.sh": "29263df382899ebe432306fc545d2846da4ccf32786fd64d805c1d9775280631"
+    },
+    "verifiedDate": "2026-11-17"
+}

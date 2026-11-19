@@ -1,0 +1,59 @@
+{
+    "date": "2026-10-24",
+    "database": "caratcraft_init_audit_20261024_fbba98",
+    "candidateRows": 112,
+    "defaultEnabled": false,
+    "defaultStock": 0,
+    "repeatPreservesMerchantChanges": true,
+    "historicalSnapshotsUnchanged": true,
+    "legacyCategoriesDisabled": true,
+    "javaPackageWithRealDatabaseAndRedis": "passed",
+    "dependenciesDownloaded": false,
+    "businessServicesChanged": false,
+    "java": {
+        "tests": 207,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "modules": {
+            "common": 17,
+            "biz": 162,
+            "admin": 3,
+            "api": 25
+        }
+    },
+    "counts": {
+        "pearl": 67,
+        "clasp": 4,
+        "accessory": 14,
+        "chain": 27
+    },
+    "accessoryNaming": {
+        "autonomousNamingAuthorized": true,
+        "provisional": true,
+        "originalTextRetained": true
+    },
+    "accessoryLengthRoles": [
+        "INLINE",
+        "HANGING"
+    ],
+    "unknownAccessoryLengthPreventsPublicationAndCheckout": true,
+    "catalogSha256": "086029af380ed0cca94233dce4d7535da499aaf904ce25cce04b44853714d281",
+    "migrationSha256": "d691f27c355d49f326cbad14f7ddbf2b2af4aaea8e29e38617505885c3e8fafe",
+    "httpChecks": [
+        "真实认证器拒绝无令牌请求",
+        "后台具名组合经真实HTTP由小程序SKU模块唯一选择",
+        "加购金额及购物车跨账号读写隔离",
+        "后台改价保留SKU身份且结算采用当前价格",
+        "越库存加购失败且购物车保持原内容",
+        "真实Redis立即购买上下文及跨账号拒绝",
+        "下架后旧购物车结算重新复核可售状态",
+        "真实权限下下载112项客户四类目录并以停用状态完整导入",
+        "HTTP拒绝旧材料分类、未确认计长的配饰及未补齐真实材料库存的候选发布"
+    ],
+    "testContainersCleaned": true,
+    "backendJars": {
+        "admin": "ccef2cd77f36cb8c8dcc4efe1c78ada21e378c8438bb1022b9c82d77c420d80c",
+        "api": "73fb345779af0d064fc3c03e785bd14681e73cd108913b0f7e1b25a24b1c0000"
+    }
+}

@@ -1,0 +1,75 @@
+/* 商品陈列页：以留白、杂志排版和暖金色强调商品本身。 */
+page {
+    background: #f4f0e8;
+    color: #183d35;
+}
+
+page .goodsimgs,
+page .banner,
+page .brand-info,
+page .goods-info,
+page .goods-attr,
+page .comments,
+page .common-problem,
+page .related-goods {
+    overflow: hidden;
+    border: 1rpx solid rgba(24, 61, 53, 0.1);
+    border-radius: 28rpx;
+    background: #fffdf8;
+    box-shadow: 0 16rpx 44rpx rgba(24, 61, 53, 0.06);
+}
+
+page .goods-info .name,
+page .brand-info .name,
+page .related-goods .name {
+    color: #183d35;
+    font-weight: 650;
+    letter-spacing: 1rpx;
+}
+
+page .price,
+page .goods-info .price,
+page .related-goods .price {
+    color: #a46a2a;
+    font-family: Georgia, serif;
+    font-weight: 700;
+}
+
+page .service-policy {
+    margin: 18rpx 24rpx;
+    border-radius: 999rpx;
+    background: #183d35;
+    color: #f7e4bd;
+}
+
+page .section-nav {
+    margin: 18rpx 24rpx;
+    border: 1rpx solid rgba(24, 61, 53, 0.12);
+    border-radius: 22rpx;
+    background: #fffdf8;
+}
+
+page .bottom-btn {
+    border-top: 1rpx solid rgba(24, 61, 53, 0.12);
+    background: rgba(255, 253, 248, 0.96);
+    box-shadow: 0 -12rpx 32rpx rgba(24, 61, 53, 0.08);
+}
+
+page .bottom-btn .custom,
+page .bottom-btn .r,
+page .buy-btn,
+page .add-cart {
+    background: #183d35;
+    color: #fffdf8;
+}
+
+page .attr-pop,
+page .spec-con {
+    background: #fffdf8;
+}
+
+page .spec-item .value.selected {
+    border-color: #b98545;
+    background: #f7e4bd;
+    color: #6f431c;
+}

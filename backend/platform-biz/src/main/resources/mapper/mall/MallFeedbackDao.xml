@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallFeedbackDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.MSG_ID,
+        T.USER_ID,
+        T.USER_NAME,
+        T.MOBILE,
+        T.FEED_TYPE,
+        T.CONTENT,
+        T.STATUS,
+        T.STAFF_REPLY,
+        T.ADD_TIME,
+        U.NICKNAME
+        FROM mall_feedback T
+        LEFT JOIN WX_USER U ON T.USER_ID = U.ID
+        WHERE 1=1
+        <if test="params.businessOrgNos != null">
+            <choose>
+                <when test="params.businessOrgNos.size() > 0">
+                    AND T.SCOPE_ORG_NO IN
+                    <foreach collection="params.businessOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
+        <if test="params.status != null and params.status != ''">AND T.STATUS = #{params.status}</if>
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.MSG_ID = #{params.id}
+        </if>
+        <if test="params.name != null and params.name.trim() != ''">
+            AND T.USER_NAME LIKE CONCAT('%', #{params.name}, '%')
+        </if>
+    </sql>
+
+    <select id="selectMallFeedbackPage" resultType="com.platform.modules.mall.entity.MallFeedbackEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallFeedbackEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallFeedbackEntity">
+        select * from mall_feedback
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by msg_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+</mapper>

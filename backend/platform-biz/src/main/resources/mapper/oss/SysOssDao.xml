@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.oss.dao.SysOssDao">
+
+    <select id="selectSysOssPage" resultType="com.platform.modules.oss.entity.SysOssEntity">
+        SELECT
+        T.ID,
+        T.URL,
+        T.CREATE_DATE
+        FROM SYS_OSS T
+        WHERE 1=1
+        <if test="params.ossOrgNos != null">
+            <choose>
+                <when test="params.ossOrgNos.size() > 0">
+                    AND T.CREATE_USER_ORG_NO IN
+                    <foreach collection="params.ossOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
+        <if test="params.url != null and params.url.trim() != ''">
+            AND T.URL LIKE CONCAT('%', #{params.url}, '%')
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.platform.modules.mall.dao.MallGoodsSpecificationDao">
+
+    <sql id="selectSql">
+        SELECT
+        T.ID,
+        T.GOODS_ID,
+        T.SPECIFICATION_ID,
+        T.VALUE,
+        T.PIC_URL
+        FROM mall_goods_specification T
+        WHERE 1=1
+        <if test="params.id != null and params.id.trim() != ''">
+            AND T.ID = #{params.id}
+        </if>
+        <if test="params.goodsId != null and params.goodsId != ''">
+            AND T.GOODS_ID = #{params.goodsId}
+        </if>
+        <if test="params.specificationId != null and params.specificationId != ''">
+            AND T.SPECIFICATION_ID = #{params.specificationId}
+        </if>
+    </sql>
+
+    <select id="selectMallGoodsSpecificationPage" resultType="com.platform.modules.mall.entity.MallGoodsSpecificationEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryAll" resultType="com.platform.modules.mall.entity.MallGoodsSpecificationEntity">
+        <include refid="selectSql"/>
+    </select>
+
+    <select id="queryList" resultType="com.platform.modules.mall.entity.MallGoodsSpecificationEntity">
+        select
+        <if test="fields != null and fields != ''">
+            ${fields}
+        </if>
+        <if test="fields == null or fields == ''">
+            gs.*
+        </if>
+        from mall_goods_specification gs
+        <if test="specification == true">
+            inner join mall_specification s on gs.specification_id= s.id
+        </if>
+        <where>
+            <if test="goodsId != null">
+                and gs.goods_id = #{goodsId}
+            </if>
+            <if test="ids != null">
+                and  gs.id in
+                <foreach item="id" collection="ids" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                <include refid="com.platform.common.mapper.SafeOrderByMapper.safeOrderBy"/>
+            </when>
+            <otherwise>
+                order by gs.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+</mapper>

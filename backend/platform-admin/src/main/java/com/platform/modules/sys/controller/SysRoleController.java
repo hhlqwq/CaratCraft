@@ -1,0 +1,192 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.modules.sys.controller;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.platform.common.annotation.SysLog;
+import com.platform.common.utils.RestResponse;
+import com.platform.common.validator.ValidatorUtils;
+import com.platform.modules.sys.entity.SysRoleEntity;
+import com.platform.modules.sys.service.SysRoleMenuService;
+import com.platform.modules.sys.service.SysRoleOrgService;
+import com.platform.modules.sys.service.SysRoleService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 角色管理
+ *
+ * @author hehailong
+ */
+@Tag(name = "SysRoleController|角色管理")
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/sys/role")
+public class SysRoleController extends AbstractController {
+
+    private final SysRoleService sysRoleService;
+    private final SysRoleMenuService sysRoleMenuService;
+    private final SysRoleOrgService sysRoleOrgService;
+    private final com.platform.datascope.StaffAuthority authority;
+
+    /**
+     * 角色列表
+     *
+     * @param params 查询参数
+     * @return RestResponse
+     */
+    @Operation(summary = "分页查询", description = "分页查询")
+    @GetMapping("/list")
+    @RequiresPermissions("sys:role:list")
+    public RestResponse<Page<SysRoleEntity>> list(@RequestParam Map<String, Object> params) {
+
+        applyRoleView(params, "sys:role:list");
+
+        Page<SysRoleEntity> page = sysRoleService.queryPage(params);
+
+        return RestResponse.ok(page);
+    }
+
+    /**
+     * 角色列表
+     *
+     * @return RestResponse
+     */
+    @Operation(summary = "角色列表", description = "角色列表")
+    @GetMapping("/select")
+    @RequiresPermissions("sys:role:select")
+    public RestResponse<List<SysRoleEntity>> select() {
+        Map<String, Object> params = new HashMap<>(2);
+        applyRoleView(params, "sys:role:select");
+
+        List<SysRoleEntity> list = sysRoleService.selectListByMap(params);
+        if (!authority.emergency()) {
+            list = list.stream().filter(role -> authority.canAssign(role.getRoleId())).toList();
+        }
+
+        return RestResponse.ok(list);
+    }
+
+    /** 覆盖客户端传入的机构和操作人, 角色列表按动作计算机构范围. */
+    private void applyRoleView(Map<String, Object> params, String action) {
+        params.put("roleViewer", authority.emergency() ? null : getUserId());
+        params.put("roleOrgNos", authority.scope(action).organizations());
+    }
+
+    /**
+     * 根据主键查询详情
+     *
+     * @param roleId 主键
+     * @return RestResponse
+     */
+    @Operation(summary = "根据主键查询详情", description = "根据主键查询详情")
+    @GetMapping("/info/{roleId}")
+    @RequiresPermissions("sys:role:info")
+    public RestResponse<SysRoleEntity> info(@PathVariable("roleId") String roleId) {
+        SysRoleEntity role = sysRoleService.getById(roleId);
+        if (role == null
+                || (!authority.emergency()
+                        && !getUserId().equals(role.getCreateUserId())
+                        && !(Boolean.TRUE.equals(role.getDelegable())
+                                && authority.withinOrganizations(
+                                        roleId, authority.scope("sys:role:info"))))) {
+            throw new org.apache.shiro.authz.UnauthorizedException("角色不在可查看范围内");
+        }
+
+        // 查询角色对应的菜单
+        List<String> menuIdList = sysRoleMenuService.queryMenuIdList(roleId);
+        role.setMenuIdList(menuIdList);
+
+        // 查询角色对应的机构
+        List<String> orgNoList = sysRoleOrgService.queryOrgNoList(roleId);
+        role.setOrgNoList(orgNoList);
+
+        return RestResponse.ok(role);
+    }
+
+    /**
+     * 保存角色
+     *
+     * @param role role
+     * @return RestResponse
+     */
+    @Operation(summary = "新增", description = "新增")
+    @SysLog("保存角色")
+    @PostMapping("/save")
+    @RequiresPermissions("sys:role:save")
+    public RestResponse<String> save(@RequestBody SysRoleEntity role) {
+        ValidatorUtils.validateEntity(role);
+
+        role.setCreateUserId(getUserId());
+        role.setCreateUserOrgNo(getOrgNo());
+        sysRoleService.add(role);
+
+        return RestResponse.ok();
+    }
+
+    /**
+     * 修改角色
+     *
+     * @param role role
+     * @return RestResponse
+     */
+    @Operation(summary = "修改", description = "修改")
+    @SysLog("修改角色")
+    @PostMapping("/update")
+    @RequiresPermissions("sys:role:update")
+    public RestResponse<String> update(@RequestBody SysRoleEntity role) {
+        ValidatorUtils.validateEntity(role);
+
+        sysRoleService.update(role);
+
+        return RestResponse.ok();
+    }
+
+    /**
+     * 删除角色
+     *
+     * @param roleIds roleIds
+     * @return RestResponse
+     */
+    @Operation(summary = "删除", description = "删除")
+    @SysLog("删除角色")
+    @PostMapping("/delete")
+    @RequiresPermissions("sys:role:delete")
+    public RestResponse<String> delete(@RequestBody String[] roleIds) {
+        sysRoleService.deleteBatch(roleIds);
+
+        return RestResponse.ok();
+    }
+}

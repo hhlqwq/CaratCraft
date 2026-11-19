@@ -1,0 +1,22 @@
+<view class="container">
+    <view class="total">
+      <view class="label">订单金额</view>
+      <view class="txt">{{loading ? '正在核对订单...' : actualPrice + '元'}}</view>
+    </view>
+    <view class="pay-list">
+        <view class="h">请选择支付方式</view>
+        <view class="b">
+            <view class="item">
+                <view class="checkbox checked"></view>
+                <image src="/static/images/wxpay.png" class="icon"></image>
+                <view class="name">微信支付</view>
+            </view>
+        </view>
+    </view>
+    <view class="tips">请核对订单金额后使用微信支付.</view>
+    <view wx:if="{{error}}">{{error}}<button bindtap="loadOrder" disabled="{{paying}}">重新读取订单</button></view>
+
+    <button class="pay-btn" bindtap="startPay" loading="{{paying}}" disabled="{{loading || paying || !payable}}">确认支付</button>
+</view>
+
+<merchant-contact />

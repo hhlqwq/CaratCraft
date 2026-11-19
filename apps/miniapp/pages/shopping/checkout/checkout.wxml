@@ -1,0 +1,94 @@
+<view class="container">
+    <view wx:if="{{readLoading}}">正在读取结算信息...</view>
+    <view wx:if="{{readError}}">{{readError}}<button bindtap="retryRead">重新读取</button></view>
+    <view wx:if="{{designQuote}}" class="address-box" style="height:auto;padding:24rpx;box-sizing:border-box">
+        <view>定制材料确认 · {{designQuote.arrangement.length || 0}}个实例</view>
+        <view wx:for="{{designQuote.components}}" wx:key="optionId" style="font-size:24rpx;line-height:1.8">{{item.name}} × {{item.instances || 1}} / 用量{{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
+        <view style="font-size:24rpx;line-height:1.8">{{designQuote.lengthComplete ? '估算长度: ' + designQuote.estimatedLengthMm + 'mm' : '尺寸未配置完整'}}。成品长度以商家确认为准。</view>
+    </view>
+    <view class="address-box">
+        <view class="address-item" bindtap="selectAddress" wx:if="{{checkedAddress.id > 0}}">
+            <view class="l">
+                <text class="name">{{checkedAddress.userName}}</text>
+                <text class="default" wx:if="{{checkedAddress.isDefault === 1}}">默认</text>
+            </view>
+            <view class="m">
+                <text class="mobile">{{checkedAddress.telNumber}}</text>
+                <text class="address">{{checkedAddress.fullRegion+checkedAddress.detailInfo}}</text>
+            </view>
+            <view class="r">
+                <image src="/static/images/address_right.png"></image>
+            </view>
+        </view>
+        <view class="address-item address-empty" bindtap="addAddress" wx:if="{{!checkedAddress.id}}">
+            <view class="m">
+               还没有收货地址，去添加
+            </view>
+            <view class="r">
+                <image src="/static/images/address_right.png"></image>
+            </view>
+        </view>
+    </view>
+
+    <view class="coupon-box" bindtap='tapCoupon'>
+        <view class="coupon-item">
+            <view class="l">
+                <text class="name">请选择优惠券</text>
+                <text class="txt">{{couponDesc}}</text>
+            </view>
+            <view class="r">
+                <image src="/static/images/address_right.png"></image>
+            </view>
+        </view>
+    </view>
+
+    <view class="order-box">
+        <view class="order-item">
+            <view class="l">
+                <text class="name">商品合计</text>
+            </view>
+            <view class="r">
+                <text class="txt">￥{{goodsTotalPrice}}</text>
+            </view>
+        </view>
+        <view class="order-item">
+            <view class="l">
+                <text class="name">运费</text>
+            </view>
+            <view class="r">
+                <text class="txt">￥{{freightPrice}}</text>
+            </view>
+        </view>
+        <view class="order-item no-border">
+            <view class="l">
+                <text class="name">优惠券</text>
+            </view>
+            <view class="r">
+                <text class="txt">-￥{{couponPrice}}</text>
+            </view>
+        </view>
+    </view>
+
+    <view class="goods-items">
+        <view class="item" wx:for="{{checkedGoodsList}}" wx:key="id">
+            <view class="img">
+                <image src="{{item.listPicUrl}}" webp="{{true}}"></image>
+            </view>
+            <view class="info">
+                <view class="t">
+                    <text class="name">{{item.goodsName}}</text>
+                    <text class="number">x{{item.number}}</text>
+                </view>
+                <view class="m">{{item.goodsSpecifitionNameValue||''}}</view>
+                <view class="b">￥{{item.retailPrice}}</view>
+            </view>
+        </view>
+    </view>
+
+    <view class="order-total">
+        <view class="l">实付：￥{{actualPrice}}</view>
+        <button class="r" bindtap="submitOrder" disabled="{{actionBusy || readLoading || readError || (!checkoutReady && !createdOrderId)}}" loading="{{actionBusy}}">{{createdOrderId ? '继续付款' : actionBusy ? '提交中' : '去付款'}}</button>
+    </view>
+</view>
+
+<merchant-contact />

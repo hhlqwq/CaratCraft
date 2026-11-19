@@ -1,0 +1,94 @@
+<view wx:if="{{loading}}">正在读取订单...</view>
+<view wx:if="{{error}}">{{error}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取订单</button></view>
+<view wx:if="{{refundError}}">{{refundError}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取售后</button></view>
+<view class="container">
+    <view class="order-info">
+        <view class="item-a">下单时间：{{orderInfo.addTime}}</view>
+        <view class="item-b">订单编号：{{orderInfo.orderSn}}</view>
+        <view class="item-c">
+            <view class="l">实付：<text class="cost">￥{{orderInfo.actualPrice}}</text></view>
+            <view class="r">
+                <view wx:if="{{orderInfo.handleOption.pay}}">
+                  <view class="btn" bindtap="cancelOrder">取消订单</view>
+                  <view class="btn active" bindtap="payOrder">去付款</view>
+                </view>
+                <view wx:elif="{{orderInfo.handleOption.confirm}}">
+                  <view class="btn" bindtap="cancelOrder">取消订单</view>
+                  <view class="btn active" bindtap="confirmOrder">确认收货</view>
+                </view>
+                <view wx:else>
+                  <view class="btn active" bindtap="cancelOrder">取消订单</view>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view class="order-goods">
+        <view class="h">
+            <view class="label">商品信息</view>
+            <view class="status">{{orderInfo.orderStatusText}}</view>
+        </view>
+        <view class="goods">
+            <view class="item" wx:for="{{orderGoods}}" wx:key="id">
+                <view class="img">
+                    <image src="{{item.listPicUrl}}" webp="{{true}}"></image>
+                </view>
+                <view class="info">
+                    <view class="t">
+                        <text class="name">{{item.goodsName}}</text>
+                        <text class="number">x{{item.number}}</text>
+                    </view>
+                    <view class="attr">{{item.goodsSpecifitionNameValue||''}}</view>
+                    <view class="price">￥{{item.retailPrice}}</view>
+                    <view wx:if="{{handleOption.comment && item.reviewed === false && !loading && !error}}" class="comment-link" data-goods-id="{{item.goodsId}}" bindtap="openReview">评价商品</view>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <view wx:if="{{customization}}" class="customization-card">
+        <view class="customization-title">定制配置</view>
+        <image wx:if="{{!customization.arrangement.length}}" class="customization-preview" src="{{customization.previewUrl}}" mode="aspectFill" webp="{{true}}"></image>
+        <view wx:if="{{customization.arrangement.length}}" class="customization-text">下单材料排列 / {{customization.lengthText}}</view>
+        <view wx:for="{{customization.arrangement}}" wx:key="position" class="customization-text">{{index + 1}}. {{item.name}} · {{item.sizeMm ? item.sizeMm + 'mm' : '尺寸未配置'}}</view>
+        <view wx:for="{{customization.components}}" wx:key="optionId" class="customization-text">{{item.name}}: {{item.instances || 1}}个实例 / 耗用{{item.quantity}}{{item.unit}}</view>
+        <view wx:if="{{customization.sizing}}" class="customization-text">下单冻结尺寸: 实测颈围 {{customization.sizing.neckCircumferenceMm}}mm / 目标成品 {{customization.sizing.targetLengthMm}}mm / 工艺估算 {{customization.sizing.estimatedFinishedLengthMm}}mm</view>
+        <view class="customization-text">设计状态：{{customization.status}}</view>
+        <view class="customization-text">刻字内容：{{customization.engraving}}</view>
+    </view>
+
+    <view class="customization" wx:if="{{legalDocuments.length}}">
+        <view class="customization-text">下单时已确认的协议版本</view>
+        <navigator wx:for="{{legalDocuments}}" wx:key="kind" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
+    </view>
+    <view class="order-bottom">
+        <view class="total" wx:if="{{refund.label}}">售后进度: {{refund.label}}</view>
+        <view class="total" wx:if="{{orderInfo.payStatus === 2 && (orderInfo.orderStatus === 201 || orderInfo.orderStatus === 300 || orderInfo.orderStatus === 301) && (!refund.status || refund.status === 'NONE')}}">
+            <input maxlength="200" placeholder="填写退款或退货理由" value="{{refundReason}}" bindinput="changeRefundReason" />
+            <button loading="{{refundSubmitting}}" disabled="{{refundSubmitting}}" bindtap="requestRefund">申请售后</button>
+        </view>
+        <view class="address">
+            <view class="t">
+                <text class="name">{{orderInfo.consignee}}</text>
+                <text class="mobile">{{orderInfo.mobile}}</text>
+            </view>
+            <view class="b">{{orderInfo.fullRegion + orderInfo.address}}</view>
+        </view>
+        <view class="total">
+            <view class="t">
+                <text class="label">商品合计：</text>
+                <text class="txt">￥{{orderInfo.goodsPrice}}</text>
+            </view>
+            <view class="t">
+                <text class="label">运费：</text>
+                <text class="txt">￥{{orderInfo.freightPrice}}</text>
+            </view>
+        </view>
+        <view class="pay-fee">
+            <text class="label">实付：</text>
+            <text class="txt">￥{{orderInfo.actualPrice}}</text>
+        </view>
+    </view>
+</view>
+
+<merchant-contact />

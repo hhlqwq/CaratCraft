@@ -1,0 +1,442 @@
+.page {
+    background: #f5f1e9;
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding: 22rpx 22rpx 170rpx;
+}
+
+.config-state {
+    background: #fffdf8;
+    color: #6f7b76;
+    font-size: 25rpx;
+    margin-top: 18rpx;
+    padding: 28rpx 24rpx;
+    text-align: center;
+}
+
+.config-state.error {
+    color: #a13d2d;
+}
+
+.config-state-title {
+    color: #263e37;
+    font-size: 29rpx;
+    font-weight: 700;
+}
+
+.config-state-description {
+    margin-top: 10rpx;
+}
+
+.config-retry {
+    background: #34524c;
+    color: #fffdf8;
+    font-size: 25rpx;
+    margin-top: 18rpx;
+}
+
+/* 预览区 */
+.stage-card {
+    background: #fffdf8;
+    box-shadow: 0 8rpx 28rpx rgba(47, 39, 27, 0.08);
+    padding: 24rpx;
+}
+
+.stage-head {
+    align-items: baseline;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stage-title {
+    color: #263e37;
+    font-size: 30rpx;
+    font-weight: 700;
+}
+
+.stage-price {
+    color: #a5682a;
+    font-family: serif;
+    font-size: 38rpx;
+    font-weight: 700;
+}
+
+.necklace-stage {
+    background: radial-gradient(circle at 50% 42%, #fffdf8 0%, #f1e8d8 100%);
+    border-radius: 16rpx;
+    height: 560rpx;
+    margin-top: 16rpx;
+    overflow: hidden;
+    position: relative;
+}
+
+.stage-chain {
+    height: 100%;
+    left: 0;
+    opacity: 0.9;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.necklace-guide {
+    border: 3rpx dashed #d8c9ac;
+    border-radius: 50%;
+    height: 72%;
+    left: 10%;
+    position: absolute;
+    top: 8%;
+    width: 80%;
+}
+
+.necklace-empty {
+    color: #9b8f7a;
+    font-size: 25rpx;
+    left: 0;
+    position: absolute;
+    text-align: center;
+    top: 48%;
+    width: 100%;
+}
+
+.node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+}
+
+.node-arc {
+    filter: drop-shadow(0 3rpx 5rpx rgba(47, 39, 27, 0.25));
+}
+
+.node-hanging {
+    filter: drop-shadow(0 3rpx 5rpx rgba(47, 39, 27, 0.3));
+}
+
+.node-clasp {
+    align-items: center;
+    background: #fdf6e8;
+    border: 2rpx solid #c9b28a;
+    border-radius: 50%;
+    box-sizing: border-box;
+    color: #71552d;
+    display: flex;
+    font-size: 20rpx;
+    justify-content: center;
+    min-height: 40rpx;
+    min-width: 40rpx;
+}
+
+.node-active {
+    border: 3rpx solid #a5682a;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+/* 选中实例操作条 */
+.active-bar {
+    align-items: center;
+    background: #f7f2e7;
+    border-radius: 12rpx;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14rpx;
+    padding: 12rpx 18rpx;
+}
+
+.active-name {
+    color: #263e37;
+    flex: 1;
+    font-size: 24rpx;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.active-actions {
+    align-items: center;
+    display: flex;
+}
+
+.action {
+    color: #34524c;
+    font-size: 24rpx;
+    margin-left: 22rpx;
+}
+
+.action.danger {
+    color: #a13d2d;
+}
+
+.copy-count {
+    background: #fffdf8;
+    border: 1rpx solid #d8c9ac;
+    border-radius: 8rpx;
+    font-size: 22rpx;
+    height: 44rpx;
+    margin-left: 8rpx;
+    text-align: center;
+    width: 64rpx;
+}
+
+/* 工具行 */
+.stage-tools {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12rpx;
+}
+
+.tool {
+    color: #6f7b76;
+    font-size: 24rpx;
+    margin-left: 30rpx;
+}
+
+.tool-disabled {
+    color: #c9c0ae;
+}
+
+.detail-panel {
+    border-top: 1rpx solid #eee4d4;
+    margin-top: 12rpx;
+    padding-top: 10rpx;
+}
+
+.bom-line {
+    color: #6f7b76;
+    font-size: 23rpx;
+    line-height: 1.9;
+}
+
+.preview-disclaimer {
+    color: #9b8f7a;
+    font-size: 21rpx;
+    line-height: 1.6;
+    margin-top: 10rpx;
+}
+
+/* 材料选择区 */
+.material-card {
+    background: #fffdf8;
+    box-shadow: 0 8rpx 28rpx rgba(47, 39, 27, 0.08);
+    margin-top: 18rpx;
+    padding: 20rpx 0 18rpx;
+}
+
+.group-tabs {
+    white-space: nowrap;
+}
+
+.group-tab {
+    color: #6f7b76;
+    display: inline-block;
+    font-size: 26rpx;
+    margin: 0 8rpx;
+    padding: 12rpx 24rpx;
+}
+
+.group-tab-active {
+    background: #34524c;
+    border-radius: 999rpx;
+    color: #fffdf8;
+    font-weight: 600;
+}
+
+.required-mark {
+    color: #c98a3a;
+    margin-left: 4rpx;
+}
+
+.option-strip {
+    margin-top: 16rpx;
+    padding: 0 12rpx;
+    white-space: nowrap;
+}
+
+.option {
+    background: #faf7ef;
+    border: 2rpx solid transparent;
+    border-radius: 14rpx;
+    box-sizing: border-box;
+    display: inline-flex;
+    flex-direction: column;
+    margin: 0 8rpx;
+    padding: 14rpx 12rpx;
+    vertical-align: top;
+    width: 176rpx;
+}
+
+.option-selected {
+    background: #fdf6e8;
+    border-color: #c98a3a;
+}
+
+.option-image {
+    height: 120rpx;
+    width: 100%;
+}
+
+.option-none {
+    align-items: center;
+    justify-content: center;
+    min-height: 210rpx;
+}
+
+.option-none-mark {
+    color: #b7ac97;
+    font-size: 40rpx;
+}
+
+.option-name {
+    color: #3d4c46;
+    font-size: 22rpx;
+    line-height: 1.4;
+    margin-top: 10rpx;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.option-price {
+    color: #a5682a;
+    font-size: 21rpx;
+    margin-top: 6rpx;
+}
+
+.material-hint {
+    color: #9b8f7a;
+    font-size: 21rpx;
+    margin-top: 12rpx;
+    padding: 0 24rpx;
+}
+
+/* 尺寸与规则参考 */
+.sizing-card {
+    background: #fffdf8;
+    box-shadow: 0 8rpx 28rpx rgba(47, 39, 27, 0.08);
+    margin-top: 18rpx;
+    padding: 22rpx 24rpx;
+}
+
+.sizing-toggle {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.sizing-title {
+    color: #263e37;
+    font-size: 28rpx;
+    font-weight: 700;
+}
+
+.sizing-description {
+    color: #9b8f7a;
+    font-size: 22rpx;
+    margin-top: 6rpx;
+}
+
+.sizing-icon {
+    color: #6f7b76;
+    font-size: 24rpx;
+}
+
+.sizing-panel {
+    margin-top: 18rpx;
+}
+
+.sizing-fields label {
+    color: #6f7b76;
+    display: block;
+    font-size: 24rpx;
+    margin-bottom: 14rpx;
+}
+
+.sizing-fields input {
+    background: #faf7ef;
+    border-radius: 10rpx;
+    font-size: 25rpx;
+    margin-top: 8rpx;
+    padding: 14rpx 18rpx;
+}
+
+.reference-preference {
+    color: #34524c;
+    font-size: 25rpx;
+    margin: 8rpx 0 14rpx;
+}
+
+.reference-preference text {
+    color: #a5682a;
+}
+
+.reference-action {
+    background: #34524c;
+    color: #fffdf8;
+    font-size: 25rpx;
+}
+
+.reference-result {
+    background: #faf7ef;
+    border-radius: 12rpx;
+    margin-top: 16rpx;
+    padding: 18rpx;
+}
+
+.reference-length {
+    color: #263e37;
+    font-size: 26rpx;
+    font-weight: 700;
+}
+
+.reference-reason {
+    color: #3d4c46;
+    font-size: 24rpx;
+    margin-top: 8rpx;
+}
+
+.reference-note {
+    color: #6f7b76;
+    font-size: 22rpx;
+    line-height: 1.7;
+    margin-top: 8rpx;
+}
+
+.engraving {
+    background: #faf7ef;
+    border-radius: 10rpx;
+    font-size: 25rpx;
+    margin-top: 16rpx;
+    padding: 14rpx 18rpx;
+}
+
+/* 底部操作 */
+.bottom-bar {
+    background: rgba(255, 253, 248, 0.96);
+    bottom: 0;
+    box-shadow: 0 -6rpx 20rpx rgba(47, 39, 27, 0.08);
+    display: flex;
+    left: 0;
+    padding: 16rpx 22rpx calc(16rpx + env(safe-area-inset-bottom));
+    position: fixed;
+    width: 100%;
+    z-index: 20;
+}
+
+.bottom-bar button {
+    border-radius: 999rpx;
+    font-size: 28rpx;
+    margin: 0 10rpx;
+}
+
+.bottom-bar .secondary {
+    background: #f2e5c9;
+    color: #71552d;
+    flex: 1;
+}
+
+.bottom-bar .primary {
+    background: #34524c;
+    color: #fffdf8;
+    flex: 2;
+}

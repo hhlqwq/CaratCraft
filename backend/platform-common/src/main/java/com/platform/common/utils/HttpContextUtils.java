@@ -1,0 +1,51 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.common.utils;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+/**
+ * HttpContextUtils
+ *
+ * @author hehailong
+ */
+public class HttpContextUtils {
+
+    /** 从当前请求上下文取得HTTP请求对象. */
+    public static HttpServletRequest getHttpServletRequest() {
+        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .getRequest();
+    }
+
+    /** 按当前HTTP请求构建服务域名地址. */
+    public static String getDomain() {
+        HttpServletRequest request = getHttpServletRequest();
+        StringBuffer url = request.getRequestURL();
+        return url.delete(url.length() - request.getRequestURI().length(), url.length()).toString();
+    }
+
+    /** 读取当前请求的来源地址. */
+    public static String getOrigin() {
+        HttpServletRequest request = getHttpServletRequest();
+        return request.getHeader("Origin");
+    }
+}

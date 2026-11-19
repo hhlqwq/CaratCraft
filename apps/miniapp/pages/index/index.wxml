@@ -1,0 +1,93 @@
+<view wx:if="{{readLoading}}" role="status">正在读取...</view>
+<view wx:if="{{readError}}" role="alert">{{readError}}<button size="mini" bindtap="retryRead" disabled="{{readLoading}}">重试</button></view>
+<view class="home-page">
+    <view class="home-hero">
+        <view class="brand-kicker">CARAT CRAFT · 克拉匠造</view>
+        <view class="hero-title">找到一件属于你的<text>珠宝作品</text></view>
+        <view class="hero-copy">浏览商家成品，或从珍珠、尾扣、配饰和链条开始自由设计。</view>
+        <view class="search-box">
+            <view class="search-symbol"></view>
+            <input class="search-input" value="{{searchKeyword}}" bindinput="onSearchInput" bindconfirm="submitSearch"
+                          confirm-type="search" placeholder="搜索项链、材质或指定款式"></input>
+            <view class="search-action" bindtap="submitSearch">搜索</view>
+        </view>
+        <scroll-view class="keyword-strip" scroll-x="true" enhanced="true" show-scrollbar="false">
+            <view class="keyword-chip" wx:for="{{styleKeywords}}" wx:key="*this" data-keyword="{{item}}" bindtap="searchByKeyword">{{item}}</view>
+        </scroll-view>
+    </view>
+
+    <view class="function-panel">
+        <view class="section-heading">
+            <view>
+                <text class="eyebrow">QUICK ACCESS</text>
+                <text class="section-title">常用功能</text>
+            </view>
+            <text class="section-note">购买与定制，一步到达</text>
+        </view>
+        <view class="function-grid">
+            <view class="function-item" wx:for="{{functionalMenus}}" wx:key="name">
+                <navigator wx:if="{{item.tab}}" open-type="switchTab" url="{{item.url}}">
+                    <view class="function-mark">{{item.mark}}</view>
+                    <view class="function-name">{{item.name}}</view>
+                    <view class="function-caption">{{item.caption}}</view>
+                </navigator>
+                <navigator wx:else url="{{item.url}}">
+                    <view class="function-mark">{{item.mark}}</view>
+                    <view class="function-name">{{item.name}}</view>
+                    <view class="function-caption">{{item.caption}}</view>
+                </navigator>
+            </view>
+        </view>
+    </view>
+
+    <navigator class="atelier-banner" open-type="switchTab" url="/pages/designer/designer">
+        <view class="atelier-number">01</view>
+        <view class="atelier-content">
+            <text class="atelier-kicker">DIY ATELIER</text>
+            <text class="atelier-title">进入珠宝设计工坊</text>
+            <text class="atelier-copy">排列珍珠、尾扣、配饰与链条，价格随选择实时更新。</text>
+        </view>
+        <view class="atelier-arrow">→</view>
+    </navigator>
+
+    <view class="product-section" wx:if="{{newGoods.length > 0}}">
+        <view class="section-heading product-heading">
+            <view>
+                <text class="eyebrow">MERCHANT EDIT</text>
+                <text class="section-title">商家精选成品</text>
+            </view>
+            <navigator class="view-more" url="../newGoods/newGoods">查看全部 →</navigator>
+        </view>
+        <scroll-view class="product-scroll" scroll-x="true" enhanced="true" show-scrollbar="false">
+            <navigator class="product-card" url="../goods/goods?id={{item.id}}" wx:for="{{newGoods}}" wx:key="id">
+                <view wx:if="{{item.isDemo}}" class="demo-label">演示</view>
+                <image class="product-image" src="{{item.listPicUrl}}" mode="aspectFill" webp="{{true}}"></image>
+                <view class="product-name">{{item.name}}</view>
+                <view class="product-price">¥ {{item.retailPrice}}</view>
+            </navigator>
+        </scroll-view>
+    </view>
+
+    <view class="product-section editorial-section" wx:if="{{hotGoods.length > 0}}">
+        <view class="section-heading product-heading">
+            <view>
+                <text class="eyebrow">POPULAR JEWELRY</text>
+                <text class="section-title">近期热门款式</text>
+            </view>
+            <navigator class="view-more" url="../hotGoods/hotGoods">查看全部 →</navigator>
+        </view>
+        <view class="editorial-list">
+            <navigator class="editorial-card" url="/pages/goods/goods?id={{item.id}}" wx:for="{{hotGoods}}" wx:key="id">
+                <image class="editorial-image" src="{{item.listPicUrl}}" mode="aspectFill" webp="{{true}}"></image>
+                <view class="editorial-info">
+                    <view class="editorial-index">0{{index + 1}}</view>
+                    <view class="editorial-name">{{item.name}}</view>
+                    <view class="editorial-desc">{{item.goodsBrief || '商家已设计完成，可直接选购。'}}</view>
+                    <view class="editorial-price">¥ {{item.retailPrice}}</view>
+                </view>
+            </navigator>
+        </view>
+    </view>
+</view>
+
+<merchant-contact />

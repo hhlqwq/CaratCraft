@@ -1,0 +1,93 @@
+{
+    "pages": [
+        "pages/index/index",
+        "pages/catalog/catalog",
+        "pages/newGoods/newGoods",
+        "pages/hotGoods/hotGoods",
+        "pages/ucenter/address/address",
+        "pages/ucenter/addressAdd/addressAdd",
+        "pages/ucenter/footprint/footprint",
+        "pages/ucenter/order/order",
+        "pages/ucenter/orderDetail/orderDetail",
+        "pages/ucenter/feedback/feedback",
+        "pages/ucenter/coupon/coupon",
+        "pages/ucenter/collect/collect",
+        "pages/ucenter/design/design",
+        "pages/pay/pay",
+        "pages/payResult/payResult",
+        "pages/ucenter/index/index",
+        "pages/topic/topic",
+        "pages/comment/comment",
+        "pages/commentPost/commentPost",
+        "pages/brand/brand",
+        "pages/brandDetail/brandDetail",
+        "pages/search/search",
+        "pages/category/category",
+        "pages/cart/cart",
+        "pages/shopping/checkout/checkout",
+        "pages/shopping/address/address",
+        "pages/shopping/addressAdd/addressAdd",
+        "pages/goods/goods",
+        "pages/designer/designer",
+        "pages/topicDetail/topicDetail",
+        "pages/auth/mobile/mobile",
+        "pages/shopping/selCoupon/selCoupon",
+        "pages/ucenter/help/help",
+        "pages/ucenter/helpInfo/helpInfo",
+        "pages/auth/btnAuth/btnAuth",
+        "pages/community/index",
+        "pages/community/detail",
+        "pages/community/publish",
+        "pages/ucenter/aftersales/index",
+        "pages/ucenter/legal/index"
+    ],
+    "window": {
+        "backgroundTextStyle": "dark",
+        "navigationBarBackgroundColor": "#fff",
+        "navigationBarTitleText": "克拉匠造",
+        "navigationBarTextStyle": "black",
+        "enablePullDownRefresh": true
+    },
+    "tabBar": {
+        "backgroundColor": "#fafafa",
+        "borderStyle": "white",
+        "selectedColor": "#b47a3f",
+        "color": "#666",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "iconPath": "static/images/ic_menu_choice_nor.png",
+                "selectedIconPath": "static/images/ic_menu_choice_pressed.png",
+                "text": "商城"
+            },
+            {
+                "pagePath": "pages/designer/designer",
+                "iconPath": "static/images/ic_menu_sort_nor.png",
+                "selectedIconPath": "static/images/ic_menu_sort_pressed.png",
+                "text": "DIY"
+            },
+            {
+                "pagePath": "pages/community/index",
+                "iconPath": "static/images/ic_menu_topic_nor.png",
+                "selectedIconPath": "static/images/ic_menu_topic_pressed.png",
+                "text": "社区"
+            },
+            {
+                "pagePath": "pages/ucenter/index/index",
+                "iconPath": "static/images/ic_menu_me_nor.png",
+                "selectedIconPath": "static/images/ic_menu_me_pressed.png",
+                "text": "我的"
+            }
+        ]
+    },
+    "networkTimeout": {
+        "request": 10000,
+        "downloadFile": 10000
+    },
+    "lazyCodeLoading": "requiredComponents",
+    "debug": false,
+    "sitemapLocation": "sitemap.json",
+    "usingComponents": {
+        "merchant-contact": "/components/merchant-contact/index"
+    }
+}

@@ -1,0 +1,98 @@
+/*
+ *
+ *      Copyright (c) 2018-2099, hehailong All rights reserved.
+ *
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *
+ * Redistributions of source code must retain the above copyright notice,
+ *  this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright
+ *  notice, this list of conditions and the following disclaimer in the
+ *  documentation and/or other materials provided with the distribution.
+ *  Neither the name of the openwtai.com developer nor the names of its
+ *  contributors may be used to endorse or promote products derived from
+ *  this software without specific prior written permission.
+ *  Author: hehailong(845367567@qq.com)
+ *
+ */
+package com.platform.modules.mall.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.platform.modules.mall.entity.MallCouponEntity;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Service接口
+ *
+ * @author hehailong
+ * @since 2026-02-24 10:20:41
+ */
+public interface MallCouponService extends IService<MallCouponEntity> {
+
+    /**
+     * 查询所有列表
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    List<MallCouponEntity> queryAll(Map<String, Object> params);
+
+    /**
+     * 查询所有列表
+     *
+     * @param queryWrapper 查询参数
+     * @return List
+     */
+    List<MallCouponEntity> queryAllByWrapper(QueryWrapper<MallCouponEntity> queryWrapper);
+
+    /**
+     * 分页查询
+     *
+     * @param params 查询参数
+     * @return Page
+     */
+    Page<MallCouponEntity> queryPage(Map<String, Object> params);
+
+    /**
+     * 新增
+     *
+     * @param mallCoupon
+     * @return 新增结果
+     */
+    boolean add(MallCouponEntity mallCoupon);
+
+    /**
+     * 根据主键更新
+     *
+     * @param mallCoupon
+     * @return 更新结果
+     */
+    boolean update(MallCouponEntity mallCoupon);
+
+    /**
+     * 根据主键删除
+     *
+     * @param id id
+     * @return 删除结果
+     */
+    boolean delete(Integer id);
+
+    /**
+     * 根据主键批量删除
+     *
+     * @param ids ids
+     * @return 删除结果
+     */
+    boolean deleteBatch(Integer[] ids);
+
+    /** 查询当前用户在给定条件下可用的最大优惠券. */
+    MallCouponEntity queryMaxUserEnableCoupon(Map<String, Object> couponParam);
+
+    /** 按给定条件查询当前领域记录列表. */
+    List<MallCouponEntity> queryList(Map<String, Object> couponParam);
+}
