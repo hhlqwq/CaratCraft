@@ -1,11 +1,7 @@
 <template>
-    <el-dialog
-        :title="!form.goods.id ? '新增商品' : !disabled ? '编辑商品' : '查看商品'"
-        :close-on-click-modal="false"
-        :lock-scroll="false"
-        v-model="visible"
-        width="90%"
-    >
+    <section>
+        <el-button @click="returnToList">返回列表</el-button>
+        <h1>{{ $route.meta.title }}</h1>
         <el-alert
             v-if="loadError || optionsError"
             :title="loadError || optionsError"
@@ -486,22 +482,19 @@
             </el-tab-pane>
         </el-tabs>
 
-        <template #footer
-            ><span class="dialog-footer">
-                <el-button @click="visible = false">取消</el-button>
-                <el-button
-                    v-if="!disabled"
-                    type="primary"
-                    :disabled="
-                        videoUploading || loading || optionsLoading || !!loadError || !!optionsError
-                    "
-                    :loading="saving"
-                    @click="dataFormSubmit"
-                    >保存</el-button
-                >
-            </span></template
-        >
-    </el-dialog>
+        <div class="dialog-footer">
+            <el-button
+                v-if="!disabled"
+                type="primary"
+                :disabled="
+                    videoUploading || loading || optionsLoading || !!loadError || !!optionsError
+                "
+                :loading="saving"
+                @click="dataFormSubmit"
+                >保存</el-button
+            >
+        </div>
+    </section>
 </template>
 
 <script>
@@ -521,6 +514,7 @@ export default {
             videoUploading: false,
             videoProgress: 0,
             visible: false,
+            originalForm: '',
             activeTab: 'base',
             form: this.getDefaultForm(),
             jewelryTypes: [
@@ -545,11 +539,53 @@ export default {
             },
         };
     },
+    /** 路由参数限定当前操作的商品, 详情模式为只读. */
+    mounted() {
+        this.init(this.$route.params.id, this.$route.name === 'mall-goods-detail');
+        window.addEventListener('beforeunload', this.warnBeforeUnload);
+    },
+    /** 只有操作者已改动商品表单且未保存时才提示离开. */
+    async beforeRouteLeave(to) {
+        if (!this.dirtyForm() || to.name === 'login') {
+            return true;
+        }
+        try {
+            await this.$confirm('商品有未保存的修改，是否离开？', '未保存的修改', {
+                confirmButtonText: '离开',
+                cancelButtonText: '继续编辑',
+                type: 'warning',
+            });
+            return true;
+        } catch {
+            return false;
+        }
+    },
     /** 卸载时使所有读取及提交回调失效. */
     beforeUnmount() {
+        window.removeEventListener('beforeunload', this.warnBeforeUnload);
         this._editorVersion = (this._editorVersion || 0) + 1;
     },
     methods: {
+        /** 只在读入初始值后比较实际表单, 加载失败时不误报脏数据. */
+        dirtyForm() {
+            return (
+                !this.disabled &&
+                !this.loading &&
+                Boolean(this.originalForm) &&
+                this.originalForm !== JSON.stringify(this.form)
+            );
+        },
+        /** 浏览器关闭或刷新时保护未保存商品. */
+        warnBeforeUnload(event) {
+            if (this.dirtyForm()) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        },
+        /** 返回商品列表, 原筛选与页码由地址恢复. */
+        returnToList() {
+            return this.$router.push({name: 'mall-goods', query: this.$route.query});
+        },
         /** 为每次打开创建独立表单, 保留空值语义. */
         getDefaultForm() {
             return {
@@ -609,6 +645,7 @@ export default {
             this.visible = true;
             this.activeTab = 'base';
             this.form = this.getDefaultForm();
+            this.originalForm = '';
             this.videoUploading = false;
             this.videoProgress = 0;
             this.form.goods.id = id || '';
@@ -621,6 +658,8 @@ export default {
                 this.loadOptions(version);
                 if (id) {
                     this.loadAggregate(id, version);
+                } else {
+                    this.originalForm = JSON.stringify(this.form);
                 }
             });
         },
@@ -715,6 +754,7 @@ export default {
                         ...item,
                         specLabel: item.goodsSpecificationIds,
                     }));
+                    this.originalForm = JSON.stringify(this.form);
                 } else {
                     throw new Error('商品详情加载失败');
                 }
@@ -1010,7 +1050,8 @@ export default {
                 }
                 this.$message({message: '操作成功', type: 'success', duration: 1500});
                 this.visible = false;
-                this.$emit('refreshDataList');
+                this.originalForm = JSON.stringify(this.form);
+                await this.returnToList();
             } catch (error) {
                 if (this.isEditorCurrent(version)) {
                     this.$message.error(error.message || '商品保存失败, 请重试');

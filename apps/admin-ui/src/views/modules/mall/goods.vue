@@ -145,18 +145,10 @@
             layout="total, sizes, prev, pager, next, jumper"
         >
         </el-pagination>
-
-        <add-or-update
-            v-if="addOrUpdateVisible"
-            ref="addOrUpdate"
-            @refreshDataList="getDataList"
-        ></add-or-update>
     </div>
 </template>
 
 <script>
-import AddOrUpdate from './goods-add-or-update';
-
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -169,15 +161,14 @@ export default {
             pageSize: 10,
             totalPage: 0,
             dataListSelections: [],
-            addOrUpdateVisible: false,
         };
-    },
-    components: {
-        AddOrUpdate,
     },
     /** 页面激活时刷新当前业务数据. */
     activated() {
-        this.getDataList();
+        const query = this.$route.query;
+        this.searchForm.name = query.name || '';
+        this.pageSize = [10, 20, 50, 100].includes(Number(query.limit)) ? Number(query.limit) : 10;
+        this.getDataList(Math.max(1, Number.parseInt(query.page, 10) || 1));
     },
     methods: {
         /** 按当前筛选和分页条件读取业务列表. */
@@ -197,6 +188,16 @@ export default {
                 if (data && data.code === 0) {
                     this.dataList = data.data.records;
                     this.totalPage = data.data.total;
+                    if (this.$route.name === 'mall-goods') {
+                        this.$router.replace({
+                            name: 'mall-goods',
+                            query: {
+                                name: this.searchForm.name || undefined,
+                                page: this.pageIndex > 1 ? String(this.pageIndex) : undefined,
+                                limit: this.pageSize === 10 ? undefined : String(this.pageSize),
+                            },
+                        });
+                    }
                 } else {
                     this.dataList = [];
                     this.totalPage = 0;
@@ -218,19 +219,21 @@ export default {
         selectionChangeHandle(val) {
             this.dataListSelections = val;
         },
-        /** 以只读方式打开指定记录的详情. */
+        /** 路由进入商品详情, 保留名称筛选和分页. */
         showDetails(id) {
-            this.addOrUpdateVisible = true;
-            this.$nextTick(() => {
-                this.$refs.addOrUpdate.init(id, true);
+            return this.$router.push({
+                name: 'mall-goods-detail',
+                params: {id},
+                query: this.$route.query,
             });
         },
-        /** 打开新增或编辑弹窗并传入目标记录. */
+        /** 在独立路径编辑或新增商品, 从列表带入可恢复查询. */
         addOrUpdateHandle(id) {
-            this.addOrUpdateVisible = true;
-            this.$nextTick(() => {
-                this.$refs.addOrUpdate.init(id);
-            });
+            return this.$router.push(
+                id
+                    ? {name: 'mall-goods-edit', params: {id}, query: this.$route.query}
+                    : {name: 'mall-goods-new', query: this.$route.query}
+            );
         },
         /** 确认后删除指定或勾选的业务记录. */
         deleteHandle(id) {

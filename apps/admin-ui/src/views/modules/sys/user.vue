@@ -62,11 +62,6 @@
             </el-table-column>
             <el-table-column prop="realName" header-align="center" align="center" label="真实姓名">
             </el-table-column>
-            <el-table-column prop="orgNo" header-align="center" align="center" label="所属机构">
-                <template #default="scope">
-                    <span>{{ transOrg(scope.row.orgNo) }}</span>
-                </template>
-            </el-table-column>
             <el-table-column prop="email" header-align="center" align="center" label="邮箱">
             </el-table-column>
             <el-table-column prop="mobile" header-align="center" align="center" label="手机号">
@@ -141,17 +136,10 @@
         >
         </el-pagination>
         <!-- 弹窗, 新增 / 修改 -->
-        <add-or-update
-            v-if="addOrUpdateVisible"
-            ref="addOrUpdate"
-            @refreshDataList="getDataList"
-        ></add-or-update>
     </div>
 </template>
 
 <script>
-import AddOrUpdate from './user-add-or-update';
-
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -167,17 +155,18 @@ export default {
             pageSize: 10,
             totalPage: 0,
             dataListSelections: [],
-            addOrUpdateVisible: false,
             permissionsVisible: false,
             permissionRows: [],
         };
     },
-    components: {
-        AddOrUpdate,
-    },
     /** 页面激活时刷新当前业务数据. */
     activated() {
-        this.getDataList();
+        const query = this.$route.query;
+        this.pageSize = [10, 20, 50, 100].includes(Number(query.limit)) ? Number(query.limit) : 10;
+        for (const field of Object.keys(this.searchForm)) {
+            this.searchForm[field] = query[field] || '';
+        }
+        this.getDataList(Math.max(1, Number.parseInt(query.page, 10) || 1));
     },
     methods: {
         /** 读取服务端确认的人员角色、机构及授权来源. */
@@ -211,6 +200,16 @@ export default {
                 if (data && data.code === 0) {
                     this.dataList = data.data.records;
                     this.totalPage = data.data.total;
+                    if (this.$route.name === 'sys-user') {
+                        const query = {
+                            page: this.pageIndex > 1 ? String(this.pageIndex) : undefined,
+                            limit: this.pageSize === 10 ? undefined : String(this.pageSize),
+                        };
+                        for (const [key, value] of Object.entries(this.searchForm)) {
+                            query[key] = value === '' || value == null ? undefined : String(value);
+                        }
+                        this.$router.replace({name: 'sys-user', query});
+                    }
                 } else {
                     this.dataList = [];
                     this.totalPage = 0;
@@ -234,10 +233,11 @@ export default {
         },
         // 新增 / 修改
         addOrUpdateHandle(id) {
-            this.addOrUpdateVisible = true;
-            this.$nextTick(() => {
-                this.$refs.addOrUpdate.init(id);
-            });
+            return this.$router.push(
+                id
+                    ? {name: 'sys-user-edit', params: {id}, query: this.$route.query}
+                    : {name: 'sys-user-new', query: this.$route.query}
+            );
         },
         /** 清空筛选或编辑条件并恢复初始查询状态. */
         resetHandle() {

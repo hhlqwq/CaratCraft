@@ -151,8 +151,6 @@
         >
         </el-pagination>
 
-        <order-detail v-if="detailVisible" ref="orderDetail"></order-detail>
-
         <el-dialog
             title="订单发货"
             v-model="shipDialogVisible"
@@ -209,10 +207,7 @@
 </template>
 
 <script>
-import OrderDetail from './order-detail';
-
 export default {
-    components: {OrderDetail},
     /** 保存分页及独立读写状态, 不保留通用订单新增删除入口. */
     data() {
         return {
@@ -231,7 +226,6 @@ export default {
             totalPage: 0,
             searchForm: {orderSn: '', nickname: '', orderStatus: ''},
             dataList: [],
-            detailVisible: false,
             shipDialogVisible: false,
             shipForm: {id: '', shippingName: '', shippingNo: ''},
             priceDraft: {id: null, price: '', reason: ''},
@@ -252,8 +246,17 @@ export default {
     activated() {
         this.pageActive = true;
         this.pageEpoch++;
-        this.loadShippingCompanies();
-        this.getDataList();
+        const query = this.$route.query;
+        this.searchForm = {
+            orderSn: query.orderSn || '',
+            nickname: query.nickname || '',
+            orderStatus: query.orderStatus ? Number(query.orderStatus) : '',
+        };
+        this.pageSize = [10, 20, 50, 100].includes(Number(query.limit)) ? Number(query.limit) : 10;
+        if (this.isAuth('mall:order:ship')) {
+            this.loadShippingCompanies();
+        }
+        this.getDataList(Math.max(1, Number.parseInt(query.page, 10) || 1));
     },
     /** 离页后关闭子弹窗并废弃旧请求. */
     deactivated() {
@@ -270,7 +273,6 @@ export default {
             this.pageEpoch++;
             this.loading = false;
             this.shipDialogVisible = false;
-            this.$refs.orderDetail?.close?.();
         },
         /** 快递字典读取失败提供独立重试, 不影响订单列表分页. */
         async loadShippingCompanies() {
@@ -331,6 +333,7 @@ export default {
                 this.loadedPageSize = limit;
                 this.needsReload = false;
                 this.writeError = '';
+                this.saveListQuery(page, limit);
             } catch (error) {
                 if (this.pageActive && epoch === this.pageEpoch && version === this._listVersion) {
                     this.listError = error.message || '订单读取失败';
@@ -351,19 +354,27 @@ export default {
         currentChangeHandle(value) {
             return this.getDataList(value);
         },
-        /** 打开只读订单详情, 下一帧执行前复核页面生命周期. */
+        /** 保存已显示的数据筛选与页码, 供刷新和从详情返回. */
+        saveListQuery(page, limit) {
+            if (!this.$router || this.$route?.name !== 'mall-order') {
+                return;
+            }
+            const query = {
+                ...this.$route.query,
+                page: page > 1 ? String(page) : undefined,
+                limit: limit === 10 ? undefined : String(limit),
+            };
+            for (const [key, value] of Object.entries(this.searchForm)) {
+                query[key] = value === '' || value == null ? undefined : String(value);
+            }
+            this.$router.replace({name: 'mall-order', query});
+        },
+        /** 路由进入订单详情, 保留当前列表参数. */
         showDetails(id) {
-            const epoch = this.pageEpoch;
-            const version = (this._detailVersion = (this._detailVersion || 0) + 1);
-            this.detailVisible = true;
-            this.$nextTick(() => {
-                if (
-                    this.pageActive &&
-                    epoch === this.pageEpoch &&
-                    version === this._detailVersion
-                ) {
-                    this.$refs.orderDetail.init(id, true);
-                }
+            return this.$router.push({
+                name: 'mall-order-detail',
+                params: {id},
+                query: this.$route.query,
             });
         },
         /** 显示服务端订单状态. */

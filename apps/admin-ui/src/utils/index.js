@@ -196,5 +196,5 @@ export function clearLoginInfo() {
     sessionStorage.removeItem('userList');
     sessionStorage.removeItem('dynamicMenuRoutes');
     store.commit('resetStore');
-    router.options.isAddDynamicMenuRoutes = false;
+    router.clearWorkspaceRoutes();
 }

@@ -51,6 +51,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     private final SysUserRoleService sysUserRoleService;
     private final SysUserTokenService tokens;
     private final StaffAuthority authority;
+    private final com.platform.modules.sys.service.BusinessOrganization businessOrganization;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     @Override
@@ -80,12 +81,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void add(SysUserEntity user, Map<String, Object> params) {
-        authority.requireEmployeeOrganization("sys:user:save", user.getOrgNo());
+        String organization = businessOrganization.defaultOrganization();
+        if (organization == null) {
+            throw new IllegalArgumentException("请先配置工作室业务机构 CARATCRAFT_DEFAULT_BUSINESS_ORG");
+        }
+        rejectOrganizationOverride(user.getOrgNo(), organization);
+        authority.requireEmployeeOrganization("sys:user:save", organization);
         if (!roles(user.getRoleIdList()).isEmpty()) {
-            authority.requireEmployeeOrganization("sys:user:assign", user.getOrgNo());
+            authority.requireEmployeeOrganization("sys:user:assign", organization);
         }
         validateRoles(user.getRoleIdList());
         SysUserEntity employee = profile(user);
+        employee.setOrgNo(organization);
         employee.setCreateUserId(user.getCreateUserId());
         employee.setCreateUserOrgNo(user.getCreateUserOrgNo());
         replacePassword(employee, user.getPassword());
@@ -101,7 +108,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     public void update(SysUserEntity user, Map<String, Object> params) {
         SysUserEntity current = lockUser(user.getUserId());
         authority.requireEmployee("sys:user:update", current, true);
-        authority.requireEmployeeOrganization("sys:user:update", user.getOrgNo());
+        rejectOrganizationOverride(user.getOrgNo(), current.getOrgNo());
         if (user.getPassword() != null) {
             throw new IllegalArgumentException("请使用专用的密码重置入口");
         }
@@ -110,7 +117,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
                 && !new java.util.HashSet<>(previousRoles)
                         .equals(new java.util.HashSet<>(user.getRoleIdList()))) {
             authority.requireEmployeeOrganization("sys:user:assign", current.getOrgNo());
-            authority.requireEmployeeOrganization("sys:user:assign", user.getOrgNo());
             validateRoles(user.getRoleIdList());
             if (!authority.emergency() && !previousRoles.stream().allMatch(authority::canAssign)) {
                 throw new UnauthorizedException("没有移除该员工现有角色的权限");
@@ -192,9 +198,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         employee.setSex(input.getSex());
         employee.setEmail(input.getEmail());
         employee.setMobile(input.getMobile());
-        employee.setOrgNo(input.getOrgNo());
         employee.setStatus(input.getStatus() == null ? 1 : input.getStatus());
         return employee;
+    }
+
+    /** 拒绝用表单提交跨机构参数, 员工资料编辑保持原有业务归属. */
+    private void rejectOrganizationOverride(String requested, String organization) {
+        if (requested != null && !requested.isBlank() && !Objects.equals(requested, organization)) {
+            throw new UnauthorizedException("员工所属机构由服务端维护");
+        }
     }
 
     /** 角色必须存在, 普通管理员只能分配显式批准且机构范围受限的角色. */

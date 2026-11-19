@@ -1,5 +1,3 @@
-import router from '@/router';
-
 export default {
     namespaced: true,
     state: {
@@ -16,9 +14,6 @@ export default {
         menuActiveName: '',
         // 内容, 是否需要刷新
         contentIsNeedRefresh: false,
-        // 主入口标签页
-        mainTabs: [],
-        mainTabsActiveName: '',
     },
     mutations: {
         /** 更新共享布局记录的可视区域高度. */
@@ -48,34 +43,6 @@ export default {
         /** 设置主内容区是否需要重新加载. */
         updateContentIsNeedRefresh(state, status) {
             state.contentIsNeedRefresh = status;
-        },
-        /** 同步主界面已打开的标签页列表. */
-        updateMainTabs(state, tabs) {
-            state.mainTabs = tabs;
-        },
-        /** 更新主界面当前激活的标签页名称. */
-        updateMainTabsActiveName(state, name) {
-            state.mainTabsActiveName = name;
-        },
-        /** 删除指定标签页并调整当前激活页. */
-        removeTab(state, tabName) {
-            state.mainTabs = state.mainTabs.filter((item) => item.name !== tabName);
-            if (state.mainTabs.length >= 1) {
-                // 当前选中tab被删除
-                if (tabName === state.mainTabsActiveName) {
-                    const tab = state.mainTabs[state.mainTabs.length - 1];
-                    router.push({name: tab.name, query: tab.query, params: tab.params}, () => {
-                        state.mainTabsActiveName = tab.name;
-                    });
-                }
-            } else {
-                state.menuActiveName = '';
-                router.push({name: 'home'});
-            }
-        },
-        /** 关闭当前激活的主界面标签页. */
-        closeCurrentTab(state) {
-            this.commit('common/removeTab', state.mainTabsActiveName);
         },
     },
 };

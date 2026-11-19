@@ -75,6 +75,17 @@
         "productionDatabaseModified": false,
         "realTransactionSent": false
     },
+    "studioWorkspaceAcceptance": {
+        "date": "2026-11-19",
+        "java": {"runId": "20261118-3a33a748c2e8", "passed": 258, "failed": 0, "skipped": 0, "permissionHttpCases": 9},
+        "httpChecks": ["非超管岗位工作台待办和接口授权", "开户省略机构字段并使用初始密码登录", "伪造开户和编辑机构返回403并核对数据库"],
+        "ui": {"nodePassed": 312, "eslint": "passed", "productionBuild": "passed", "edgeFixture": "passed"},
+        "browserChecks": ["岗位导航、空分组及退款路由拦截", "切换不累积页签", "详情刷新、前进后退及返回保留列表筛选和页码", "免选机构表单及未保存修改提示"],
+        "screenshots": [".tools/copyright/studio-ui/before.png", ".tools/copyright/studio-ui/after.png", ".tools/copyright/studio-ui/staff-after.png"],
+        "browserUsesFixtureData": true,
+        "pendingExternal": ["目标环境默认工作室机构、管理员开户范围和岗位委派范围", "真实岗位账号及营业数据界面复验"],
+        "productionDatabaseModified": false
+    },
     "integrationAcceptance": {
         "baseCommit": "ab9dbdb430519f395aaf879588f950023af37d61",
         "historicalReviewCommit": "adb8989d641b21d0694d72b12e393a2b70565c72",

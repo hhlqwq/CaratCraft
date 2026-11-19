@@ -1,16 +1,14 @@
 <template>
-    <el-dialog
-        :title="!dataForm.id ? '新增' : '修改'"
-        :close-on-click-modal="false"
-        :lock-scroll="false"
-        v-model="visible"
-    >
+    <section class="staff-editor">
+        <el-button @click="returnToList">返回列表</el-button>
+        <h1>{{ dataForm.id ? '编辑员工' : '新建员工' }}</h1>
+        <el-alert v-if="error" :title="error" type="error" :closable="false" />
         <el-form
-            inline
             :model="dataForm"
+            v-loading="loading"
             :rules="dataRule"
             ref="dataForm"
-            @keyup.enter="dataFormSubmit()"
+            @submit.prevent="dataFormSubmit"
             label-width="80px"
         >
             <el-form-item label="用户名" prop="userName">
@@ -56,36 +54,13 @@
                     class="width200"
                 ></el-input>
             </el-form-item>
-            <el-form-item label="所属机构" prop="orgNo">
-                <el-dialog
-                    width="30%"
-                    append-to-body
-                    title="选择区域"
-                    :lock-scroll="false"
-                    v-model="visiblePopover"
-                >
-                    <el-tree
-                        :data="orgNoOptions"
-                        :props="orgListTreeProps"
-                        node-key="orgNo"
-                        ref="orgListTree"
-                        @current-change="orgListTreeCurrentChangeHandle"
-                        default-expand-all
-                        :expand-on-click-node="false"
-                    >
-                    </el-tree>
-                </el-dialog>
-                <el-button @click="visiblePopover = true" class="width200"
-                    >{{ dataForm.orgName || '点击选择所属机构' }}
-                </el-button>
-            </el-form-item>
-            <el-form-item label="角色" prop="roleIdList">
+            <el-form-item label="岗位" prop="roleIdList">
                 <el-select
                     v-model="dataForm.roleIdList"
                     multiple
                     clearable
                     filterable
-                    placeholder="请选择"
+                    placeholder="选择员工岗位"
                 >
                     <el-option
                         v-for="role in roleList"
@@ -97,42 +72,38 @@
                 </el-select>
             </el-form-item>
         </el-form>
-        <template #footer
-            ><span class="dialog-footer">
-                <el-button @click="visible = false">取消</el-button>
-                <el-button type="primary" @click="dataFormSubmit()">确定</el-button>
-            </span></template
-        >
-    </el-dialog>
+        <div class="staff-actions">
+            <el-button @click="returnToList">取消</el-button>
+            <el-button
+                type="primary"
+                :loading="saving"
+                :disabled="loading || !loaded"
+                @click="dataFormSubmit"
+                >保存</el-button
+            >
+        </div>
+    </section>
 </template>
 
 <script>
 export default {
-    /** 初始化当前组件的响应式界面和表单状态. */
+    /** 新员工归属由服务端决定, 表单仅维护员工资料和岗位. */
     data() {
         return {
-            orgNoOptions: this.treeDataTranslate(
-                JSON.parse(sessionStorage.getItem('orgList') || '[]'),
-                'orgNo',
-                'parentNo'
-            ),
-            orgListTreeProps: {
-                label: 'orgName',
-                children: 'children',
-            },
-            visible: false,
-            visiblePopover: false,
+            loading: true,
+            loaded: false,
+            saving: false,
+            error: '',
+            original: '',
             roleList: [],
             dataForm: {
-                orgName: '',
-                id: '',
+                id: this.$route.params.id || '',
                 userName: '',
                 sex: '',
                 realName: '',
                 initialPassword: '',
                 email: '',
                 mobile: '',
-                orgNo: '',
                 roleIdList: [],
                 status: 1,
             },
@@ -169,91 +140,138 @@ export default {
             },
         };
     },
-    methods: {
-        /** 按传入上下文初始化当前界面的数据和选择状态. */
-        init(id) {
-            this.dataForm.id = id || 0;
-            this.$http({
-                url: '/sys/role/select',
-                method: 'get',
-            })
-                .then(({data}) => {
-                    this.roleList = data && data.code === 0 ? data.data : [];
-                })
-                .then(() => {
-                    this.visible = true;
-                    this.$nextTick(() => {
-                        this.$refs['dataForm'].resetFields();
-                    });
-                })
-                .then(() => {
-                    if (this.dataForm.id) {
-                        this.$http({
-                            url: `/sys/user/info/${this.dataForm.id}`,
-                            method: 'get',
-                        }).then(({data}) => {
-                            if (data && data.code === 0) {
-                                this.dataForm.userName = data.data.userName;
-                                this.dataForm.sex = data.data.sex.toString();
-                                this.dataForm.realName = data.data.realName;
-                                this.dataForm.email = data.data.email;
-                                this.dataForm.mobile = data.data.mobile;
-                                this.dataForm.orgNo = data.data.orgNo;
-                                this.dataForm.orgName = this.transOrg(data.data.orgNo);
-                                this.dataForm.roleIdList = data.data.roleIdList;
-                                this.dataForm.status = data.data.status;
-                            }
-                        });
-                    } else {
-                        this.dataForm.orgName = '';
-                    }
-                });
+    computed: {
+        /** 只有成功加载后发生的表单变更才需要离开确认. */
+        dirty() {
+            return this.loaded && this.original !== JSON.stringify(this.dataForm);
         },
-        // 机构树选中
-        orgListTreeCurrentChangeHandle(data) {
-            this.dataForm.orgNo = data.orgNo;
-            this.dataForm.orgName = data.orgName;
-            this.visiblePopover = false;
-        },
-        // 表单提交
-        dataFormSubmit() {
-            this.$refs['dataForm'].validate((valid) => {
-                if (valid) {
-                    this.$http({
-                        url: `/sys/user/${!this.dataForm.id ? 'save' : 'update'}`,
-                        method: 'post',
-                        data: {
-                            userId: this.dataForm.id || undefined,
-                            userName: this.dataForm.userName,
-                            sex: this.dataForm.sex,
-                            realName: this.dataForm.realName,
-                            password: this.dataForm.id ? undefined : this.dataForm.initialPassword,
-                            email: this.dataForm.email,
-                            mobile: this.dataForm.mobile,
-                            orgNo: this.dataForm.orgNo,
-                            status: this.dataForm.status,
-                            roleIdList: this.dataForm.roleIdList,
-                        },
-                    }).then(({data}) => {
-                        if (data && data.code === 0) {
-                            if (!this.dataForm.id) {
-                                this.$message.info(
-                                    '员工可用此用户名和你设置的初始密码登录，请通过安全渠道单独告知。'
-                                );
-                            }
-                            this.dataForm.initialPassword = '';
-                            this.visible = false;
-                            this.$message({
-                                message: '操作成功',
-                                type: 'success',
-                                duration: 1500,
-                            });
-                            this.$emit('refreshDataList');
-                        }
-                    });
-                }
+    },
+    /** 加载岗位和可编辑资料, 注册浏览器刷新时的未保存保护. */
+    mounted() {
+        this.load();
+        window.addEventListener('beforeunload', this.warnBeforeUnload);
+    },
+    /** 页面销毁后移除浏览器监听. */
+    beforeUnmount() {
+        window.removeEventListener('beforeunload', this.warnBeforeUnload);
+    },
+    /** 取消离开时保留脏表单, 普通无修改页面直接切换. */
+    async beforeRouteLeave(to) {
+        if (!this.dirty || to.name === 'login') {
+            return true;
+        }
+        try {
+            await this.$confirm('员工资料有未保存的修改，是否离开？', '未保存的修改', {
+                confirmButtonText: '离开',
+                cancelButtonText: '继续编辑',
+                type: 'warning',
             });
+            return true;
+        } catch {
+            return false;
+        }
+    },
+    methods: {
+        /** 浏览器刷新和关闭仅在表单有修改时触发原生提示. */
+        warnBeforeUnload(event) {
+            if (this.dirty) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        },
+        /** 同时获取可分配岗位及已有员工的原始资料. */
+        async load() {
+            try {
+                const requests = [this.$http({url: '/sys/role/select', method: 'get'})];
+                if (this.dataForm.id) {
+                    requests.push(
+                        this.$http({url: `/sys/user/info/${this.dataForm.id}`, method: 'get'})
+                    );
+                }
+                const [roles, detail] = await Promise.all(requests);
+                if (roles.data?.code !== 0 || (detail && detail.data?.code !== 0)) {
+                    throw new Error(detail?.data?.msg || roles.data?.msg || '员工资料加载失败');
+                }
+                this.roleList = roles.data.data || [];
+                if (detail) {
+                    const employee = detail.data.data;
+                    this.dataForm = {
+                        ...this.dataForm,
+                        userName: employee.userName,
+                        sex: String(employee.sex),
+                        realName: employee.realName,
+                        email: employee.email || '',
+                        mobile: employee.mobile || '',
+                        roleIdList: employee.roleIdList || [],
+                        status: employee.status,
+                    };
+                }
+                this.original = JSON.stringify(this.dataForm);
+                this.loaded = true;
+            } catch (error) {
+                this.error = error.response?.data?.msg || error.message || '员工资料加载失败';
+            } finally {
+                this.loading = false;
+            }
+        },
+        /** 提交员工资料及独立初始密码, 不发送机构信息. */
+        async dataFormSubmit() {
+            if (this.saving || !this.loaded) {
+                return;
+            }
+            this.saving = true;
+            this.error = '';
+            try {
+                await this.$refs.dataForm.validate();
+                const {id, initialPassword, ...profile} = this.dataForm;
+                const {data} = await this.$http({
+                    url: `/sys/user/${id ? 'update' : 'save'}`,
+                    method: 'post',
+                    showError: false,
+                    data: {
+                        ...profile,
+                        userId: id || undefined,
+                        password: id ? undefined : initialPassword,
+                    },
+                });
+                if (data?.code !== 0) {
+                    throw new Error(data?.msg || '员工资料保存失败');
+                }
+                this.dataForm.initialPassword = '';
+                this.original = JSON.stringify(this.dataForm);
+                this.$message.success(
+                    id ? '员工资料已保存' : '员工已创建，请将用户名和初始密码单独交给本人'
+                );
+                await this.returnToList();
+            } catch (error) {
+                this.error = error.response?.data?.msg || error.message || '请核对员工资料';
+            } finally {
+                this.saving = false;
+            }
+        },
+        /** 返回员工列表并保留已应用的筛选和分页. */
+        returnToList() {
+            return this.$router.push({name: 'sys-user', query: this.$route.query});
         },
     },
 };
 </script>
+
+<style scoped>
+.staff-editor {
+    max-width: 540px;
+}
+.staff-editor h1 {
+    margin: 20px 0;
+    font-size: 24px;
+}
+.staff-editor :deep(.el-input),
+.staff-editor :deep(.el-select),
+.staff-editor :deep(.width200.el-input) {
+    width: 100%;
+}
+.staff-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+</style>

@@ -1,12 +1,8 @@
 <template>
-    <el-dialog
-        title="订单详情"
-        :close-on-click-modal="false"
-        :lock-scroll="false"
-        v-model="visible"
-        width="980px"
-        class="order-detail-dialog"
-    >
+    <section class="order-detail-dialog">
+        <el-button @click="$router.push({name: 'mall-order', query: $route.query})"
+            >返回列表</el-button
+        >
         <el-alert v-if="readError" :title="readError" type="error" :closable="false">
             <el-button @click="init(currentId)">重新读取</el-button>
         </el-alert>
@@ -259,13 +255,7 @@
                 </template>
             </el-table-column>
         </el-table>
-
-        <template #footer
-            ><span class="dialog-footer">
-                <el-button @click="visible = false">取消</el-button>
-            </span></template
-        >
-    </el-dialog>
+    </section>
 </template>
 
 <script>
@@ -321,6 +311,10 @@ export default {
                 orderSn: [{required: true, message: '订单编号不能为空', trigger: 'blur'}],
             },
         };
+    },
+    /** 从受权详情路由获取订单标识. */
+    activated() {
+        this.init(this.$route.params.id);
     },
     /** 缓存页离开时关闭详情并废弃在途读取. */
     deactivated() {

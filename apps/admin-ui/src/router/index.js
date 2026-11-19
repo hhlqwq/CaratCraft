@@ -9,6 +9,7 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 import http from '@/utils/httpRequest';
 import {isURL} from '@/utils/validate';
 import {clearLoginInfo} from '@/utils';
+import {authorizedPages, pagePresentation} from './workspace-navigation';
 
 const pages = import.meta.glob(['../views/**/*.vue', '!../views/modules/oss/oss-upload.vue']);
 /** 只允许加载构建时存在的页面, 不执行服务端提供的任意路径. */
@@ -54,7 +55,6 @@ const mainRoutes = {
             name: 'home',
             meta: {
                 title: '首页',
-                isTab: true,
             },
         },
         {
@@ -63,7 +63,6 @@ const mainRoutes = {
             name: 'theme',
             meta: {
                 title: '主题',
-                isTab: true,
             },
         },
     ],
@@ -80,120 +79,149 @@ const mainRoutes = {
 const router = createRouter({
     history: createWebHashHistory(),
     scrollBehavior: () => ({top: 0}),
-    // 是否已经添加动态(菜单)路由
-    isAddDynamicMenuRoutes: false,
     routes: globalRoutes.concat(mainRoutes),
 });
 
-router.beforeEach((to, from, next) => {
-    // 添加动态(菜单)路由
-    // 1. 已经添加 or 全局路由, 直接访问
-    // 2. 获取菜单列表, 添加并保存本地存储
-    if (
-        router.options.isAddDynamicMenuRoutes ||
-        fnCurrentRouteType(to, globalRoutes) === 'global'
-    ) {
-        next();
-    } else {
-        http({
-            url: '/sys/menu/nav',
-            method: 'get',
-        })
-            .then(({data}) => {
-                if (data && data.code === 0) {
-                    fnAddDynamicMenuRoutes(data.data.menuList);
-                    router.options.isAddDynamicMenuRoutes = true;
-                    sessionStorage.setItem('menuList', JSON.stringify(data.data.menuList || '[]'));
-                    sessionStorage.setItem(
-                        'permissions',
-                        JSON.stringify(data.data.permissions || '[]')
-                    );
-                    sessionStorage.setItem('dictList', JSON.stringify(data.data.dictList || '[]'));
-                    sessionStorage.setItem('orgList', JSON.stringify(data.data.orgList || '[]'));
-                    sessionStorage.setItem('userList', JSON.stringify(data.data.userList || '[]'));
-                    next({
-                        ...to,
-                        replace: true,
-                    });
-                } else {
-                    sessionStorage.setItem('menuList', '[]');
-                    sessionStorage.setItem('permissions', '[]');
-                    sessionStorage.setItem('dictList', '[]');
-                    sessionStorage.setItem('orgList', '[]');
-                    sessionStorage.setItem('userList', '[]');
-                    next();
-                }
-            })
-            .catch((e) => {
-                console.log(`%c${e} 请求菜单列表和权限失败，跳转至登录页！！`, 'color:blue');
-                router.push({name: 'login'});
-            });
-    }
-});
+const removeRoutes = [];
+let loadedFor = '';
+let pendingNavigation;
 
-/**
- * 判断当前路由类型, global: 全局路由, main: 主入口路由
- * @param {*} route 当前路由
- */
-function fnCurrentRouteType(route, globalRoutes = []) {
-    let temp = [];
-    for (let i = 0; i < globalRoutes.length; i++) {
-        if (route.path === globalRoutes[i].path) {
-            return 'global';
-        } else if (globalRoutes[i].children && globalRoutes[i].children.length >= 1) {
-            temp = temp.concat(globalRoutes[i].children);
+/** 注销或切换账号时清除上一账号注册的动态路由. */
+router.clearWorkspaceRoutes = () => {
+    removeRoutes.splice(0).forEach((remove) => remove());
+    loadedFor = '';
+    pendingNavigation = undefined;
+};
+
+/** 用服务端返回的页面构建访问路由, 附属页还需对应的动作权限. */
+function registerMenus(menus, grants) {
+    for (const page of authorizedPages(menus)) {
+        const external = isURL(page.url);
+        const name = external ? `i-${page.menuId}` : page.url.replace('/', '-');
+        const meta = {
+            ...pagePresentation(page),
+            menuName: name,
+            iframeUrl: external ? page.url : '',
+        };
+        const component = external
+            ? _import('common/404')
+            : pages[`../views/modules/${page.url}.vue`];
+        if (!component || router.hasRoute(name)) {
+            continue;
         }
-    }
-    return temp.length >= 1 ? fnCurrentRouteType(route, temp) : 'main';
-}
-
-/**
- * 添加动态(菜单)路由
- * @param {*} menuList 菜单列表
- * @param {*} routes 递归创建的动态(菜单)路由
- */
-function fnAddDynamicMenuRoutes(menuList = [], routes = []) {
-    let temp = [];
-    for (let i = 0; i < menuList.length; i++) {
-        if (menuList[i].list && menuList[i].list.length >= 1) {
-            temp = temp.concat(menuList[i].list);
-        } else if (menuList[i].url && /\S/.test(menuList[i].url)) {
-            menuList[i].url = menuList[i].url.replace(/^\//, '');
-            const route = {
-                path: menuList[i].url.replace('/', '-'),
-                component: null,
-                name: menuList[i].url.replace('/', '-'),
-                meta: {
-                    menuId: menuList[i].menuId,
-                    title: menuList[i].name,
-                    isDynamic: true,
-                    isTab: true,
-                    iframeUrl: '',
+        removeRoutes.push(router.addRoute('main', {path: name, name, component, meta}));
+        if (name === 'mall-order' && grants.includes('mall:order:info')) {
+            removeRoutes.push(
+                router.addRoute('main', {
+                    path: 'mall-order/:id(\\d+)',
+                    name: 'mall-order-detail',
+                    component: _import('modules/mall/order-detail'),
+                    meta: {...meta, parent: name, parentTitle: meta.title, title: '订单详情'},
+                })
+            );
+        }
+        if (name === 'mall-goods') {
+            const editor = _import('modules/mall/goods-add-or-update');
+            const destinations = [
+                {
+                    suffix: '/new',
+                    name: 'mall-goods-new',
+                    title: '新增商品',
+                    grants: ['mall:goods:save'],
                 },
-            };
-            // url以http[s]://开头, 通过iframe展示
-            if (isURL(menuList[i].url)) {
-                route.path = `i-${menuList[i].menuId}`;
-                route.name = `i-${menuList[i].menuId}`;
-                route.meta.iframeUrl = menuList[i].url;
-            } else {
-                try {
-                    route.component = _import(`modules/${menuList[i].url}`) || null;
-                } catch (e) {
-                    console.log(e);
+                {
+                    suffix: '/:id(\\d+)',
+                    name: 'mall-goods-detail',
+                    title: '商品详情',
+                    grants: ['mall:goods:info'],
+                },
+                {
+                    suffix: '/:id(\\d+)/edit',
+                    name: 'mall-goods-edit',
+                    title: '编辑商品',
+                    grants: ['mall:goods:info', 'mall:goods:update'],
+                },
+            ];
+            for (const destination of destinations) {
+                if (destination.grants.every((grant) => grants.includes(grant))) {
+                    removeRoutes.push(
+                        router.addRoute('main', {
+                            path: name + destination.suffix,
+                            name: destination.name,
+                            component: editor,
+                            meta: {
+                                ...meta,
+                                title: destination.title,
+                                parent: name,
+                                parentTitle: '商品列表',
+                            },
+                        })
+                    );
                 }
             }
-            routes.push(route);
+        }
+        if (name === 'sys-user') {
+            if (grants.includes('sys:user:save')) {
+                removeRoutes.push(
+                    router.addRoute('main', {
+                        path: 'sys-user/new',
+                        name: 'sys-user-new',
+                        component: _import('modules/sys/user-add-or-update'),
+                        meta: {...meta, parent: name, parentTitle: meta.title, title: '新建员工'},
+                    })
+                );
+            }
+            if (grants.includes('sys:user:update') && grants.includes('sys:user:info')) {
+                removeRoutes.push(
+                    router.addRoute('main', {
+                        path: 'sys-user/:id/edit',
+                        name: 'sys-user-edit',
+                        component: _import('modules/sys/user-add-or-update'),
+                        meta: {...meta, parent: name, parentTitle: meta.title, title: '编辑员工'},
+                    })
+                );
+            }
         }
     }
-    if (temp.length >= 1) {
-        fnAddDynamicMenuRoutes(temp, routes);
-    } else {
-        routes.forEach((route) => router.addRoute('main', route));
-        router.addRoute({path: '/:pathMatch(.*)*', redirect: {name: '404'}});
-
-        sessionStorage.setItem('dynamicMenuRoutes', JSON.stringify(routes || '[]'));
-    }
+    removeRoutes.push(router.addRoute({path: '/:pathMatch(.*)*', redirect: {name: '404'}}));
 }
+
+/** 同一会话只加载一次授权菜单, 首次直达时按新注册的路径重新解析. */
+router.beforeEach(async (to) => {
+    if (to.name === 'login' || to.name === '404') {
+        return true;
+    }
+    const token = cookie.get('token');
+    if (!token) {
+        clearLoginInfo();
+        return {name: 'login'};
+    }
+    if (loadedFor !== token) {
+        if (!pendingNavigation || pendingNavigation.token !== token) {
+            router.clearWorkspaceRoutes();
+            pendingNavigation = {token, request: http({url: '/sys/menu/nav', method: 'get'})};
+        }
+        try {
+            const {data} = await pendingNavigation.request;
+            if (cookie.get('token') !== token || data?.code !== 0) {
+                return {name: 'login'};
+            }
+            if (loadedFor !== token) {
+                const navigation = data.data;
+                for (const key of ['menuList', 'permissions', 'dictList', 'orgList', 'userList']) {
+                    sessionStorage.setItem(key, JSON.stringify(navigation[key] || []));
+                }
+                registerMenus(navigation.menuList || [], navigation.permissions || []);
+                loadedFor = token;
+                pendingNavigation = undefined;
+            }
+            return {path: to.path, query: to.query, hash: to.hash, replace: true};
+        } catch {
+            clearLoginInfo();
+            return {name: 'login'};
+        }
+    }
+    return to.matched.length > 0 || {name: '404'};
+});
 
 export default router;

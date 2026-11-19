@@ -82,6 +82,7 @@ class OrderPermissionHttpTest {
         registry.add("spring.data.redis.host", () -> "127.0.0.1");
         registry.add("spring.data.redis.port", () -> System.getenv("CARATCRAFT_REDIS_TEST_PORT"));
         registry.add("spring.data.redis.password", () -> "");
+        registry.add("caratcraft.default-business-org", () -> "QT-A");
     }
 
     /** 使用种子菜单关联普通角色, 准备可以真实变更的独立订单和退款流水. */
@@ -496,14 +497,52 @@ class OrderPermissionHttpTest {
                         "sex",
                         0,
                         "orgNo",
-                        "QT-A",
+                        "QT-B",
                         "password",
                         initial),
+                403);
+        assertEquals(
+                0,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM SYS_USER WHERE USER_NAME=?",
+                        Integer.class,
+                        username));
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/user/save",
+                Map.of("userName", username, "realName", "隔离员工", "sex", 0, "password", initial),
                 200);
         String employeeId =
                 jdbc.queryForObject(
                         "SELECT USER_ID FROM SYS_USER WHERE USER_NAME=?", String.class, username);
         assertNotNull(employeeId);
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/user/update",
+                Map.of(
+                        "userId",
+                        employeeId,
+                        "userName",
+                        username,
+                        "realName",
+                        "隔离员工",
+                        "sex",
+                        0,
+                        "orgNo",
+                        "QT-B"),
+                403);
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/user/update",
+                Map.of("userId", employeeId, "userName", username, "realName", "隔离员工", "sex", 0),
+                200);
+        assertEquals(
+                "QT-A",
+                jdbc.queryForObject(
+                        "SELECT ORG_NO FROM SYS_USER WHERE USER_ID=?", String.class, employeeId));
         String original = signIn(username, initial);
         tokens.put("new-employee", original);
         assertTrue(

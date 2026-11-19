@@ -85,16 +85,6 @@ export default {
                 return this.$store.state.user.name;
             },
         },
-        mainTabs: {
-            /** 读取当前控件或页面的响应式绑定值. */
-            get() {
-                return this.$store.state.common.mainTabs;
-            },
-            /** 将新值同步到当前控件或页面的绑定状态. */
-            set(val) {
-                this.$store.commit('common/updateMainTabs', val);
-            },
-        },
     },
     methods: {
         // 初始化
@@ -124,7 +114,6 @@ export default {
                             });
                             this.visible = false;
                             this.$nextTick(() => {
-                                this.mainTabs = [];
                                 clearLoginInfo();
                                 this.$router.replace({name: 'login'});
                             });

@@ -54,7 +54,13 @@ function fixture() {
         $message: Object.assign((message) => messages.push(message.message), {
             error: (message) => messages.push(message),
         }),
-        $emit: (event) => events.push(event),
+        $route: {query: {name: '珍珠', page: '2'}},
+        $router: {
+            push: (location) => {
+                events.push(location);
+                return Promise.resolve();
+            },
+        },
         sanitizePayload: () => ({goods: {id: 10, name: '测试商品'}, specs: [], skuList: []}),
     });
     return {editor, calls, messages, events};
@@ -146,7 +152,9 @@ test('商品保存从校验起去重且网络失败可重试', async () => {
     calls[1].resolve({data: {code: 0}});
     await retry;
     assert.equal(editor.visible, false);
-    assert.deepEqual(events, ['refreshDataList']);
+    assert.equal(events[0].name, 'mall-goods');
+    assert.equal(events[0].query.name, '珍珠');
+    assert.equal(events[0].query.page, '2');
 });
 
 /** 业务校验拒绝时显示原因并保持表单, 不发出列表刷新事件. */

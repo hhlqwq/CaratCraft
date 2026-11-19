@@ -7,6 +7,11 @@
             <el-form-item>
                 <el-button @click="getDataList(1)">查询</el-button>
                 <el-button
+                    v-if="String($store.state.user.id) === '1' && $router.hasRoute('sys-org')"
+                    @click="$router.push({name: 'sys-org'})"
+                    >组织机构维护</el-button
+                >
+                <el-button
                     v-if="isAuth('sys:role:save')"
                     type="primary"
                     @click="addOrUpdateHandle()"
