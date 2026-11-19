@@ -36,6 +36,14 @@
                                 autocomplete="current-password"
                             ></el-input>
                         </el-form-item>
+                        <div class="login-password-actions">
+                            <button type="button" @click="showPasswordRecovery" @keyup.enter.stop>
+                                忘记密码
+                            </button>
+                            <button type="button" @click="showRegistrationHelp" @keyup.enter.stop>
+                                注册用户
+                            </button>
+                        </div>
                         <el-form-item prop="captcha">
                             <el-row :gutter="20">
                                 <el-col :span="14">
@@ -62,6 +70,7 @@
                         </el-form-item>
                         <el-form-item>
                             <el-button
+                                class="login-submit"
                                 type="primary"
                                 :loading="loginSubmitting"
                                 :disabled="loginSubmitting"
@@ -70,17 +79,6 @@
                                 >登录</el-button
                             >
                         </el-form-item>
-                        <el-form-item>
-                            <el-button link type="primary" @click="showPasswordRecovery"
-                                >忘记密码</el-button
-                            >
-                            <el-button link type="primary" @click="preparePasswordChange"
-                                >修改密码</el-button
-                            >
-                        </el-form-item>
-                        <p v-if="changeAfterLogin">
-                            请先使用当前密码登录，系统将打开修改密码窗口。
-                        </p>
                     </el-form>
                 </div>
 
@@ -134,7 +132,6 @@ export default {
             },
             captchaPath: '',
             loginSubmitting: false,
-            changeAfterLogin: false,
         };
     },
     /** 创建组件时准备所需的依赖数据. */
@@ -149,9 +146,12 @@ export default {
                 '忘记密码'
             );
         },
-        /** 先通过既有图形验证码和当前密码登录, 再打开改密对话框. */
-        preparePasswordChange() {
-            this.changeAfterLogin = true;
+        /** 提示新员工通过有开户权限的管理员获取账号. */
+        showRegistrationHelp() {
+            this.$alert(
+                '请联系有开户权限的管理员创建员工账号。取得账号和初始密码后即可登录。',
+                '注册用户'
+            );
         },
         // 提交表单
         dataFormSubmit() {
@@ -194,17 +194,11 @@ export default {
                                     this.getCaptcha();
                                     return;
                                 }
-                                return this.$router
-                                    .replace(
-                                        this.changeAfterLogin
-                                            ? {path: '/home', query: {changePassword: '1'}}
-                                            : {path: '/home'}
-                                    )
-                                    .catch((error) => {
-                                        if (!isNavigationFailure(error)) {
-                                            throw error;
-                                        }
-                                    });
+                                return this.$router.replace({path: '/home'}).catch((error) => {
+                                    if (!isNavigationFailure(error)) {
+                                        throw error;
+                                    }
+                                });
                             } else {
                                 this.showLoginError(
                                     (data && data.msg) || '账号、密码或验证码不正确'
@@ -347,13 +341,45 @@ body {
             border-bottom-color: #a77b3f;
         }
 
-        .el-button--primary {
+        .login-submit.el-button--primary {
             background: #17231f;
             border-color: #17231f;
             border-radius: 0;
             height: 46px;
             letter-spacing: 6px;
             margin-top: 10px;
+        }
+    }
+
+    .login-password-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 18px;
+        justify-content: flex-end;
+        margin: -8px 0 16px;
+
+        button {
+            background: none;
+            border: 0;
+            border-radius: 2px;
+            color: #4c6358;
+            cursor: pointer;
+            font: inherit;
+            font-size: 13px;
+            min-height: 28px;
+            padding: 0 2px;
+
+            &:hover,
+            &:focus-visible {
+                color: #17231f;
+                text-decoration: underline;
+                text-underline-offset: 3px;
+            }
+
+            &:focus-visible {
+                outline: 2px solid #8b6937;
+                outline-offset: 2px;
+            }
         }
     }
 
