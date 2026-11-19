@@ -1,10 +1,6 @@
 package com.platform.modules.app.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
-import com.github.binarywang.wxpay.bean.result.WxPayOrderQueryResult;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.annotation.IgnoreAuth;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.IpWhitelistUtil;
@@ -12,24 +8,28 @@ import com.platform.common.utils.RestResponse;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.mall.service.MallOrderService;
 import com.platform.modules.mall.service.OrderPaymentService;
+import com.platform.modules.mall.service.WechatPaymentGateway;
+import com.platform.modules.mall.service.WechatPaymentGateway.ChannelFailure;
+import com.platform.modules.mall.service.WechatPaymentGateway.PaymentNotice;
 import com.platform.modules.wx.entity.WxUserEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * 作者: @author hehailong <br>
@@ -46,13 +46,10 @@ public class AppPayController extends AppBaseController {
     @Autowired private MallOrderService orderService;
 
     @Autowired(required = false)
-    private WxPayService weixinPayService;
+    private WechatPaymentGateway weixinPayService;
 
     @Autowired private OrderPaymentService orderPaymentService;
     @Autowired private com.platform.modules.mall.service.OrderPrepaymentService prepaymentService;
-
-    @Value("${wx.pay.baseNotifyUrl}")
-    private String baseNotifyUrl;
 
     /** 是否启用支付回调 IP 白名单 / Whether the notify IP whitelist is enabled. */
     @Value("${wx.pay.notifyIpWhitelistEnabled:true}")
@@ -67,7 +64,7 @@ public class AppPayController extends AppBaseController {
     @PostMapping("prepay")
     public RestResponse<Object> payPrepay(@LoginUser WxUserEntity loginUser, Integer orderId) {
         try {
-            return RestResponse.ok(prepaymentService.prepare(orderId, loginUser, getClientIp()));
+            return RestResponse.ok(prepaymentService.prepare(orderId, loginUser));
         } catch (IllegalArgumentException | IllegalStateException error) {
             return RestResponse.fail(error.getMessage());
         }
@@ -89,89 +86,73 @@ public class AppPayController extends AppBaseController {
             return RestResponse.fail("支付服务未配置，请联系管理员填写微信支付参数");
         }
         try {
-            WxPayOrderQueryResult result =
-                    weixinPayService.queryOrder("", orderDetail.getOrderSn());
-
-            String tradeState = result.getTradeState();
-            if ("SUCCESS".equals(tradeState)) {
-                orderPaymentService.markPaid(orderId, result.getTotalFee());
+            var result = weixinPayService.findOrder(orderDetail.getOrderSn()).orElse(null);
+            if (result != null && "SUCCESS".equals(result.state())) {
+                orderPaymentService.markPaid(orderId, result.totalCents());
                 return RestResponse.ok("支付成功");
-            } else if ("USERPAYING".equals(tradeState)) {
-                return RestResponse.fail("订单支付中，请稍后重试");
-            } else {
-                return RestResponse.fail("当前订单未支付成功");
             }
-        } catch (WxPayException e) {
+            if (result != null && "USERPAYING".equals(result.state())) {
+                return RestResponse.fail("订单支付中，请稍后重试");
+            }
+            return RestResponse.fail("当前订单未支付成功");
+        } catch (ChannelFailure error) {
             log.warn("查询订单支付状态失败, orderId={}", orderId);
             return RestResponse.fail("支付结果待确认, 请稍后重试");
         }
     }
 
-    /**
-     * 微信订单回调接口
-     *
-     * @return
-     */
+    /** 验证 APIv3 原始通知签名, 只有交易已写入本地才返回 HTTP 204. */
     @Operation(hidden = true)
     @IgnoreAuth
-    @PostMapping("/notify")
-    public void notify(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            request.setCharacterEncoding("UTF-8");
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("text/html;charset=UTF-8");
-            response.setHeader("Access-Control-Allow-Origin", "*");
-            // 回调来源 IP 白名单校验, 拦截伪造请求(签名校验之外的纵深防御) /
-            // Whitelist the notify source IP as defense in depth on top of signature checks.
-            String clientIp = resolveNotifyIp();
-            if (weixinPayService == null) {
-                log.warn("支付服务未配置, 忽略支付回调, ip={}", clientIp);
-                response.getWriter().write(setXml("FAIL", "PAY_NOT_CONFIGURED"));
-                return;
-            }
-            if (!isTrustedNotifyIp(clientIp)) {
-                log.warn("拒绝来自非白名单 IP 的支付回调, ip={}", clientIp);
-                response.getWriter().write(setXml("FAIL", "FORBIDDEN"));
-                return;
-            }
-            InputStream in = request.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int len = 0;
-            while ((len = in.read(buffer)) != -1) {
-                out.write(buffer, 0, len);
-            }
-            out.close();
-            in.close();
-            // xml数据
-            String reponseXml = new String(out.toByteArray(), "utf-8");
-            WxPayOrderNotifyResult result = weixinPayService.parseOrderNotifyResult(reponseXml);
-            String resultCode = result.getResultCode();
-            String outTradeNo = result.getOutTradeNo();
-            if ("FAIL".equalsIgnoreCase(resultCode)) {
-                log.error("订单{}支付失败", outTradeNo);
-                response.getWriter().write(setXml("FAIL", "PAY_FAILED"));
-            } else if ("SUCCESS".equalsIgnoreCase(resultCode)) {
-                log.info("订单{}支付成功", outTradeNo);
-                // 业务处理
-                MallOrderEntity orderInfo =
-                        orderService.getOne(
-                                new QueryWrapper<MallOrderEntity>().eq("order_sn", outTradeNo));
-                if (orderInfo == null) {
-                    response.getWriter().write(setXml("FAIL", "ORDER_NOT_FOUND"));
-                    return;
-                }
-                orderPaymentService.markPaid(orderInfo.getId(), result.getTotalFee());
-                response.getWriter().write(setXml("SUCCESS", "OK"));
-            }
-        } catch (Exception e) {
-            log.error("处理微信支付回调失败", e);
-            try {
-                response.getWriter().write(setXml("FAIL", "PROCESS_ERROR"));
-            } catch (Exception writeException) {
-                log.error("写入微信支付回调响应失败", writeException);
-            }
+    @PostMapping(value = "/notify", consumes = "application/json")
+    public ResponseEntity<Map<String, String>> notify(HttpServletRequest request) {
+        if (weixinPayService == null) {
+            return notifyFailure(503, "支付服务未配置");
         }
+        if (!isTrustedNotifyIp(resolveNotifyIp(request))) {
+            return notifyFailure(403, "回调来源未获授权");
+        }
+        try {
+            byte[] body = request.getInputStream().readNBytes(65537);
+            if (body.length > 65536) {
+                return notifyFailure(413, "通知正文过长");
+            }
+            var notice =
+                    new PaymentNotice(
+                            request.getHeader("Wechatpay-Serial"),
+                            request.getHeader("Wechatpay-Nonce"),
+                            request.getHeader("Wechatpay-Signature"),
+                            request.getHeader("Wechatpay-Timestamp"),
+                            new String(body, StandardCharsets.UTF_8));
+            if (notice.serial() == null
+                    || notice.nonce() == null
+                    || notice.signature() == null
+                    || notice.timestamp() == null) {
+                return notifyFailure(400, "缺少通知签名");
+            }
+            var result = weixinPayService.parsePaymentNotice(notice);
+            if (!"SUCCESS".equals(result.state())) {
+                return notifyFailure(400, "通知交易状态不正确");
+            }
+            var order =
+                    orderService.getOne(
+                            new QueryWrapper<MallOrderEntity>().eq("order_sn", result.orderNo()));
+            if (order == null) {
+                return notifyFailure(404, "订单不存在");
+            }
+            orderPaymentService.markPaid(order.getId(), result.totalCents());
+            return ResponseEntity.noContent().build();
+        } catch (ChannelFailure error) {
+            return notifyFailure(401, "通知验签失败");
+        } catch (IOException | RuntimeException error) {
+            log.warn("微信支付通知未能完成本地处理");
+            return notifyFailure(500, "支付结果待写入");
+        }
+    }
+
+    /** 按微信支付通知协议返回失败, 由渠道保留重试机会. */
+    private ResponseEntity<Map<String, String>> notifyFailure(int status, String message) {
+        return ResponseEntity.status(status).body(Map.of("code", "FAIL", "message", message));
     }
 
     /** 订单退款请求 */
@@ -189,7 +170,7 @@ public class AppPayController extends AppBaseController {
      * 防止客户端伪造白名单 IP 绕过校验。 Prefers X-Real-IP (written by nginx from the TCP peer, cannot be
      * spoofed), then the first entry of X-Forwarded-For, then the remote address.
      */
-    private String resolveNotifyIp() {
+    private String resolveNotifyIp(HttpServletRequest request) {
         String realIp = request.getHeader("X-Real-IP");
         if (realIp != null && !realIp.isBlank()) {
             return firstIp(realIp);
@@ -210,7 +191,7 @@ public class AppPayController extends AppBaseController {
     /**
      * 校验回调来源 IP 是否在白名单内 / Checks whether the notify source IP is whitelisted.
      *
-     * <p>白名单未启用或未配置时不拦截, 依赖 XML 签名校验兜底 / Skips the check when disabled or unconfigured, signature
+     * <p>白名单未启用或未配置时不拦截, 仍要求 APIv3 签名校验 / Skips the check when disabled or unconfigured, signature
      * verification still applies.
      *
      * @param clientIp 回调来源 IP / notify source ip
@@ -224,14 +205,5 @@ public class AppPayController extends AppBaseController {
             return true;
         }
         return IpWhitelistUtil.matchesAny(clientIp, notifyIpWhitelist);
-    }
-
-    /** 按微信回调协议构建处理结果XML, 不代表支付状态已通过验证. */
-    public static String setXml(String returnCode, String returnMsg) {
-        return "<xml><return_code><![CDATA["
-                + returnCode
-                + "]]></return_code><return_msg><![CDATA["
-                + returnMsg
-                + "]]></return_msg></xml>";
     }
 }

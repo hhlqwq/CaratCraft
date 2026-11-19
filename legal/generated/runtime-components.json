@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-01",
+  "date": "2026-11-18",
   "backend": [
     {
       "file": "quartz-2.3.2.jar",
@@ -118,7 +118,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "90a7d7a75d40f5bb9ce120a6794ef8bccf578d6ea23bf1105ea27d2fd9c3fa6c",
+      "sha256": "50460915bea9c8431a498cfada9e0dbee8ec52913f7dafac77de9c858f8c1afe",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -143,7 +143,7 @@
         "platform-admin",
         "platform-api"
       ],
-      "sha256": "034ca220a838c1ab371cdc3fbdbbbe901530a120647b06523c690ca06d1d9633",
+      "sha256": "ed88973ee3e103d89540d1bbca7f88269b608983d3ce0f4e4c3e315efcbda803",
       "licenses": [
         {
           "name": "Apache License, Version 2.0",
@@ -4551,71 +4551,6 @@
       "selectedLicense": "MIT"
     },
     {
-      "file": "weixin-java-pay-4.5.2.B.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "eaa344b06b491cff4a6fcd22f0816b97a5fd5b2283917cf30034f9c7f3a6d6d0",
-      "licenses": [
-        {
-          "name": "The Apache License, Version 2.0",
-          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/weixin-java-pay-4.5.2.B.jar/weixin-java-pay-4.5.2.B.pom",
-        "legal/generated/evidence/weixin-java-pay-4.5.2.B.jar/wx-java-4.5.2.B.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/github/binarywang/weixin-java-pay/4.5.2.B/weixin-java-pay-4.5.2.B-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "com.github.binarywang:weixin-java-pay:4.5.2.B",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "qrcode-utils-1.1.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "78c47a0c10387f1639b34a62a1a9c7397961f88a5eafad65f3a4632091ea3a4e",
-      "licenses": [
-        {
-          "name": "The Apache License, Version 2.0",
-          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/qrcode-utils-1.1.jar/qrcode-utils-1.1.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/github/binarywang/qrcode-utils/1.1/qrcode-utils-1.1-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "com.github.binarywang:qrcode-utils:1.1",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "core-3.2.1.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "b4d82452e7a6bf6ec2698904b332431717ed8f9a850224f295aec89de80f2259",
-      "licenses": [
-        {
-          "name": "The Apache Software License, Version 2.0",
-          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/core-3.2.1.jar/core-3.2.1.pom",
-        "legal/generated/evidence/core-3.2.1.jar/zxing-parent-3.2.1.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/google/zxing/core/3.2.1/core-3.2.1-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "com.google.zxing:core:3.2.1",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
       "file": "jodd-util-6.1.0.jar",
       "modules": [
         "platform-admin",
@@ -4636,74 +4571,6 @@
       "status": "已取得许可声明, 按交付义务处理",
       "coordinates": "org.jodd:jodd-util:6.1.0",
       "selectedLicense": "BSD/EDL (以随附版本原文为准)"
-    },
-    {
-      "file": "javax.servlet-api-4.0.1.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "83a03dd877d3674576f0da7b90755c8524af099ccf0607fc61aa971535ad7c60",
-      "licenses": [
-        {
-          "name": "CDDL + GPLv2 with classpath exception",
-          "url": "https://oss.oracle.com/licenses/CDDL+GPL-1.1"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/javax.servlet-api-4.0.1.jar/META-INF_LICENSE.txt",
-        "legal/generated/evidence/javax.servlet-api-4.0.1.jar/javax.servlet-api-4.0.1.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "javax.servlet:javax.servlet-api:4.0.1",
-      "requiresLicenseChoiceOrSource": true,
-      "selectedLicense": "CDDL (以随附版本原文为准)",
-      "correspondingSource": "legal/sources/javax.servlet-api-4.0.1-sources.jar"
-    },
-    {
-      "file": "weixin-java-cp-4.5.2.B.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "cfc0db0ed446cd583f26f3f5f1cb04c83de5ef9fa94f5fa4e2e1280d9e54a032",
-      "licenses": [
-        {
-          "name": "The Apache License, Version 2.0",
-          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/weixin-java-cp-4.5.2.B.jar/weixin-java-cp-4.5.2.B.pom",
-        "legal/generated/evidence/weixin-java-cp-4.5.2.B.jar/wx-java-4.5.2.B.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/github/binarywang/weixin-java-cp/4.5.2.B/weixin-java-cp-4.5.2.B-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "com.github.binarywang:weixin-java-cp:4.5.2.B",
-      "selectedLicense": "Apache-2.0"
-    },
-    {
-      "file": "weixin-java-open-4.5.2.B.jar",
-      "modules": [
-        "platform-admin",
-        "platform-api"
-      ],
-      "sha256": "cce8b64ba4a2bdc74343895f86417a90fcc63296e02e8fd4f9cd354cb3951e1c",
-      "licenses": [
-        {
-          "name": "The Apache License, Version 2.0",
-          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-      ],
-      "evidence": [
-        "legal/generated/evidence/weixin-java-open-4.5.2.B.jar/weixin-java-open-4.5.2.B.pom",
-        "legal/generated/evidence/weixin-java-open-4.5.2.B.jar/wx-java-4.5.2.B.pom"
-      ],
-      "sourceUrl": "https://repo.maven.apache.org/maven2/com/github/binarywang/weixin-java-open/4.5.2.B/weixin-java-open-4.5.2.B-sources.jar",
-      "status": "已取得许可声明, 按交付义务处理",
-      "coordinates": "com.github.binarywang:weixin-java-open:4.5.2.B",
-      "selectedLicense": "Apache-2.0"
     },
     {
       "file": "jedis-5.1.0.jar",
@@ -5798,6 +5665,50 @@
       "sourceUrl": "",
       "status": "已取得JAR内许可原文, 按交付义务处理",
       "selectedLicense": "Apache-2.0"
+    },
+    {
+      "file": "wechatpay-java-0.2.17.jar",
+      "modules": [
+        "platform-admin",
+        "platform-api"
+      ],
+      "sha256": "30d0d4cbcc0ad471aab1103b94f591a8d6ee60f224cdfec28daaf33d8571f174",
+      "licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ],
+      "evidence": [
+        "legal/generated/evidence/wechatpay-java-0.2.17.jar/wechatpay-java-0.2.17.pom",
+        "legal/licenses/wechatpay-java-0.2.17/LICENSE"
+      ],
+      "sourceUrl": "https://github.com/wechatpay-apiv3/wechatpay-java/tree/v0.2.17",
+      "status": "微信支付官方发布, 已核对构件、发布 POM 及对应标签许可证",
+      "coordinates": "com.github.wechatpay-apiv3:wechatpay-java:0.2.17",
+      "selectedLicense": "Apache-2.0"
+    },
+    {
+      "file": "wechatpay-java-core-0.2.17.jar",
+      "modules": [
+        "platform-admin",
+        "platform-api"
+      ],
+      "sha256": "c83d290a91e1199199562404a1e651ecd43b0904a2ecd04757f006dd08b20a7c",
+      "licenses": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ],
+      "evidence": [
+        "legal/generated/evidence/wechatpay-java-core-0.2.17.jar/wechatpay-java-core-0.2.17.pom",
+        "legal/licenses/wechatpay-java-0.2.17/LICENSE"
+      ],
+      "sourceUrl": "https://github.com/wechatpay-apiv3/wechatpay-java/tree/v0.2.17",
+      "status": "微信支付官方发布, 已核对构件、发布 POM 及对应标签许可证",
+      "coordinates": "com.github.wechatpay-apiv3:wechatpay-java-core:0.2.17",
+      "selectedLicense": "Apache-2.0"
     }
   ],
   "frontend": [
@@ -6278,12 +6189,6 @@
       "url": "https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.agent/0.8.5/org.jacoco.agent-0.8.5-sources.jar",
       "sha256": "604c2f144322b340bc42526a2fb93c3ca68c97eda12dbc9701c6f0f9db617d40",
       "license": "EPL-2.0"
-    },
-    {
-      "file": "legal/sources/javax.servlet-api-4.0.1-sources.jar",
-      "url": "https://repo.maven.apache.org/maven2/javax/servlet/javax.servlet-api/4.0.1/javax.servlet-api-4.0.1-sources.jar",
-      "sha256": "a2826761ae88535afb0a3a049eacc846494e22627a1dcf14de37b956ca8748d6",
-      "license": "CDDL (以随附版本原文为准)"
     }
   ],
   "distributionBlockers": []

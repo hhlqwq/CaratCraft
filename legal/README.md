@@ -1,6 +1,6 @@
 # CaratCraft应用发布许可材料
 
-实际应用依赖见[运行组件索引](generated/runtime-components.json). 2026-10-21原生Vue3迁移已按构建图同步为28个前端/复制样式组件, 当前管理端253个、API246个运行JAR, 已移除无入口PDFBox及其fontbox/pdfbox-io依赖; 每次重新打包须核对项目模块哈希和完整分发门禁, 原始许可原文不改写. 不混入未发布的测试和构建工具. 原始声明、父POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
+实际应用依赖见[运行组件索引](generated/runtime-components.json). 前端及复制样式组件为28个. 微信支付切换至官方 APIv3 后, 管理端249个、API242个运行JAR, 保留小程序和公众号模块, 移除旧支付、企业微信、开放平台模块及其不再使用的传递库. 每次重新打包须核对项目模块哈希和完整分发门禁. 原始声明、发布POM和NOTICE在`generated/evidence/`, 对应库源码及原始MIT发布包在`sources/`.
 
 本轮新增实际入包的`vue`、`@vue/reactivity`、`@vue/runtime-core`及`@vue/runtime-dom`均为锁定的3.5.44版本, 随附各原始npm包内的完整MIT文本及元数据. 兼容运行时不再入包, 旧许可证据不删除. `tools/legal/sync-frontend-license-inventory.py --date 2026-10-21`仅为这四个已核对的固定版本同步原始文本, 其他新依赖仍会拒绝并要求单独核对.
 
@@ -9,7 +9,7 @@
 - Highcharts、旧UEditor静态插件、EXE/SWF、旧wxParse、Oracle JDBC和aizuda-monitor已从当前应用源码/依赖中移除. 商品详情改用项目HTML编辑组件及微信原生rich-text, 监控改为直接使用OSHI.
 - 当前JDBC为MariaDB Connector/J3.5.10, 连接现有MySQL服务. 选择LGPL-2.1-or-later, 保留许可证、对应源码, 并允许接收者替换库及为调试该库进行必要的分析. 这不把应用其他代码转为该库的版权.
 - JNA、JSqlParser、Javassist等多许可组件选择其Apache2分支. Logback、AspectJ、JaCoCo及相应Jakarta库选择适用EPL分支; 老Java API库按所附CDDL分支处理. 不以出现GPL候选字样就认定应用必须全部开源.
-- `sources/`提供13份需要随应用交付处理的对应Java库源码. 不能在商业交付时仅复制应用JAR而遗漏此目录及许可原文.
+- 当前发布索引列出12份需要随应用交付处理的对应Java库源码. 历史原文和源码仍保留在仓库. 微信支付 SDK 的[上游固定版本许可证](licenses/wechatpay-java-0.2.17/LICENSE)随发布材料提供.
 - 若旧MIT npm包未附独立LICENSE, 保留同版本官方MIT元数据、经完整性校验的原始发布包及标准MIT文本. 原包内版权声明原样保留, 不编造版权日期或把作者改为项目作者.
 - CSS内复制的normalize.css7.0.0另有MIT证据. ElementUI图标字体保留原已核验的2.15.10副本, 新组件运行代码使用Element Plus, 保留其MIT文本; 这些库字体不是项目自有字体.
 - [项目素材来源](project-assets.json)记录160个重新绘制的资源, 由`tools/assets/generate-project-assets.py`中的几何图形生成. 珠宝图片是标注DEMO的功能示意, 商家上线必须使用其有权发布的真实商品图与文案.

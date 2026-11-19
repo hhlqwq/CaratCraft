@@ -2,21 +2,15 @@ package com.platform.modules.mall.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
-import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
-import com.github.binarywang.wxpay.config.WxPayConfig;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.wx.entity.WxUserEntity;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -28,12 +22,10 @@ class OrderPrepaymentServiceTest {
     @Test
     void usesMiniappOpenidAndRejectsApplicationMismatch() throws Exception {
         MallOrderService orders = mock(MallOrderService.class);
-        ObjectProvider<WxPayService> provider = mock();
-        WxPayService gateway = mock(WxPayService.class);
+        ObjectProvider<WechatPaymentGateway> provider = mock();
+        WechatPaymentGateway gateway = mock(WechatPaymentGateway.class);
         when(provider.getIfAvailable()).thenReturn(gateway);
-        WxPayConfig config = new WxPayConfig();
-        config.setAppId("miniapp-test");
-        when(gateway.getConfig()).thenReturn(config);
+        when(gateway.appId()).thenReturn("miniapp-test");
         OrderPrepaymentService service =
                 new OrderPrepaymentService(
                         orders, provider, "miniapp-test", "https://merchant.example/pay/notify");
@@ -49,16 +41,23 @@ class OrderPrepaymentServiceTest {
         user.setId(7L);
         user.setMaOpenid("miniapp-openid");
         user.setOpenid("public-account-openid");
-        WxPayMpOrderResult result = new WxPayMpOrderResult();
-        result.setPackageValue("prepay_id=isolated");
-        when(gateway.createOrder(any(WxPayUnifiedOrderRequest.class))).thenReturn(result);
-        service.prepare(10, user, "127.0.0.1");
-        ArgumentCaptor<WxPayUnifiedOrderRequest> request =
-                ArgumentCaptor.forClass(WxPayUnifiedOrderRequest.class);
-        verify(gateway).createOrder(request.capture());
-        assertEquals("miniapp-openid", request.getValue().getOpenid());
-        assertEquals(19900, request.getValue().getTotalFee());
-        config.setAppId("another-application");
-        assertThrows(IllegalArgumentException.class, () -> service.prepare(10, user, "127.0.0.1"));
+        var result =
+                new WechatPaymentGateway.ClientPayment(
+                        "1", "nonce", "prepay_id=isolated", "RSA", "signature");
+        when(gateway.prepay(
+                        "ISOLATED-TEST",
+                        "miniapp-openid",
+                        19900,
+                        "https://merchant.example/pay/notify"))
+                .thenReturn(result);
+        assertEquals(result, service.prepare(10, user));
+        verify(gateway)
+                .prepay(
+                        "ISOLATED-TEST",
+                        "miniapp-openid",
+                        19900,
+                        "https://merchant.example/pay/notify");
+        when(gateway.appId()).thenReturn("another-application");
+        assertThrows(IllegalArgumentException.class, () -> service.prepare(10, user));
     }
 }

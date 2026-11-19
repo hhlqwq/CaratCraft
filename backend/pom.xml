@@ -351,26 +351,6 @@
             <version>${weixin-java.version}</version>
         </dependency>
 
-        <!-- 微信支付 -->
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-pay</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
-        <!-- 企业微信 -->
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-cp</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-open</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
         <dependency>
             <groupId>redis.clients</groupId>

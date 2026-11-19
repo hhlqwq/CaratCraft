@@ -62,6 +62,19 @@
         "productionDatabaseModified": false,
         "realRefundSent": false
     },
+    "wechatPayV3Acceptance": {
+        "date": "2026-11-18",
+        "sdk": "com.github.wechatpay-apiv3:wechatpay-java:0.2.17",
+        "java": {"runId": "20261118-b79169176331", "passed": 258, "failed": 0, "skipped": 0, "permissionHttpCases": 9},
+        "channel": "隔离 MySQL/Redis 和支付渠道替身. 覆盖下单、查单、关单、支付通知、退款申请、查单、原退款号重试和岗位权限.",
+        "package": {"adminStartup": "passed", "apiStartup": "passed", "removedWxJavaModules": ["pay", "cp", "open"], "distributionLicenseCheck": "passed"},
+        "storage": {"type": "disk", "containerPath": "/data/uploads", "urlPrefix": "/upload", "uploadAndPersistence": "passed", "miniappUrlAndDownload": "passed"},
+        "miniapp": {"officialWxmlWxssCompile": "passed", "pages": 40, "wxml": 43, "wxss": 48, "javascriptSyntax": 60},
+        "additionalProbe": {"case": "unpublished_template_rejected", "expectedHttp": 400, "actualHttp": 200, "status": "failed", "note": "参考接口脚本假定模板停用, 当前演示种子随后启用该模板. 支付和后台验收使用独立用例."},
+        "pendingExternal": ["真实微信支付商户及退款渠道", "目标环境存储卷和上传地址", "微信小程序真机加载"],
+        "productionDatabaseModified": false,
+        "realTransactionSent": false
+    },
     "integrationAcceptance": {
         "baseCommit": "ab9dbdb430519f395aaf879588f950023af37d61",
         "historicalReviewCommit": "adb8989d641b21d0694d72b12e393a2b70565c72",

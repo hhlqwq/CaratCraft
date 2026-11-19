@@ -18,53 +18,44 @@
  */
 package com.platform.config;
 
-import com.github.binarywang.wxpay.config.WxPayConfig;
-import com.github.binarywang.wxpay.service.WxPayService;
-import com.github.binarywang.wxpay.service.impl.WxPayServiceImpl;
+import com.platform.modules.mall.service.WechatPaymentGateway;
+import com.platform.modules.mall.service.WechatV3PaymentGateway;
+import com.wechat.pay.java.core.RSAPublicKeyConfig;
+import com.wechat.pay.java.core.notification.NotificationParser;
+import com.wechat.pay.java.service.payments.jsapi.JsapiServiceExtension;
+import com.wechat.pay.java.service.refund.RefundService;
 
-import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * 装配直连商户 APIv3, 使用微信支付公钥验签.
+ *
  * @author Binary Wang
  */
 @Configuration
-@ConditionalOnClass(WxPayService.class)
 @Conditional(WxPayConfiguredCondition.class)
 @EnableConfigurationProperties(WxPayProperties.class)
-@RequiredArgsConstructor
 public class WxPayConfiguration {
-    private final WxPayProperties properties;
-
-    /** 提供当前微信账号对应的SDK服务. */
+    /** 明确配置的商户密钥和微信支付公钥缺失时不签发支付请求. */
     @Bean
-    @ConditionalOnMissingBean
-    public WxPayService wxService() {
-        WxPayService wxPayService = new WxPayServiceImpl();
-        wxPayService.setConfig(wxPayConfig());
-        return wxPayService;
-    }
-
-    /** 构建当前商户的微信支付配置. */
-    @Bean
-    public WxPayConfig wxPayConfig() {
-        WxPayConfig payConfig = new WxPayConfig();
-        payConfig.setAppId(StringUtils.trimToNull(this.properties.getAppId()));
-        payConfig.setMchId(StringUtils.trimToNull(this.properties.getMchId()));
-        payConfig.setMchKey(StringUtils.trimToNull(this.properties.getMchKey()));
-        payConfig.setSubAppId(StringUtils.trimToNull(this.properties.getSubAppId()));
-        payConfig.setSubMchId(StringUtils.trimToNull(this.properties.getSubMchId()));
-        payConfig.setKeyPath(StringUtils.trimToNull(this.properties.getKeyPath()));
-        // 可以指定是否使用沙箱环境
-        payConfig.setUseSandboxEnv(false);
-
-        return payConfig;
+    public WechatPaymentGateway wxService(WxPayProperties properties) {
+        var config =
+                new RSAPublicKeyConfig.Builder()
+                        .merchantId(properties.getMchId())
+                        .merchantSerialNumber(properties.getMerchantSerialNumber())
+                        .privateKeyFromPath(properties.getPrivateKeyPath())
+                        .apiV3Key(properties.getApiV3Key())
+                        .publicKeyFromPath(properties.getPublicKeyPath())
+                        .publicKeyId(properties.getPublicKeyId())
+                        .build();
+        return new WechatV3PaymentGateway(
+                properties.getAppId(),
+                properties.getMchId(),
+                new JsapiServiceExtension.Builder().config(config).build(),
+                new RefundService.Builder().config(config).build(),
+                new NotificationParser(config));
     }
 }

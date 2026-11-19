@@ -1,10 +1,5 @@
 package com.platform.modules.mall.service;
 
-import com.github.binarywang.wxpay.bean.request.BaseWxPayRequest;
-import com.github.binarywang.wxpay.bean.request.WxPayRefundQueryRequest;
-import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.entity.MallOrderEntity;
 import com.platform.modules.sys.service.OrgActionScope;
@@ -42,7 +37,7 @@ public class OrderRefundService {
     private final MallOrderService orders;
     private final CustomDesignService designs;
     private final JdbcTemplate jdbc;
-    private final ObjectProvider<WxPayService> gateway;
+    private final ObjectProvider<WechatPaymentGateway> gateway;
     private final TransactionTemplate transactions;
 
     /** 注入事务边界与既有支付客户端, 不在网络调用期间持有订单行锁. */
@@ -50,7 +45,7 @@ public class OrderRefundService {
             MallOrderService orders,
             CustomDesignService designs,
             JdbcTemplate jdbc,
-            ObjectProvider<WxPayService> gateway,
+            ObjectProvider<WechatPaymentGateway> gateway,
             PlatformTransactionManager manager) {
         this.orders = orders;
         this.designs = designs;
@@ -80,7 +75,7 @@ public class OrderRefundService {
                     if (Integer.valueOf(201).equals(order.getOrderStatus())) {
                         designs.assertOrderCancellable(orderId);
                     }
-                    int fen = BaseWxPayRequest.yuanToFen(order.getActualPrice().toPlainString());
+                    int fen = order.getActualPrice().movePointRight(2).intValueExact();
                     jdbc.update(
                             "INSERT INTO"
                                 + " CC_REFUND(order_id,refund_no,status,original_status,amount_fen,reason)"
@@ -278,7 +273,7 @@ public class OrderRefundService {
 
     /** 重试指定退款, 仅允许状态为RETRY且租约已到期的申请. */
     public void retry(Integer orderId) {
-        WxPayService pay = gateway.getIfAvailable();
+        WechatPaymentGateway pay = gateway.getIfAvailable();
         if (pay == null) {
             throw new IllegalStateException("支付服务尚未配置");
         }
@@ -289,7 +284,7 @@ public class OrderRefundService {
 
     /** 领取到期租约的退款每批最多处理50项, 返回实际领取数. */
     private int reconcileBatch(Reconciliation mode, OrgActionScope scope) {
-        WxPayService pay = gateway.getIfAvailable();
+        WechatPaymentGateway pay = gateway.getIfAvailable();
         if (pay == null) {
             return 0;
         }
@@ -315,7 +310,7 @@ public class OrderRefundService {
     }
 
     /** 租约防止多实例重复并行, 同一退款号使网络超时重试仍保持幂等. */
-    private boolean reconcileOne(Integer id, WxPayService pay, Reconciliation mode) {
+    private boolean reconcileOne(Integer id, WechatPaymentGateway pay, Reconciliation mode) {
         if (jdbc.update(
                         "UPDATE CC_REFUND SET next_check_time=DATE_ADD(NOW(),INTERVAL 2"
                                 + " MINUTE),attempts=attempts+1 WHERE order_id=? AND status IN ("
@@ -329,30 +324,17 @@ public class OrderRefundService {
         Map<String, Object> row = jdbc.queryForMap("SELECT * FROM CC_REFUND WHERE order_id=?", id);
         String refundNo = row.get("refund_no").toString();
         try {
-            WxPayRefundQueryRequest query = new WxPayRefundQueryRequest();
-            query.setOutRefundNo(refundNo);
-            com.github.binarywang.wxpay.bean.result.WxPayRefundQueryResult result;
-            try {
-                result = pay.refundQuery(query);
-            } catch (WxPayException missing) {
-                if (!"REFUNDNOTEXIST".equals(missing.getErrCode())) {
-                    throw missing;
-                }
-                if (!mode.canSubmit || "MANUAL_REVIEW".equals(row.get("status"))) {
-                    // 人工对账和渠道异常待处理的申请仅查单, 保持当前本地状态.
-                    return true;
-                }
-                MallOrderEntity order = orders.getById(id);
-                WxPayRefundRequest request = new WxPayRefundRequest();
-                request.setOutTradeNo(order.getOrderSn());
-                request.setOutRefundNo(refundNo);
-                request.setTotalFee(((Number) row.get("amount_fen")).intValue());
-                request.setRefundFee(request.getTotalFee());
-                request.setRefundDesc("商家审核通过的退款申请");
-                var accepted = pay.refund(request);
-                if (!"SUCCESS".equals(accepted.getResultCode())) {
-                    throw new IllegalStateException("退款未受理");
-                }
+            var record = pay.findRefund(refundNo).orElse(null);
+            if (record == null && (!mode.canSubmit || "MANUAL_REVIEW".equals(row.get("status")))) {
+                return true;
+            }
+            MallOrderEntity order = orders.getById(id);
+            int amount = ((Number) row.get("amount_fen")).intValue();
+            if (order == null || order.getOrderSn() == null) {
+                throw new IllegalStateException("退款订单不存在");
+            }
+            if (record == null) {
+                pay.submitRefund(refundNo, order.getOrderSn(), amount);
                 jdbc.update(
                         "UPDATE CC_REFUND SET"
                             + " status='PROCESSING',provider_status='ACCEPTED',update_time=NOW()"
@@ -360,18 +342,12 @@ public class OrderRefundService {
                         id);
                 return true;
             }
-            if (!"SUCCESS".equals(result.getResultCode()) || result.getRefundRecords() == null) {
-                throw new IllegalStateException("退款查单未返回有效记录");
+            if (!refundNo.equals(record.refundNo())
+                    || !order.getOrderSn().equals(record.orderNo())
+                    || amount != record.cents()) {
+                throw new IllegalStateException("退款渠道订单、退款号或金额不匹配");
             }
-            var record =
-                    result.getRefundRecords().stream()
-                            .filter(value -> refundNo.equals(value.getOutRefundNo()))
-                            .findFirst()
-                            .orElseThrow(() -> new IllegalStateException("退款号不匹配"));
-            if (!row.get("amount_fen").toString().equals(String.valueOf(record.getRefundFee()))) {
-                throw new IllegalStateException("退款金额不匹配");
-            }
-            String state = record.getRefundStatus();
+            String state = record.state();
             if ("SUCCESS".equals(state)) {
                 transactions.executeWithoutResult(
                         status -> {

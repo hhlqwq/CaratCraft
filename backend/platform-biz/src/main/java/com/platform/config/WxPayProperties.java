@@ -21,8 +21,6 @@ package com.platform.config;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -40,20 +38,18 @@ public class WxPayProperties {
     /** 微信支付商户号 */
     private String mchId;
 
-    /** 微信支付商户密钥 */
-    private String mchKey;
+    /** APIv3 密钥, 仅用于通知解密. */
+    private String apiV3Key;
 
-    /** 服务商模式下的子商户公众账号ID，普通模式请不要配置，请在配置文件中将对应项删除 */
-    private String subAppId;
+    /** 商户 API 证书的序列号. */
+    private String merchantSerialNumber;
 
-    /** 服务商模式下的子商户号，普通模式请不要配置，最好是请在配置文件中将对应项删除 */
-    private String subMchId;
+    /** 商户证书配套的 PEM 私钥路径. */
+    private String privateKeyPath;
 
-    /** apiclient_cert.p12文件的绝对路径，或者如果放在项目中，请以classpath:开头指定 */
-    private String keyPath;
+    /** 微信支付公钥 PEM 路径. */
+    private String publicKeyPath;
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
-    }
+    /** 商户平台公布的微信支付公钥 ID. */
+    private String publicKeyId;
 }

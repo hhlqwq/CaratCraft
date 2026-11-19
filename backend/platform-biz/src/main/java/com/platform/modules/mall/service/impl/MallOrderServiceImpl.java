@@ -82,7 +82,7 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
     private final LegalDocumentService legalDocuments;
 
     private final org.springframework.beans.factory.ObjectProvider<
-                    com.github.binarywang.wxpay.service.WxPayService>
+                    com.platform.modules.mall.service.WechatPaymentGateway>
             paymentGateway;
 
     private final org.springframework.beans.factory.ObjectProvider<
@@ -473,7 +473,8 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
                 || !Integer.valueOf(0).equals(order.getOrderStatus())) {
             throw new IllegalArgumentException("订单状态不允许取消");
         }
-        com.github.binarywang.wxpay.service.WxPayService gateway = paymentGateway.getIfAvailable();
+        com.platform.modules.mall.service.WechatPaymentGateway gateway =
+                paymentGateway.getIfAvailable();
         if (gateway == null
                 && (Integer.valueOf(1).equals(order.getPayStatus())
                         || (order.getPayId() != null
@@ -483,25 +484,23 @@ public class MallOrderServiceImpl extends ServiceImpl<MallOrderDao, MallOrderEnt
         }
         if (gateway != null) {
             try {
-                com.github.binarywang.wxpay.bean.result.WxPayOrderQueryResult result =
-                        gateway.queryOrder("", order.getOrderSn());
-                if ("SUCCESS".equals(result.getTradeState())) {
-                    paymentResults.getObject().markPaid(orderId, result.getTotalFee());
-                    return false;
+                var result = gateway.findOrder(order.getOrderSn()).orElse(null);
+                if (result != null) {
+                    if ("SUCCESS".equals(result.state())) {
+                        paymentResults.getObject().markPaid(orderId, result.totalCents());
+                        return false;
+                    }
+                    if ("USERPAYING".equals(result.state())) {
+                        return false;
+                    }
+                    if ("NOTPAY".equals(result.state())) {
+                        gateway.closeOrder(order.getOrderSn());
+                    } else if (!Set.of("CLOSED", "REVOKED", "PAYERROR").contains(result.state())) {
+                        throw new IllegalStateException("支付状态待核对, 暂不能关闭订单");
+                    }
                 }
-                if ("USERPAYING".equals(result.getTradeState())) {
-                    return false;
-                }
-                if ("NOTPAY".equals(result.getTradeState())) {
-                    gateway.closeOrder(order.getOrderSn());
-                } else if (!Set.of("CLOSED", "REVOKED", "PAYERROR")
-                        .contains(result.getTradeState())) {
-                    throw new IllegalStateException("支付状态待核对, 暂不能关闭订单");
-                }
-            } catch (com.github.binarywang.wxpay.exception.WxPayException error) {
-                if (!"ORDERNOTEXIST".equals(error.getErrCode())) {
-                    throw new IllegalStateException("支付平台核对或关单失败, 请稍后重试");
-                }
+            } catch (com.platform.modules.mall.service.WechatPaymentGateway.ChannelFailure error) {
+                throw new IllegalStateException("支付平台核对或关单失败, 请稍后重试");
             }
         }
         if (baseMapper.cancelUnpaid(orderId, userId) != 1) {

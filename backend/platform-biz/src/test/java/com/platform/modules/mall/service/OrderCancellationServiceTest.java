@@ -11,9 +11,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.binarywang.wxpay.bean.result.WxPayOrderQueryResult;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.modules.mall.dao.MallOrderDao;
 import com.platform.modules.mall.dao.MallOrderGoodsDao;
@@ -29,14 +26,15 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 /** 取消预支付订单前必须核对和关闭支付侧订单, 不得误恢复已付款资源. */
 class OrderCancellationServiceTest {
     private MallOrderServiceImpl service;
     private MallOrderDao orders;
-    private WxPayService gateway;
+    private WechatPaymentGateway gateway;
     private OrderPaymentService payments;
-    private ObjectProvider<WxPayService> provider;
+    private ObjectProvider<WechatPaymentGateway> provider;
     private MallOrderEntity order;
 
     /** 设置可控支付网关和资源访问替身. */
@@ -49,7 +47,7 @@ class OrderCancellationServiceTest {
                                 null, null, null, null, null, null, null, null, null, null, null,
                                 null));
         orders = mock(MallOrderDao.class);
-        gateway = mock(WxPayService.class);
+        gateway = mock(WechatPaymentGateway.class);
         payments = mock(OrderPaymentService.class);
         provider = mock(ObjectProvider.class);
         ObjectProvider<OrderPaymentService> paymentProvider = mock(ObjectProvider.class);
@@ -76,10 +74,11 @@ class OrderCancellationServiceTest {
     /** 支付平台已成功时只补记支付结果, 不取消本地订单. */
     @Test
     void paidGatewayOrderIsReconciledInsteadOfCancelled() throws Exception {
-        WxPayOrderQueryResult result = new WxPayOrderQueryResult();
-        result.setTradeState("SUCCESS");
-        result.setTotalFee(19900);
-        when(gateway.queryOrder("", order.getOrderSn())).thenReturn(result);
+        when(gateway.findOrder(order.getOrderSn()))
+                .thenReturn(
+                        Optional.of(
+                                new WechatPaymentGateway.PaymentOrder(
+                                        order.getOrderSn(), "SUCCESS", 19900)));
         assertFalse(service.cancelUnpaid(10, 7L));
         verify(payments).markPaid(10, 19900);
         verify(orders, never()).cancelUnpaid(10, 7L);
@@ -88,9 +87,11 @@ class OrderCancellationServiceTest {
     /** 预支付尚未付款时先关闭支付侧订单再取消本地订单. */
     @Test
     void unpaidGatewayOrderIsClosedBeforeLocalCancellation() throws Exception {
-        WxPayOrderQueryResult result = new WxPayOrderQueryResult();
-        result.setTradeState("NOTPAY");
-        when(gateway.queryOrder("", order.getOrderSn())).thenReturn(result);
+        when(gateway.findOrder(order.getOrderSn()))
+                .thenReturn(
+                        Optional.of(
+                                new WechatPaymentGateway.PaymentOrder(
+                                        order.getOrderSn(), "NOTPAY", null)));
         assertTrue(service.cancelUnpaid(10, 7L));
         var sequence = org.mockito.Mockito.inOrder(gateway, orders);
         sequence.verify(gateway).closeOrder(order.getOrderSn());
@@ -109,7 +110,8 @@ class OrderCancellationServiceTest {
     /** 支付平台不可用时不得凭本地状态恢复库存. */
     @Test
     void unavailableGatewayPreventsLocalCancellation() throws Exception {
-        when(gateway.queryOrder("", order.getOrderSn())).thenThrow(new WxPayException("连接失败"));
+        when(gateway.findOrder(order.getOrderSn()))
+                .thenThrow(new WechatPaymentGateway.ChannelFailure());
         assertThrows(IllegalStateException.class, () -> service.cancelUnpaid(10, 7L));
         verify(orders, never()).cancelUnpaid(10, 7L);
     }

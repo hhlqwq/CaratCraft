@@ -7,29 +7,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.binarywang.wxpay.bean.request.WxPayRefundQueryRequest;
-import com.github.binarywang.wxpay.bean.request.WxPayRefundRequest;
-import com.github.binarywang.wxpay.bean.result.WxPayRefundQueryResult;
-import com.github.binarywang.wxpay.bean.result.WxPayRefundResult;
-import com.github.binarywang.wxpay.exception.WxPayException;
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.PlatformAdminApplication;
 import com.platform.common.utils.AesUtil;
 import com.platform.modules.job.utils.ScheduleRunnable;
+import com.platform.modules.mall.service.WechatPaymentGateway;
 
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,6 +39,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 /** 真实HTTP经Shiro和隔离数据库授权, 支付渠道全程使用替身. */
@@ -67,7 +61,7 @@ class OrderPermissionHttpTest {
 
     @Autowired private TestRestTemplate http;
     @Autowired private JdbcTemplate jdbc;
-    @MockBean private WxPayService gateway;
+    @MockBean private WechatPaymentGateway gateway;
 
     /** 只接受现有隔离回归工具生成的回环数据库, Redis也固定在回环. */
     @DynamicPropertySource
@@ -206,26 +200,21 @@ class OrderPermissionHttpTest {
         send("approve", HttpMethod.POST, "/mall/refund/decide", decision(), 200);
         assertEquals("APPROVED", refundStatus(APPROVE));
         verifyNoInteractions(gateway);
-        WxPayException missing = mock(WxPayException.class);
-        when(missing.getErrCode()).thenReturn("REFUNDNOTEXIST");
-        when(gateway.refundQuery(any(WxPayRefundQueryRequest.class)))
+        when(gateway.findRefund(org.mockito.ArgumentMatchers.anyString()))
                 .thenAnswer(
-                        call -> {
-                            WxPayRefundQueryRequest query = call.getArgument(0);
-                            if ("CC-PERM-WRITEBACK".equals(query.getOutRefundNo())) {
-                                return successfulQuery();
-                            }
-                            throw missing;
-                        });
-        WxPayRefundResult accepted = new WxPayRefundResult();
-        accepted.setResultCode("SUCCESS");
-        when(gateway.refund(any(WxPayRefundRequest.class))).thenReturn(accepted);
+                        call ->
+                                "CC-PERM-WRITEBACK".equals(call.getArgument(0))
+                                        ? Optional.of(
+                                                new WechatPaymentGateway.RefundRecord(
+                                                        "CC-PERM-WRITEBACK",
+                                                        "cc-perm-writeback",
+                                                        100,
+                                                        "SUCCESS"))
+                                        : Optional.empty());
         send("retry", HttpMethod.POST, retryUrl(APPROVE), null, 409);
         send("retry", HttpMethod.POST, retryUrl(RETRY), null, 200);
         send("retry", HttpMethod.POST, retryUrl(RETRY), null, 409);
-        var refund = ArgumentCaptor.forClass(WxPayRefundRequest.class);
-        verify(gateway).refund(refund.capture());
-        assertEquals("CC-PERM-RETRY", refund.getValue().getOutRefundNo());
+        verify(gateway).submitRefund("CC-PERM-RETRY", "cc-perm-retry", 100);
         assertEquals("PROCESSING", refundStatus(RETRY));
         clearInvocations(gateway);
 
@@ -238,7 +227,7 @@ class OrderPermissionHttpTest {
                 4,
                 jdbc.queryForObject(
                         "SELECT pay_status FROM mall_order WHERE id=?", Integer.class, WRITEBACK));
-        verify(gateway, never()).refund(any(WxPayRefundRequest.class));
+        verify(gateway, never()).submitRefund(any(), any(), org.mockito.ArgumentMatchers.anyInt());
     }
 
     /** 旧订单修改角色无法使用敏感入口, 原订单通用更新和旧式别名无法变更数据. */
@@ -725,17 +714,5 @@ class OrderPermissionHttpTest {
     /** 按订单身份生成单笔重试地址. */
     private String retryUrl(int orderId) {
         return "/mall/refund/retry?orderId=" + orderId;
-    }
-
-    /** 返回同号同金额的渠道成功记录, 不进行网络调用. */
-    private WxPayRefundQueryResult successfulQuery() {
-        var record = new WxPayRefundQueryResult.RefundRecord();
-        record.setOutRefundNo("CC-PERM-WRITEBACK");
-        record.setRefundFee(100);
-        record.setRefundStatus("SUCCESS");
-        var query = new WxPayRefundQueryResult();
-        query.setResultCode("SUCCESS");
-        query.setRefundRecords(List.of(record));
-        return query;
     }
 }

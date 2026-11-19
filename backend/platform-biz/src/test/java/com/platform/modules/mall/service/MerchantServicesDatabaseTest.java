@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import com.github.binarywang.wxpay.service.WxPayService;
 import com.platform.modules.custom.service.CustomDesignService;
 import com.platform.support.TransactionTestSupport;
 
@@ -154,7 +153,7 @@ class MerchantServicesDatabaseTest {
     void refundListEnforcesOwnershipAndHidesProviderFields() {
         withRollback(
                 () -> {
-                    ObjectProvider<WxPayService> gateway = mock(ObjectProvider.class);
+                    ObjectProvider<WechatPaymentGateway> gateway = mock(ObjectProvider.class);
                     MallOrderService orders = mock(MallOrderService.class);
                     CustomDesignService designs = mock(CustomDesignService.class);
                     var refunds = new OrderRefundService(orders, designs, jdbc, gateway, manager);

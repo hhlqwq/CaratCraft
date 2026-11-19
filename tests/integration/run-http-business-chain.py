@@ -18,6 +18,7 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
+UPLOAD_LABEL = "org.caratcraft.fixture.upload"
 
 
 def docker(*arguments, input_text=None, environment=None):
@@ -92,6 +93,65 @@ def user_token(user_id, secret):
     payload = encode(json.dumps({"sub": str(user_id), "iat": now, "exp": now + 1800}).encode())
     unsigned = header + b"." + payload
     return (unsigned + b"." + encode(hmac.new(secret, unsigned, hashlib.sha256).digest())).decode()
+
+
+def verify_upload_storage(container, admin_container, admin, admin_token, nginx_args, containers):
+    """上传到真实应用并用原 Nginx 图片规则验证重启和替换后的原始地址."""
+    boundary = "caratcraft-storage-fixture"
+    image = (ROOT / "apps/miniapp/static/images/address_right.png").read_bytes()
+    prefix = ("--" + boundary + '\r\nContent-Disposition: form-data; name="file"; '
+              'filename="fixture.png"\r\nContent-Type: image/png\r\n\r\n').encode("ascii")
+    body = prefix + image + ("\r\n--" + boundary + "--\r\n").encode("ascii")
+    headers = {"token": admin_token, "Content-Type": "multipart/form-data; boundary=" + boundary}
+    with urllib.request.urlopen(urllib.request.Request(admin + "/sys/oss/upload", data=body,
+                                headers=headers, method="POST"), timeout=15) as response:
+        payload = json.load(response)
+    assert payload["code"] == 0, payload.get("msg")
+    uploaded = payload["data"]["url"]
+    assert re.fullmatch(r"/upload/[A-Za-z0-9/_-]+\.png", uploaded), uploaded
+    mapping = docker("port", container, "8082/tcp")
+    assert re.fullmatch(r"127\.0\.0\.1:[0-9]+", mapping)
+    origin = "http://" + mapping
+
+    def read_image():
+        """直接读取回环 Nginx 的上传图片并计算内容摘要."""
+        with urllib.request.urlopen(origin + uploaded, timeout=8) as response:
+            assert response.headers.get_content_type() == "image/png"
+            data = response.read()
+            assert data.startswith(b"\x89PNG\r\n\x1a\n")
+            return hashlib.sha256(data).hexdigest()
+
+    nginx = docker(*nginx_args)
+    containers.append(nginx)
+    expected = wait_until(read_image)
+    print("真实后台上传及 Nginx 图片读取通过", flush=True)
+    docker("restart", nginx)
+    assert wait_until(read_image) == expected
+    docker("restart", admin_container)
+    wait_until(lambda: request(admin, "/internal/health/ready", method="GET"), timeout=150)
+    assert wait_until(read_image) == expected
+    docker("rm", "-f", nginx)
+    containers.remove(nginx)
+    containers.append(docker(*nginx_args))
+    assert wait_until(read_image) == expected
+    print("独立 Nginx 重启和替换后原地址与内容摘要一致", flush=True)
+
+    client = """
+const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
+const [origin, relative, expected] = process.argv.slice(1);
+const api = require.resolve('./apps/miniapp/config/api.js');
+require.cache[api] = {exports: {ApiOrigin: origin}};
+const {normalizeAssetUrls} = require('./apps/miniapp/utils/util.js');
+const {listPicUrl} = normalizeAssetUrls({listPicUrl: relative});
+assert.equal(listPicUrl, origin + relative);
+fetch(listPicUrl).then(async (response) => {
+    assert.equal(response.status, 200);
+    assert.equal(crypto.createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'), expected);
+}).catch((error) => {process.stderr.write(String(error)); process.exitCode = 1;});
+"""
+    subprocess.run(["node", "-e", client, origin, uploaded, expected], cwd=ROOT, check=True)
+    print("小程序资源地址解析代码能从同一规则后的地址读取该图片", flush=True)
 
 
 def select_product(detail, value):
@@ -198,11 +258,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--date", required=True, help="客户端日期, YYYY-MM-DD")
     parser.add_argument("--backend-image", help="验证已封装镜像中的应用JAR, 不挂载宿主机JAR")
+    parser.add_argument("--storage-only", action="store_true", help="隔离验证本地上传卷和服务替换后的资源访问")
     args = parser.parse_args()
     day = datetime.strptime(args.date, "%Y-%m-%d").strftime("%Y%m%d")
     suffix = secrets.token_hex(3)
     database = f"caratcraft_init_audit_{day}_{suffix}"
     containers = []
+    upload_volume = None
     env = os.environ.copy()
     secret = secrets.token_bytes(32)
     admin_token = secrets.token_hex(32)
@@ -211,25 +273,34 @@ def main():
                MYSQL_HOST="127.0.0.1", REDIS_HOST="127.0.0.1", REDIS_PASSWORD=secrets.token_hex(24),
                JWT_SECRET=base64.b64encode(secret).decode(), SPRING_PROFILES_ACTIVE="docker")
     try:
+        ports = ["--publish", "127.0.0.1::8082"] if args.storage_only else []
         mysql = docker("run", "--detach", "--rm", "--pull=never", "--name", "caratcraft-http-mysql-" + suffix,
                        "--tmpfs", "/var/lib/mysql", "--publish", "127.0.0.1::8080", "--publish", "127.0.0.1::8081",
+                       *ports,
                        "--env", "MYSQL_ROOT_PASSWORD", "--env", "MYSQL_PASSWORD", "--env", "MYSQL_DATABASE",
                        "--env", "MYSQL_USER", "--mount", f"type=bind,source={ROOT / 'database/init'},target=/docker-entrypoint-initdb.d,readonly",
                        "mysql:8.0.36", "--default-authentication-plugin=mysql_native_password", environment=env)
         containers.append(mysql)
         wait_until(lambda: sql(mysql, "SELECT version FROM CC_SCHEMA_VERSION WHERE id=1;"))
         print("完整隔离数据库初始化完成", flush=True)
-        sql(mysql, f"INSERT INTO SYS_USER_TOKEN(USER_ID,TOKEN,EXPIRE_TIME,UPDATE_TIME) VALUES('1','{admin_token}',DATE_ADD(NOW(),INTERVAL 1 HOUR),NOW());"
-            "INSERT INTO WX_USER(ID,MA_OPENID,NICKNAME) VALUES(900001,'http_synthetic_a','隔离用户A'),(900002,'http_synthetic_b','隔离用户B');"
-            "INSERT INTO mall_specification(id,name) VALUES(800001,'隔离颜色');")
-        category_id = int(sql(mysql, "SELECT id FROM mall_category ORDER BY id LIMIT 1;"))
+        sql(mysql, f"INSERT INTO SYS_USER_TOKEN(USER_ID,TOKEN,EXPIRE_TIME,UPDATE_TIME) VALUES('1','{admin_token}',DATE_ADD(NOW(),INTERVAL 1 HOUR),NOW());")
+        category_id = None
+        if not args.storage_only:
+            sql(mysql, "INSERT INTO WX_USER(ID,MA_OPENID,NICKNAME) VALUES(900001,'http_synthetic_a','隔离用户A'),(900002,'http_synthetic_b','隔离用户B');"
+                "INSERT INTO mall_specification(id,name) VALUES(800001,'隔离颜色');")
+            category_id = int(sql(mysql, "SELECT id FROM mall_category ORDER BY id LIMIT 1;"))
         redis = docker("run", "--detach", "--rm", "--pull=never", "--network", "container:" + mysql,
                        "--name", "caratcraft-http-redis-" + suffix, "--read-only", "--tmpfs", "/data",
                        "--env", "REDIS_PASSWORD", "redis:7.2-alpine", "sh", "-c",
                        'exec redis-server --save "" --appendonly no --requirepass "$REDIS_PASSWORD"', environment=env)
         containers.append(redis)
         bases = {}
-        for module, port, context in [("admin", 8080, "platform-framework"), ("api", 8081, "platform-framework-api")]:
+        application_containers = {}
+        modules = [("admin", 8080, "platform-framework"), ("api", 8081, "platform-framework-api")]
+        if args.storage_only:
+            upload_volume = docker("volume", "create", "--label", f"{UPLOAD_LABEL}={suffix}",
+                                   "caratcraft-upload-test-" + suffix)
+        for module, port, context in modules:
             jar = ROOT / f"backend/platform-{module}/target/platform-{module}.jar"
             if not jar.is_file():
                 raise FileNotFoundError("需要先构建最新应用JAR: " + str(jar))
@@ -237,17 +308,32 @@ def main():
                        "--name", "caratcraft-http-" + module + "-" + suffix]
             if not args.backend_image:
                 command.extend(["--mount", f"type=bind,source={jar},target=/verify/application.jar,readonly"])
+            if upload_volume:
+                command.remove("--rm")
+                command.extend(["--mount", f"type=volume,source={upload_volume},target=/data/uploads"])
             for key in ("MYSQL_DATABASE", "MYSQL_USERNAME", "MYSQL_PASSWORD", "MYSQL_HOST", "REDIS_HOST", "REDIS_PASSWORD", "JWT_SECRET", "SPRING_PROFILES_ACTIVE"):
                 command.extend(["--env", key])
             command.extend([args.backend_image or "carat-craft-backend:local", "java", "-Xmx384m", "-jar",
                             f"/app/platform-{module}.jar" if args.backend_image else "/verify/application.jar"])
-            containers.append(docker(*command, environment=env))
+            application_containers[module] = docker(*command, environment=env)
+            containers.append(application_containers[module])
             mapping = docker("port", mysql, str(port) + "/tcp")
             if not re.fullmatch(r"127\.0\.0\.1:[0-9]+", mapping):
                 raise ValueError("测试服务必须只绑定回环端口")
             bases[module] = "http://" + mapping + "/" + context
             wait_until(lambda: request(bases[module], "/internal/health/ready", method="GET"), timeout=150)
             print(module + "最新JAR已通过真实HTTP就绪检查", flush=True)
+        if upload_volume:
+            production = (ROOT / "deploy/nginx/default.conf").read_text(encoding="utf-8")
+            location = production.split("    location /upload/ {", 1)[1].split("\n    }", 1)[0]
+            conf = "server { listen 8082; root /usr/share/nginx/html;\nlocation /upload/ {" + location + "\n}}"
+            nginx = ["run", "--detach", "--pull=never", "--network", "container:" + mysql,
+                     "--name", "caratcraft-http-upload-" + suffix,
+                     "--mount", f"type=volume,source={upload_volume},target=/usr/share/nginx/html/upload,readonly",
+                     "--entrypoint", "sh", "nginx:1.27-alpine", "-ec",
+                     'printf "%s\\n" "$1" > /etc/nginx/conf.d/default.conf; exec nginx -g "daemon off;"', "sh", conf]
+            verify_upload_storage(mysql, application_containers["admin"], bases["admin"], admin_token, nginx, containers)
+            return
         checks = verify_chain(bases["admin"], bases["api"], admin_token,
                               user_token(900001, secret), user_token(900002, secret), category_id)
         evidence = {"date": args.date, "database": database, "checks": checks, "passed": True,
@@ -258,7 +344,15 @@ def main():
         print(f"真实HTTP业务链路通过: {len(checks)}组边界", flush=True)
     finally:
         for container in reversed(containers):
-            docker("stop", "--time", "5", container)
+            if upload_volume:
+                docker("rm", "-f", container)
+            else:
+                docker("stop", "--time", "5", container)
+        if upload_volume:
+            labels = json.loads(docker("volume", "inspect", "--format", "{{json .Labels}}", upload_volume))
+            if labels.get(UPLOAD_LABEL) != suffix:
+                raise RuntimeError("上传测试卷归属变化, 拒绝清理")
+            docker("volume", "rm", upload_volume)
         print("本轮隔离测试容器已清理", flush=True)
 
 

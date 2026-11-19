@@ -107,6 +107,12 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             return;
         }
         JsonNode root = JsonContract.read(text, JsonNode.class);
+        if ("POST".equals(super.getMethod())
+                && (super.getContextPath() + "/app/pay/notify").equals(super.getRequestURI())) {
+            // 微信支付先通过相同 JSON 边界校验, 然后以原字节验签.
+            body = raw;
+            return;
+        }
         body = JsonContract.write(sanitize(root, 0)).getBytes(StandardCharsets.UTF_8);
         if (body.length > MAX_JSON_BYTES) {
             throw new JsonBodyTooLargeException();

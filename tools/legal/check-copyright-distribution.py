@@ -40,7 +40,8 @@ def main():
                     continue
                 if hashlib.sha256(archive.read(entry)).hexdigest() != record["sha256"]:
                     errors.append({"file": name, "reason": "发布JAR版本/哈希变化"})
-                if name.startswith(("mysql-connector", "ojdbc", "aizuda-monitor", "velocity-tools", "struts-")):
+                if name.startswith(("mysql-connector", "ojdbc", "aizuda-monitor", "velocity-tools", "struts-",
+                                    "weixin-java-pay-", "weixin-java-cp-", "weixin-java-open-", "qrcode-utils-")):
                     errors.append({"file": name, "reason": "已移除依赖仍入包"})
     for record in data["backend"] + data["frontend"]:
         if not record.get("selectedLicense") or record["selectedLicense"] == "待核验":

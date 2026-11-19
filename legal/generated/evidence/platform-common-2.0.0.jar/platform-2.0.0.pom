@@ -53,8 +53,7 @@
         <mybatisplus.version>3.5.10</mybatisplus.version>
         <jedis.version>5.1.0</jedis.version>
         <junit.version>4.13.2</junit.version>
-        <mysql.version>8.0.33</mysql.version>
-        <oracle.version>21.1.0.0</oracle.version>
+        <mariadb.version>3.5.10</mariadb.version>
         <druid.version>1.2.25</druid.version>
         <dynamic.version>4.3.0</dynamic.version>
         <quartz.version>2.3.2</quartz.version>
@@ -64,14 +63,14 @@
         <jwt.version>0.11.5</jwt.version>
         <jwks-rsa.version>0.22.1</jwks-rsa.version>
         <kaptcha.version>2.3.3</kaptcha.version>
-        <qiniu.version>[7.14.0, 7.14.99]</qiniu.version>
+        <qiniu.version>7.14.0</qiniu.version>
         <aliyun.oss.version>3.17.1</aliyun.oss.version>
         <qcloud.cos.version>5.6.169</qcloud.cos.version>
         <minio-version>8.5.5</minio-version>
         <knife4j.version>4.5.0</knife4j.version>
         <joda.time.version>2.12.2</joda.time.version>
         <fastjson.version>2.0.53</fastjson.version>
-        <velocity-tools-version>2.0</velocity-tools-version>
+        <velocity.version>1.6.2</velocity.version>
         <easypoi.version>4.4.0</easypoi.version>
         <lombok.version>1.18.44</lombok.version>
         <activiti.version>6.0.0</activiti.version>
@@ -84,9 +83,34 @@
         <jakarta.mail.version>2.0.1</jakarta.mail.version>
         <qcloudsms.version>1.0.6</qcloudsms.version>
         <aliyun-sdk-sms.version>2.0.24</aliyun-sdk-sms.version>
-        <pdfbox.version>3.0.0</pdfbox.version>
         <huaweicloud.obs>3.23.9.1</huaweicloud.obs>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 沿用既有发布物及许可索引的版本, 不让SDK传递版本范围引入隐式升级. -->
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>tea</artifactId>
+                <version>1.2.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>tea-util</artifactId>
+                <version>0.2.18</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>tea-openapi</artifactId>
+                <version>0.2.8</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>tea-xml</artifactId>
+                <version>0.1.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!--undertow容器-->
@@ -145,17 +169,11 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
-        <!-- mysql驱动 -->
+        <!-- 使用独立的LGPL JDBC库, 商业交付须随附许可和对应源码. -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>${mysql.version}</version>
-        </dependency>
-        <!-- oracle驱动 -->
-        <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc11</artifactId>
-            <version>${oracle.version}</version>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>${mariadb.version}</version>
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
@@ -211,14 +229,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-        <!-- Knife4j（前身是 swagger-bootstrap-ui，集 Swagger2 和 OpenAPI3 为一体的增强解决方案） -->
-        <dependency>
-            <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-dependencies</artifactId>
-            <version>${knife4j.version}</version>
-            <type>pom</type>
-            <scope>import</scope>
         </dependency>
 
         <!-- Hutool（小而全的 Java 工具类库，通过静态方法封装，降低相关 API 的学习成本，提高工作效率，使 Java 拥有函数式语言般的优雅，让 Java 语言也可以“甜甜的”） -->
@@ -286,8 +296,9 @@
         <!-- Velocity视图所需 -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity-tools</artifactId>
-            <version>${velocity-tools-version}</version>
+            <!-- 项目只调用Velocity引擎, 不分发未使用的Tools/Struts及旧XML组件. -->
+            <artifactId>velocity</artifactId>
+            <version>${velocity.version}</version>
         </dependency>
         <!-- shiro权限 -->
         <dependency>
@@ -340,26 +351,6 @@
             <version>${weixin-java.version}</version>
         </dependency>
 
-        <!-- 微信支付 -->
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-pay</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
-        <!-- 企业微信 -->
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-cp</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>weixin-java-open</artifactId>
-            <version>${weixin-java.version}</version>
-        </dependency>
-
         <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
         <dependency>
             <groupId>redis.clients</groupId>
@@ -391,13 +382,6 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-codec</artifactId>
             <version>${batik.version}</version>
-        </dependency>
-
-        <!-- PDF操作 -->
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>${pdfbox.version}</version>
         </dependency>
 
         <!-- 邮件 -->
@@ -433,40 +417,20 @@
         </dependency>
     </dependencies>
 
-    <!-- maven仓库 -->
-    <repositories>
-        <repository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-        <repository>
-            <id>nexus-public</id>
-            <name>nexus</name>
-            <url>https://nexus.dev.dtstack.cn/nexus/content/repositories/dtstack-release/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/nexus/content/groups/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
+    <!-- 依赖及插件统一使用Maven默认的官方Central仓库. -->
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerArgs>
+                        <arg>-Xlint:rawtypes,unchecked,deprecation,cast</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>

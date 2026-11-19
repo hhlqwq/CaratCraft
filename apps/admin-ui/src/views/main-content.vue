@@ -60,9 +60,7 @@
             ></router-view>
         </el-card>
         <div style="text-align: center">
-            <el-link icon="el-icon-link" type="info" target="_blank" href="mailto:845367567@qq.com"
-                >克拉匠造 · 商家工作台</el-link
-            >
+            CaratCraft
         </div>
     </main>
 </template>
