@@ -29,6 +29,67 @@
         "existingEnvironmentRoleAssignmentsChanged": false,
         "deployment": "pending"
     },
+    "latestReleaseReadinessReview": {
+        "date": "2026-11-18",
+        "codeCommit": "937460d07f39c00e16588e38881d31aaf533933e",
+        "remoteDefaultBranch": "master",
+        "validationScope": "离线重新构建三端, 只读检查现有开发库和本地HTTP静态资源.",
+        "backendOfflinePackage": "passed",
+        "backendPackageSha256": {
+            "platform-admin.jar": "e4d029cf444791f217ac0178dcece81b680286b23c62da8daaa6af0ee4c8f746",
+            "platform-api.jar": "e03d176f431305f1cc110da0d3fabdf6e1bdf3f59490d98ce2f69a4345ba7c20"
+        },
+        "adminProductionBuild": "passed",
+        "miniapp": {"officialCompile": "passed", "pages": 40, "wxml": 43, "wxss": 48, "javascriptSyntax": 60},
+        "regressionSuiteRun": false,
+        "localRuntime": {
+            "healthyContainers": 5,
+            "buildInputsRevision": "32fae651a0974844f1c643d386cdc4324f19fdcfede4e160085395564fdbcc9c",
+            "runningImageRevision": "d70d38c6f8e7b061a3ada4e19374d25e0efd56ec6f209032f4446d9aa02dee8e",
+            "adminHttpStatus": 200,
+            "demoImagesReturning404": 5,
+            "database": {
+                "schemaVersion": 1,
+                "saleGoodsWithStockedSku": 5,
+                "necklaceTemplateEnabled": true,
+                "necklaceEnabledOptions": 15,
+                "earringTemplateEnabled": false,
+                "disabledCustomerCandidates": 112,
+                "publishedCommunityPosts": 5,
+                "publishedLegalKinds": 2,
+                "orders": 0,
+                "workOrders": 0,
+                "refunds": 0,
+                "adminRoles": 0,
+                "merchantContactConfigured": false
+            },
+            "trialHttpsConfigured": false,
+            "releaseHttpsConfigured": false,
+            "paymentConfigured": false,
+            "smsProviderConfigured": false
+        },
+        "localVerificationAfterUpdate": {
+            "date": "2026-11-18",
+            "updatedServices": ["platform-admin", "platform-api", "nginx"],
+            "runningImageRevision": "32fae651a0974844f1c643d386cdc4324f19fdcfede4e160085395564fdbcc9c",
+            "healthyContainers": 5,
+            "adminHttpStatus": 200,
+            "demoImagesHttp200AndSourceBytesMatch": 5,
+            "newGoodsApi": 4,
+            "hotGoodsApi": 3,
+            "necklaceEnabledOptionsApi": 15,
+            "publishedCommunityPostsApi": 5,
+            "publishedLegalKindsApi": 2,
+            "unchangedDataContainers": ["platform-mysql", "platform-redis"],
+            "unchangedMounts": ["mysql-data", "redis-data", "upload-data"],
+            "databaseBaselineMetricsMatched": 11,
+            "backupRestoredInIsolation": true,
+            "uploadedFilesInBackup": 0,
+            "rollbackArtifactHashesMatch": true
+        },
+        "platformAcceptance": "pending",
+        "existingDataModified": false
+    },
     "adminJobPermissionAcceptance": {
         "date": "2026-11-18",
         "baselineCommit": "6b8b5c3",
