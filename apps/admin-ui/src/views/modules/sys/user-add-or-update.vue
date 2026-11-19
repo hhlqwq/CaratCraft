@@ -18,15 +18,8 @@
                     class="width200"
                 ></el-input>
             </el-form-item>
-            <el-form-item v-if="!dataForm.id" label="初始密码" prop="initialPassword">
-                <el-input
-                    v-model="dataForm.initialPassword"
-                    type="password"
-                    show-password
-                    autocomplete="new-password"
-                    placeholder="为员工单独设置，12到128位"
-                    class="width200"
-                />
+            <el-form-item v-if="!dataForm.id" label="初始密码">
+                <span>123456，员工首次登录时修改</span>
             </el-form-item>
             <el-form-item label="状态" prop="status">
                 <el-radio-group v-model="dataForm.status" class="width200">
@@ -44,12 +37,19 @@
                     class="width200"
                 ></el-input>
             </el-form-item>
+            <el-form-item v-if="!dataForm.id" label="找回方式">
+                <span>手机号和邮箱至少填写一个。</span>
+            </el-form-item>
             <el-form-item label="邮箱" prop="email">
-                <el-input v-model="dataForm.email" placeholder="邮箱" class="width200"></el-input>
+                <el-input
+                    v-model.trim="dataForm.email"
+                    placeholder="邮箱"
+                    class="width200"
+                ></el-input>
             </el-form-item>
             <el-form-item label="手机号" prop="mobile">
                 <el-input
-                    v-model="dataForm.mobile"
+                    v-model.trim="dataForm.mobile"
                     placeholder="手机号"
                     class="width200"
                 ></el-input>
@@ -101,18 +101,17 @@ export default {
                 userName: '',
                 sex: '',
                 realName: '',
-                initialPassword: '',
                 email: '',
                 mobile: '',
                 roleIdList: [],
                 status: 1,
             },
             dataRule: {
-                initialPassword: [
+                email: [{type: 'email', message: '邮箱格式不正确', trigger: 'blur'}],
+                mobile: [
                     {
-                        required: true,
-                        pattern: /^[!-~]{12,128}$/,
-                        message: '请单独设置12到128位员工密码',
+                        pattern: /^1[3-9][0-9]{9}$/,
+                        message: '请输入有效手机号',
                         trigger: 'blur',
                     },
                 ],
@@ -214,7 +213,7 @@ export default {
                 this.loading = false;
             }
         },
-        /** 提交员工资料及独立初始密码, 不发送机构信息. */
+        /** 提交员工资料, 由服务端设置初始密码和机构. */
         async dataFormSubmit() {
             if (this.saving || !this.loaded) {
                 return;
@@ -223,7 +222,10 @@ export default {
             this.error = '';
             try {
                 await this.$refs.dataForm.validate();
-                const {id, initialPassword, ...profile} = this.dataForm;
+                const {id, ...profile} = this.dataForm;
+                if (!id && !profile.email && !profile.mobile) {
+                    throw new Error('请至少填写手机号或邮箱');
+                }
                 const {data} = await this.$http({
                     url: `/sys/user/${id ? 'update' : 'save'}`,
                     method: 'post',
@@ -231,16 +233,14 @@ export default {
                     data: {
                         ...profile,
                         userId: id || undefined,
-                        password: id ? undefined : initialPassword,
                     },
                 });
                 if (data?.code !== 0) {
                     throw new Error(data?.msg || '员工资料保存失败');
                 }
-                this.dataForm.initialPassword = '';
                 this.original = JSON.stringify(this.dataForm);
                 this.$message.success(
-                    id ? '员工资料已保存' : '员工已创建，请将用户名和初始密码单独交给本人'
+                    id ? '员工资料已保存' : '员工已创建，初始密码为 123456，首次登录时须修改'
                 );
                 await this.returnToList();
             } catch (error) {

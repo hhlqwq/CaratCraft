@@ -47,6 +47,8 @@ import java.util.Objects;
 @Service("sysUserService")
 public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         implements SysUserService {
+    private static final String TEMPORARY_PASSWORD = "123456";
+    private static final String MOBILE_PATTERN = "1[3-9][0-9]{9}";
 
     private final SysUserRoleService sysUserRoleService;
     private final SysUserTokenService tokens;
@@ -95,7 +97,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         employee.setOrgNo(organization);
         employee.setCreateUserId(user.getCreateUserId());
         employee.setCreateUserOrgNo(user.getCreateUserOrgNo());
-        replacePassword(employee, user.getPassword());
+        validateContacts(employee, true);
+        if (user.getPassword() != null && !TEMPORARY_PASSWORD.equals(user.getPassword())) {
+            throw new IllegalArgumentException("新员工初始密码由系统设置");
+        }
+        replacePassword(employee, TEMPORARY_PASSWORD, true);
         if (!save(employee)) {
             throw new IllegalStateException("员工账号保存失败");
         }
@@ -129,6 +135,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         }
         SysUserEntity employee = profile(user);
         employee.setUserId(current.getUserId());
+        validateContacts(employee, false);
         if (user.getStatus() == null) {
             employee.setStatus(current.getStatus());
         }
@@ -160,7 +167,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean updatePassword(String userId, String password, String newPassword) {
-        validatePassword(newPassword);
+        validateNewPassword(newPassword);
         SysUserEntity employee = lockUser(userId);
         if (employee == null
                 || !Integer.valueOf(1).equals(employee.getStatus())
@@ -169,8 +176,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
                         .equals(employee.getPassword())) {
             return false;
         }
-        replacePassword(employee, newPassword);
-        updateById(employee);
+        replacePassword(employee, newPassword, false);
+        updateCredential(employee);
         tokens.offlineBatch(new String[] {userId});
         authority.audit("修改本人密码", userId, "撤销现有会话");
         return true;
@@ -181,10 +188,77 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     public void resetPw(String userId, String password) {
         SysUserEntity employee = lockUser(userId);
         authority.requireEmployee("sys:user:resetPw", employee, true);
-        replacePassword(employee, password);
-        updateById(employee);
+        replacePassword(employee, password == null ? TEMPORARY_PASSWORD : password, true);
+        updateCredential(employee);
         tokens.offlineBatch(new String[] {userId});
         authority.audit("重置员工密码", userId, "撤销现有会话");
+    }
+
+    /** 以发码时的密码哈希和联系方式校验恢复上下文, 串行化改密和停用操作. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean recoverPassword(
+            SysUserEntity snapshot, boolean byEmail, String contact, String newPassword) {
+        SysUserEntity employee = lockUser(snapshot.getUserId());
+        if (!canRecoverPassword(employee)
+                || !Objects.equals(employee.getPassword(), snapshot.getPassword())
+                || !Objects.equals(byEmail ? employee.getEmail() : employee.getMobile(), contact)) {
+            return false;
+        }
+        replacePassword(employee, newPassword, false);
+        updateCredential(employee);
+        tokens.offlineBatch(new String[] {employee.getUserId()});
+        jdbc.update(
+                "INSERT INTO"
+                    + " SYS_LOG(ID,USER_NAME,OPERATION,METHOD,PARAMS,TIME,CREATE_TIME,SCOPE_ORG_NO)"
+                    + " VALUES(REPLACE(UUID(),'-',''),?,'员工验证码找回','员工凭据找回','已撤销旧会话',0,NOW(),?)",
+                employee.getUserName(),
+                employee.getOrgNo());
+        return true;
+    }
+
+    /** 紧急管理员和持有系统管理或资金写操作权限的员工由授权管理员办理重置. */
+    @Override
+    public boolean canRecoverPassword(SysUserEntity employee) {
+        return employee != null
+                && Integer.valueOf(1).equals(employee.getStatus())
+                && !com.platform.common.utils.Constant.SUPER_ADMIN.equals(employee.getUserId())
+                && Boolean.TRUE.equals(
+                        jdbc.queryForObject(
+                                "SELECT NOT EXISTS (SELECT 1 FROM SYS_USER_ROLE ur JOIN"
+                                    + " SYS_ROLE_MENU rm ON ur.ROLE_ID=rm.ROLE_ID JOIN SYS_MENU m"
+                                    + " ON rm.MENU_ID=m.MENU_ID WHERE ur.USER_ID=? AND"
+                                    + " (INSTR(m.PERMS,'*')>0 OR LOWER(REPLACE(m.PERMS,' ',''))"
+                                    + " REGEXP"
+                                    + " '(^|,)(sys:(user|role|menu):|mall:refund:(execute|review|retry|writeback|reconcile)(,|$))'))",
+                                Boolean.class,
+                                employee.getUserId()));
+    }
+
+    /** 校验中国大陆手机号, 开户至少登记一个联系方式. */
+    private void validateContacts(SysUserEntity employee, boolean creating) {
+        String mobile = employee.getMobile();
+        String email = employee.getEmail();
+        if (mobile != null && !mobile.isBlank() && !mobile.matches(MOBILE_PATTERN)) {
+            throw new IllegalArgumentException("手机号格式不正确");
+        }
+        if (creating
+                && (mobile == null || mobile.isBlank())
+                && (email == null || email.isBlank())) {
+            throw new IllegalArgumentException("请至少填写手机号或邮箱");
+        }
+    }
+
+    /** 只变更密码相关字段, 并检查写入是否成功. */
+    private void updateCredential(SysUserEntity employee) {
+        SysUserEntity credential = new SysUserEntity();
+        credential.setUserId(employee.getUserId());
+        credential.setPassword(employee.getPassword());
+        credential.setSalt(employee.getSalt());
+        credential.setPasswordChangeRequired(employee.getPasswordChangeRequired());
+        if (!updateById(credential)) {
+            throw new IllegalStateException("员工密码更新失败");
+        }
     }
 
     /** 只写请求允许修改的人员字段, 创建者、标识、密码盐和最近登录由服务端维护. */
@@ -241,9 +315,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         return roleIds == null ? List.of() : roleIds.stream().distinct().toList();
     }
 
-    /** 校验显式提供的独立密码并重新产生盐. */
-    private void replacePassword(SysUserEntity employee, String password) {
-        validatePassword(password);
+    /** 采用6到32位密码并重新生成独立的盐, 临时密码须本人更换. */
+    private void replacePassword(SysUserEntity employee, String password, boolean temporary) {
+        if (temporary) {
+            validatePassword(password);
+        } else {
+            validateNewPassword(password);
+            if (new Sha256Hash(password, employee.getSalt())
+                    .toHex()
+                    .equals(employee.getPassword())) {
+                throw new IllegalArgumentException("新密码不能与当前密码相同");
+            }
+        }
+        employee.setPasswordChangeRequired(temporary);
         byte[] bytes = new byte[16];
         new java.security.SecureRandom().nextBytes(bytes);
         employee.setSalt(
@@ -254,10 +338,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         employee.setPassword(new Sha256Hash(password, employee.getSalt()).toHex());
     }
 
-    /** 要求每次建立或重置凭据时使用管理员明确输入的12到128位可打印ASCII字符. */
+    /** 校验本人新密码, 禁止保留统一初始密码. */
+    @Override
+    public void validateNewPassword(String password) {
+        validatePassword(password);
+        if (TEMPORARY_PASSWORD.equals(password)) {
+            throw new IllegalArgumentException("新密码不能继续使用统一初始密码");
+        }
+    }
+
+    /** 校验新设密码为6到32位不含空格的可打印ASCII字符. */
     private void validatePassword(String password) {
-        if (password == null || !password.matches("[!-~]{12,128}")) {
-            throw new IllegalArgumentException("请设置12到128位密码, 不含空格");
+        if (password == null || !password.matches("[!-~]{6,32}")) {
+            throw new IllegalArgumentException("请设置6到32位密码, 不含空格");
         }
     }
 }

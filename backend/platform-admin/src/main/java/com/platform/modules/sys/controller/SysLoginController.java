@@ -23,6 +23,7 @@ import com.platform.common.utils.AesUtil;
 import com.platform.common.utils.RestResponse;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.form.SysLoginForm;
+import com.platform.modules.sys.service.StaffPasswordRecovery;
 import com.platform.modules.sys.service.SysCaptchaService;
 import com.platform.modules.sys.service.SysUserService;
 import com.platform.modules.sys.service.SysUserTokenService;
@@ -31,6 +32,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -60,6 +62,43 @@ public class SysLoginController extends AbstractController {
     private final SysUserService sysUserService;
     private final SysUserTokenService sysUserTokenService;
     private final SysCaptchaService sysCaptchaService;
+    private final StaffPasswordRecovery recovery;
+
+    /** 通过图形验证码后向员工档案中的联系方式发码. */
+    @PostMapping("/sys/password-recovery/send")
+    public RestResponse<String> sendRecoveryCode(
+            @RequestBody RecoveryRequest form, HttpServletRequest request) {
+        if (!sysCaptchaService.validate(form.uuid(), form.captcha())) {
+            return RestResponse.fail("验证码不正确");
+        }
+        if (!recovery.send(form.userName(), form.channel(), request.getRemoteAddr())) {
+            return RestResponse.fail("该找回渠道尚未启用，请联系管理员");
+        }
+        return RestResponse.ok("若该账号可自助找回，验证码将发到已登记的联系方式", null);
+    }
+
+    /** 校验一次性验证码并更新密码, 不为找回请求签发会话. */
+    @PostMapping("/sys/password-recovery/reset")
+    public RestResponse<String> recoverPassword(
+            @RequestBody RecoveryRequest form, HttpServletRequest request) {
+        return recovery.reset(
+                        form.userName(),
+                        form.channel(),
+                        form.code(),
+                        form.newPassword(),
+                        request.getRemoteAddr())
+                ? RestResponse.ok()
+                : RestResponse.fail("验证码错误或已失效，请重新获取或联系管理员");
+    }
+
+    /** 找回请求以用户名和渠道定位现有档案. */
+    public record RecoveryRequest(
+            String userName,
+            String channel,
+            String uuid,
+            String captcha,
+            String code,
+            String newPassword) {}
 
     /**
      * 验证码

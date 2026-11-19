@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,12 +19,14 @@ import com.platform.PlatformAdminApplication;
 import com.platform.common.utils.AesUtil;
 import com.platform.modules.job.utils.ScheduleRunnable;
 import com.platform.modules.mall.service.WechatPaymentGateway;
+import com.platform.modules.sys.service.MailService;
 
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -62,6 +66,7 @@ class OrderPermissionHttpTest {
     @Autowired private TestRestTemplate http;
     @Autowired private JdbcTemplate jdbc;
     @MockBean private WechatPaymentGateway gateway;
+    @MockBean private MailService mail;
 
     /** 只接受现有隔离回归工具生成的回环数据库, Redis也固定在回环. */
     @DynamicPropertySource
@@ -83,6 +88,7 @@ class OrderPermissionHttpTest {
         registry.add("spring.data.redis.port", () -> System.getenv("CARATCRAFT_REDIS_TEST_PORT"));
         registry.add("spring.data.redis.password", () -> "");
         registry.add("caratcraft.default-business-org", () -> "QT-A");
+        registry.add("caratcraft.staff-recovery.email-enabled", () -> true);
     }
 
     /** 使用种子菜单关联普通角色, 准备可以真实变更的独立订单和退款流水. */
@@ -342,8 +348,8 @@ class OrderPermissionHttpTest {
                         0,
                         "orgNo",
                         "QT-A",
-                        "password",
-                        "FixtureOnly-Strong!"),
+                        "email",
+                        "fixture@example.test"),
                 200);
         assertEquals(
                 0,
@@ -478,11 +484,11 @@ class OrderPermissionHttpTest {
         verifyNoInteractions(gateway);
     }
 
-    /** 新账号采用独立初始密码, 重置和本人改密后旧令牌均失效. */
+    /** 新账号须登记联系渠道并先改临时密码, 更换密码后旧令牌失效. */
     @Test
     void employeeCanSignInThenResetAndChangePassword() {
         String username = "cc-created-by-test";
-        String initial = "Isolated-Login-01!";
+        String initial = "123456";
         String reset = "Isolated-Reset-02!";
         String changed = "Isolated-Change-03!";
         send(
@@ -498,8 +504,8 @@ class OrderPermissionHttpTest {
                         0,
                         "orgNo",
                         "QT-B",
-                        "password",
-                        initial),
+                        "email",
+                        "fixture@example.test"),
                 403);
         assertEquals(
                 0,
@@ -511,7 +517,21 @@ class OrderPermissionHttpTest {
                 "manager",
                 HttpMethod.POST,
                 "/sys/user/save",
-                Map.of("userName", username, "realName", "隔离员工", "sex", 0, "password", initial),
+                Map.of("userName", username, "realName", "隔离员工", "sex", 0),
+                400);
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/user/save",
+                Map.of(
+                        "userName",
+                        username,
+                        "realName",
+                        "隔离员工",
+                        "sex",
+                        0,
+                        "email",
+                        "fixture@example.test"),
                 200);
         String employeeId =
                 jdbc.queryForObject(
@@ -545,6 +565,23 @@ class OrderPermissionHttpTest {
                         "SELECT ORG_NO FROM SYS_USER WHERE USER_ID=?", String.class, employeeId));
         String original = signIn(username, initial);
         tokens.put("new-employee", original);
+        send("new-employee", HttpMethod.GET, "/sys/menu/nav", null, 428);
+        send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 428);
+        send("new-employee", HttpMethod.POST, "/mall/order/ship", shipment(), 428);
+        send(
+                "new-employee",
+                HttpMethod.POST,
+                "/sys/user/password",
+                Map.of("password", initial, "newPassword", initial),
+                400);
+        send(
+                "new-employee",
+                HttpMethod.POST,
+                "/sys/user/password",
+                Map.of("password", initial, "newPassword", changed),
+                200);
+        send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 401);
+        tokens.put("new-employee", signIn(username, changed));
         assertTrue(
                 send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 200)
                         .path("data")
@@ -580,6 +617,7 @@ class OrderPermissionHttpTest {
                 200);
         send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 401);
         tokens.put("new-employee", signIn(username, reset));
+        send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 428);
         send(
                 "new-employee",
                 HttpMethod.POST,
@@ -591,13 +629,69 @@ class OrderPermissionHttpTest {
         send("new-employee", HttpMethod.GET, "/mall/dashboard/summary", null, 200);
     }
 
+    /** 只向员工档案投递验证码, 错误和重复提交不能更改凭据, 成功重置撤销旧会话. */
+    @Test
+    void employeeCanRecoverWithOneTimeCode() {
+        String username = accountId("empty");
+        String contact = "employee@example.test";
+        jdbc.update(
+                "UPDATE SYS_USER SET EMAIL=?,PASSWORD=?,SALT=? WHERE USER_ID=?",
+                contact,
+                new org.apache.shiro.crypto.hash.Sha256Hash("Before7", "fixtures-staff").toHex(),
+                "fixtures-staff",
+                username);
+        when(mail.sendMail(eq(contact), anyString(), anyString())).thenReturn(true);
+        send(
+                null,
+                HttpMethod.POST,
+                "/sys/password-recovery/send",
+                Map.of(
+                        "userName", username,
+                        "channel", "email",
+                        "uuid", issueCaptcha(),
+                        "captcha", "A2B3",
+                        "email", "other@example.test"),
+                200);
+        var message = ArgumentCaptor.forClass(String.class);
+        verify(mail).sendMail(eq(contact), anyString(), message.capture());
+        var code = java.util.regex.Pattern.compile("[0-9]{6}").matcher(message.getValue());
+        assertTrue(code.find());
+        String replacement = "Staff<654321";
+        send(
+                null,
+                HttpMethod.POST,
+                "/sys/password-recovery/reset",
+                Map.of(
+                        "userName",
+                        username,
+                        "channel",
+                        "email",
+                        "code",
+                        "000000",
+                        "newPassword",
+                        replacement),
+                400);
+        send("empty", HttpMethod.GET, "/mall/dashboard/summary", null, 200);
+        var recovery =
+                Map.of(
+                        "userName",
+                        username,
+                        "channel",
+                        "email",
+                        "code",
+                        code.group(),
+                        "newPassword",
+                        replacement);
+        send(null, HttpMethod.POST, "/sys/password-recovery/reset", recovery, 200);
+        send("empty", HttpMethod.GET, "/mall/dashboard/summary", null, 401);
+        send(null, HttpMethod.POST, "/sys/password-recovery/reset", recovery, 400);
+        tokens.put("empty", signIn(username, replacement));
+        send("empty", HttpMethod.GET, "/mall/dashboard/summary", null, 200);
+    }
+
     /** 使用隔离图片验证码数据走正式登录接口, 不访问外部发码渠道. */
     private String signIn(String username, String password) {
-        String uuid = UUID.randomUUID().toString();
-        jdbc.update(
-                "INSERT INTO SYS_CAPTCHA(UUID,CODE,EXPIRE_TIME)"
-                        + " VALUES(?,'A2B3',DATE_ADD(NOW(),INTERVAL 1 MINUTE))",
-                uuid);
+        String uuid = issueCaptcha();
         return send(
                         null,
                         HttpMethod.POST,
@@ -614,6 +708,16 @@ class OrderPermissionHttpTest {
                         200)
                 .path("data")
                 .asText();
+    }
+
+    /** 在隔离库放置有效图片验证码, 不使用真实用户凭据. */
+    private String issueCaptcha() {
+        String uuid = UUID.randomUUID().toString();
+        jdbc.update(
+                "INSERT INTO SYS_CAPTCHA(UUID,CODE,EXPIRE_TIME)"
+                        + " VALUES(?,'A2B3',DATE_ADD(NOW(),INTERVAL 1 MINUTE))",
+                uuid);
+        return uuid;
     }
 
     /** 订单列表、详情、工作台数量及写入统一检查所属机构. */

@@ -131,7 +131,11 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             var fields = object.fields();
             while (fields.hasNext()) {
                 var field = fields.next();
-                object.set(field.getKey(), sanitize(field.getValue(), depth + 1));
+                if (depth != 0
+                        || !field.getValue().isTextual()
+                        || !isEmployeePasswordField(field.getKey())) {
+                    object.set(field.getKey(), sanitize(field.getValue(), depth + 1));
+                }
             }
         } else if (node instanceof ArrayNode array) {
             for (int index = 0; index < array.size(); index++) {
@@ -139,6 +143,21 @@ public class XssHttpServletRequestWrapper extends HttpServletRequestWrapper {
             }
         }
         return node;
+    }
+
+    /** 只在管理端改密接口保留顶层密码原值, 避免 HTML 净化更改实际口令. */
+    private boolean isEmployeePasswordField(String field) {
+        if (!"POST".equals(super.getMethod())) {
+            return false;
+        }
+        String requestPath = super.getRequestURI();
+        String context = super.getContextPath();
+        if ((context + "/sys/user/password").equals(requestPath)) {
+            return "password".equals(field) || "newPassword".equals(field);
+        }
+        return ((context + "/sys/user/resetPw").equals(requestPath) && "password".equals(field))
+                || ((context + "/sys/password-recovery/reset").equals(requestPath)
+                        && "newPassword".equals(field));
     }
 
     /** JSON每次返回独立的已缓存流, 其他上传及回调流保持原协议. */

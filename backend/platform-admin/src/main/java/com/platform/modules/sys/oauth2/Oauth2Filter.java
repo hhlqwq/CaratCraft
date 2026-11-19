@@ -21,6 +21,7 @@ package com.platform.modules.sys.oauth2;
 import com.alibaba.fastjson.JSONObject;
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
+import com.platform.modules.sys.entity.SysUserEntity;
 
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -32,6 +33,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
+import org.apache.shiro.web.util.WebUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
@@ -90,7 +92,24 @@ public class Oauth2Filter extends AuthenticatingFilter {
     protected boolean executeLogin(ServletRequest request, ServletResponse response)
             throws Exception {
         try {
-            return super.executeLogin(request, response);
+            if (!super.executeLogin(request, response)) {
+                return false;
+            }
+            var user = (SysUserEntity) getSubject(request, response).getPrincipal();
+            var httpRequest = (HttpServletRequest) request;
+            String path = WebUtils.getPathWithinApplication(httpRequest);
+            if (!Boolean.TRUE.equals(user.getPasswordChangeRequired())
+                    || ("POST".equals(httpRequest.getMethod())
+                            && ("/sys/user/password".equals(path) || "/sys/logout".equals(path)))) {
+                return true;
+            }
+            HttpServletResponse httpResponse = (HttpServletResponse) response;
+            httpResponse.setStatus(428);
+            httpResponse.setContentType("application/json;charset=utf-8");
+            httpResponse
+                    .getWriter()
+                    .print(JSONObject.toJSONString(RestResponse.fail(428, "请先修改临时密码")));
+            return false;
         } catch (SessionException e) {
             // 旧会话已过期(StoppedSessionException 等), 清理后要求重新登录 /
             // The stale session has expired; ask the client to re-authenticate.

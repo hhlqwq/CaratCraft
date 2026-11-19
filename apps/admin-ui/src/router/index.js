@@ -35,6 +35,19 @@ const globalRoutes = [
         name: 'login',
         meta: {title: '登录'},
     },
+    {
+        path: '/password-change',
+        component: _import('main-navbar-update-password'),
+        name: 'password-change',
+        props: {requiredChange: true},
+        meta: {title: '修改临时密码'},
+    },
+    {
+        path: '/password-recovery',
+        component: _import('common/password-recovery'),
+        name: 'password-recovery',
+        meta: {title: '找回密码'},
+    },
 ];
 
 // 主入口路由(需嵌套上左右整体布局)
@@ -188,7 +201,7 @@ function registerMenus(menus, grants) {
 
 /** 同一会话只加载一次授权菜单, 首次直达时按新注册的路径重新解析. */
 router.beforeEach(async (to) => {
-    if (to.name === 'login' || to.name === '404') {
+    if (['login', '404', 'password-recovery'].includes(to.name)) {
         return true;
     }
     const token = cookie.get('token');
@@ -196,14 +209,28 @@ router.beforeEach(async (to) => {
         clearLoginInfo();
         return {name: 'login'};
     }
+    if (to.name === 'password-change') {
+        return true;
+    }
     if (loadedFor !== token) {
         if (!pendingNavigation || pendingNavigation.token !== token) {
             router.clearWorkspaceRoutes();
-            pendingNavigation = {token, request: http({url: '/sys/menu/nav', method: 'get'})};
+            pendingNavigation = {
+                token,
+                request: http({url: '/sys/menu/nav', method: 'get', showError: false}),
+            };
         }
         try {
             const {data} = await pendingNavigation.request;
-            if (cookie.get('token') !== token || data?.code !== 0) {
+            if (cookie.get('token') !== token) {
+                return {name: 'login'};
+            }
+            if (data?.code === 428) {
+                router.clearWorkspaceRoutes();
+                return {name: 'password-change'};
+            }
+            if (data?.code !== 0) {
+                clearLoginInfo();
                 return {name: 'login'};
             }
             if (loadedFor !== token) {

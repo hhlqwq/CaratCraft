@@ -139,12 +139,9 @@ export default {
         this.getCaptcha();
     },
     methods: {
-        /** 告知员工如何通过已授权管理员安全重置忘记的密码. */
+        /** 打开员工验证码找回页面. */
         showPasswordRecovery() {
-            this.$alert(
-                '请联系单位的后台管理员核验个人身份并为你重置密码。拿到新密码后可在此登录并修改。',
-                '忘记密码'
-            );
+            this.$router.push({name: 'password-recovery'});
         },
         /** 提示新员工通过有开户权限的管理员获取账号. */
         showRegistrationHelp() {

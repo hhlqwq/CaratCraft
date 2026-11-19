@@ -246,10 +246,11 @@ export default {
                 return;
             }
             const userId = this.dataListSelections[0].userId;
-            this.$prompt('请输入为该员工设置的新密码。成功后旧会话失效。', '重置员工密码', {
+            this.$prompt('可使用统一临时密码，员工下次登录须修改。', '重置员工密码', {
                 inputType: 'password',
-                inputPattern: /^[!-~]{12,128}$/,
-                inputErrorMessage: '请输入12到128位不含空格的密码',
+                inputValue: '123456',
+                inputPattern: /^[!-~]{6,32}$/,
+                inputErrorMessage: '请输入6到32位不含空格的密码',
             })
                 .then(async ({value}) => {
                     const {data} = await this.$http({

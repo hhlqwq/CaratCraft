@@ -108,8 +108,15 @@ spring:
   mail:
     host: ${MAIL_HOST:localhost}
     username: ${MAIL_USERNAME:}
-    password:
+    password: ${MAIL_PASSWORD:}
+    port: ${MAIL_PORT:587}
     default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: ${MAIL_SMTP_AUTH:true}
+      mail.smtp.starttls.enable: ${MAIL_SMTP_STARTTLS:true}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
 
 #mybatis
 mybatis-plus:

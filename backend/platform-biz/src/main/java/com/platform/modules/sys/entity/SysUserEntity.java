@@ -98,6 +98,9 @@ public class SysUserEntity implements Serializable {
     /** 最近一次成功建立管理端会话的时间. */
     private Date lastLoginAt;
 
+    /** 初始或管理员重置密码必须由员工本人修改. */
+    @com.fasterxml.jackson.annotation.JsonIgnore private Boolean passwordChangeRequired;
+
     /** 角色ID列表 */
     @TableField(exist = false)
     private List<String> roleIdList;

@@ -32,6 +32,16 @@ import java.util.Map;
  */
 public interface SysUserService extends IService<SysUserEntity> {
 
+    /** 校验本人新密码, 禁止继续使用统一初始密码. */
+    void validateNewPassword(String password);
+
+    /** 校验员工是否可以通过现有联系方式找回密码. */
+    boolean canRecoverPassword(SysUserEntity employee);
+
+    /** 原子更新通过验证码找回的密码并撤销旧会话. */
+    boolean recoverPassword(
+            SysUserEntity snapshot, boolean byEmail, String contact, String newPassword);
+
     /**
      * 查询所有
      *

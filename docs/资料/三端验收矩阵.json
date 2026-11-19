@@ -147,6 +147,15 @@
         "pendingExternal": ["目标环境默认工作室机构、管理员开户范围和岗位委派范围", "真实岗位账号及营业数据界面复验"],
         "productionDatabaseModified": false
     },
+    "staffPasswordAcceptance": {
+        "date": "2026-11-19",
+        "runId": "staff-password-81272e839fa0",
+        "passwordHttp": {"passed": 2, "failed": 0, "skipped": 0, "channel": "邮件替身"},
+        "migration": {"repeatExecutions": 2, "passed": true, "database": "隔离库模拟未升级状态"},
+        "admin": {"viteBuild": "passed", "edgeFixture": "passed"},
+        "pendingExternal": ["真实邮件收码", "真实短信收码", "目标环境增量升级"],
+        "existingDatabaseModified": false
+    },
     "integrationAcceptance": {
         "baseCommit": "ab9dbdb430519f395aaf879588f950023af37d61",
         "historicalReviewCommit": "adb8989d641b21d0694d72b12e393a2b70565c72",
