@@ -3,6 +3,7 @@ try {
     module.exports = require('./environment.local.js');
 } catch (error) {
     throw new Error(
-        '缺少小程序本机配置, 请先运行 deploy/scripts/dev.ps1 -Action miniapp 或 dev.sh miniapp'
+        '缺少小程序本机配置, 请先运行 deploy/scripts/dev.ps1 -Action miniapp 或 dev.sh miniapp',
+        {cause: error}
     );
 }

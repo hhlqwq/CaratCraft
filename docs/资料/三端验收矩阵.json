@@ -147,6 +147,22 @@
         "pendingExternal": ["目标环境默认工作室机构、管理员开户范围和岗位委派范围", "真实岗位账号及营业数据界面复验"],
         "productionDatabaseModified": false
     },
+    "multiMachineEnvironmentAcceptance": {
+        "date": "2026-11-22",
+        "startup": "隔离 Compose 验证应用镜像标签一致、MySQL 版本 1、Redis PONG、重启后上传文件可访问",
+        "failureHandling": "PowerShell 七类失败回归断言不删除数据卷; Bash 完整结构版本边界通过",
+        "miniapp": {
+            "officialCompile": {"pages": 40, "wxml": 43, "wxss": 48, "javascriptSyntax": 61},
+            "realHttpViaHostAdapter": ["POST 首页新品", "POST 商品数量", "GET 社区列表", "GET DIY 配置"],
+            "allHttpStatus": 200,
+            "allBusinessCode": 0,
+            "devToolsObserved": "Nginx 访问记录确认社区请求到达并返回 HTTP 200",
+            "simulatedSecondComputer": true,
+            "realSecondComputer": false,
+            "physicalDeviceVerified": false,
+            "published": false
+        }
+    },
     "staffPasswordAcceptance": {
         "date": "2026-11-19",
         "runId": "staff-password-81272e839fa0",
