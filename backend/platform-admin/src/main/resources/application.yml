@@ -207,3 +207,5 @@ wx:
     publicKeyPath: ${WX_PAY_PUBLIC_KEY_PATH:}
     publicKeyId: ${WX_PAY_PUBLIC_KEY_ID:}
     baseNotifyUrl: ${WX_PAY_NOTIFY_URL:}
+caratcraft:
+  platform-bootstrap-file: ${CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE:}

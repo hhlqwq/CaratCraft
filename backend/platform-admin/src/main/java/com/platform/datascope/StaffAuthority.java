@@ -2,7 +2,10 @@ package com.platform.datascope;
 
 import com.platform.common.utils.Constant;
 import com.platform.common.utils.ShiroUtils;
+import com.platform.modules.sys.entity.AccountTier;
 import com.platform.modules.sys.entity.SysUserEntity;
+import com.platform.modules.sys.service.BackOfficePermissions;
+import com.platform.modules.sys.service.BusinessOrganization;
 import com.platform.modules.sys.service.OrgActionScope;
 
 import lombok.RequiredArgsConstructor;
@@ -13,13 +16,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /** 从现有角色、动作和机构绑定计算独立范围, 供管理端请求使用. */
 @Service
 @RequiredArgsConstructor
 public class StaffAuthority {
     private final JdbcTemplate jdbc;
+    private final BusinessOrganization organization;
 
     public enum Resource {
         GOODS("mall_goods", "id"),
@@ -37,86 +44,85 @@ public class StaffAuthority {
         }
     }
 
-    /** 仅根据服务端认证主体识别应急管理员. */
+    /** 仅固定平台账号具备商家管理员管理身份. */
     public boolean emergency() {
-        return Constant.SUPER_ADMIN.equals(ShiroUtils.getUserEntity().getUserId());
+        var user = ShiroUtils.getUserEntity();
+        return Constant.SUPER_ADMIN.equals(user.getUserId())
+                && AccountTier.PLATFORM_ADMIN.equals(user.getAccountType());
     }
 
-    /** 检查操作人员对目标员工的独立机构范围, 修改途径统一禁止自授权和接管管理账号. */
+    /** 判断认证主体是否为默认工作室的商家管理员. */
+    public boolean merchant() {
+        var user = ShiroUtils.getUserEntity();
+        return AccountTier.MERCHANT_ADMIN.equals(user.getAccountType())
+                && user.getOrgNo() != null
+                && Objects.equals(user.getOrgNo(), organization.defaultOrganization());
+    }
+
+    /** 确保员工具体操作落在商家管理员的本工作室权限, 目标必须为员工. */
     public void requireEmployee(String action, SysUserEntity target, boolean write) {
-        if (target == null) {
-            throw new UnauthorizedException("员工不可访问");
-        }
-        if (!write && emergency()) {
-            return;
-        }
-        if (write
-                && (Constant.SUPER_ADMIN.equals(target.getUserId())
-                        || ShiroUtils.getUserEntity().getUserId().equals(target.getUserId()))) {
-            throw new UnauthorizedException("不能通过员工管理修改本人或应急账号");
-        }
-        if (emergency()) {
-            return;
-        }
-        if (Constant.SUPER_ADMIN.equals(target.getUserId())
+        if (!merchant()
+                || target == null
+                || !AccountTier.EMPLOYEE.equals(target.getAccountType())
                 || !scope(action).permits(target.getOrgNo())) {
             throw new UnauthorizedException("员工不在该动作的机构范围内");
         }
-        if (write) {
-            Long protectedRoles =
-                    jdbc.queryForObject(
-                            "SELECT COUNT(*) FROM SYS_USER_ROLE ur JOIN SYS_ROLE r ON"
-                                + " r.ROLE_ID=ur.ROLE_ID WHERE ur.USER_ID=? AND (r.DELEGABLE=0 OR"
-                                + " r.ROLE_ID='cc-job-system' OR EXISTS (SELECT 1 FROM"
-                                + " SYS_ROLE_MENU rm JOIN SYS_MENU m ON m.MENU_ID=rm.MENU_ID WHERE"
-                                + " rm.ROLE_ID=r.ROLE_ID AND "
-                                    + incompatibleDelegation()
-                                    + "))",
-                            Long.class,
-                            target.getUserId());
-            if (protectedRoles != null && protectedRoles > 0) {
-                throw new UnauthorizedException("该员工含受保护的角色");
-            }
-        }
     }
 
-    /** 员工所属机构必须在对应员工动作范围内且为已启用机构. */
-    public void requireEmployeeOrganization(String action, String organization) {
-        if (organization == null
-                || organization.isBlank()
-                || !scope(action).permits(organization)
-                || !Boolean.TRUE.equals(
-                        jdbc.queryForObject(
-                                "SELECT COUNT(*)=1 FROM SYS_ORG WHERE ORG_NO=? AND STATUS=1",
-                                Boolean.class,
-                                organization))) {
+    /** 员工管理入口必须属于当前单工作室. */
+    public void requireEmployeeOrganization(String action, String targetOrganization) {
+        if (!merchant() || !scope(action).permits(targetOrganization)) {
             throw new UnauthorizedException("没有此机构的员工管理权限");
         }
     }
 
-    /** 检验受委派角色的权限来源和全部机构, 避免代分配时扩大范围. */
+    /** 仅分配当前工作室内的共享经营岗位, 个人授权角色不可转绑. */
     public boolean canAssign(String roleId) {
-        if (emergency()) {
-            return true;
-        }
-        OrgActionScope grantScope = scope("sys:user:assign");
-        return !"cc-job-system".equals(roleId)
+        return merchant()
                 && Boolean.TRUE.equals(
                         jdbc.queryForObject(
-                                "SELECT COUNT(*)=1 FROM SYS_ROLE r WHERE ROLE_ID=? AND DELEGABLE=1"
-                                        + " AND NOT EXISTS (SELECT 1 FROM SYS_ROLE_MENU rm JOIN"
-                                        + " SYS_MENU m ON m.MENU_ID=rm.MENU_ID WHERE"
-                                        + " rm.ROLE_ID=r.ROLE_ID AND "
-                                        + incompatibleDelegation()
-                                        + ")",
+                                "SELECT COUNT(*)=1 FROM SYS_ROLE WHERE ROLE_ID=? AND DELEGABLE=1"
+                                    + " AND DIRECT_USER_ID IS NULL AND ROLE_ID<>'cc-job-system'",
                                 Boolean.class,
                                 roleId))
-                && withinOrganizations(roleId, grantScope);
+                && withinOrganizations(roleId, scope("sys:user:assign"))
+                && jdbc
+                        .queryForList(
+                                "SELECT m.PERMS FROM SYS_ROLE_MENU rm JOIN SYS_MENU m ON"
+                                    + " m.MENU_ID=rm.MENU_ID WHERE rm.ROLE_ID=? AND m.PERMS IS NOT"
+                                    + " NULL AND m.PERMS<>''",
+                                String.class,
+                                roleId)
+                        .stream()
+                        .allMatch(this::businessActions);
     }
 
-    /** 系统权限和通配节点不能通过普通员工管理转授. */
-    private String incompatibleDelegation() {
-        return "(LOWER(REPLACE(m.PERMS,' ','')) REGEXP '(^|,)sys:' OR INSTR(m.PERMS,'*')>0)";
+    /** 校验岗位或个人授权中的所有节点, 拒绝系统动作与通配授权. */
+    public List<String> assignableMenus(List<String> menuIds) {
+        if (!merchant()
+                || menuIds == null
+                || menuIds.size() > 200
+                || menuIds.stream().anyMatch(id -> id == null || id.isBlank())) {
+            throw new UnauthorizedException("功能权限列表无效");
+        }
+        Set<String> allowed = new HashSet<>();
+        for (var entry : jdbc.queryForList("SELECT MENU_ID,PERMS,TYPE FROM SYS_MENU")) {
+            Object permission = entry.get("PERMS");
+            if (permission instanceof String value && !value.isBlank() && businessActions(value)) {
+                allowed.add(String.valueOf(entry.get("MENU_ID")));
+            }
+        }
+        if (!allowed.containsAll(menuIds)) {
+            throw new UnauthorizedException("只能分配明确的经营功能");
+        }
+        return menuIds.stream().distinct().toList();
+    }
+
+    /** 检查一个权限节点中的全部精确经营动作. */
+    private boolean businessActions(String node) {
+        return Arrays.stream(node.split(",", -1))
+                .map(String::trim)
+                .allMatch(BackOfficePermissions::isBusiness);
     }
 
     /** 当且仅当角色有明确的机构且全部落在允许范围内时可委派. */
@@ -143,20 +149,27 @@ public class StaffAuthority {
 
     /** 仅合并明确持有本动作的现存角色所配置的启用机构, 不在此展开旧通配. */
     public OrgActionScope scope(String action) {
-        if (emergency()) {
-            return new OrgActionScope(true, List.of());
+        var user = ShiroUtils.getUserEntity();
+        if (merchant() && org.apache.shiro.SecurityUtils.getSubject().isPermitted(action)) {
+            return new OrgActionScope(false, List.of(user.getOrgNo()));
         }
-        String userId = ShiroUtils.getUserEntity().getUserId();
+        if (!AccountTier.EMPLOYEE.equals(user.getAccountType())
+                || !BackOfficePermissions.isBusiness(action)) {
+            return new OrgActionScope(false, List.of());
+        }
+        String userId = user.getUserId();
         List<String> organizations =
                 jdbc.query(
                         "SELECT DISTINCT o.ORG_NO FROM SYS_USER_ROLE ur JOIN SYS_ROLE r ON"
                             + " r.ROLE_ID=ur.ROLE_ID JOIN SYS_ROLE_MENU rm ON rm.ROLE_ID=r.ROLE_ID"
                             + " JOIN SYS_MENU m ON m.MENU_ID=rm.MENU_ID JOIN SYS_ROLE_ORG ro ON"
                             + " ro.ROLE_ID=r.ROLE_ID JOIN SYS_ORG o ON o.ORG_NO=ro.ORG_NO WHERE"
-                            + " ur.USER_ID=? AND o.STATUS=1 AND FIND_IN_SET(?, REPLACE(m.PERMS,'"
-                            + " ',''))>0",
+                            + " ur.USER_ID=? AND o.ORG_NO=? AND o.STATUS=1 AND (r.DIRECT_USER_ID IS"
+                            + " NULL OR r.DIRECT_USER_ID=ur.USER_ID) AND FIND_IN_SET(?,"
+                            + " REPLACE(m.PERMS,' ',''))>0",
                         (row, index) -> row.getString(1),
                         userId,
+                        user.getOrgNo(),
                         action);
         return new OrgActionScope(false, organizations);
     }
@@ -206,9 +219,6 @@ public class StaffAuthority {
         }
         if (scope.organizations().size() == 1) {
             return scope.organizations().get(0);
-        }
-        if (scope.emergency()) {
-            return defaultOrganization;
         }
         throw new UnauthorizedException("无法确定本次操作的数据归属机构");
     }

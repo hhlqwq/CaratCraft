@@ -25,16 +25,19 @@ import com.platform.common.utils.StringUtils;
 import com.platform.modules.sys.dao.SysMenuDao;
 import com.platform.modules.sys.entity.SysMenuEntity;
 import com.platform.modules.sys.enums.MenuTypeEnum;
+import com.platform.modules.sys.service.BackOfficePermissions;
+import com.platform.modules.sys.service.ShiroService;
 import com.platform.modules.sys.service.SysMenuService;
 import com.platform.modules.sys.service.SysRoleMenuService;
-import com.platform.modules.sys.service.SysUserService;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +50,7 @@ import java.util.Objects;
 public class SysMenuServiceImpl extends ServiceImpl<SysMenuDao, SysMenuEntity>
         implements SysMenuService {
 
-    private final SysUserService sysUserService;
+    private final ShiroService shiroService;
     private final SysRoleMenuService sysRoleMenuService;
 
     @Override
@@ -81,14 +84,35 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuDao, SysMenuEntity>
 
     @Override
     public List<SysMenuEntity> getUserMenuList(String userId) {
-        // 系统管理员，拥有最高权限
-        if (Constant.SUPER_ADMIN.equals(userId)) {
-            return getAllMenuList(null);
+        var effective = shiroService.getUserPermissions(userId);
+        if (effective.contains(BackOfficePermissions.MANAGE_MERCHANTS)) {
+            SysMenuEntity page = new SysMenuEntity();
+            page.setMenuId("platform-merchants");
+            page.setName("商家管理员");
+            page.setUrl("platform/merchant-accounts");
+            page.setIcon("admin");
+            page.setType(MenuTypeEnum.MENU.getValue());
+            return List.of(page);
         }
-
-        // 用户菜单列表
-        List<String> menuIdList = sysUserService.queryAllMenuId(userId);
-        return getAllMenuList(menuIdList);
+        Map<String, SysMenuEntity> byId = new HashMap<>();
+        list().forEach(menu -> byId.put(menu.getMenuId(), menu));
+        var pages = new HashSet<String>();
+        for (SysMenuEntity menu : byId.values()) {
+            if (menu.getUrl() == null
+                    || menu.getUrl().isBlank()
+                    || menu.getPerms() == null
+                    || Arrays.stream(menu.getPerms().split(","))
+                            .map(String::trim)
+                            .noneMatch(effective::contains)) {
+                continue;
+            }
+            for (SysMenuEntity item = menu;
+                    item != null && pages.add(item.getMenuId());
+                    item = byId.get(item.getParentId())) {
+                // 保留有权页面的上级目录, 避免岗位缺少目录节点时隐藏实际授权的入口.
+            }
+        }
+        return getAllMenuList(new ArrayList<>(pages));
     }
 
     @Override

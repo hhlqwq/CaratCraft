@@ -98,6 +98,16 @@ public class Oauth2Filter extends AuthenticatingFilter {
             var user = (SysUserEntity) getSubject(request, response).getPrincipal();
             var httpRequest = (HttpServletRequest) request;
             String path = WebUtils.getPathWithinApplication(httpRequest);
+            if (com.platform.modules.sys.entity.AccountTier.PLATFORM_ADMIN.equals(
+                            user.getAccountType())
+                    && !platformEndpoint(httpRequest.getMethod(), path)) {
+                var denied = (HttpServletResponse) response;
+                denied.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                denied.setContentType("application/json;charset=utf-8");
+                denied.getWriter()
+                        .print(JSONObject.toJSONString(RestResponse.fail(403, "平台超管无此接口权限")));
+                return false;
+            }
             if (!Boolean.TRUE.equals(user.getPasswordChangeRequired())
                     || ("POST".equals(httpRequest.getMethod())
                             && ("/sys/user/password".equals(path) || "/sys/logout".equals(path)))) {
@@ -123,6 +133,24 @@ public class Oauth2Filter extends AuthenticatingFilter {
                     .print(JSONObject.toJSONString(RestResponse.fail(401, "登录已过期，请重新登录")));
             return false;
         }
+    }
+
+    /** 超管请求仅能进入专用账号管理及本人会话的明确方法和路径. */
+    private boolean platformEndpoint(String method, String path) {
+        return switch (method) {
+            case "GET" ->
+                    java.util.Set.of("/platform/merchant/list", "/sys/menu/nav", "/sys/user/info")
+                            .contains(path);
+            case "POST" ->
+                    java.util.Set.of(
+                                    "/platform/merchant/create",
+                                    "/platform/merchant/status",
+                                    "/platform/merchant/reset",
+                                    "/sys/user/password",
+                                    "/sys/logout")
+                            .contains(path);
+            default -> false;
+        };
     }
 
     @Override

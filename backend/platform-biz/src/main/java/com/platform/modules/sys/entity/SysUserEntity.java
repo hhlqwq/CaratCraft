@@ -27,7 +27,6 @@ import com.platform.common.validator.group.UpdateGroup;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import lombok.Data;
 
@@ -49,9 +48,6 @@ public class SysUserEntity implements Serializable {
     @TableId private String userId;
 
     /** 用户性别 */
-    @NotNull(
-            message = "性别不能为空",
-            groups = {AddGroup.class, UpdateGroup.class})
     private Integer sex;
 
     /** 用户真实姓名 */
@@ -68,6 +64,11 @@ public class SysUserEntity implements Serializable {
 
     /** 机构编码 */
     private String orgNo;
+
+    /** 账号层级仅由服务端开户流程赋值. */
+    @com.fasterxml.jackson.annotation.JsonProperty(
+            access = com.fasterxml.jackson.annotation.JsonProperty.Access.READ_ONLY)
+    private String accountType;
 
     /** 密码 */
     @com.fasterxml.jackson.annotation.JsonProperty(
@@ -100,6 +101,13 @@ public class SysUserEntity implements Serializable {
 
     /** 初始或管理员重置密码必须由员工本人修改. */
     @com.fasterxml.jackson.annotation.JsonIgnore private Boolean passwordChangeRequired;
+
+    /** 平台引导和商家管理员临时密码的有效期. */
+    @com.fasterxml.jackson.annotation.JsonIgnore private Date temporaryPasswordExpiresAt;
+
+    /** 为指定员工单独选择的经营权限菜单节点. */
+    @TableField(exist = false)
+    private List<String> permissionMenuIds;
 
     /** 角色ID列表 */
     @TableField(exist = false)

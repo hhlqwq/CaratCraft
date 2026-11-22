@@ -99,9 +99,8 @@ public class SysRoleController extends AbstractController {
         return RestResponse.ok(list);
     }
 
-    /** 覆盖客户端传入的机构和操作人, 角色列表按动作计算机构范围. */
+    /** 覆盖客户端传入的机构, 角色列表按动作计算工作室范围. */
     private void applyRoleView(Map<String, Object> params, String action) {
-        params.put("roleViewer", authority.emergency() ? null : getUserId());
         params.put("roleOrgNos", authority.scope(action).organizations());
     }
 
@@ -117,11 +116,8 @@ public class SysRoleController extends AbstractController {
     public RestResponse<SysRoleEntity> info(@PathVariable("roleId") String roleId) {
         SysRoleEntity role = sysRoleService.getById(roleId);
         if (role == null
-                || (!authority.emergency()
-                        && !getUserId().equals(role.getCreateUserId())
-                        && !(Boolean.TRUE.equals(role.getDelegable())
-                                && authority.withinOrganizations(
-                                        roleId, authority.scope("sys:role:info"))))) {
+                || !authority.canAssign(roleId)
+                || !authority.withinOrganizations(roleId, authority.scope("sys:role:info"))) {
             throw new org.apache.shiro.authz.UnauthorizedException("角色不在可查看范围内");
         }
 

@@ -64,6 +64,8 @@ public class SysUserController extends AbstractController {
     private final SysUserService sysUserService;
     private final SysUserRoleService sysUserRoleService;
     private final StaffAuthority authority;
+    private final com.platform.modules.sys.service.EmployeeDirectGrants directGrants;
+    private final com.platform.modules.sys.service.ShiroService shiroService;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     /**
@@ -150,7 +152,9 @@ public class SysUserController extends AbstractController {
 
         // 获取用户所属的角色列表
         List<String> roleIdList = sysUserRoleService.queryRoleIdList(userId);
-        user.setRoleIdList(roleIdList);
+        String direct = directGrants.roleId(userId);
+        user.setRoleIdList(roleIdList.stream().filter(id -> !id.equals(direct)).toList());
+        user.setPermissionMenuIds(directGrants.menus(userId));
 
         return RestResponse.ok(user);
     }
@@ -235,21 +239,41 @@ public class SysUserController extends AbstractController {
     @GetMapping("/permissions/{userId}")
     @RequiresPermissions("sys:user:info")
     public RestResponse<List<Map<String, Object>>> permissions(@PathVariable String userId) {
-        authority.requireEmployee("sys:user:info", sysUserService.getById(userId), false);
-        return RestResponse.ok(
+        SysUserEntity employee = sysUserService.getById(userId);
+        authority.requireEmployee("sys:user:info", employee, false);
+        var effective = shiroService.getUserPermissions(userId);
+        var rows =
                 jdbc.queryForList(
                         "SELECT DISTINCT r.ROLE_ID AS roleId,r.ROLE_NAME AS roleName,ro.ORG_NO AS"
                             + " orgNo,m.PERMS AS permissions FROM SYS_USER_ROLE ur JOIN SYS_ROLE r"
-                            + " ON r.ROLE_ID=ur.ROLE_ID LEFT JOIN SYS_ROLE_ORG ro ON"
-                            + " ro.ROLE_ID=r.ROLE_ID LEFT JOIN SYS_ROLE_MENU rm ON"
-                            + " rm.ROLE_ID=r.ROLE_ID LEFT JOIN SYS_MENU m ON m.MENU_ID=rm.MENU_ID"
-                            + " AND m.PERMS IS NOT NULL AND m.PERMS<>'' WHERE ur.USER_ID=? ORDER BY"
+                            + " ON r.ROLE_ID=ur.ROLE_ID JOIN SYS_ROLE_ORG ro ON"
+                            + " ro.ROLE_ID=r.ROLE_ID JOIN SYS_ROLE_MENU rm ON rm.ROLE_ID=r.ROLE_ID"
+                            + " JOIN SYS_MENU m ON m.MENU_ID=rm.MENU_ID WHERE ur.USER_ID=? AND"
+                            + " ro.ORG_NO=? AND m.PERMS IS NOT NULL AND (r.DIRECT_USER_ID IS NULL"
+                            + " OR r.DIRECT_USER_ID=ur.USER_ID) ORDER BY"
                             + " r.ROLE_ID,ro.ORG_NO,m.PERMS",
-                        userId));
+                        userId,
+                        employee.getOrgNo());
+        var result = new java.util.ArrayList<Map<String, Object>>();
+        for (Map<String, Object> row : rows) {
+            String granted =
+                    java.util.Arrays.stream(String.valueOf(row.get("permissions")).split(","))
+                            .map(String::trim)
+                            .filter(effective::contains)
+                            .collect(java.util.stream.Collectors.joining(","));
+            if (!granted.isEmpty()) {
+                row.put("permissions", granted);
+                result.add(row);
+            }
+        }
+        return RestResponse.ok(result);
     }
 
     /** 替换客户端提供的范围参数, 员工列表与详情同样按动作计算. */
     private void applyStaffScope(Map<String, Object> params) {
+        if (!authority.merchant()) {
+            throw new org.apache.shiro.authz.UnauthorizedException("仅商家管理员可以查看员工");
+        }
         params.remove("staffOrgNos");
         var scope = authority.scope("sys:user:list");
         if (!scope.emergency()) {

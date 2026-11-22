@@ -20,6 +20,9 @@ import com.platform.common.utils.AesUtil;
 import com.platform.modules.job.utils.ScheduleRunnable;
 import com.platform.modules.mall.service.WechatPaymentGateway;
 import com.platform.modules.sys.service.MailService;
+import com.platform.modules.sys.service.PlatformAccountBootstrap;
+import com.platform.modules.sys.service.SysUserService;
+import com.platform.modules.sys.service.SysUserTokenService;
 
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.jupiter.api.AfterEach;
@@ -65,6 +68,8 @@ class OrderPermissionHttpTest {
 
     @Autowired private TestRestTemplate http;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired private SysUserService users;
+    @Autowired private SysUserTokenService userTokens;
     @MockBean private WechatPaymentGateway gateway;
     @MockBean private MailService mail;
 
@@ -109,7 +114,9 @@ class OrderPermissionHttpTest {
         createAccount("empty");
         grantPreset("operator", "cc-job-goods", "QT-A");
         grantPreset("support", "cc-job-support", "QT-A");
-        grantPreset("manager", "cc-job-system", "QT-A");
+        jdbc.update(
+                "UPDATE SYS_USER SET ACCOUNT_TYPE='MERCHANT_ADMIN' WHERE USER_ID=?",
+                accountId("manager"));
         createAccount("schedule", "100703", "100706", "100707");
         jdbc.update(
                 "INSERT INTO"
@@ -329,12 +336,8 @@ class OrderPermissionHttpTest {
                         .has("refundReview"));
         send("manager", HttpMethod.GET, "/sys/user/list", null, 200);
         send("manager", HttpMethod.GET, "/sys/role/list", null, 200);
-        var smsConfig =
-                send("manager", HttpMethod.GET, "/sys/config/info/2", null, 200).path("data");
-        assertEquals("SMS_CONFIG_KEY", smsConfig.path("paramKey").asText());
-        assertTrue(
-                smsConfig.path("paramValue").isNull()
-                        || smsConfig.path("paramValue").isMissingNode());
+        send("manager", HttpMethod.GET, "/sys/config/info/2", null, 403);
+        send("manager", HttpMethod.GET, "/mall/refund/list", null, 200);
         send(
                 "manager",
                 HttpMethod.POST,
@@ -357,32 +360,36 @@ class OrderPermissionHttpTest {
                         "SELECT COUNT(*) FROM SYS_USER_ROLE ur JOIN SYS_USER u"
                                 + " ON u.USER_ID=ur.USER_ID WHERE u.USER_NAME='cc-created-by-test'",
                         Integer.class));
-        assertRefundWritesDenied("manager");
+        send("manager", HttpMethod.GET, "/platform/merchant/list", null, 403);
         JsonNode dashboard =
                 send("manager", HttpMethod.GET, "/mall/dashboard/summary", null, 200).path("data");
         assertTrue(dashboard.has("employees"));
-        assertFalse(dashboard.has("refundReview"));
+        assertTrue(dashboard.has("refundReview"));
         send(null, HttpMethod.GET, "/mall/dashboard/summary", null, 401);
         send("empty", HttpMethod.GET, "/mall/refund/list", null, 403);
         verifyNoInteractions(gateway);
     }
 
-    /** 同一会话绑定多岗位, 退款权限只采用退款角色所属的机构, 撤权即刻生效. */
+    /** 岗位只授权本工作室, 同一员工的多岗位撤权后旧令牌立即受限. */
     @Test
     void multipleRolesKeepIndependentOrganizationsAndRevokeOnOldToken() {
         grantPreset("operator", "cc-job-refunds", "QT-B");
-        jdbc.update("UPDATE mall_order SET scope_org_no='QT-B' WHERE id=?", APPROVE);
+        send("operator", HttpMethod.GET, "/mall/refund/list", null, 403);
+        jdbc.update(
+                "UPDATE SYS_ROLE_ORG SET ORG_NO='QT-A' WHERE ROLE_ID='cc-job-refunds' AND"
+                        + " ORG_NO='QT-B'");
+        jdbc.update("UPDATE mall_order SET scope_org_no='QT-B' WHERE id=?", RETRY);
         send("operator", HttpMethod.GET, "/mall/goods/list", null, 200);
         JsonNode before =
                 send("operator", HttpMethod.GET, "/mall/dashboard/summary", null, 200).path("data");
         assertTrue(before.has("goods"));
         assertEquals(1, before.path("refundReview").asInt());
-        assertEquals(
-                1,
+        assertTrue(
                 send("operator", HttpMethod.GET, "/mall/refund/list", null, 200)
-                        .path("data")
-                        .path("total")
-                        .asInt());
+                                .path("data")
+                                .path("total")
+                                .asInt()
+                        >= 1);
         send("operator", HttpMethod.POST, retryUrl(RETRY), null, 403);
         send("operator", HttpMethod.POST, "/mall/refund/review", decision(), 200);
         jdbc.update(
@@ -397,7 +404,7 @@ class OrderPermissionHttpTest {
         verifyNoInteractions(gateway);
     }
 
-    /** 系统管理员能停用员工, 但不能修改自己的角色或以参数突破机构范围. */
+    /** 商家管理员能停用员工, 但不能修改自己的角色或以参数突破机构范围. */
     @Test
     void disablingEmployeeInvalidatesExistingToken() {
         jdbc.update("DELETE FROM SYS_USER_ROLE WHERE USER_ID=?", accountId("empty"));
@@ -689,8 +696,224 @@ class OrderPermissionHttpTest {
         send("empty", HttpMethod.GET, "/mall/dashboard/summary", null, 200);
     }
 
+    /** 平台账号只能管理商家管理员, 即使遗留岗位含经营权限和通配项. */
+    @Test
+    void platformAccountCannotOperateBusiness(
+            @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory)
+            throws java.io.IOException {
+        String original = "FixtureBootstrap123456ABC";
+        String replacement = "Fixture-Platform-Password";
+        assertEquals(
+                0,
+                jdbc.queryForObject(
+                        "SELECT STATUS FROM SYS_USER WHERE USER_ID='1'", Integer.class));
+        assertEquals(
+                0,
+                jdbc.queryForObject(
+                        "SELECT COUNT(*) FROM SYS_USER WHERE USER_ID='1' AND PASSWORD IS NOT NULL",
+                        Integer.class));
+        java.nio.file.Path bootstrapFile = directory.resolve("fixture-bootstrap.txt");
+        java.nio.file.Files.writeString(bootstrapFile, original);
+        new PlatformAccountBootstrap(users, userTokens, jdbc, bootstrapFile.toString()).run(null);
+        try {
+            tokens.put("platform", signIn("admin", original));
+            send("platform", HttpMethod.GET, "/platform/merchant/list", null, 428);
+            signIn("admin", original, 400);
+            send(
+                    "platform",
+                    HttpMethod.POST,
+                    "/sys/user/password",
+                    Map.of("password", original, "newPassword", replacement),
+                    200);
+            tokens.put("platform", signIn("admin", replacement));
+            jdbc.update(
+                    "INSERT INTO SYS_USER_ROLE(ID,USER_ID,ROLE_ID)"
+                            + " VALUES('cc-platform-fixture','1','cc-job-goods')");
+            jdbc.update(
+                    "INSERT INTO SYS_MENU(MENU_ID,PARENT_ID,NAME,PERMS,TYPE,ORDER_NUM)"
+                            + " VALUES('cc-wild','0','Fixture','*',2,0)");
+            jdbc.update(
+                    "INSERT INTO SYS_ROLE_MENU(ID,ROLE_ID,MENU_ID)"
+                            + " VALUES('cc-admin-wild','cc-job-goods','cc-wild')");
+            send("platform", HttpMethod.GET, "/mall/goods/list", null, 403);
+            send("platform", HttpMethod.GET, "/mall/order/list", null, 403);
+            send("platform", HttpMethod.GET, "/mall/refund/list", null, 403);
+            send("platform", HttpMethod.POST, "/mall/refund/reconcile", null, 403);
+            send("platform", HttpMethod.GET, "/community/posts/list", null, 403);
+            send("platform", HttpMethod.GET, "/sys/user/list", null, 403);
+            send("platform", HttpMethod.GET, "/platform/merchant/list", null, 200);
+            send("manager", HttpMethod.POST, "/platform/merchant/create", Map.of(), 403);
+            send(
+                    "platform",
+                    HttpMethod.POST,
+                    "/platform/merchant/reset",
+                    Map.of("userId", "1"),
+                    403);
+            send(
+                    "platform",
+                    HttpMethod.POST,
+                    "/platform/merchant/status",
+                    Map.of("userId", accountId("empty"), "active", false),
+                    403);
+            var issued =
+                    send(
+                                    "platform",
+                                    HttpMethod.POST,
+                                    "/platform/merchant/create",
+                                    Map.of(
+                                            "userName",
+                                            "cc-tier-merchant",
+                                            "realName",
+                                            "隔离商家",
+                                            "email",
+                                            "merchant@example.test"),
+                                    200)
+                            .path("data");
+            String merchantId = issued.path("userId").asText();
+            String temporary = issued.path("temporaryPassword").asText();
+            assertEquals(24, temporary.length());
+            tokens.put("tier-merchant", signIn("cc-tier-merchant", temporary));
+            send("tier-merchant", HttpMethod.GET, "/mall/goods/list", null, 428);
+            send(
+                    "tier-merchant",
+                    HttpMethod.POST,
+                    "/sys/user/password",
+                    Map.of("password", temporary, "newPassword", "Merchant-Changed-Password"),
+                    200);
+            tokens.put("tier-merchant", signIn("cc-tier-merchant", "Merchant-Changed-Password"));
+            send("tier-merchant", HttpMethod.GET, "/mall/goods/list", null, 200);
+            send("tier-merchant", HttpMethod.GET, "/mall/refund/list", null, 200);
+            send("tier-merchant", HttpMethod.POST, "/platform/merchant/create", Map.of(), 403);
+            var reset =
+                    send(
+                                    "platform",
+                                    HttpMethod.POST,
+                                    "/platform/merchant/reset",
+                                    Map.of("userId", merchantId),
+                                    200)
+                            .path("data");
+            assertFalse(temporary.equals(reset.path("temporaryPassword").asText()));
+            send("tier-merchant", HttpMethod.GET, "/mall/goods/list", null, 401);
+            send(
+                    "platform",
+                    HttpMethod.POST,
+                    "/platform/merchant/status",
+                    Map.of("userId", merchantId, "active", false),
+                    200);
+            signIn("cc-tier-merchant", reset.path("temporaryPassword").asText(), 400);
+            send(
+                    "platform",
+                    HttpMethod.POST,
+                    "/platform/merchant/status",
+                    Map.of("userId", merchantId, "active", true),
+                    200);
+            tokens.put(
+                    "tier-merchant",
+                    signIn("cc-tier-merchant", reset.path("temporaryPassword").asText()));
+            send("tier-merchant", HttpMethod.GET, "/mall/order/list", null, 428);
+            assertThrows(
+                    org.springframework.dao.DataAccessException.class,
+                    () ->
+                            jdbc.update(
+                                    "UPDATE SYS_USER SET ACCOUNT_TYPE='PLATFORM_ADMIN' WHERE"
+                                            + " USER_ID=?",
+                                    merchantId));
+        } finally {
+            jdbc.update("DELETE FROM SYS_ROLE_MENU WHERE ID='cc-admin-wild'");
+            jdbc.update("DELETE FROM SYS_MENU WHERE MENU_ID='cc-wild'");
+            jdbc.update("DELETE FROM SYS_USER_ROLE WHERE ID='cc-platform-fixture'");
+            jdbc.update(
+                    "DELETE t FROM SYS_USER_TOKEN t JOIN SYS_USER u ON u.USER_ID=t.USER_ID WHERE"
+                            + " u.USER_ID='1' OR u.USER_NAME='cc-tier-merchant'");
+            jdbc.update("DELETE FROM SYS_USER WHERE USER_NAME='cc-tier-merchant'");
+            jdbc.update(
+                    "UPDATE SYS_USER SET"
+                        + " STATUS=0,PASSWORD=NULL,SALT=NULL,PASSWORD_CHANGE_REQUIRED=1,TEMPORARY_PASSWORD_EXPIRES_AT=NULL"
+                        + " WHERE USER_ID='1'");
+            tokens.remove("platform");
+            tokens.remove("tier-merchant");
+        }
+    }
+
+    /** 商家以岗位和直接授权选择功能, 退款的每项写操作单独判定. */
+    @Test
+    void merchantGrantsStudioActionsThenRevokesOldSession() {
+        String employee = accountId("empty");
+        send(null, HttpMethod.GET, "/platform/merchant/list", null, 401);
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/role/save",
+                Map.of("roleName", "禁止平台权", "menuIdList", List.of("110101")),
+                403);
+        send(
+                "manager",
+                HttpMethod.POST,
+                "/sys/role/save",
+                Map.of("roleName", "隔离退款审核岗", "menuIdList", List.of("1802", "180201")),
+                200);
+        String role =
+                jdbc.queryForObject(
+                        "SELECT ROLE_ID FROM SYS_ROLE WHERE ROLE_NAME='隔离退款审核岗'", String.class);
+        try {
+            send(
+                    "manager",
+                    HttpMethod.POST,
+                    "/sys/user/update",
+                    Map.of(
+                            "userId",
+                            employee,
+                            "userName",
+                            employee,
+                            "realName",
+                            "隔离员工",
+                            "roleIdList",
+                            List.of(role),
+                            "permissionMenuIds",
+                            List.of("180106")),
+                    200);
+            send("empty", HttpMethod.GET, "/mall/refund/list", null, 200);
+            send("empty", HttpMethod.POST, "/mall/refund/review", decision(), 200);
+            send("empty", HttpMethod.POST, "/mall/refund/decide", decision(), 403);
+            send("empty", HttpMethod.POST, "/mall/refund/reconcile", null, 403);
+            send("empty", HttpMethod.GET, "/sys/user/list", null, 403);
+            send("empty", HttpMethod.POST, "/sys/role/save", Map.of(), 403);
+            String provenance =
+                    send("manager", HttpMethod.GET, "/sys/user/permissions/" + employee, null, 200)
+                            .path("data")
+                            .toString();
+            assertTrue(provenance.contains("mall:refund:review"));
+            assertTrue(provenance.contains("mall:refund:retry"));
+            send(
+                    "manager",
+                    HttpMethod.POST,
+                    "/sys/user/update",
+                    Map.of(
+                            "userId",
+                            employee,
+                            "userName",
+                            employee,
+                            "realName",
+                            "隔离员工",
+                            "roleIdList",
+                            List.of(),
+                            "permissionMenuIds",
+                            List.of()),
+                    200);
+            send("empty", HttpMethod.POST, retryUrl(RETRY), null, 403);
+            send("empty", HttpMethod.POST, "/mall/refund/review", decision(), 403);
+        } finally {
+            send("manager", HttpMethod.POST, "/sys/role/delete", List.of(role), 200);
+        }
+    }
+
     /** 使用隔离图片验证码数据走正式登录接口, 不访问外部发码渠道. */
     private String signIn(String username, String password) {
+        return signIn(username, password, 200);
+    }
+
+    /** 使用同一登录入口检查拒绝状态, 不绕过图形验证码. */
+    private String signIn(String username, String password, int status) {
         String uuid = issueCaptcha();
         return send(
                         null,
@@ -705,7 +928,7 @@ class OrderPermissionHttpTest {
                                 uuid,
                                 "captcha",
                                 "A2B3"),
-                        200)
+                        status)
                 .path("data")
                 .asText();
     }

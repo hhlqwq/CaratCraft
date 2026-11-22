@@ -2,15 +2,10 @@
     <div class="mod-role">
         <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
             <el-form-item>
-                <el-input v-model="searchForm.roleName" placeholder="角色名称" clearable></el-input>
+                <el-input v-model="searchForm.roleName" placeholder="岗位名称" clearable></el-input>
             </el-form-item>
             <el-form-item>
                 <el-button @click="getDataList(1)">查询</el-button>
-                <el-button
-                    v-if="String($store.state.user.id) === '1' && $router.hasRoute('sys-org')"
-                    @click="$router.push({name: 'sys-org'})"
-                    >组织机构维护</el-button
-                >
                 <el-button
                     v-if="isAuth('sys:role:save')"
                     type="primary"
@@ -34,7 +29,7 @@
         >
             <el-table-column type="selection" header-align="center" align="center" width="50">
             </el-table-column>
-            <el-table-column prop="roleName" header-align="center" align="center" label="角色名称">
+            <el-table-column prop="roleName" header-align="center" align="center" label="岗位名称">
             </el-table-column>
             <el-table-column
                 show-tooltip-when-overflow

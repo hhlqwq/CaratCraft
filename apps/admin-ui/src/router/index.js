@@ -248,6 +248,9 @@ router.beforeEach(async (to) => {
             return {name: 'login'};
         }
     }
+    if (to.name === 'home' && router.hasRoute('platform-merchant-accounts')) {
+        return {name: 'platform-merchant-accounts', replace: true};
+    }
     return to.matched.length > 0 || {name: '404'};
 });
 

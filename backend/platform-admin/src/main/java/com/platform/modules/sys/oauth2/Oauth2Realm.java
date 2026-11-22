@@ -18,8 +18,10 @@
  */
 package com.platform.modules.sys.oauth2;
 
+import com.platform.modules.sys.entity.AccountTier;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
+import com.platform.modules.sys.service.BusinessOrganization;
 import com.platform.modules.sys.service.ShiroService;
 
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -48,6 +51,7 @@ import java.util.Set;
 @Component
 public class Oauth2Realm extends AuthorizingRealm {
     private final ShiroService shiroService;
+    private final BusinessOrganization businessOrganization;
 
     @Override
     public boolean supports(AuthenticationToken token) {
@@ -87,8 +91,14 @@ public class Oauth2Realm extends AuthorizingRealm {
         // 查询用户信息
         SysUserEntity user = shiroService.queryUser(tokenEntity.getUserId());
         // 账号锁定
-        if (user == null || !Integer.valueOf(1).equals(user.getStatus())) {
+        if (!AccountTier.valid(user) || !Integer.valueOf(1).equals(user.getStatus())) {
             throw new LockedAccountException("账号已被锁定,请联系管理员");
+        }
+        if (AccountTier.MERCHANT_ADMIN.equals(user.getAccountType())
+                && (user.getOrgNo() == null
+                        || !Objects.equals(
+                                user.getOrgNo(), businessOrganization.defaultOrganization()))) {
+            throw new LockedAccountException("商家管理员的工作室配置不可用");
         }
 
         return new SimpleAuthenticationInfo(user, accessToken, getName());

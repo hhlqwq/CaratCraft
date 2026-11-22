@@ -127,6 +127,7 @@ services:
         condition: service_healthy
     environment:
       <<: *application-environment
+      CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE: ${CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE:-}
       SPRING_PROFILES_ACTIVE: docker
       JAVA_OPTS: ${PLATFORM_ADMIN_JAVA_OPTS:--Xms256m -Xmx512m}
     volumes:

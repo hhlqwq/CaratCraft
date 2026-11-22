@@ -8,24 +8,38 @@
                 class="site-sidebar__menu"
                 router
             >
-                <el-menu-item index="home" :route="{name: 'home'}">
+                <el-menu-item
+                    v-if="!isAuth('platform:merchant:manage')"
+                    index="home"
+                    :route="{name: 'home'}"
+                >
                     <icon-svg name="shouye" class="site-sidebar__menu-icon" />
                     <template #title>工作台</template>
                 </el-menu-item>
-                <el-sub-menu v-for="group in groups" :key="group.title" :index="group.title">
-                    <template #title>
-                        <icon-svg :name="group.icon" class="site-sidebar__menu-icon" />
-                        <span>{{ group.title }}</span>
-                    </template>
+                <template v-for="group in groups" :key="group.title">
                     <el-menu-item
-                        v-for="page in group.pages"
-                        :key="page.name"
-                        :index="page.name"
-                        :route="{name: page.name}"
+                        v-if="group.standalone"
+                        :index="group.pages[0].name"
+                        :route="{name: group.pages[0].name}"
                     >
-                        {{ page.title }}
+                        <icon-svg :name="group.icon" class="site-sidebar__menu-icon" />
+                        <template #title>{{ group.title }}</template>
                     </el-menu-item>
-                </el-sub-menu>
+                    <el-sub-menu v-else :index="group.title">
+                        <template #title>
+                            <icon-svg :name="group.icon" class="site-sidebar__menu-icon" />
+                            <span>{{ group.title }}</span>
+                        </template>
+                        <el-menu-item
+                            v-for="page in group.pages"
+                            :key="page.name"
+                            :index="page.name"
+                            :route="{name: page.name}"
+                        >
+                            {{ page.title }}
+                        </el-menu-item>
+                    </el-sub-menu>
+                </template>
             </el-menu>
         </div>
     </aside>

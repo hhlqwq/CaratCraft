@@ -4,6 +4,24 @@
     "overall": "pending_external_acceptance",
     "codeAcceptance": "passed",
     "note": "codeCommit对应的基线代码和构建门禁通过. 本轮整合按integrationAcceptance记录, 微信模拟器逐页显示、真机及真实支付分别验收.",
+    "accountTierAcceptance": {
+        "date": "2026-11-23",
+        "runId": "20261122-f9a6c59260a8",
+        "java": {"passed": 261, "failed": 0, "skipped": 0},
+        "admin": {"productionBuild": "passed", "eslint": "passed"},
+        "http": {
+            "class": "OrderPermissionHttpTest",
+            "passed": 12,
+            "environment": "真实 Shiro 和隔离 MySQL、Redis, 邮件和微信退款使用测试替身",
+            "coverage": "平台管理员经营隔离、商家开户与工作室范围、员工授权和撤权、退款四项独立授权、一次性凭据、首次改密、重置及验证码找回"
+        },
+        "database": {
+            "isolatedUpgradeAndRollback": "passed",
+            "existingDatabaseModified": false,
+            "existingAccountMigration": "pending_approval"
+        },
+        "deployment": "not_performed"
+    },
     "orderPermissionAcceptance": {
         "date": "2026-11-18",
         "baselineCommit": "937460d",

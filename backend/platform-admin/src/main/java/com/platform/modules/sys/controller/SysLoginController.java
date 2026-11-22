@@ -146,7 +146,7 @@ public class SysLoginController extends AbstractController {
         }
 
         // 账号不存在
-        if (user == null) {
+        if (!com.platform.modules.sys.entity.AccountTier.valid(user)) {
             return RestResponse.fail("账号或密码不正确");
         }
 

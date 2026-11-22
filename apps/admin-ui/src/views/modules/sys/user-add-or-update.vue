@@ -21,14 +21,11 @@
             <el-form-item v-if="!dataForm.id" label="初始密码">
                 <span>123456，员工首次登录时修改</span>
             </el-form-item>
-            <el-form-item label="状态" prop="status">
+            <el-form-item v-if="dataForm.id" label="状态" prop="status">
                 <el-radio-group v-model="dataForm.status" class="width200">
                     <el-radio-button :label="0">禁用</el-radio-button>
                     <el-radio-button :label="1">正常</el-radio-button>
                 </el-radio-group>
-            </el-form-item>
-            <el-form-item label="性别" prop="sex">
-                <el-dict code="SEX" v-model="dataForm.sex"></el-dict>
             </el-form-item>
             <el-form-item label="真实姓名" prop="realName">
                 <el-input
@@ -71,6 +68,22 @@
                     </el-option>
                 </el-select>
             </el-form-item>
+            <el-form-item label="功能权限" prop="permissionMenuIds">
+                <el-select
+                    v-model="dataForm.permissionMenuIds"
+                    multiple
+                    clearable
+                    filterable
+                    placeholder="选择额外功能"
+                >
+                    <el-option
+                        v-for="item in permissionList"
+                        :key="item.menuId"
+                        :label="item.name + ' · ' + item.perms"
+                        :value="item.menuId"
+                    />
+                </el-select>
+            </el-form-item>
         </el-form>
         <div class="staff-actions">
             <el-button @click="returnToList">取消</el-button>
@@ -96,14 +109,15 @@ export default {
             error: '',
             original: '',
             roleList: [],
+            permissionList: [],
             dataForm: {
                 id: this.$route.params.id || '',
                 userName: '',
-                sex: '',
                 realName: '',
                 email: '',
                 mobile: '',
                 roleIdList: [],
+                permissionMenuIds: [],
                 status: 1,
             },
             dataRule: {
@@ -119,13 +133,6 @@ export default {
                     {
                         required: true,
                         message: '用户名不能为空',
-                        trigger: 'blur',
-                    },
-                ],
-                sex: [
-                    {
-                        required: true,
-                        message: '性别不能为空',
                         trigger: 'blur',
                     },
                 ],
@@ -181,27 +188,35 @@ export default {
         /** 同时获取可分配岗位及已有员工的原始资料. */
         async load() {
             try {
-                const requests = [this.$http({url: '/sys/role/select', method: 'get'})];
+                const requests = [
+                    this.$http({url: '/sys/role/select', method: 'get'}),
+                    this.$http({url: '/sys/menu/list', method: 'get'}),
+                ];
                 if (this.dataForm.id) {
                     requests.push(
                         this.$http({url: `/sys/user/info/${this.dataForm.id}`, method: 'get'})
                     );
                 }
-                const [roles, detail] = await Promise.all(requests);
-                if (roles.data?.code !== 0 || (detail && detail.data?.code !== 0)) {
+                const [roles, permissions, detail] = await Promise.all(requests);
+                if (
+                    roles.data?.code !== 0 ||
+                    permissions.data?.code !== 0 ||
+                    (detail && detail.data?.code !== 0)
+                ) {
                     throw new Error(detail?.data?.msg || roles.data?.msg || '员工资料加载失败');
                 }
                 this.roleList = roles.data.data || [];
+                this.permissionList = permissions.data.data || [];
                 if (detail) {
                     const employee = detail.data.data;
                     this.dataForm = {
                         ...this.dataForm,
                         userName: employee.userName,
-                        sex: String(employee.sex),
                         realName: employee.realName,
                         email: employee.email || '',
                         mobile: employee.mobile || '',
                         roleIdList: employee.roleIdList || [],
+                        permissionMenuIds: employee.permissionMenuIds || [],
                         status: employee.status,
                     };
                 }

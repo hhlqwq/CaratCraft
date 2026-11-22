@@ -24,7 +24,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.platform.common.utils.Query;
 import com.platform.datascope.StaffAuthority;
 import com.platform.modules.sys.dao.SysUserDao;
+import com.platform.modules.sys.entity.AccountTier;
 import com.platform.modules.sys.entity.SysUserEntity;
+import com.platform.modules.sys.service.AdminCredentials;
+import com.platform.modules.sys.service.EmployeeDirectGrants;
 import com.platform.modules.sys.service.SysUserRoleService;
 import com.platform.modules.sys.service.SysUserService;
 import com.platform.modules.sys.service.SysUserTokenService;
@@ -55,6 +58,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     private final StaffAuthority authority;
     private final com.platform.modules.sys.service.BusinessOrganization businessOrganization;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
+    private final EmployeeDirectGrants directGrants;
 
     @Override
     public List<SysUserEntity> queryAll(Map<String, Object> params) {
@@ -89,11 +93,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         }
         rejectOrganizationOverride(user.getOrgNo(), organization);
         authority.requireEmployeeOrganization("sys:user:save", organization);
-        if (!roles(user.getRoleIdList()).isEmpty()) {
+        if (!roles(user.getRoleIdList()).isEmpty()
+                || !roles(user.getPermissionMenuIds()).isEmpty()) {
             authority.requireEmployeeOrganization("sys:user:assign", organization);
         }
         validateRoles(user.getRoleIdList());
         SysUserEntity employee = profile(user);
+        if (employee.getSex() == null) {
+            employee.setSex(0);
+        }
+        employee.setAccountType(AccountTier.EMPLOYEE);
         employee.setOrgNo(organization);
         employee.setCreateUserId(user.getCreateUserId());
         employee.setCreateUserOrgNo(user.getCreateUserOrgNo());
@@ -105,7 +114,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         if (!save(employee)) {
             throw new IllegalStateException("员工账号保存失败");
         }
-        sysUserRoleService.saveOrUpdate(employee.getUserId(), roles(user.getRoleIdList()));
+        saveRoleBindings(employee, roles(user.getRoleIdList()), user.getPermissionMenuIds());
         authority.audit("创建员工", employee.getUserId(), "角色=" + roles(user.getRoleIdList()));
     }
 
@@ -118,20 +127,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         if (user.getPassword() != null) {
             throw new IllegalArgumentException("请使用专用的密码重置入口");
         }
-        List<String> previousRoles = sysUserRoleService.queryRoleIdList(current.getUserId());
-        if (user.getRoleIdList() != null
-                && !new java.util.HashSet<>(previousRoles)
-                        .equals(new java.util.HashSet<>(user.getRoleIdList()))) {
+        String direct = directGrants.roleId(current.getUserId());
+        List<String> previousRoles =
+                sysUserRoleService.queryRoleIdList(current.getUserId()).stream()
+                        .filter(id -> !Objects.equals(id, direct))
+                        .toList();
+        if (user.getRoleIdList() != null || user.getPermissionMenuIds() != null) {
             authority.requireEmployeeOrganization("sys:user:assign", current.getOrgNo());
-            validateRoles(user.getRoleIdList());
-            if (!authority.emergency() && !previousRoles.stream().allMatch(authority::canAssign)) {
-                throw new UnauthorizedException("没有移除该员工现有角色的权限");
-            }
-            sysUserRoleService.saveOrUpdate(current.getUserId(), roles(user.getRoleIdList()));
+            List<String> selected =
+                    user.getRoleIdList() == null ? previousRoles : roles(user.getRoleIdList());
+            validateRoles(selected);
+            saveRoleBindings(current, selected, user.getPermissionMenuIds());
             authority.audit(
-                    "变更员工角色",
-                    current.getUserId(),
-                    "原角色=" + previousRoles + ", 新角色=" + roles(user.getRoleIdList()));
+                    "变更员工角色", current.getUserId(), "原角色=" + previousRoles + ", 新角色=" + selected);
         }
         SysUserEntity employee = profile(user);
         employee.setUserId(current.getUserId());
@@ -159,6 +167,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         for (String id : userIds) {
             tokens.offlineBatch(new String[] {id});
             sysUserRoleService.saveOrUpdate(id, List.of());
+            directGrants.remove(id);
             removeById(id);
             authority.audit("删除员工", id, "解除角色并注销会话");
         }
@@ -220,19 +229,20 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     /** 紧急管理员和持有系统管理或资金写操作权限的员工由授权管理员办理重置. */
     @Override
     public boolean canRecoverPassword(SysUserEntity employee) {
-        return employee != null
-                && Integer.valueOf(1).equals(employee.getStatus())
-                && !com.platform.common.utils.Constant.SUPER_ADMIN.equals(employee.getUserId())
-                && Boolean.TRUE.equals(
-                        jdbc.queryForObject(
-                                "SELECT NOT EXISTS (SELECT 1 FROM SYS_USER_ROLE ur JOIN"
-                                    + " SYS_ROLE_MENU rm ON ur.ROLE_ID=rm.ROLE_ID JOIN SYS_MENU m"
-                                    + " ON rm.MENU_ID=m.MENU_ID WHERE ur.USER_ID=? AND"
-                                    + " (INSTR(m.PERMS,'*')>0 OR LOWER(REPLACE(m.PERMS,' ',''))"
-                                    + " REGEXP"
-                                    + " '(^|,)(sys:(user|role|menu):|mall:refund:(execute|review|retry|writeback|reconcile)(,|$))'))",
-                                Boolean.class,
-                                employee.getUserId()));
+        return AccountTier.valid(employee)
+                && AccountTier.EMPLOYEE.equals(employee.getAccountType())
+                && Integer.valueOf(1).equals(employee.getStatus());
+    }
+
+    /** 在同一账号事务更新选定岗位和该员工专属的直接授权. */
+    private void saveRoleBindings(
+            SysUserEntity employee, List<String> selected, List<String> menus) {
+        String personalRole = directGrants.replace(employee, menus);
+        var bindings = new java.util.ArrayList<>(selected);
+        if (personalRole != null) {
+            bindings.add(personalRole);
+        }
+        sysUserRoleService.saveOrUpdate(employee.getUserId(), bindings);
     }
 
     /** 校验中国大陆手机号, 开户至少登记一个联系方式. */
@@ -290,9 +300,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         }
         if (roles.size() > 20
                 || roles.stream().anyMatch(id -> id == null || id.isBlank())
-                || (!authority.emergency()
-                        && !org.apache.shiro.SecurityUtils.getSubject()
-                                .isPermitted("sys:user:assign"))
                 || !roles.stream().allMatch(id -> rolesExist(id) && authority.canAssign(id))) {
             throw new UnauthorizedException("所选角色不可分配");
         }
@@ -327,15 +334,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
                 throw new IllegalArgumentException("新密码不能与当前密码相同");
             }
         }
-        employee.setPasswordChangeRequired(temporary);
-        byte[] bytes = new byte[16];
-        new java.security.SecureRandom().nextBytes(bytes);
-        employee.setSalt(
-                java.util.Base64.getUrlEncoder()
-                        .withoutPadding()
-                        .encodeToString(bytes)
-                        .substring(0, 20));
-        employee.setPassword(new Sha256Hash(password, employee.getSalt()).toHex());
+        AdminCredentials.replace(employee, password, temporary, null);
     }
 
     /** 校验本人新密码, 禁止保留统一初始密码. */

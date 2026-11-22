@@ -84,8 +84,9 @@ public class SysMenuController extends AbstractController {
 
         Map<String, Object> map = new HashMap<>(2);
 
-        List<SysDictEntity> dictList = sysDictService.queryAll(map);
-        List<SysOrgEntity> orgList = permittedOrganizations();
+        List<SysDictEntity> dictList =
+                authority.emergency() ? List.of() : sysDictService.queryAll(map);
+        List<SysOrgEntity> orgList = authority.emergency() ? List.of() : permittedOrganizations();
         Map<String, Object> result = new HashMap<>(8);
         result.put("menuList", menuList);
         result.put("permissions", permissions);
@@ -104,7 +105,18 @@ public class SysMenuController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("sys:menu:list")
     public RestResponse<List<SysMenuEntity>> list() {
-        List<SysMenuEntity> menuList = sysMenuService.queryList();
+        List<SysMenuEntity> menuList =
+                sysMenuService.queryList().stream()
+                        .filter(menu -> menu.getPerms() != null && !menu.getPerms().isBlank())
+                        .filter(
+                                menu ->
+                                        java.util.Arrays.stream(menu.getPerms().split(","))
+                                                .map(String::trim)
+                                                .allMatch(
+                                                        com.platform.modules.sys.service
+                                                                        .BackOfficePermissions
+                                                                ::isBusiness))
+                        .toList();
         return RestResponse.ok(menuList);
     }
 

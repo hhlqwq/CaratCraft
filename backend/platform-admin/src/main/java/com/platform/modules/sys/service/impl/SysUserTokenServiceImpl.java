@@ -62,18 +62,28 @@ public class SysUserTokenServiceImpl extends ServiceImpl<SysUserTokenDao, SysUse
         // 锁定账号并校验凭据版本, 避免同时发生的改密或停用留下新会话.
         SysUserEntity active =
                 users.selectOne(
-                        new QueryWrapper<SysUserEntity>()
-                                .select("PASSWORD", "STATUS")
-                                .eq("USER_ID", userId)
-                                .last("FOR UPDATE"));
-        if (active == null
+                        new QueryWrapper<SysUserEntity>().eq("USER_ID", userId).last("FOR UPDATE"));
+        if (!com.platform.modules.sys.entity.AccountTier.valid(active)
                 || !Integer.valueOf(1).equals(active.getStatus())
                 || !verifiedPasswordHash.equals(active.getPassword())) {
             return null;
         }
-        users.update(
-                null,
-                new UpdateWrapper<SysUserEntity>().eq("USER_ID", userId).set("LAST_LOGIN_AT", now));
+        var update =
+                new UpdateWrapper<SysUserEntity>().eq("USER_ID", userId).set("LAST_LOGIN_AT", now);
+        if (Boolean.TRUE.equals(active.getPasswordChangeRequired())
+                && !com.platform.modules.sys.entity.AccountTier.EMPLOYEE.equals(
+                        active.getAccountType())) {
+            Date until = active.getTemporaryPasswordExpiresAt();
+            if (until == null || !until.after(now)) {
+                return null;
+            }
+            if (com.platform.modules.sys.entity.AccountTier.PLATFORM_ADMIN.equals(
+                    active.getAccountType())) {
+                update.set("TEMPORARY_PASSWORD_EXPIRES_AT", null);
+                expireTime = until.before(expireTime) ? until : expireTime;
+            }
+        }
+        users.update(null, update);
 
         // 判断是否生成过token
         SysUserTokenEntity tokenEntity = this.getById(userId);

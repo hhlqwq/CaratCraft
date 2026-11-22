@@ -20,13 +20,14 @@ package com.platform.modules.sys.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.platform.common.utils.Constant;
 import com.platform.modules.sys.dao.SysMenuDao;
 import com.platform.modules.sys.dao.SysUserDao;
 import com.platform.modules.sys.dao.SysUserTokenDao;
+import com.platform.modules.sys.entity.AccountTier;
 import com.platform.modules.sys.entity.SysMenuEntity;
 import com.platform.modules.sys.entity.SysUserEntity;
 import com.platform.modules.sys.entity.SysUserTokenEntity;
+import com.platform.modules.sys.service.BackOfficePermissions;
 import com.platform.modules.sys.service.ShiroService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -54,28 +54,37 @@ public class ShiroServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenE
 
     @Override
     public Set<String> getUserPermissions(String userId) {
-        List<String> permsList;
-
-        // 系统管理员，拥有最高权限
-        if (Constant.SUPER_ADMIN.equals(userId)) {
-            List<SysMenuEntity> menuList =
-                    sysMenuDao.selectList(new QueryWrapper<SysMenuEntity>().select("PERMS"));
-            permsList = new ArrayList<>(menuList.size());
-            for (SysMenuEntity menu : menuList) {
-                if (null != menu) {
-                    permsList.add(menu.getPerms());
-                }
-            }
-        } else {
-            permsList = sysUserDao.queryAllPerms(userId);
+        SysUserEntity user = queryUser(userId);
+        if (!AccountTier.valid(user) || !Integer.valueOf(1).equals(user.getStatus())) {
+            return Set.of();
         }
-        // 用户权限列表
+        if (AccountTier.PLATFORM_ADMIN.equals(user.getAccountType())) {
+            return Set.of(BackOfficePermissions.MANAGE_MERCHANTS);
+        }
+        boolean merchant = AccountTier.MERCHANT_ADMIN.equals(user.getAccountType());
+        List<String> permsList =
+                merchant
+                        ? sysMenuDao
+                                .selectList(
+                                        new QueryWrapper<SysMenuEntity>()
+                                                .select("PERMS")
+                                                .isNotNull("PERMS"))
+                                .stream()
+                                .map(SysMenuEntity::getPerms)
+                                .toList()
+                        : sysUserDao.queryAllPerms(userId);
         Set<String> permsSet = new HashSet<>();
         for (String perms : permsList) {
             if (StringUtils.isBlank(perms)) {
                 continue;
             }
-            permsSet.addAll(Arrays.asList(perms.trim().split(",")));
+            Arrays.stream(perms.split(","))
+                    .map(String::trim)
+                    .filter(BackOfficePermissions::isBusiness)
+                    .forEach(permsSet::add);
+        }
+        if (merchant) {
+            permsSet.addAll(BackOfficePermissions.MERCHANT_ACCOUNT_MANAGEMENT);
         }
         return permsSet;
     }

@@ -438,7 +438,8 @@ INSERT INTO `SYS_MENU` (`MENU_ID`, `PARENT_ID`, `NAME`, `URL`, `PERMS`, `TYPE`, 
 INSERT INTO `SYS_MENU` (`MENU_ID`, `PARENT_ID`, `NAME`, `URL`, `PERMS`, `TYPE`, `ICON`, `ORDER_NUM`) VALUES ('950001','9500','编辑协议草稿',NULL,'merchant:legal:update',2,NULL,1);
 INSERT INTO `SYS_MENU` (`MENU_ID`, `PARENT_ID`, `NAME`, `URL`, `PERMS`, `TYPE`, `ICON`, `ORDER_NUM`) VALUES ('950002','9500','发布协议版本',NULL,'merchant:legal:publish',2,NULL,2);
 
-INSERT INTO `SYS_USER` (`USER_ID`, `USER_NAME`, `REAL_NAME`, `SEX`, `ORG_NO`, `SALT`, `EMAIL_HOST`, `EMAIL`, `EMAIL_PW`, `MOBILE`, `STATUS`, `PASSWORD`, `CREATE_USER_ID`, `CREATE_USER_ORG_NO`, `CREATE_TIME`) VALUES ('1','admin','何海龙',1,'01','YzcmCZNvbXocrsz9dm8e','smtp.qq.com','939961241@qq.com','','15209831990',1,'9ec9750e709431dad22365cabc5c625482e574c74adaebba7dd02f1129e4ce1d','',NULL,'2016-11-11 11:11:11');
+INSERT INTO SYS_USER (USER_ID,USER_NAME,REAL_NAME,SEX,STATUS,ACCOUNT_TYPE,PASSWORD_CHANGE_REQUIRED,CREATE_TIME)
+VALUES ('1','admin','平台超级管理员',0,0,'PLATFORM_ADMIN',1,CURRENT_TIMESTAMP);
 
 INSERT INTO `mall_ad` (`id`, `ad_position_id`, `media_type`, `name`, `link`, `image_url`, `content`, `end_time`, `enabled`) VALUES (9000,1,1,'克拉匠造珠宝设计','/pages/designer/designer','/static/images/demo/product-pearl-necklace-diy.webp','项目演示, 商家正式发布前请替换.',NULL,1);
 

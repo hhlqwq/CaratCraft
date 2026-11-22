@@ -32,15 +32,15 @@ public class StaffPasswordRecovery {
     private static final DefaultRedisScript<Long> STORE =
             new DefaultRedisScript<>(
                     "redis.call('SET',KEYS[1],ARGV[1],'EX',300); redis.call('DEL',KEYS[2]); return"
-                        + " 1",
+                            + " 1",
                     Long.class);
     private static final DefaultRedisScript<Long> CONSUME =
             new DefaultRedisScript<>(
                     "local v=redis.call('GET',KEYS[1]); if not v then return 0 end; local"
-                        + " n=redis.call('INCR',KEYS[2]); if n==1 then"
-                        + " redis.call('EXPIRE',KEYS[2],300) end; if v==ARGV[1] and n<=5 then"
-                        + " redis.call('DEL',KEYS[1],KEYS[2]); return 1 end; if n>=5 then"
-                        + " redis.call('DEL',KEYS[1],KEYS[2]) end; return 0",
+                            + " n=redis.call('INCR',KEYS[2]); if n==1 then"
+                            + " redis.call('EXPIRE',KEYS[2],300) end; if v==ARGV[1] and n<=5 then"
+                            + " redis.call('DEL',KEYS[1],KEYS[2]); return 1 end; if n>=5 then"
+                            + " redis.call('DEL',KEYS[1],KEYS[2]) end; return 0",
                     Long.class);
 
     private final SysUserService users;

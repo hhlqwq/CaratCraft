@@ -33,12 +33,13 @@ const sections = [
         ],
     },
     {title: '社区', icon: 'community', urls: ['community/posts', 'mall/comment']},
+    {title: '员工账号', icon: 'admin', urls: ['sys/user'], standalone: true},
+    {title: '岗位与权限', icon: 'setting', urls: ['sys/role'], standalone: true},
+    {title: '商家管理员', icon: 'admin', urls: ['platform/merchant-accounts'], standalone: true},
     {
         title: '系统设置',
         icon: 'setting',
         urls: [
-            'sys/user',
-            'sys/role',
             'sys/log',
             'sys/menu',
             'sys/config',
@@ -51,7 +52,7 @@ const sections = [
     },
 ];
 
-const labels = {'sys/user': '员工账号', 'mall/order': '订单列表'};
+const labels = {'sys/user': '员工账号', 'sys/role': '岗位与权限', 'mall/order': '订单列表'};
 
 /** 展开服务端已授权菜单, 保留原路由标识和来源. */
 export function authorizedPages(menus) {
