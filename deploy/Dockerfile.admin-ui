@@ -13,7 +13,8 @@ RUN pnpm run build
 
 FROM m.daocloud.io/docker.io/library/nginx:1.27-alpine
 ARG BUILD_REVISION=workspace
-LABEL org.opencontainers.image.revision=${BUILD_REVISION}
+ARG BUILD_GIT_SHA=archive
+LABEL org.opencontainers.image.revision=${BUILD_GIT_SHA} io.caratcraft.source-digest=${BUILD_REVISION}
 
 COPY deploy/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /workspace/dist/ /usr/share/nginx/html/

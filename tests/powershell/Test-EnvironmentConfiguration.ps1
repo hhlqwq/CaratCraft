@@ -42,7 +42,7 @@ try {
             $Expected = [regex]::Replace($Expected, "(?m)^$Key=[^\r\n]*", "$Key=" + $Match[0].Groups[1].Value)
         }
         if ($Generated -cne $Expected) { throw '配置生成改写了中文、换行或非密钥内容' }
-        Assert-StartupConfiguration
+        [void](Assert-StartupConfiguration)
         $Before = [Convert]::ToBase64String([IO.File]::ReadAllBytes($EnvFile))
         Initialize-Environment
         if ($Before -cne [Convert]::ToBase64String([IO.File]::ReadAllBytes($EnvFile))) { throw '已存在的配置被覆盖' }
@@ -53,9 +53,9 @@ try {
     # 现有文件缺项与弱值必须分别报错, 不能被解释成数据库迁移失败.
     $Valid = "MYSQL_ROOT_PASSWORD=$('r' * 44)`nMYSQL_APP_PASSWORD=$('a' * 44)`nREDIS_PASSWORD=$('d' * 44)`nJWT_SECRET=$('j' * 44)`nMYSQL_APP_USER=caratcraft`n"
     [IO.File]::WriteAllText($EnvFile, ($Valid -replace '(?m)^JWT_SECRET=.*\n', ''), $Utf8)
-    Assert-ConfigurationRejected { Assert-StartupConfiguration } '缺少配置项 JWT_SECRET'
+    Assert-ConfigurationRejected { Assert-StartupConfiguration } 'JWT_SECRET 缺失'
     [IO.File]::WriteAllText($EnvFile, ($Valid -replace '(?m)^JWT_SECRET=.*', 'JWT_SECRET=short'), $Utf8)
-    Assert-ConfigurationRejected { Assert-StartupConfiguration } 'JWT_SECRET 至少需要24个字符'
+    Assert-ConfigurationRejected { Assert-StartupConfiguration } 'JWT_SECRET.*不足24个字符'
     Remove-Item -LiteralPath $EnvFile
 
     # 模板本身缺项或重复时在创建本机配置前中止, 不生成半份配置.

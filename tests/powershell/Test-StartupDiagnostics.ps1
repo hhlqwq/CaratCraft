@@ -58,5 +58,6 @@ Assert-Rejected { Start-LocalEnvironment } 'primary-image-failure'
 
 # 即使诊断函数自身抛异常, 原始数据服务启动失败仍是最终返回原因.
 function Assert-LocalImages { }
+function Assert-DataVolumes { }
 Assert-Rejected { Start-LocalEnvironment } 'primary-compose-failure'
 Write-Host '诊断回归通过: 镜像预检只返回原错, 后续阶段的诊断异常不能覆盖启动原错; 未调用真实Docker.'

@@ -31,14 +31,11 @@
 
 ## 本地入口
 
-以下入口用于可丢弃的本地开发数据. 正常启动发现旧开发卷凭据或结构失配时, 可能自动重建本项目MySQL和Redis卷. 需要保留末轮验收数据时, 按[上线前末轮验收](docs/项目维护文档.md#上线前末轮验收)处理.
+从 GitHub 克隆 `main` 后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)创建本机 `deploy/.env`. Windows 使用 Docker Desktop 的 Linux 容器和 Compose V2. 建库、升级和重置各有独立入口. 标准启动在镜像或数据库校验失败时停止并保留数据卷.
 
-环境入口脚本统一放在`deploy/scripts/`目录, 根目录不保留重复入口. Windows客户取得完整项目文件后, 只需安装并启动Docker Desktop(Linux容器及Compose V2), 进入`deploy/scripts/`目录后依次双击构建和启动脚本:
-
-1. `deploy/scripts/build-local-test.cmd`: 从国内镜像及依赖源下载, 在容器内安装依赖并编译前后端. 下载或编译失败立即退出, 修复网络或构建问题后重新运行.
-2. `deploy/scripts/start-local-test.cmd`: 自动生成首次配置, 启动MySQL、Redis、后端和管理端, 初始化空数据库并等待健康检查通过.
-
-不需要在客户电脑安装Git、Node、Java、Maven、pnpm或Codex, 不需要准备本机依赖缓存或编译产物. Windows启动支持PowerShell5.1/7, 配置统一按UTF-8生成和读取; 已有.env不会自动覆盖. 启动按失败阶段保留原始错误, 诊断不覆盖根因; 仅修改宿主机启动脚本不再触发镜像重建. 管理端默认地址为`http://localhost:8888`. 详细说明见[联网构建与客户启动](docs/项目维护文档.md#联网构建与客户启动).
+- `deploy/scripts/build-local-test.cmd` 只构建镜像, 记录 Git SHA 和源码摘要.
+- `deploy/scripts/start-local-test.cmd` 只启动匹配当前版本的镜像. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`.
+- `deploy/scripts/dev.ps1 -Action miniapp` 从本机配置生成小程序地址. `tools/dev-env-check.cmd` 输出脱敏环境诊断. 小程序配置工具使用 Node.js.
 
 本轮收敛初始化SQL来源、部署脚本、跨平台构建语义、管理端运行配置及素材生成入口. 初始化中文编码、树表格ID显示、页面验收、Windows重置兼容及商品购买修复、分项整改、验证边界及后续待办见[仓库统一标准审查与续接](docs/项目开发文档.md#8-仓库统一标准审查与续接); 结构验证与既有商品契约整改状态分别记录在开发文档. 目录迁移不会自动部署应用或升级数据库. 微信真机、真实支付/退款和生产验收需要实际账号与环境; AI安排在下一版本, 首版规则参考不依赖模型、云环境或额度. 三维颈模仍为另行确认范围.
 

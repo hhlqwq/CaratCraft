@@ -19,8 +19,9 @@ RUN javac -d /workspace/healthcheck /workspace/healthcheck/HealthCheck.java
 
 FROM m.daocloud.io/docker.io/library/eclipse-temurin:21-jre
 ARG BUILD_REVISION=workspace
-ENV BUILD_REVISION=${BUILD_REVISION}
-LABEL org.opencontainers.image.revision=${BUILD_REVISION}
+ARG BUILD_GIT_SHA=archive
+ENV BUILD_REVISION=${BUILD_REVISION} BUILD_GIT_SHA=${BUILD_GIT_SHA}
+LABEL org.opencontainers.image.revision=${BUILD_GIT_SHA} io.caratcraft.source-digest=${BUILD_REVISION}
 
 WORKDIR /app
 

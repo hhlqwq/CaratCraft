@@ -1,6 +1,8 @@
-/* 小程序唯一环境入口, 体验版和正式版地址由部署者填写并加入微信合法域名. */
-module.exports = {
-    developBaseUrl: 'http://192.168.0.174:8888/platform-framework-api/app/',
-    trialBaseUrl: '',
-    releaseBaseUrl: '',
-};
+/* 由 deploy/.env 生成本机专用模块, 微信项目不保存任何服务地址副本. */
+try {
+    module.exports = require('./environment.local.js');
+} catch (error) {
+    throw new Error(
+        '缺少小程序本机配置, 请先运行 deploy/scripts/dev.ps1 -Action miniapp 或 dev.sh miniapp'
+    );
+}

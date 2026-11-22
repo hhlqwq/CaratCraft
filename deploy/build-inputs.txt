@@ -1,6 +1,6 @@
 backend
 apps/admin-ui
-apps/miniapp/static/images
+apps/miniapp
 deploy/Dockerfile.backend
 deploy/Dockerfile.admin-ui
 .dockerignore

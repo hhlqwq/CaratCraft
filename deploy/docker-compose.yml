@@ -51,7 +51,18 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-platform}
       MYSQL_USER: ${MYSQL_APP_USER:-caratcraft}
       MYSQL_PASSWORD: ${MYSQL_APP_PASSWORD:-}
+      CARATCRAFT_DB_INIT: ${CARATCRAFT_DB_INIT:-false}
       TZ: ${TZ:-Asia/Shanghai}
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        if [ "$$CARATCRAFT_DB_INIT" != true ] && [ ! -d /var/lib/mysql/mysql ]; then
+          echo 'Empty MySQL volume. Run the explicit init-db operation first.' >&2
+          exit 1
+        fi
+        exec docker-entrypoint.sh "$$@"
+      - mysql-entrypoint
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_general_ci
@@ -106,6 +117,7 @@ services:
       dockerfile: deploy/Dockerfile.backend
       args:
         BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-admin
     restart: unless-stopped
     depends_on:
@@ -138,6 +150,7 @@ services:
       dockerfile: deploy/Dockerfile.backend
       args:
         BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-api
     restart: unless-stopped
     depends_on:
@@ -170,6 +183,7 @@ services:
       dockerfile: deploy/Dockerfile.admin-ui
       args:
         BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-nginx
     restart: unless-stopped
     depends_on:

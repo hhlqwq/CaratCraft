@@ -12,7 +12,7 @@ class StartupSchemaTest(unittest.TestCase):
     """当前、未完成及未知结构采用明确结果, 不猜测历史格式."""
 
     def test_bash_checks_complete_schema_version(self):
-        """未完成返回开发恢复信号, 未知版本停止且不自动清库."""
+        """未完成及未知版本均停止, 不触发恢复动作."""
         bash = os.environ.get("CARATCRAFT_BASH")
         if not bash:
             self.skipTest("需要已有CARATCRAFT_BASH, 不自动下载")
@@ -20,7 +20,7 @@ class StartupSchemaTest(unittest.TestCase):
 database_query() { printf '%s\n' "$CARATCRAFT_SCHEMA_VERSION"; }
 assert_database_schema
 '''
-        for value, expected in [("1", 0), ("", 42), ("0", 42), ("2", 1), ("1\n1", 1), ("unknown", 1)]:
+        for value, expected in [("1", 0), ("", 1), ("0", 1), ("2", 1), ("1\n1", 1), ("unknown", 1)]:
             with self.subTest(value=value):
                 result = subprocess.run([bash, "-c", command], cwd=ROOT,
                     env=dict(os.environ, CARATCRAFT_SCHEMA_VERSION=value),

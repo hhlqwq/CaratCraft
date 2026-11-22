@@ -1,18 +1,16 @@
 const environment = require('./environment.js');
 
-/** 根据微信发布环境选择服务地址, 只有开发版允许本机存储覆盖. */
+/** 根据微信发布环境选择独立服务地址, 不读取曾经保存在设备上的旧地址. */
 function resolveBaseUrl() {
     let version = 'release';
     if (typeof wx.getAccountInfoSync === 'function') {
         version = wx.getAccountInfoSync().miniProgram.envVersion || 'release';
     }
-    let value = environment[version + 'BaseUrl'] || '';
-    if (version === 'develop') {
-        value = wx.getStorageSync('apiBaseUrl') || value;
-    }
-    value = String(value).trim().replace(/\/*$/, '/');
+    const value = String(environment[version + 'BaseUrl'] || '')
+        .trim()
+        .replace(/\/*$/, '/');
     if (!/^https?:\/\/[^\s?#]+\/$/.test(value)) {
-        throw new Error('请在config/environment.js配置当前环境的API地址');
+        throw new Error(`小程序 ${version} 缺少有效 API 地址, 请检查 deploy/.env 并重新生成`);
     }
     if (
         version !== 'develop' &&

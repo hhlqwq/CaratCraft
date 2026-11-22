@@ -23,5 +23,6 @@ deploy/secrets
 **/.cache
 **/coverage
 apps/miniapp/project.private.config.json
+apps/miniapp/config/environment.local.js
 .start-local-test-*.ps1
 .stop-local-test-*.ps1

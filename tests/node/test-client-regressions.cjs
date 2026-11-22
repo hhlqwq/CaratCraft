@@ -485,7 +485,7 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
     assert.deepEqual(Array.from(page.data.arrangementOptionIds), [2]);
 });
 
-/** 只有开发环境可以覆盖API, 正式版本忽略本机残留覆盖值. */
+/** 所有版本忽略设备残留地址, 正式版必须匹配已配置的 HTTPS 域名. */
 test('小程序正式环境强制使用配置的HTTPS域名', () => {
     const environment = {
         releaseBaseUrl: 'https://merchant.example/platform-framework-api/app/',
@@ -496,6 +496,13 @@ test('小程序正式环境强制使用配置的HTTPS域名', () => {
     };
     const api = load('apps/miniapp/config/api.js', {'./environment.js': environment}, {wx});
     assert.equal(api.ApiOrigin, 'https://merchant.example');
+    wx.getAccountInfoSync = () => ({miniProgram: {envVersion: 'develop'}});
+    environment.developBaseUrl = 'http://192.168.100.5:8888/platform-framework-api/app/';
+    assert.equal(
+        load('apps/miniapp/config/api.js', {'./environment.js': environment}, {wx}).ApiOrigin,
+        'http://192.168.100.5:8888'
+    );
+    wx.getAccountInfoSync = () => ({miniProgram: {envVersion: 'release'}});
     environment.releaseBaseUrl = 'http://localhost:8888/app/';
     assert.throws(
         () => load('apps/miniapp/config/api.js', {'./environment.js': environment}, {wx}),

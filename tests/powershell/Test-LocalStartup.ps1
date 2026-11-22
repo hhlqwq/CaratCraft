@@ -14,6 +14,7 @@ $EnvFile = 'unused.env'
 $ComposeFile = 'unused.yml'
 $ProjectRoot = $Root
 $env:BUILD_REVISION = 'startup-test'
+$env:BUILD_GIT_SHA = 'test-head'
 
 # 用隔离替身提供Docker响应, 不连接业务容器或修改数据库.
 function docker {
@@ -21,10 +22,12 @@ function docker {
     $Sql = $input -join "`n"
     $script:Calls += ,(($args -join ' ') + ' ' + $Sql)
     $global:LocalStartupDockerCalls.Add((($args -join ' ') + ' ' + $Sql))
+    if ($args[0] -eq 'volume') { return '[{"Labels":{"com.docker.compose.project":"platform-wxshop"}}]' }
+    if ($args[0] -eq 'container') { return '[{"Config":{"Labels":{"org.opencontainers.image.revision":"test-head","io.caratcraft.source-digest":"startup-test"}}}]' }
     if ($args[0] -eq 'image') {
         if ($script:Mode -eq 'missing-image') { $global:LASTEXITCODE = 1; return }
         $Revision = if ($script:Mode -eq 'old-image') { 'old' } else { 'startup-test' }
-        return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"' + $Revision + '"}}}]')
+        return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"test-head","io.caratcraft.source-digest":"' + $Revision + '"}}}]')
     }
     if ($Sql -match 'SELECT TABLE_NAME') {
         if ($script:Mode -eq 'query-error') { $global:LASTEXITCODE = 1; return }
@@ -86,8 +89,8 @@ function Invoke-Compose {
     }
 }
 
-# 开发重建只记录动作, 不删除真实卷.
-function Reset-TestDataVolumes { param([switch]$Development) $script:Calls += 'reset-development' }
+# 任意标准启动路径调用重置即标记测试失败.
+function Reset-TestDataVolumes { $script:Calls += 'unexpected-reset' }
 
 # 启动成功只记录展示动作, 不读取本机私有配置.
 function Show-AccessInfo { $script:Calls += 'access-ready' }
@@ -100,12 +103,12 @@ $script:Calls = @()
 $NoBuild = $false
 Start-LocalEnvironment
 if ($script:Calls -contains 'build' -or -not ($script:Calls -match '300 mysql redis') -or
-    $script:Calls[-2] -ne 'up --detach --no-build --pull never --wait --wait-timeout 300' -or
+    -not ($script:Calls -match 'up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx') -or
     $script:Calls[-1] -ne 'access-ready') { throw '启动顺序错误' }
 $script:Mode = 'partial-database'
 $script:Calls = @()
 Assert-Rejected { Start-LocalEnvironment } 'sys_region'
-if (@($script:Calls | Where-Object { $_ -eq 'reset-development' }).Count -ne 1) { throw '开发库持续失败时必须只重建一次' }
+if ($script:Calls -match 'unexpected-reset|volume rm|^down') { throw '数据库检查失败后不得清理数据' }
 if ($script:Calls[-1] -ne 'diagnostics' -or $script:Calls -contains 'access-ready') { throw '失败诊断或退出错误' }
 $script:Mode = 'build-error'
 $script:Calls = @()
@@ -145,9 +148,10 @@ function Test-Path {
     Microsoft.PowerShell.Management\Test-Path -LiteralPath $LiteralPath
 }
 
-# 构建调度不应读取私有配置或模板内容, 旧流程会在写文件前被替身中止.
+# 读取公开模板用于屏蔽宿主覆盖, 构建不得读取私有配置.
 function Get-Content {
-    param([string]$LiteralPath)
+    param([string]$LiteralPath, [string]$Encoding)
+    if ($LiteralPath -like '*.env.example') { return Microsoft.PowerShell.Management\Get-Content @PSBoundParameters }
     throw '构建不应读取运行密钥或生成私有配置'
 }
 

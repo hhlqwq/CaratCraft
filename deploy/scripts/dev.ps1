@@ -1,8 +1,9 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('build', 'start', 'stop', 'restart', 'status', 'logs')]
+    [ValidateSet('configure', 'build', 'init-db', 'upgrade-db', 'reset-db', 'start', 'stop', 'restart', 'status', 'logs', 'miniapp', 'diagnose')]
     [string]$Action = 'start',
-    [switch]$ResetData,
+    [ValidateSet('staff-password', 'admin-jobs')]
+    [string]$Upgrade,
     [switch]$NoBuild
 )
 
@@ -47,21 +48,75 @@ function Initialize-Environment {
     }
 }
 
-# 校验当前本地开发配置, 旧开发卷的凭据或结构失配由启动恢复统一处理.
+# 严格校验当前仓库的启动配置, 只输出配置键及错误.
 function Assert-StartupConfiguration {
     $Values = @{}
     foreach ($Line in (Get-Content -LiteralPath $EnvFile -Encoding UTF8)) {
-        if ($Line -match '^([A-Z_][A-Z0-9_]*)=(.*)$') { $Values[$Matches[1]] = $Matches[2].Trim() }
+        if (-not $Line.Trim() -or $Line.TrimStart().StartsWith('#')) { continue }
+        if ($Line -notmatch '^([A-Z][A-Z0-9_]*)=(.*)$') { throw 'deploy/.env 存在无效配置行。' }
+        if ($Values.ContainsKey($Matches[1])) { throw "重复配置项 $($Matches[1])。" }
+        $Values[$Matches[1]] = $Matches[2].Trim()
     }
     foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
-        if (-not $Values.ContainsKey($Key)) {
-            throw "本机配置文件 $EnvFile 缺少配置项 $Key。请按当前模板补齐开发配置; 此检查尚未连接数据库。"
-        }
         if (-not $Values[$Key] -or $Values[$Key].Length -lt 24) {
-            throw "$Key 至少需要24个字符, 请检查本机配置文件 $EnvFile。请使用符合要求的开发密钥; 此检查尚未连接数据库。"
+            throw "$Key 缺失或不足24个字符。请检查 deploy/.env。"
         }
     }
+    try { $JwtKey = [Convert]::FromBase64String($Values['JWT_SECRET']) }
+    catch { throw 'JWT_SECRET 应为至少32字节随机数的 Base64 编码。' }
+    if ($JwtKey.Length -lt 32) { throw 'JWT_SECRET 应为至少32字节随机数的 Base64 编码。' }
     if ($Values['MYSQL_APP_USER'] -eq 'root') { throw '应用账号不得使用root。' }
+    if ($Values['CARATCRAFT_ENV'] -notin @('local', 'lan')) { throw '本地启动需要 CARATCRAFT_ENV=local 或 lan。' }
+    if ($Values['CARATCRAFT_ENV'] -eq 'lan' -and -not $Values['MINIAPP_LAN_ORIGIN']) { throw 'lan 环境缺少 MINIAPP_LAN_ORIGIN。' }
+    $Ports = @{}
+    foreach ($Key in @('NGINX_PORT', 'MYSQL_PORT', 'REDIS_PORT')) {
+        $Number = 0
+        if (-not [int]::TryParse($Values[$Key], [ref]$Number) -or $Number -lt 1 -or $Number -gt 65535 -or $Ports.ContainsKey($Number)) {
+            throw "$Key 缺失、无效或与项目其他端口重复。"
+        }
+        $Ports[$Number] = $Key
+    }
+    return $Values
+}
+
+# 清除同名宿主环境变量, Compose 统一使用显式指定的配置文件.
+function Clear-ComposeOverrides {
+    $env:CARATCRAFT_DB_INIT = 'false'
+    foreach ($Line in (Get-Content -LiteralPath $EnvExample -Encoding UTF8)) {
+        if ($Line -match '^([A-Z][A-Z0-9_]*)=') {
+            [Environment]::SetEnvironmentVariable($Matches[1], $null, 'Process')
+        }
+    }
+}
+
+# 检查仓库磁盘和端口, 允许本项目现有容器继续使用其端口.
+function Assert-HostResources {
+    param([hashtable]$Values)
+    $Drive = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($ProjectRoot))
+    if ($Drive.AvailableFreeSpace -lt 2GB) { throw '仓库所在磁盘剩余空间不足 2 GiB。' }
+    if (-not $Values) { return }
+    $Bound = [Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties().GetActiveTcpListeners().Port
+    $Targets = @{ NGINX_PORT = 'nginx:80'; MYSQL_PORT = 'mysql:3306'; REDIS_PORT = 'redis:6379' }
+    foreach ($Key in $Targets.Keys) {
+        $PortNumber = [int]$Values[$Key]
+        if ($PortNumber -notin $Bound) { continue }
+        $Service, $Target = $Targets[$Key].Split(':')
+        $Result = Invoke-DockerMetadata -Arguments @('compose', '-p', 'platform-wxshop', '--env-file', $EnvFile, '-f', $ComposeFile, 'port', $Service, $Target)
+        if ($Result.ExitCode -ne 0 -or ($Result.Output -join ' ') -notmatch ":$PortNumber(?:\\s|$)") {
+            throw "端口 $PortNumber 已被占用, 请检查 $Key。"
+        }
+    }
+}
+
+# 读取真实 Git 提交, 没有 Git 元数据的离线源码包明确标记 archive.
+function Set-GitRevision {
+    $env:BUILD_GIT_SHA = 'archive'
+    if (Test-Path -LiteralPath (Join-Path $ProjectRoot '.git')) {
+        $Sha = & git -C $ProjectRoot rev-parse --verify HEAD
+        if ($LASTEXITCODE -ne 0 -or $Sha -notmatch '^[0-9a-f]{40}$') { throw '无法读取当前仓库 Git HEAD。' }
+        $env:BUILD_GIT_SHA = $Sha
+    }
+    Write-Host "Git: $env:BUILD_GIT_SHA · 源码摘要: $env:BUILD_REVISION"
 }
 
 # 根据交付源码计算稳定摘要, ZIP解压环境无需安装Git且修改源码后必须重新构建.
@@ -108,16 +163,15 @@ function Get-BuildSourceFiles {
         foreach ($Child in (Get-ChildItem -LiteralPath $Path -Force)) {
             Get-BuildSourceFiles -Path $Child.FullName
         }
-    } elseif ($Item.Name -notmatch '^(application-local.*|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
+    } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project\.private\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
         $Item.FullName -eq $EnvExample) {
         $Item
     }
 }
 
-# 仅重建本项目数据库和Redis卷, 手动操作需确认, 开发自动恢复沿用可丢弃规则.
+# 仅重建本项目数据库和Redis卷, 人工确认后才执行.
 function Reset-TestDataVolumes {
-    param([switch]$Development)
-    $ConfigText = & docker compose --env-file $EnvFile -f $ComposeFile config --format json
+    $ConfigText = & docker compose -p platform-wxshop --env-file $EnvFile -f $ComposeFile config --format json
     if ($LASTEXITCODE -ne 0) { throw '无法解析Compose数据卷。' }
     $Config = ($ConfigText -join "`n") | ConvertFrom-Json
     $Volumes = @($Config.volumes.'mysql-data'.name, $Config.volumes.'redis-data'.name)
@@ -131,7 +185,7 @@ function Reset-TestDataVolumes {
         if ($Owner -cne $Config.name) { throw '拒绝操作其他项目的数据卷。' }
     }
     Write-Warning "将删除数据库和缓存卷: $($Volumes -join ', '), 上传图片卷保留。此入口仅用于当前可丢弃的本地开发数据。"
-    if (-not $Development -and (Read-Host '输入 RESET_DATA 确认删除数据库和缓存') -cne 'RESET_DATA') { throw '已取消数据重置。' }
+    if ((Read-Host '输入 RESET_DATA 确认删除数据库和缓存') -cne 'RESET_DATA') { throw '已取消数据重置。' }
     Invoke-Compose -Arguments @('down', '--remove-orphans')
     foreach ($Volume in $Volumes) {
         & docker volume inspect $Volume 2>$null | Out-Null
@@ -146,7 +200,7 @@ function Reset-TestDataVolumes {
 function Invoke-Compose {
     param([Parameter(Mandatory = $true)][string[]]$Arguments)
 
-    & docker compose --env-file $EnvFile -f $ComposeFile @Arguments
+    & docker compose -p platform-wxshop --env-file $EnvFile -f $ComposeFile @Arguments
     if ($LASTEXITCODE -ne 0) {
         throw "Docker Compose 执行失败：$($Arguments -join ' ')"
     }
@@ -169,21 +223,55 @@ function Assert-LocalImages {
         $Image = ($Metadata -join "`n") | ConvertFrom-Json
         if ($Name -in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine')) { continue }
         $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
-        if (-not $Revision -or $Revision -ne $env:BUILD_REVISION) {
+        $Digest = $Image[0].Config.Labels.'io.caratcraft.source-digest'
+        if ($Revision -cne $env:BUILD_GIT_SHA -or $Digest -cne $env:BUILD_REVISION) {
             throw "镜像 $Name 的源码标识与当前代码不一致, 请先运行 build-local-test.cmd 更新镜像; -NoBuild 不会更新源码。"
         }
     }
 }
 
-# 标记本地开发库需要重建, 不为未发布开发环境迁移旧数据.
-function Throw-DevelopmentDataRebuild {
-    param([string]$Message)
-    $Failure = [InvalidOperationException]::new($Message)
-    $Failure.Data['RebuildDevelopmentData'] = $true
-    throw $Failure
+# 检查卷的存在性和项目归属, 初始化与标准启动采取相反条件.
+function Assert-DataVolumes {
+    param([switch]$New)
+    foreach ($Kind in @('mysql-data', 'redis-data')) {
+        $Name = "platform-wxshop_$Kind"
+        $Result = Invoke-DockerMetadata -Arguments @('volume', 'inspect', $Name)
+        if ($New) {
+            if ($Result.ExitCode -eq 0) { throw "数据卷 $Name 已存在, 初始化已停止。" }
+            continue
+        }
+        if ($Result.ExitCode -ne 0) { throw "缺少数据卷 $Name, 新环境请先执行 init-db。" }
+        $Volume = ($Result.Output -join "`n") | ConvertFrom-Json
+        if ($Volume[0].Labels.'com.docker.compose.project' -cne 'platform-wxshop') { throw "数据卷归属不匹配: $Name" }
+    }
 }
 
-# 经标准输入传递只读SQL, 仅认证失败可触发一次开发库重建.
+# 仅为尚无数据库和缓存卷的环境初始化服务.
+function Initialize-LocalDatabase {
+    Assert-DataVolumes -New
+    $env:CARATCRAFT_DB_INIT = 'true'
+    try {
+        Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
+        Assert-DatabaseReady
+    } finally {
+        $env:CARATCRAFT_DB_INIT = 'false'
+        # 只移除本次初始化容器, 保留数据库卷和初始化结果.
+        Invoke-Compose -Arguments @('rm', '--stop', '--force', 'mysql')
+    }
+}
+
+# 执行选定的独立增量脚本, 执行前明确确认目标库和备份.
+function Invoke-LocalDatabaseUpgrade {
+    if (-not $Upgrade) { throw '请选择 -Upgrade admin-jobs 或 staff-password。' }
+    Assert-DataVolumes
+    if ((Read-Host "确认已备份并核对目标库, 输入 UPGRADE_DB 执行 $Upgrade") -cne 'UPGRADE_DB') { throw '已取消数据库升级。' }
+    $Sql = Get-Content -LiteralPath (Join-Path $ProjectRoot "database/upgrade/$Upgrade/apply.sql") -Raw -Encoding UTF8
+    $OutputEncoding = [Text.UTF8Encoding]::new($false)
+    $Sql | & docker compose -p platform-wxshop --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c 'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql --default-character-set=utf8mb4 -uroot --database=$MYSQL_DATABASE'
+    if ($LASTEXITCODE -ne 0) { throw '升级失败, 请核对增量 SQL 输出。' }
+}
+
+# 经标准输入传递只读SQL, 错误时保留所有数据.
 function Invoke-DatabaseQuery {
     param([string]$Query, [switch]$ApplicationUser)
     $ErrorActionPreference = 'Continue'
@@ -192,10 +280,10 @@ function Invoke-DatabaseQuery {
     } else {
         'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql -uroot --batch --skip-column-names --database=$MYSQL_DATABASE'
     }
-    $Text = @($Query | & docker compose --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c $Command 2>&1)
+    $Text = @($Query | & docker compose -p platform-wxshop --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c $Command 2>&1)
     if ($LASTEXITCODE -ne 0) {
         if (($Text -join "`n") -match 'ERROR\s+(1044|1045|1049)\b') {
-            Throw-DevelopmentDataRebuild '本地开发库凭据与当前配置不一致, 需要重新初始化开发数据。'
+            throw '本地数据库凭据或库名不匹配, 请检查原配置。'
         }
         $Detail = ($Text -join ' ')
         if ($Detail.Length -gt 500) { $Detail = $Detail.Substring(0, 500) }
@@ -204,11 +292,11 @@ function Invoke-DatabaseQuery {
     return $Text
 }
 
-# 核对唯一完整初始化版本, 旧开发结构按现有恢复流程重建.
+# 核对唯一完整初始化版本, 遇到旧结构时停止.
 function Assert-DatabaseSchema {
     $Rows = @(Invoke-DatabaseQuery -Query 'SELECT version FROM CC_SCHEMA_VERSION WHERE id=1;')
     if ($Rows.Count -eq 0 -or ($Rows.Count -eq 1 -and $Rows[0] -eq '0')) {
-        Throw-DevelopmentDataRebuild '本地开发库尚未完成当前完整初始化。'
+        throw '本地开发库尚未完成当前完整初始化。'
     }
     if ($Rows.Count -ne 1 -or $Rows[0] -cne '1') { throw '未知数据库结构版本, 停止启动。' }
 }
@@ -221,7 +309,7 @@ function Assert-DatabaseReady {
     $Missing = @('sys_region', 'mall_order', 'mall_user', 'mall_goods', 'CC_SCHEMA_VERSION') |
         Where-Object { $_ -cnotin $Tables }
     if ($Missing) {
-        Throw-DevelopmentDataRebuild "本地开发库结构不是当前版本, 缺少: $($Missing -join ', ')。"
+        throw "本地开发库结构不是当前版本, 缺少: $($Missing -join ', ')。"
     }
     Assert-DatabaseSchema
     $Application = Invoke-DatabaseQuery -Query 'SELECT 1;' -ApplicationUser
@@ -233,7 +321,7 @@ function Assert-DatabaseReady {
 # 汇总有限的状态与健康探针错误, 保留原始启动异常供调用者判断失败.
 function Show-StartupDiagnostics {
     try {
-        $Result = Invoke-DockerMetadata -Arguments @('compose', '--env-file', $EnvFile, '-f', $ComposeFile, 'ps', '--all')
+        $Result = Invoke-DockerMetadata -Arguments @('compose', '-p', 'platform-wxshop', '--env-file', $EnvFile, '-f', $ComposeFile, 'ps', '--all')
         if ($Result.ExitCode -eq 0) { $Result.Output | Write-Host }
         else { Write-Warning '暂时无法读取Compose状态, 原始启动错误仍保留。' }
     } catch { Write-Warning 'Compose诊断不可用, 原始启动错误仍保留。' }
@@ -267,42 +355,34 @@ function Build-LocalEnvironment {
     }
 }
 
-# 只启动已校验的本地镜像, 检查数据服务与结构并等待全部应用就绪.
+# 启动已验证镜像, 保留数据容器和数据卷, 逐项核对运行镜像.
 function Start-LocalEnvironment {
-    $Stage = '镜像检查'
-    $Rebuilt = $false
-    while ($true) {
-        try {
-            Write-Host '[1/3] 检查已构建镜像与源码标识...'
-            Assert-LocalImages
-            $Stage = 'MySQL和Redis启动'
-            Write-Host '[2/3] 启动MySQL和Redis, 首次启动自动初始化空数据库...'
-            Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
-            $Stage = '数据库结构及账号检查'
-            Assert-DatabaseReady
-            $Stage = '后端和管理端启动'
-            Write-Host '[3/3] 启动后端和管理端, 等待健康检查通过...'
-            Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300')
-            Show-AccessInfo
-            return
-        } catch {
-            $StartupFailure = $_
-            if (-not $Rebuilt -and $Stage -eq '数据库结构及账号检查' -and
-                $StartupFailure.Exception.Data['RebuildDevelopmentData']) {
-                $Rebuilt = $true
-                Write-Warning '当前为未发布的本地开发环境, 将重新初始化本项目MySQL及Redis开发数据, 然后重试一次。'
-                try { Reset-TestDataVolumes -Development }
-                catch { throw }
-                $Stage = '镜像检查'
-                continue
+    param([switch]$RestartApps)
+    Assert-LocalImages
+    Assert-DataVolumes
+    $Stage = 'MySQL和Redis'
+    try {
+        Invoke-Compose -Arguments @('up', '--detach', '--no-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
+        $Stage = '数据库结构及账号检查'
+        Assert-DatabaseReady
+        $Stage = '后端和管理端'
+        if ($RestartApps) { Invoke-Compose -Arguments @('restart', 'platform-admin', 'platform-api', 'nginx') }
+        Invoke-Compose -Arguments @('up', '--detach', '--no-deps', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'platform-admin', 'platform-api', 'nginx')
+        foreach ($Name in @('platform-admin', 'platform-api', 'platform-nginx')) {
+            $Result = Invoke-DockerMetadata -Arguments @('container', 'inspect', $Name)
+            if ($Result.ExitCode -ne 0) { throw "无法核对运行镜像: $Name" }
+            $Container = ($Result.Output -join "`n") | ConvertFrom-Json
+            if ($Container[0].Config.Labels.'org.opencontainers.image.revision' -cne $env:BUILD_GIT_SHA -or
+                $Container[0].Config.Labels.'io.caratcraft.source-digest' -cne $env:BUILD_REVISION) {
+                throw "$Name 的运行镜像与当前版本不一致。"
             }
-            Write-Warning "启动失败阶段: $Stage。"
-            if ($Stage -ne '镜像检查') {
-                try { Show-StartupDiagnostics }
-                catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
-            }
-            throw $StartupFailure
         }
+        Show-AccessInfo
+    } catch {
+        Write-Warning "启动失败阶段: $Stage。数据卷已保留。"
+        try { Show-StartupDiagnostics }
+        catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
+        throw
     }
 }
 
@@ -317,48 +397,42 @@ function Show-AccessInfo {
     Write-Host "  管理台：http://localhost:$Port"
     Write-Host "  后台接口：http://localhost:$Port/platform-framework"
     Write-Host "  商城接口：http://localhost:$Port/platform-framework-api"
-    Write-Host "  小程序 API：http://localhost:$Port/platform-framework-api/app/"
+    Write-Host '  小程序配置：执行 dev.ps1 -Action miniapp 生成。'
 }
 
 if ($Action -eq 'build' -and $NoBuild) { throw 'build 不能与 -NoBuild 同时使用。' }
+if ($Action -eq 'configure') {
+    Initialize-Environment
+    return
+}
+if ($Action -in @('miniapp', 'diagnose')) {
+    & node (Join-Path $ProjectRoot 'tools/maintenance/dev-env.cjs') $Action
+    if ($LASTEXITCODE -ne 0) { throw "环境工具执行失败: $Action" }
+    return
+}
 
 Assert-DockerReady
+Clear-ComposeOverrides
 if ($Action -eq 'build') {
-    # Compose构建只需要变量模板, 不为编译生成或校验本机运行秘密.
     $EnvFile = $EnvExample
-} else {
-    Initialize-Environment
+    Assert-HostResources
+    Set-BuildRevision
+    Set-GitRevision
+    Build-LocalEnvironment
+    return
 }
-
-if ($ResetData -and $Action -notin @('start', 'restart')) {
-    throw '-ResetData 只能与 start 或 restart 一起使用。'
-}
-
+if (-not (Test-Path -LiteralPath $EnvFile)) { throw '缺少 deploy/.env, 请先执行 configure。' }
 switch ($Action) {
-    'build' {
-        Set-BuildRevision
-        Build-LocalEnvironment
-    }
-    'stop' {
-        Invoke-Compose -Arguments @('down', '--remove-orphans')
-    }
-    'status' {
-        Invoke-Compose -Arguments @('ps')
-    }
-    'logs' {
-        Invoke-Compose -Arguments @('logs', '--follow', '--tail=200')
-    }
-    'restart' {
-        Assert-StartupConfiguration
-        Set-BuildRevision
-        Assert-LocalImages
-        if ($ResetData) { Reset-TestDataVolumes } else { Invoke-Compose -Arguments @('down', '--remove-orphans') }
-        Start-LocalEnvironment
-    }
+    'stop' { Invoke-Compose -Arguments @('down', '--remove-orphans') }
+    'status' { Invoke-Compose -Arguments @('ps') }
+    'logs' { Invoke-Compose -Arguments @('logs', '--follow', '--tail=200') }
+    'upgrade-db' { [void](Assert-StartupConfiguration); Invoke-LocalDatabaseUpgrade }
+    'reset-db' { [void](Assert-StartupConfiguration); Reset-TestDataVolumes }
+    'init-db' { Assert-HostResources -Values (Assert-StartupConfiguration); Initialize-LocalDatabase }
     default {
-        Assert-StartupConfiguration
+        Assert-HostResources -Values (Assert-StartupConfiguration)
         Set-BuildRevision
-        if ($ResetData) { Reset-TestDataVolumes }
-        Start-LocalEnvironment
+        Set-GitRevision
+        Start-LocalEnvironment -RestartApps:($Action -eq 'restart')
     }
 }
