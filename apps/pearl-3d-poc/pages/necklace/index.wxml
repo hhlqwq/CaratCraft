@@ -10,7 +10,10 @@
         <canvas id="jewel" type="webgl" class="jewel"
             bindtouchstart="begin" catchtouchmove="move"
             bindtouchend="end" bindtouchcancel="cancel"></canvas>
-        <view wx:if="{{status}}" class="stage-status" role="status">{{status}}</view>
+        <view wx:if="{{status}}" class="stage-status" role="status">
+            <view>{{status}}</view>
+            <button wx:if="{{retryable}}" size="mini" class="stage-retry" bindtap="retry">重试</button>
+        </view>
     </view>
     <view class="guide">单指旋转 · 双指缩放 · 点选珍珠</view>
     <view class="size-panel">

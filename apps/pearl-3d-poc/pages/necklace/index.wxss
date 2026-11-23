@@ -71,6 +71,10 @@ page {
     width: max-content;
 }
 
+.stage-retry {
+    margin-top: 12rpx;
+}
+
 .guide {
     color: #535e52;
     font-size: 22rpx;

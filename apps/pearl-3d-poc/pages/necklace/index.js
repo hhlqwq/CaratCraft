@@ -2,6 +2,9 @@ const {createRenderer} = require('../../lib/renderer.js');
 const {BASE_SIZES} = require('../../lib/geometry.js');
 const version = require('../../version.js');
 
+const STARTUP_TIMEOUT = 5000;
+const FRAME_FALLBACK = 80;
+
 /** 取 Canvas 输入的本地坐标, 兼容只报告 x/y 的基础库. */
 function point(touch, bounds) {
     if (Number.isFinite(touch.clientX) && Number.isFinite(touch.clientY)) {
@@ -22,6 +25,7 @@ Page({
         diameter: 0,
         sizes: BASE_SIZES,
         status: '正在载入 3D 画布…',
+        retryable: false,
     },
 
     /** 在页面计时起点准备本地生命周期状态. */
@@ -41,6 +45,8 @@ Page({
         this.visible = true;
         if (this.ready) {
             this.measure();
+        } else {
+            this.waitFor('页面就绪');
         }
     },
 
@@ -55,6 +61,7 @@ Page({
     onHide() {
         this.visible = false;
         this.gesture = null;
+        this.stopStartup();
         this.stopFrame();
         this.reportGesture();
     },
@@ -63,6 +70,7 @@ Page({
     onUnload() {
         this.visible = false;
         this.ended = true;
+        this.stopStartup();
         this.stopFrame();
         if (this.renderer) {
             this.renderer.dispose();
@@ -71,107 +79,184 @@ Page({
         this.canvas = null;
     },
 
-    /** 读取真实原生画布节点与矩形, 使用微信设备像素比. */
-    measure() {
-        const token = (this.measurement || 0) + 1;
-        this.measurement = token;
-        wx.createSelectorQuery()
-            .in(this)
-            .select('#jewel')
-            .fields({node: true, size: true, rect: true})
-            .exec((values) => {
-                if (this.ended || !this.visible || token !== this.measurement) {
-                    return;
-                }
-                const result = values && values[0];
-                if (!result || !result.node || !(result.width > 0 && result.height > 0)) {
-                    this.setData({status: '当前窗口无法初始化 3D 画布'});
-                    return;
-                }
-                try {
-                    if (!this.renderer) {
-                        this.canvas = result.node;
-                        this.renderer = createRenderer(this.canvas);
-                    }
-                    this.bounds = {
-                        left: result.left || 0,
-                        top: result.top || 0,
-                        width: result.width,
-                        height: result.height,
-                    };
-                    const device =
-                        typeof wx.getWindowInfo === 'function'
-                            ? wx.getWindowInfo()
-                            : wx.getSystemInfoSync();
-                    this.renderer.fit(result.width, result.height, device.pixelRatio);
-                    this.queue();
-                } catch (error) {
-                    this.fail(error);
-                }
-            });
+    /** 为页面就绪和画布查询设置有限等待, 逾期后允许重新初始化. */
+    waitFor(stage) {
+        this.stopStartup();
+        const attempt = this.attempt;
+        this.startup = setTimeout(() => {
+            if (this.visible && this.attempt === attempt) {
+                this.fail(stage, new Error('等待超过 ' + STARTUP_TIMEOUT + ' ms'));
+            }
+        }, STARTUP_TIMEOUT);
+        return attempt;
     },
 
-    /** 渲染失败时提供可读状态, 立即释放分配过的资源. */
-    fail(error) {
+    /** 使以前的查询或等待回调失效. */
+    stopStartup() {
+        clearTimeout(this.startup);
+        this.startup = null;
+        this.attempt = (this.attempt || 0) + 1;
+    },
+
+    /** 使用页面级节点查询, 将 WebGL 节点和屏幕矩形分别读取. */
+    measure() {
+        if (this.ended || !this.visible) {
+            return;
+        }
+        this.stopFrame();
+        if (!this.renderer) {
+            this.setData({status: '正在读取 3D 画布…', retryable: false});
+        }
+        const attempt = this.waitFor('画布查询');
+        try {
+            const query = wx.createSelectorQuery();
+            query.select('#jewel').node();
+            query.select('#jewel').boundingClientRect();
+            query.exec((result) => {
+                if (this.attempt !== attempt || !this.visible) {
+                    return;
+                }
+                const canvas = result && result[0] && result[0].node;
+                const bounds = result && result[1];
+                if (!canvas || typeof canvas.getContext !== 'function') {
+                    this.fail('画布节点', new Error('未返回原生 WebGL 节点'));
+                    return;
+                }
+                if (!bounds || !(bounds.width > 0 && bounds.height > 0)) {
+                    this.fail('画布尺寸', new Error('未取得可用的画布区域'));
+                    return;
+                }
+                this.startRenderer(canvas, bounds);
+            });
+        } catch (error) {
+            this.fail('画布查询', error);
+        }
+    },
+
+    /** 直接提交首帧, 规避画布 rAF 在初次显示时未回调的情况. */
+    startRenderer(canvas, bounds) {
+        let stage = 'WebGL 初始化';
+        try {
+            if (!this.renderer) {
+                this.canvas = canvas;
+                this.renderer = createRenderer(canvas);
+            }
+            this.bounds = bounds;
+            const device =
+                typeof wx.getWindowInfo === 'function'
+                    ? wx.getWindowInfo()
+                    : wx.getSystemInfoSync();
+            this.renderer.fit(bounds.width, bounds.height, device.pixelRatio);
+            stage = 'WebGL 首帧';
+            this.drawFrame();
+            this.stopStartup();
+            this.setData({status: '', retryable: false});
+            if (!this.firstDrawAt) {
+                this.firstDrawAt = Date.now();
+                this.reportFirstFrame();
+            }
+        } catch (error) {
+            this.fail(stage, error);
+        }
+    },
+
+    /** 记录辅助指标, 探测失败时保留已绘制画面. */
+    reportFirstFrame() {
+        try {
+            const device = typeof wx.getDeviceInfo === 'function' ? wx.getDeviceInfo() : {};
+            console.info('[CaratCraft 3D] 首帧提交', {
+                version,
+                elapsedMs: this.firstDrawAt - this.loadedAt,
+                platform: device.platform,
+                model: device.model,
+                system: device.system,
+                ...this.renderer.info(),
+            });
+        } catch (error) {
+            console.warn('[CaratCraft 3D] 首帧诊断不可用', error.message);
+        }
+    },
+
+    /** 结束故障路径, 完整清理状态后向用户展示失败阶段及重试入口. */
+    fail(stage, error) {
+        this.stopStartup();
         this.stopFrame();
         if (this.renderer) {
-            this.renderer.dispose();
+            try {
+                this.renderer.dispose();
+            } catch (cleanupError) {
+                console.warn('[CaratCraft 3D] 资源清理失败', cleanupError.message);
+            }
             this.renderer = null;
         }
-        console.error('[CaratCraft 3D] 渲染失败', error.message);
-        this.setData({status: 'WebGL 渲染失败，请检查开发者工具或微信版本'});
+        this.canvas = null;
+        this.firstDrawAt = null;
+        this.gesture = null;
+        this.reportGesture();
+        console.error('[CaratCraft 3D] ' + stage, error.message);
+        this.setData({status: stage + '失败', retryable: true, selected: -1, diameter: 0});
     },
 
-    /** 合并多个触摸事件到同一帧, 静止时不持续绘制. */
+    /** 用户重试时重置诊断计时并重新查询画布. */
+    retry() {
+        this.loadedAt = Date.now();
+        this.measure();
+    },
+
+    /** 绘制并采集有效手势帧. */
+    drawFrame() {
+        this.renderer.draw();
+        if (this.gestureFrames) {
+            this.gestureFrames.push(Date.now());
+        }
+    },
+
+    /** 合并重绘请求, 原生帧延迟时以一次定时帧接管. */
     queue() {
-        if (!this.renderer || !this.visible || this.frame != null) {
+        if (!this.renderer || !this.visible || this.frame) {
             return;
         }
+        const hasNative = typeof this.canvas.requestAnimationFrame === 'function';
+        const frame = {};
+        this.frame = frame;
         const tick = () => {
-            this.frame = null;
-            if (!this.visible || this.ended || !this.renderer) {
+            if (this.frame !== frame) {
                 return;
             }
-            try {
-                this.renderer.draw();
-                const time = Date.now();
-                if (!this.firstDrawAt) {
-                    this.firstDrawAt = time;
-                    this.setData({status: ''});
-                    const device = typeof wx.getDeviceInfo === 'function' ? wx.getDeviceInfo() : {};
-                    console.info('[CaratCraft 3D] 首帧提交', {
-                        version,
-                        elapsedMs: time - this.loadedAt,
-                        platform: device.platform,
-                        model: device.model,
-                        system: device.system,
-                        ...this.renderer.info(),
-                    });
+            this.stopFrame();
+            if (this.visible && !this.ended && this.renderer) {
+                try {
+                    this.drawFrame();
+                } catch (error) {
+                    this.fail('WebGL 绘制', error);
                 }
-                if (this.gestureFrames) {
-                    this.gestureFrames.push(time);
-                }
-            } catch (error) {
-                this.fail(error);
             }
         };
-        this.canvasFrame = typeof this.canvas.requestAnimationFrame === 'function';
-        this.frame = this.canvasFrame
-            ? this.canvas.requestAnimationFrame(tick)
-            : setTimeout(tick, 16);
+        frame.timer = setTimeout(tick, hasNative ? FRAME_FALLBACK : 16);
+        if (hasNative) {
+            try {
+                frame.native = this.canvas.requestAnimationFrame(tick);
+            } catch (error) {
+                console.warn('[CaratCraft 3D] 切换定时帧', error.message);
+            }
+        }
     },
 
-    /** 解除挂起的原生帧或兼容定时帧. */
+    /** 撤销备用定时器与原生帧, 已离开的帧不得继续绘制. */
     stopFrame() {
-        if (this.frame == null) {
+        const frame = this.frame;
+        if (!frame) {
             return;
         }
-        if (this.canvasFrame && typeof this.canvas.cancelAnimationFrame === 'function') {
-            this.canvas.cancelAnimationFrame(this.frame);
-        } else if (!this.canvasFrame) {
-            clearTimeout(this.frame);
-        }
         this.frame = null;
+        clearTimeout(frame.timer);
+        if (frame.native != null && typeof this.canvas.cancelAnimationFrame === 'function') {
+            try {
+                this.canvas.cancelAnimationFrame(frame.native);
+            } catch (error) {
+                console.warn('[CaratCraft 3D] 取消原生帧失败', error.message);
+            }
+        }
     },
 
     /** 在控制台记录实际发生的手势帧, 静止时间不计入帧率. */

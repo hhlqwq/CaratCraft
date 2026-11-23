@@ -274,6 +274,9 @@ function createRenderer(canvas) {
             gl.depthMask(true);
         }
         if (firstFrame) {
+            if (typeof gl.flush === 'function') {
+                gl.flush();
+            }
             firstFrame = false;
             const error = gl.getError();
             if (error !== gl.NO_ERROR) {
