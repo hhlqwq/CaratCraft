@@ -7,7 +7,12 @@ const root = path.resolve('apps/miniapp');
 let page;
 let requests = 0;
 const errors = [];
-const cache = new Map();
+const cache = new Map([
+    [
+        path.join(root, 'config/environment.local.js'),
+        {exports: {developBaseUrl: 'http://127.0.0.1:18999/platform-framework-api/app/'}},
+    ],
+]);
 process.on('unhandledRejection', (error) => errors.push(error?.message || String(error)));
 const wx = new Proxy(
     {

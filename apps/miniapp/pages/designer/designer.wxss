@@ -54,6 +54,17 @@
     font-weight: 700;
 }
 
+.stage-title-row {
+    align-items: baseline;
+    display: flex;
+    gap: 16rpx;
+}
+
+.style-back {
+    color: #52655f;
+    font-size: 24rpx;
+}
+
 .stage-price {
     color: #a5682a;
     font-family: serif;
@@ -276,17 +287,6 @@
     width: 100%;
 }
 
-.option-none {
-    align-items: center;
-    justify-content: center;
-    min-height: 210rpx;
-}
-
-.option-none-mark {
-    color: #b7ac97;
-    font-size: 40rpx;
-}
-
 .option-name {
     color: #3d4c46;
     font-size: 22rpx;
@@ -307,7 +307,7 @@
     color: #9b8f7a;
     font-size: 21rpx;
     margin-top: 12rpx;
-    padding: 0 24rpx;
+    padding: 0;
 }
 
 /* 尺寸与规则参考 */
@@ -415,7 +415,10 @@
     background: rgba(255, 253, 248, 0.96);
     bottom: 0;
     box-shadow: 0 -6rpx 20rpx rgba(47, 39, 27, 0.08);
+    box-sizing: border-box;
     display: flex;
+    flex-wrap: wrap;
+    gap: 8rpx 16rpx;
     left: 0;
     padding: 16rpx 22rpx calc(16rpx + env(safe-area-inset-bottom));
     position: fixed;
@@ -426,7 +429,8 @@
 .bottom-bar button {
     border-radius: 999rpx;
     font-size: 28rpx;
-    margin: 0 10rpx;
+    margin: 0;
+    min-height: 72rpx;
 }
 
 .bottom-bar .secondary {
@@ -439,4 +443,123 @@
     background: #34524c;
     color: #fffdf8;
     flex: 2;
+}
+
+/* 款式入口与当前编辑动作. */
+.style-picker {
+    background: #fffdf8;
+    padding: 36rpx 28rpx;
+}
+
+.style-help {
+    color: #52655f;
+    font-size: 26rpx;
+    margin-top: 12rpx;
+}
+
+.style-choice {
+    align-items: center;
+    background: #f5f1e9;
+    color: #263e37;
+    display: flex;
+    font-size: 28rpx;
+    gap: 16rpx;
+    justify-content: space-between;
+    margin-top: 24rpx;
+    padding: 12rpx 22rpx;
+    text-align: left;
+}
+
+.style-arrow {
+    color: #81511f;
+}
+
+.designs-link {
+    background: transparent;
+    color: #34524c;
+    font-size: 26rpx;
+    margin-top: 24rpx;
+}
+
+.designs-link::after,
+.mode-button::after {
+    border: 0;
+}
+
+.material-actions {
+    display: flex;
+    gap: 12rpx;
+}
+
+.mode-button {
+    background: #f5f1e9;
+    border-radius: 10rpx;
+    color: #263e37;
+    flex: 1;
+    font-size: 25rpx;
+}
+
+.mode-button.mode-active {
+    background: #34524c;
+    color: #fffdf8;
+}
+
+.mode-button[disabled] {
+    color: #726f66;
+}
+
+.length-summary {
+    color: #52655f;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 23rpx;
+    gap: 8rpx 24rpx;
+    margin-top: 14rpx;
+}
+
+.node-placeholder {
+    align-items: center;
+    background: #f8e6c9;
+    border-radius: 50%;
+    color: #63431d;
+    display: flex;
+    font-size: 19rpx;
+    justify-content: center;
+}
+
+.chain-choice {
+    background: #fffdf8;
+    border: 1rpx solid #d8c9ac;
+    border-radius: 16rpx;
+    color: #52655f;
+    font-size: 22rpx;
+    left: 14rpx;
+    padding: 8rpx 14rpx;
+    position: absolute;
+    top: 14rpx;
+}
+
+.chain-choice-active {
+    border-color: #81511f;
+    color: #81511f;
+}
+
+.bottom-bar button[disabled] {
+    background: #e8e5dd;
+    color: #665f55;
+}
+
+.checkout-status {
+    color: #7a4e29;
+    flex-basis: 100%;
+    font-size: 22rpx;
+    max-height: 100rpx;
+    overflow-y: auto;
+}
+
+.clear-group {
+    color: #80513d;
+    display: inline-block;
+    font-size: 23rpx;
+    padding: 12rpx 0 0;
 }

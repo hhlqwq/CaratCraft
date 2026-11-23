@@ -62,7 +62,9 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         if (userId == null) {
             throw new IllegalArgumentException("请先登录");
         }
-        Map<String, Object> quote = quoteService.quote(request);
+        if (request == null || request.getGoodsId() == null) {
+            throw new IllegalArgumentException("请选择定制商品");
+        }
         CustomDesignSnapshotEntity snapshot =
                 request.getDraftId() == null
                         ? new CustomDesignSnapshotEntity()
@@ -75,6 +77,7 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                         || !request.getGoodsId().equals(snapshot.getGoodsId()))) {
             throw new IllegalStateException("草稿已被修改或锁定, 请刷新后再编辑");
         }
+        Map<String, Object> quote = quoteService.quoteDraft(request);
         snapshot.setUserId(userId);
         snapshot.setGoodsId(request.getGoodsId());
         snapshot.setConfigurationJson(JsonContract.write(request));
@@ -238,8 +241,8 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         CustomQuoteRequest request =
                 JsonContract.read(snapshot.getConfigurationJson(), CustomQuoteRequest.class);
         Map<String, Object> quote = quoteService.quote(request);
-        BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
         requireFinishedLength(quote);
+        BigDecimal totalPrice = new BigDecimal(String.valueOf(quote.get("totalPrice")));
         int updated =
                 snapshotDao.update(
                         null,

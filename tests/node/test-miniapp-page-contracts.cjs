@@ -34,9 +34,14 @@ function definitionFor(page) {
             definition = value;
         },
     });
-    const cache = new Map();
+    const cache = new Map([
+        [
+            path.join(root, 'config/environment.local.js'),
+            {exports: {developBaseUrl: 'http://127.0.0.1:18999/platform-framework-api/app/'}},
+        ],
+    ]);
 
-    /** 仅装载项目内真实CommonJS依赖, 拒绝路径越界及外部模块执行. */
+    /** 复用测试环境配置并装载项目真实依赖, 拒绝路径越界及外部模块执行. */
     function load(file) {
         let absolute = path.resolve(file);
         if (!path.extname(absolute)) {

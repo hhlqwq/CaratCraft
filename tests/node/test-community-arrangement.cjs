@@ -31,6 +31,9 @@ test('重复材料插入复制调序删除保持实例顺序', () => {
     const added = arrangement.edit(original, 'insert', 0, 1);
     assert.deepEqual(added, [1, 1, 2]);
     assert.deepEqual(original, [1, 2]);
+    assert.deepEqual(arrangement.edit(added, 'replace', 1, 7), [1, 7, 2]);
+    assert.deepEqual(added, [1, 1, 2]);
+    assert.throws(() => arrangement.edit(added, 'replace', -1, 7), /选中/);
     assert.deepEqual(arrangement.edit(added, 'copy', 1), [1, 1, 1, 2]);
     assert.deepEqual(arrangement.edit(added, 'right', 1), [1, 2, 1]);
     assert.deepEqual(arrangement.edit(added, 'remove', 0), [1, 2]);
@@ -112,7 +115,6 @@ test('连续打开草稿时迟到详情不能覆盖最新草稿', async () => {
             configurationJson: '{"arrangementOptionIds":[7,7]}',
         },
     });
-    await second;
     requests[0].resolve({
         code: 0,
         data: {id: 1, goodsId: 10, version: 0, status: 'DRAFT', configurationJson: '{}'},
@@ -128,7 +130,7 @@ test('连续打开草稿时迟到详情不能覆盖最新草稿', async () => {
             primaryProductId: 22,
         },
     });
-    await new Promise((resolve) => setImmediate(resolve));
+    await second;
     assert.deepEqual(Array.from(page.data.arrangementOptionIds), [7, 7]);
     assert.equal(page.data.draftVersion, 3);
     requests[3].resolve({code: 0, data: {totalPrice: 100}});

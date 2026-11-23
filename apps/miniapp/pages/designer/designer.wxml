@@ -9,10 +9,28 @@
         <button class="config-retry" bindtap="retryLoadConfig">重新加载</button>
     </view>
 
-    <block wx:if="{{!loadingConfig && !configError}}">
+    <view class="style-picker" wx:if="{{!goodsId && !loadingConfig && !configError}}">
+        <view class="stage-title">选择基础项链</view>
+        <view class="style-help">选好款式后，就可以搭配珍珠和配饰。</view>
+        <view class="style-help" wx:if="{{loadingStyles}}">正在加载款式…</view>
+        <view wx:elif="{{stylesError}}">
+            <view class="style-help">{{stylesError}}</view>
+            <button class="config-retry" bindtap="loadStyles">重新加载</button>
+        </view>
+        <view class="style-help" wx:elif="{{!styles.length}}">店铺暂未开放项链定制。</view>
+        <button wx:for="{{styles}}" wx:key="goodsId" class="style-choice" data-id="{{item.goodsId}}" bindtap="chooseStyle">
+            <text>{{item.name}}</text><text class="style-arrow">›</text>
+        </button>
+        <button class="designs-link" bindtap="openDesigns">继续我的设计</button>
+    </view>
+
+    <block wx:if="{{goodsId && !loadingConfig && !configError}}">
         <view class="stage-card">
             <view class="stage-head">
-                <view class="stage-title">项链搭配预览</view>
+                <view class="stage-title-row">
+                    <view class="stage-title">项链搭配预览</view>
+                    <text class="style-back" bindtap="changeStyle">换款</text>
+                </view>
                 <view class="stage-price">¥ {{quoting ? '…' : (quote.totalPrice || '--')}}</view>
             </view>
             <view class="necklace-stage">
@@ -20,21 +38,30 @@
                 <view wx:else class="necklace-guide"></view>
                 <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">点击下方材料, 开始搭配</view>
                 <block wx:for="{{arrangementNodes}}" wx:key="index">
-                    <image wx:if="{{item.onArc}}" class="node node-arc {{item.pearl ? 'node-pearl' : ''}} {{activeIndex === index ? 'node-active' : ''}}"
+                    <image wx:if="{{item.onArc && item.image}}" class="node node-arc {{item.pearl ? 'node-pearl' : ''}} {{activeIndex === index ? 'node-active' : ''}}"
                                 style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
                                 src="{{item.image}}" mode="aspectFit" webp="{{true}}"
                                 data-index="{{index}}" bindtap="selectInstance"></image>
-                    <image wx:elif="{{item.hanging}}" class="node node-hanging {{activeIndex === index ? 'node-active' : ''}}"
+                    <image wx:elif="{{item.hanging && item.image}}" class="node node-hanging {{activeIndex === index ? 'node-active' : ''}}"
                                 style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
                                 src="{{item.image}}" mode="aspectFit" webp="{{true}}"
                                 data-index="{{index}}" bindtap="selectInstance"></image>
                     <view wx:elif="{{item.clasp}}" class="node node-clasp {{activeIndex === index ? 'node-active' : ''}}"
                                 style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
                                 data-index="{{index}}" bindtap="selectInstance">扣</view>
+                    <view wx:elif="{{item.onArc || item.hanging}}" class="node node-placeholder {{activeIndex === index ? 'node-active' : ''}}"
+                                style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
+                                data-index="{{index}}" bindtap="selectInstance">{{item.pearl ? '珠' : '饰'}}</view>
+                    <text wx:elif="{{item.type === 'chain'}}" class="chain-choice {{activeIndex === index ? 'chain-choice-active' : ''}}"
+                                data-index="{{index}}" bindtap="selectInstance">链条</text>
                 </block>
             </view>
+            <view class="length-summary">
+                <text>预计成品 {{quote.sizing.estimatedFinishedLengthMm ? quote.sizing.estimatedFinishedLengthMm + ' mm' : '待测算'}}</text>
+                <text>目标长度 {{targetLengthMm ? targetLengthMm + ' mm' : '未填写'}}</text>
+            </view>
             <view wx:if="{{activeIndex >= 0}}" class="active-bar">
-                <view class="active-name">{{activeName}}</view>
+                <view class="active-name">已选第 {{activeIndex + 1}} 项 · {{activeName}}</view>
                 <view class="active-actions">
                     <text class="action" data-action="left" bindtap="editInstance" wx:if="{{activeIndex > 0}}">前移</text>
                     <text class="action" data-action="right" bindtap="editInstance" wx:if="{{activeIndex < arrangementNodes.length - 1}}">后移</text>
@@ -53,11 +80,19 @@
                 <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}{{quote.lengthNotice ? '。' + quote.lengthNotice : ''}}</view>
             </view>
             <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
-            <view wx:if="{{quoteError}}" class="config-state error">{{quoteError}}</view>
             <view class="preview-disclaimer">效果为二维搭配示意, 不代表实物颜色和成品外观。</view>
         </view>
 
         <view class="material-card">
+            <view class="material-actions">
+                <button class="mode-button {{editMode === 'replace' ? 'mode-active' : ''}}"
+                            data-mode="replace" bindtap="setEditMode" disabled="{{activeIndex < 0 || saving}}">替换选中</button>
+                <button class="mode-button {{editMode === 'insert' ? 'mode-active' : ''}}"
+                            data-mode="insert" bindtap="setEditMode" disabled="{{saving}}">{{activeIndex >= 0 ? '在选中项后添加' : '添加材料'}}</button>
+            </view>
+            <view class="material-hint">
+                {{activeIndex < 0 ? '点选预览中的珠子或配饰可修改。' : (editMode === 'insert' ? '选择要添加的材料。' : (activeGroupType === activeType ? '选择同类材料替换这一项。' : '请切换回同类材料，或选择添加。'))}}
+            </view>
             <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="group-tabs">
                 <view class="group-tab {{activeGroupType === group.type ? 'group-tab-active' : ''}}"
                             wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type"
@@ -66,11 +101,6 @@
                 </view>
             </scroll-view>
             <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="option-strip">
-                <view wx:if="{{!activeGroupRequired}}" class="option option-none {{!activeGroupHasSelection ? 'option-selected' : ''}}"
-                            data-type="{{activeGroupType}}" bindtap="clearOptional">
-                    <view class="option-none-mark">—</view>
-                    <view class="option-name">不选择</view>
-                </view>
                 <view class="option {{option.selected ? 'option-selected' : ''}}"
                             wx:for="{{activeOptions}}" wx:for-item="option" wx:key="id"
                             data-id="{{option.id}}" data-type="{{activeGroupType}}" bindtap="selectOption">
@@ -79,14 +109,15 @@
                     <view class="option-price">{{option.priceDelta > 0 ? '+¥' + option.priceDelta : '不加价'}}</view>
                 </view>
             </scroll-view>
-            <view class="material-hint">点击材料插入到选中位置之后, 点击预览中的珠子可调整顺序或删除。</view>
+            <text wx:if="{{!activeGroupRequired && activeGroupHasSelection}}" class="clear-group"
+                            data-type="{{activeGroupType}}" bindtap="clearOptional">移除所有{{activeGroupName}}</text>
         </view>
 
         <view class="sizing-card">
             <view class="sizing-toggle" bindtap="toggleSizing">
                 <view>
                     <view class="sizing-title">尺寸与规则参考</view>
-                    <view class="sizing-description">实测颈围、目标长度、长度偏好与刻字（均可选）</view>
+                    <view class="sizing-description">下单前需要校验实测颈围和目标长度</view>
                 </view>
                 <text class="sizing-icon">{{showSizing ? '收起' : '展开'}}</text>
             </view>
@@ -117,11 +148,14 @@
         </view>
     </block>
 
-    <view class="bottom-bar">
+    <view class="bottom-bar" wx:if="{{goodsId && !loadingConfig && !configError}}">
+        <view class="checkout-status" wx:if="{{!quoting && quote.checkoutReady !== true}}">
+            {{quoteError || quote.sizing.notice || '当前设计可保存草稿，完成尺寸与工艺校验后可下单。'}}
+        </view>
         <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
-                        disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || saving}}">保存</button>
+                        disabled="{{saving}}">保存草稿</button>
         <button class="primary" bindtap="submitDesign" loading="{{saving}}"
-                        disabled="{{loadingConfig || configError || quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
+                        disabled="{{quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
     </view>
 </view>
 

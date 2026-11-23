@@ -73,7 +73,7 @@ class CustomDesignServiceImplTest {
     /** 新建草稿采用材料缩略图, 拒绝用户注入外部图片地址. */
     @Test
     void draftPersistsTrustedPreview() {
-        when(quoteService.quote(any()))
+        when(quoteService.quoteDraft(any()))
                 .thenReturn(
                         Map.of("components", List.of(Map.of("assetUrl", "/upload/preview.png"))));
         var request = new CustomQuoteRequest();
@@ -106,6 +106,7 @@ class CustomDesignServiceImplTest {
                                 "quantity",
                                 3)));
         quote.put("checkoutReady", true);
+        when(quoteService.quoteDraft(any())).thenReturn(quote);
         when(quoteService.quote(any())).thenReturn(quote);
         org.mockito.Mockito.doAnswer(
                         invocation -> {
@@ -259,6 +260,64 @@ class CustomDesignServiceImplTest {
         assertEquals("ORDERED", snapshot.getStatus());
     }
 
+    /** 缺货的已知排列可保留且不可锁价, 外来材料仍被拒绝. */
+    @Test
+    void unavailableMaterialsRemainDraftAndRejectCheckout() {
+        MallGoodsService goodsService = mock(MallGoodsService.class);
+        CustomComponentOptionDao optionDao = mock(CustomComponentOptionDao.class);
+        CustomProductDao productDao = mock(CustomProductDao.class);
+        MallGoodsEntity goods = new MallGoodsEntity();
+        goods.setId(10);
+        goods.setIsOnSale(1);
+        goods.setRetailPrice(new BigDecimal("99.00"));
+        when(goodsService.getById(10)).thenReturn(goods);
+        when(productDao.selectOne(any())).thenReturn(new CustomProductEntity());
+        when(optionDao.selectList(any()))
+                .thenReturn(java.util.List.of(workflowOption(1L, "pearl", "pearl-test", "0.00")));
+        when(stockDao.selectOne(any())).thenReturn(null);
+        var prices = new CustomQuoteServiceImpl(goodsService, optionDao, productDao, stockDao);
+        var designs =
+                new CustomDesignServiceImpl(
+                        snapshotDao,
+                        bindingDao,
+                        workOrderDao,
+                        prices,
+                        stockDao,
+                        mock(com.platform.modules.custom.dao.WorkOrderLogDao.class));
+        CustomQuoteRequest request = new CustomQuoteRequest();
+        request.setGoodsId(10);
+        request.setArrangementOptionIds(java.util.List.of(1L, 1L));
+        org.mockito.Mockito.doAnswer(
+                        invocation -> {
+                            CustomDesignSnapshotEntity snapshot = invocation.getArgument(0);
+                            snapshot.setId(89L);
+                            return 1;
+                        })
+                .when(snapshotDao)
+                .insert(any(CustomDesignSnapshotEntity.class));
+
+        Map<String, Object> saved = designs.saveDraft(7L, request);
+        Map<?, ?> quote = (Map<?, ?>) saved.get("quote");
+        assertEquals(false, quote.get("checkoutReady"));
+        assertEquals(null, quote.get("totalPrice"));
+        ArgumentCaptor<CustomDesignSnapshotEntity> captured =
+                ArgumentCaptor.forClass(CustomDesignSnapshotEntity.class);
+        verify(snapshotDao).insert(captured.capture());
+        assertEquals(
+                java.util.List.of(1L, 1L),
+                com.platform.common.utils.JsonContract.read(
+                                captured.getValue().getConfigurationJson(),
+                                CustomQuoteRequest.class)
+                        .getArrangementOptionIds());
+        when(snapshotDao.selectById(89L)).thenReturn(captured.getValue());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class, () -> designs.lockAndGetPrice(89L, 7L));
+        verify(snapshotDao, times(0)).update(any(), any());
+        request.setArrangementOptionIds(java.util.List.of(91L));
+        org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class, () -> designs.saveDraft(7L, request));
+    }
+
     /** 创建完整链路使用的组件选项 / Creates an option for the workflow test. */
     private CustomComponentOptionEntity workflowOption(
             Long id, String type, String code, String priceDelta) {
@@ -373,7 +432,7 @@ class CustomDesignServiceImplTest {
                                 "test-pearl",
                                 "quantity",
                                 3)));
-        when(quoteService.quote(any())).thenReturn(quote);
+        when(quoteService.quoteDraft(any())).thenReturn(quote);
         org.mockito.Mockito.doAnswer(
                         invocation -> {
                             CustomDesignSnapshotEntity snapshot = invocation.getArgument(0);

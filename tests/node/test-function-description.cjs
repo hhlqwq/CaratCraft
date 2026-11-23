@@ -1,7 +1,11 @@
 /* 使用真实ESLint语法树验证中文职责门禁, 不以字符串正则替代解析. */
 const assert = require('node:assert/strict');
 const {test} = require('node:test');
-const {Linter} = require('../../apps/admin-ui/node_modules/eslint');
+const path = require('node:path');
+const dependencies =
+    process.env.CARATCRAFT_NODE_MODULES ||
+    path.resolve(__dirname, '../../apps/admin-ui/node_modules');
+const {Linter} = require(require.resolve('eslint', {paths: [dependencies]}));
 
 /** 导出服务及嵌套组件方法都必须独立说明职责. */
 test('注释门禁保留导出服务和嵌套组件覆盖', async () => {

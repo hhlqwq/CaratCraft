@@ -1,7 +1,16 @@
 /** 检查有序实例上限, 每次编辑返回新数组供撤回使用. */
 function edit(ids, action, index, optionId) {
     let next = ids.slice();
-    if (action === 'insert' || action === 'copy') {
+    if (action === 'replace') {
+        const id = Number(optionId);
+        if (!Number.isSafeInteger(index) || index < 0 || index >= next.length) {
+            throw new Error('请先选中要替换的材料');
+        }
+        if (!Number.isSafeInteger(id) || id <= 0) {
+            throw new Error('材料无效');
+        }
+        next[index] = id;
+    } else if (action === 'insert' || action === 'copy') {
         if (next.length >= 300) {
             throw new Error('最多添加300个材料实例');
         }

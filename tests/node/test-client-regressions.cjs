@@ -304,6 +304,7 @@ function designerFixture() {
                 CustomizationConfig: '/config',
                 CustomizationQuote: '/quote',
                 CustomizationReference: '/reference',
+                CustomizationSave: '/save',
             },
             '../../services/necklace-arrangement.js': require('../../apps/miniapp/services/necklace-arrangement.js'),
         },
@@ -314,6 +315,8 @@ function designerFixture() {
             wx: {
                 showModal: (options) => options.success({confirm: true}),
                 getStorageSync: () => token,
+                setStorageSync() {},
+                showToast() {},
             },
             setTimeout,
             clearTimeout,
@@ -427,9 +430,11 @@ test('实测颈围变更立即废弃参考', async () => {
     assert.equal(page.data.neckCircumferenceMm, '360');
 });
 
-/** 报价失败时旧价格立即失效, 后续不能保存或结算. */
-test('定制报价失败清除旧价格并禁止保存', async () => {
+/** 报价失败时旧价格立即失效, 原设计仍可保存. */
+test('定制报价失败禁止结算但可以保留原草稿', async () => {
     const {page, requests} = designerFixture();
+    page.data.goodsId = 10;
+    page.data.arrangementOptionIds = [1, 2, 1];
     page.data.quote = {totalPrice: 199};
     const refresh = page.refreshQuote();
     assert.equal(page.data.quote.totalPrice, undefined);
@@ -439,6 +444,10 @@ test('定制报价失败清除旧价格并禁止保存', async () => {
     assert.equal(page.data.quoteError, '库存不足');
     assert.equal(page.data.quoting, false);
     await assert.rejects(page.persistDesign(true), /有效报价/);
+    const saving = page.persistDesign(false);
+    assert.deepEqual(Array.from(requests[1].data.arrangementOptionIds), [1, 2, 1]);
+    requests[1].resolve({code: 0, data: {snapshotId: 18, quote: {checkoutReady: false}}});
+    assert.equal(await saving, 18);
 });
 
 /** 配置乱序返回时仅采纳当前商品, 必选类型读取商家配置. */

@@ -50,6 +50,17 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
      */
     @Override
     public Map<String, Object> quote(CustomQuoteRequest request) {
+        return quote(request, false);
+    }
+
+    /** 允许保存已知材料的未完成组合, 订单仍走严格报价. */
+    @Override
+    public Map<String, Object> quoteDraft(CustomQuoteRequest request) {
+        return quote(request, true);
+    }
+
+    /** 先验证请求和材料归属, 再区分草稿与交易的工艺要求. */
+    private Map<String, Object> quote(CustomQuoteRequest request, boolean draft) {
         if (request == null || request.getGoodsId() == null) {
             throw new IllegalArgumentException("请选择定制商品");
         }
@@ -62,16 +73,6 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         if (request.getEngraving() != null && request.getEngraving().length() > 20) {
             throw new IllegalArgumentException("刻字不能超过20个字符");
         }
-        BigDecimal basePrice = Objects.requireNonNullElse(goods.getRetailPrice(), BigDecimal.ZERO);
-        List<CustomComponentOptionEntity> options =
-                componentOptionDao.selectList(
-                        new LambdaQueryWrapper<CustomComponentOptionEntity>()
-                                .eq(CustomComponentOptionEntity::getGoodsId, request.getGoodsId())
-                                .eq(CustomComponentOptionEntity::getEnabled, 1));
-        BigDecimal optionTotal = BigDecimal.ZERO;
-        java.util.List<CustomComponentOptionEntity> selectedOptions = new java.util.ArrayList<>();
-        java.util.List<Map<String, Object>> components = new java.util.ArrayList<>();
-        Set<String> selectedTypes = new HashSet<>();
         boolean arranged = request.getArrangementOptionIds() != null;
         List<Long> instanceIds =
                 arranged ? request.getArrangementOptionIds() : request.getOptionIds();
@@ -90,75 +91,116 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                 counts.merge(id, 1, Integer::sum);
             }
         }
-        if (instanceIds != null) {
-            for (Long optionId : counts.keySet()) {
-                if (!arranged && counts.get(optionId) > 1) {
-                    throw new IllegalArgumentException("定制选项不能重复");
-                }
-                CustomComponentOptionEntity option =
-                        options.stream()
-                                .filter(item -> item.getId().equals(optionId))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("包含无效的定制选项"));
-                if (!arranged && !selectedTypes.add(option.getComponentType())) {
-                    throw new IllegalArgumentException("同类组件只能选择一个");
-                }
-                selectedTypes.add(option.getComponentType());
-                com.platform.modules.custom.service.MaterialTypes.require(
-                        option.getComponentType());
-                selectedOptions.add(option);
-                var rules =
-                        com.platform.modules.custom.service.ComponentRules.parse(
-                                option.getMaterialParams());
-                Map<String, Object> component = new LinkedHashMap<>();
-                component.put("optionId", option.getId());
-                component.put("componentType", option.getComponentType());
-                component.put("optionCode", option.getOptionCode());
-                component.put("name", option.getName());
-                int instances = counts.get(optionId);
-                int quantity = Math.multiplyExact(rules.quantity(), instances);
-                if (quantity > 10000) {
-                    throw new IllegalArgumentException("单种材料累计用量不能超过10000单位");
-                }
-                component.put("instances", instances);
-                component.put("quantity", quantity);
-                component.put("unit", rules.unit());
-                BigDecimal unitPrice =
-                        Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO);
-                if (unitPrice.signum() < 0) {
-                    throw new IllegalArgumentException("材料价格不能为负数");
-                }
-                component.put("unitPrice", unitPrice);
-                component.put("linePrice", unitPrice.multiply(BigDecimal.valueOf(instances)));
-                component.put("assetUrl", option.getAssetUrl());
-                component.put("zIndex", option.getZIndex());
-                component.put("materialParams", option.getMaterialParams());
-                components.add(component);
-                // 校验组件库存 / Validate component stock
-                ComponentStockEntity stock =
-                        componentStockDao.selectOne(
-                                new LambdaQueryWrapper<ComponentStockEntity>()
-                                        .eq(ComponentStockEntity::getGoodsId, request.getGoodsId())
-                                        .eq(
-                                                ComponentStockEntity::getComponentType,
-                                                option.getComponentType())
-                                        .eq(
-                                                ComponentStockEntity::getOptionCode,
-                                                option.getOptionCode()));
-                if (quantity > 0
-                        && (stock == null
-                                || stock.getStock() == null
-                                || stock.getStock() < quantity)) {
-                    throw new IllegalArgumentException("组件 " + option.getName() + " 库存不足");
-                }
-                optionTotal = optionTotal.add(unitPrice.multiply(BigDecimal.valueOf(instances)));
-            }
-        }
         CustomProductEntity customProduct =
                 customProductDao.selectOne(
                         new LambdaQueryWrapper<CustomProductEntity>()
                                 .eq(CustomProductEntity::getGoodsId, request.getGoodsId())
                                 .eq(CustomProductEntity::getEnabled, 1));
+        if (customProduct == null) {
+            throw new IllegalArgumentException("该商品未开放定制");
+        }
+        List<CustomComponentOptionEntity> options =
+                componentOptionDao.selectList(
+                        new LambdaQueryWrapper<CustomComponentOptionEntity>()
+                                .eq(CustomComponentOptionEntity::getGoodsId, request.getGoodsId())
+                                .eq(CustomComponentOptionEntity::getEnabled, 1));
+        Map<Long, CustomComponentOptionEntity> selected = new LinkedHashMap<>();
+        Set<String> selectedTypes = new HashSet<>();
+        for (Long optionId : counts.keySet()) {
+            if (!arranged && counts.get(optionId) > 1) {
+                throw new IllegalArgumentException("定制选项不能重复");
+            }
+            CustomComponentOptionEntity option =
+                    options.stream()
+                            .filter(item -> item.getId().equals(optionId))
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalArgumentException("包含无效的定制选项"));
+            if (!selectedTypes.add(option.getComponentType()) && !arranged) {
+                throw new IllegalArgumentException("同类组件只能选择一个");
+            }
+            selected.put(optionId, option);
+        }
+        try {
+            return calculate(request, goods, customProduct, instanceIds, counts, selected);
+        } catch (IllegalArgumentException error) {
+            if (!draft) {
+                throw error;
+            }
+            return Map.of(
+                    "goodsId", goods.getId(),
+                    "checkoutReady", false,
+                    "sizing",
+                            Map.of(
+                                    "ready",
+                                    false,
+                                    "notice",
+                                    Objects.requireNonNullElse(error.getMessage(), "当前组合无法制作")));
+        }
+    }
+
+    /** 按库存、价格和工艺计算可展示报价, 保留有序排列及冻结库存清单. */
+    private Map<String, Object> calculate(
+            CustomQuoteRequest request,
+            MallGoodsEntity goods,
+            CustomProductEntity customProduct,
+            List<Long> instanceIds,
+            Map<Long, Integer> counts,
+            Map<Long, CustomComponentOptionEntity> selected) {
+        boolean arranged = request.getArrangementOptionIds() != null;
+        BigDecimal basePrice = Objects.requireNonNullElse(goods.getRetailPrice(), BigDecimal.ZERO);
+        BigDecimal optionTotal = BigDecimal.ZERO;
+        java.util.List<CustomComponentOptionEntity> selectedOptions = new java.util.ArrayList<>();
+        java.util.List<Map<String, Object>> components = new java.util.ArrayList<>();
+        Set<String> selectedTypes = new HashSet<>();
+        for (CustomComponentOptionEntity option : selected.values()) {
+            Long optionId = option.getId();
+            selectedTypes.add(option.getComponentType());
+            com.platform.modules.custom.service.MaterialTypes.require(option.getComponentType());
+            selectedOptions.add(option);
+            var rules =
+                    com.platform.modules.custom.service.ComponentRules.parse(
+                            option.getMaterialParams());
+            Map<String, Object> component = new LinkedHashMap<>();
+            component.put("optionId", option.getId());
+            component.put("componentType", option.getComponentType());
+            component.put("optionCode", option.getOptionCode());
+            component.put("name", option.getName());
+            int instances = counts.get(optionId);
+            int quantity = Math.multiplyExact(rules.quantity(), instances);
+            if (quantity > 10000) {
+                throw new IllegalArgumentException("单种材料累计用量不能超过10000单位");
+            }
+            component.put("instances", instances);
+            component.put("quantity", quantity);
+            component.put("unit", rules.unit());
+            BigDecimal unitPrice =
+                    Objects.requireNonNullElse(option.getPriceDelta(), BigDecimal.ZERO);
+            if (unitPrice.signum() < 0) {
+                throw new IllegalArgumentException("材料价格不能为负数");
+            }
+            component.put("unitPrice", unitPrice);
+            component.put("linePrice", unitPrice.multiply(BigDecimal.valueOf(instances)));
+            component.put("assetUrl", option.getAssetUrl());
+            component.put("zIndex", option.getZIndex());
+            component.put("materialParams", option.getMaterialParams());
+            components.add(component);
+            // 校验组件库存 / Validate component stock
+            ComponentStockEntity stock =
+                    componentStockDao.selectOne(
+                            new LambdaQueryWrapper<ComponentStockEntity>()
+                                    .eq(ComponentStockEntity::getGoodsId, request.getGoodsId())
+                                    .eq(
+                                            ComponentStockEntity::getComponentType,
+                                            option.getComponentType())
+                                    .eq(
+                                            ComponentStockEntity::getOptionCode,
+                                            option.getOptionCode()));
+            if (quantity > 0
+                    && (stock == null || stock.getStock() == null || stock.getStock() < quantity)) {
+                throw new IllegalArgumentException("组件 " + option.getName() + " 库存不足");
+            }
+            optionTotal = optionTotal.add(unitPrice.multiply(BigDecimal.valueOf(instances)));
+        }
         boolean requiredComplete = hasRequiredTypes(customProduct, selectedTypes);
         com.platform.modules.custom.service.ComponentRules.validate(selectedOptions);
         BigDecimal totalPrice = basePrice.add(optionTotal);
@@ -195,9 +237,6 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
 
     /** 校验商品配置的必选组件组 / Validates required component groups. */
     private boolean hasRequiredTypes(CustomProductEntity product, Set<String> selectedTypes) {
-        if (product == null) {
-            throw new IllegalArgumentException("该商品未开放定制");
-        }
         String required =
                 com.platform.modules.custom.service.MaterialTypes.required(
                         product.getRequiredComponentTypes());

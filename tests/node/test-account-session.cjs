@@ -135,7 +135,7 @@ test('DIY账号切换清除草稿和身体输入但同账号保留编辑', () =>
     });
     page._sessionToken = 'A';
     page.invalidateReference = () => {};
-    page.loadConfig = () => {};
+    page.loadStyles = () => {};
     Object.assign(page.data, {
         draftId: 9,
         engraving: 'A的刻字',

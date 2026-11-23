@@ -17,6 +17,9 @@ public interface CustomProductService {
      */
     Map<String, Object> getConfig(Integer goodsId);
 
+    /** 查询已开放定制的在售项链款式. */
+    List<Map<String, Object>> listNecklaceStyles();
+
     /**
      * 根据商品ID获取定制商品 / Gets custom product by goods id.
      *

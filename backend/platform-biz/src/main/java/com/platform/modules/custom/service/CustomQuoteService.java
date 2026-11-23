@@ -13,4 +13,7 @@ public interface CustomQuoteService {
      * @return 可展示并可冻结的报价明细 / quote breakdown
      */
     Map<String, Object> quote(CustomQuoteRequest request);
+
+    /** 校验草稿结构, 无法制作时返回原因并允许保存原始配置. */
+    Map<String, Object> quoteDraft(CustomQuoteRequest request);
 }

@@ -12,6 +12,17 @@
         "existingDatabase": {"modified": false, "schemaVersion": 1, "enabledWorkspaces": 1, "accountTierColumnPresent": false, "unmappedGoods": 5, "unmappedCommunityPosts": 5},
         "pendingExternal": ["已有验收库备份和映射确认", "在实际环境登录三级账号", "真实邮件和短信收码"]
     },
+    "designerRound": {
+        "date": "2026-11-23",
+        "runId": "20261123-ae4471eb9c0d",
+        "http": {"runId": "20261123-870a519ae542", "isolatedPassed": 10, "payment": false},
+        "javaPassed": 263,
+        "nodePassed": 314,
+        "hostHealthcheck": "未运行, 缺少宿主机 javac",
+        "officialWcc": {"pages": 40, "wxml": 43, "wxss": 48},
+        "edgeFixture": ["选款", "同类替换", "定点添加", "撤回", "缺货保存", "重开", "尺寸恢复后进入结算预入口"],
+        "pendingExternal": ["微信IDE和真机交互", "正式素材和制作工艺验收"]
+    },
     "merchantGoodsRound": {
         "date": "2026-11-23",
         "runId": "20261123-6ff86bbe8964",

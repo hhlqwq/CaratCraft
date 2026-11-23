@@ -47,6 +47,7 @@ module.exports = {
     GoodsNew: API_BASE_URL + 'goods/new', //新品介绍
     GoodsHot: API_BASE_URL + 'goods/hot', //人气推荐
     GoodsRelated: API_BASE_URL + 'goods/related', //商品详情页的关联商品（大家都在看）
+    CustomizationStyles: API_BASE_URL + 'customization/styles',
     CustomizationConfig: API_BASE_URL + 'customization/config', //获取定制器配置
     CustomizationReference: API_BASE_URL + 'customization/reference', //获取首版规则参考
     CustomizationQuote: API_BASE_URL + 'customization/quote', //服务端定制报价

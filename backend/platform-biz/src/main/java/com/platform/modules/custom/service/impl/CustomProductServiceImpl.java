@@ -71,6 +71,39 @@ public class CustomProductServiceImpl implements CustomProductService {
         return result;
     }
 
+    /** 使用当前定制模板和商城状态提供款式, 避免客户端依赖示例编号. */
+    @Override
+    public List<Map<String, Object>> listNecklaceStyles() {
+        List<Integer> ids =
+                customProductDao
+                        .selectList(
+                                new LambdaQueryWrapper<CustomProductEntity>()
+                                        .select(CustomProductEntity::getGoodsId)
+                                        .eq(CustomProductEntity::getEnabled, 1))
+                        .stream()
+                        .map(CustomProductEntity::getGoodsId)
+                        .toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return mallGoodsService
+                .list(
+                        new LambdaQueryWrapper<MallGoodsEntity>()
+                                .select(MallGoodsEntity::getId, MallGoodsEntity::getName)
+                                .in(MallGoodsEntity::getId, ids)
+                                .eq(MallGoodsEntity::getIsOnSale, 1)
+                                .eq(MallGoodsEntity::getIsDelete, 0)
+                                .eq(MallGoodsEntity::getJewelryType, "NECKLACE")
+                                .gt(MallGoodsEntity::getPrimaryProductId, 0)
+                                .orderByAsc(MallGoodsEntity::getId))
+                .stream()
+                .map(
+                        goods ->
+                                Map.<String, Object>of(
+                                        "goodsId", goods.getId(), "name", goods.getName()))
+                .toList();
+    }
+
     /** 根据商品ID获取定制商品 / Gets custom product by goods id. */
     @Override
     public CustomProductEntity getByGoodsId(Integer goodsId) {

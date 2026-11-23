@@ -56,6 +56,14 @@ public class AppCustomizationController {
         return RestResponse.ok(customQuoteService.quote(request));
     }
 
+    /** 提供当前店铺可选的基础项链款式. */
+    @IgnoreAuth
+    @Operation(summary = "查看可定制项链款式")
+    @GetMapping("styles")
+    public RestResponse<Object> styles() {
+        return RestResponse.ok(customProductService.listNecklaceStyles());
+    }
+
     /** 保存当前用户的设计草稿 / Saves the current user's design draft. */
     @Operation(summary = "保存定制设计")
     @PostMapping("save")

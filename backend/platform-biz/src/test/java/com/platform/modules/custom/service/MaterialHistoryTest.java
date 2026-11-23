@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -63,7 +62,6 @@ class MaterialHistoryTest {
         draft.setGoodsId(10);
         draft.setStatus("DRAFT");
         when(snapshots.selectById(88L)).thenReturn(draft);
-        when(quotes.quote(any())).thenReturn(Map.of("totalPrice", new BigDecimal("99.00")));
         request = new CustomQuoteRequest();
         request.setGoodsId(10);
         request.setDraftId(88L);
@@ -74,7 +72,7 @@ class MaterialHistoryTest {
     @Test
     void editUpdatesOwnedVersion() {
         when(snapshots.update(any(), any())).thenReturn(1);
-        when(quotes.quote(any()))
+        when(quotes.quoteDraft(any()))
                 .thenReturn(
                         Map.of("components", List.of(Map.of("assetUrl", "/upload/preview.png"))));
         var result = designs.saveDraft(7L, request);
