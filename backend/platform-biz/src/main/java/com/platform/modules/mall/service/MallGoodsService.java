@@ -34,6 +34,9 @@ import java.util.Map;
  */
 public interface MallGoodsService extends IService<MallGoodsEntity> {
 
+    /** 单独设置商品销售状态. */
+    void changeSale(Integer id, boolean onSale);
+
     /**
      * 查询所有列表
      *

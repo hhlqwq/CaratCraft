@@ -99,6 +99,38 @@ public class MallGoodsServiceImpl extends ServiceImpl<MallGoodsDao, MallGoodsEnt
                         .set(mallGoods.getPearlDiameterMax() == null, "pearl_diameter_max", null));
     }
 
+    /** 锁定商品后校验上架条件, 只写回销售状态. */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changeSale(Integer id, boolean onSale) {
+        MallGoodsEntity goods =
+                getOne(
+                        new QueryWrapper<MallGoodsEntity>()
+                                .eq("id", id)
+                                .eq("is_delete", 0)
+                                .last("FOR UPDATE"));
+        if (goods == null) {
+            throw new BusinessException("商品不存在或已进入回收站");
+        }
+        int target = onSale ? 1 : 0;
+        if (Integer.valueOf(target).equals(goods.getIsOnSale())) {
+            return;
+        }
+        if (onSale) {
+            goods.setIsOnSale(target);
+            pearlProductValidator.validate(goods);
+            pearlProductValidator.requireUploadedPhoto(goods);
+            if (goods.getPrimaryProductId() == null || goods.getPrimaryProductId() <= 0) {
+                throw new BusinessException("上架前请补齐可购买的规格和价格");
+            }
+        }
+        update(
+                new UpdateWrapper<MallGoodsEntity>()
+                        .eq("id", id)
+                        .eq("is_delete", 0)
+                        .set("is_on_sale", target));
+    }
+
     @Override
     public boolean delete(Integer id) {
         return deleteBatch(new Integer[] {id});

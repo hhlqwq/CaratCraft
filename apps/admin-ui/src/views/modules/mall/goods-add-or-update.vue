@@ -109,11 +109,11 @@
                             </el-form-item>
                         </el-col>
                         <el-col :xs="24" :sm="12" :lg="8">
-                            <el-form-item label="上架状态" prop="isOnSale">
-                                <el-radio-group v-model="form.goods.isOnSale" :disabled="disabled">
-                                    <el-radio-button :label="1">上架</el-radio-button>
-                                    <el-radio-button :label="0">下架</el-radio-button>
-                                </el-radio-group>
+                            <el-form-item label="销售状态">
+                                <span
+                                    >{{ form.goods.isOnSale === 1 ? '已上架' : '草稿／下架' }} ·
+                                    在商品列表调整</span
+                                >
                             </el-form-item>
                         </el-col>
                         <el-col :xs="24" :sm="12" :lg="8">
@@ -127,7 +127,8 @@
                     </el-row>
                     <el-row :gutter="20">
                         <el-col :span="12">
-                            <el-form-item label="主图" prop="primaryPicUrl">
+                            <el-form-item label="实物主图" prop="primaryPicUrl">
+                                <span v-if="!form.goods.primaryPicUrl">待上传图片</span>
                                 <el-img
                                     v-model="form.goods.primaryPicUrl"
                                     :disabled="disabled"
@@ -319,7 +320,8 @@
                 </el-table>
             </el-tab-pane>
 
-            <el-tab-pane label="商品相册" name="gallery">
+            <el-tab-pane label="详情图片" name="gallery">
+                <p>请上传商家拍摄或有权使用的实物照片。</p>
                 <div class="mb10">
                     <el-button v-if="!disabled" type="primary" size="small" @click="addGallery"
                         >新增图片</el-button
@@ -491,7 +493,7 @@
                 "
                 :loading="saving"
                 @click="dataFormSubmit"
-                >保存</el-button
+                >{{ form.goods.isOnSale === 1 ? '保存修改' : '保存草稿' }}</el-button
             >
         </div>
     </section>
@@ -610,7 +612,7 @@ export default {
                     keywords: '',
                     goodsBrief: '',
                     goodsDesc: '',
-                    isOnSale: 1,
+                    isOnSale: 0,
                     sortOrder: 100,
                     isDelete: 0,
                     counterPrice: 0,

@@ -10,49 +10,25 @@
                     v-if="isAuth('mall:goods:save')"
                     type="primary"
                     @click="addOrUpdateHandle()"
-                    >新增</el-button
+                    >新建商品</el-button
                 >
-                <el-upload
-                    v-if="isAuth('mall:goods:save')"
-                    class="inline-upload"
-                    action=""
-                    accept=".json"
-                    :auto-upload="false"
-                    :show-file-list="false"
-                    :on-change="importGoodsJson"
-                >
-                    <el-button type="success">导入完整商品 JSON</el-button>
-                </el-upload>
-                <el-button type="text" @click="downloadGoodsTemplate">下载导入模板</el-button>
-                <el-button
-                    v-if="isAuth('mall:goods:delete')"
-                    type="danger"
-                    @click="deleteHandle()"
-                    :disabled="dataListSelections.length <= 0"
-                    >批量删除
-                </el-button>
             </el-form-item>
         </el-form>
 
-        <el-table
-            :data="dataList"
-            border
-            @selection-change="selectionChangeHandle"
-            style="width: 100%"
-        >
-            <el-table-column
-                type="selection"
-                header-align="center"
-                align="center"
-                width="50"
-            ></el-table-column>
-            <el-table-column
-                prop="id"
-                header-align="center"
-                align="center"
-                label="ID"
-                width="80"
-            ></el-table-column>
+        <el-table :data="dataList" border style="width: 100%">
+            <el-table-column label="主图" width="105" align="center">
+                <template #default="{row}">
+                    <el-image
+                        v-if="row.primaryPicUrl || row.listPicUrl"
+                        class="product-thumb"
+                        :src="row.primaryPicUrl || row.listPicUrl"
+                        fit="cover"
+                    >
+                        <template #error><span class="image-pending">待上传图片</span></template>
+                    </el-image>
+                    <span v-else class="image-pending">待上传图片</span>
+                </template>
+            </el-table-column>
             <el-table-column
                 prop="name"
                 header-align="center"
@@ -60,25 +36,14 @@
                 label="商品名称"
                 min-width="220"
             ></el-table-column>
-            <el-table-column
-                prop="goodsSn"
-                header-align="center"
-                align="center"
-                label="商品编码"
-                min-width="160"
-            ></el-table-column>
+            <el-table-column label="品类" min-width="105">
+                <template #default="{row}">{{ categoryLabel(row.jewelryType) }}</template>
+            </el-table-column>
             <el-table-column
                 prop="retailPrice"
                 header-align="center"
                 align="center"
                 label="零售价"
-                width="110"
-            ></el-table-column>
-            <el-table-column
-                prop="marketPrice"
-                header-align="center"
-                align="center"
-                label="市场价"
                 width="110"
             ></el-table-column>
             <el-table-column
@@ -92,45 +57,52 @@
                 prop="isOnSale"
                 header-align="center"
                 align="center"
-                label="上架"
+                label="销售状态"
                 width="90"
             >
                 <template #default="scope">
                     <el-tag :type="scope.row.isOnSale === 1 ? 'success' : 'info'" size="small">
-                        {{ scope.row.isOnSale === 1 ? '是' : '否' }}
+                        {{ scope.row.isOnSale === 1 ? '已上架' : '草稿／下架' }}
                     </el-tag>
                 </template>
             </el-table-column>
-            <el-table-column
-                fixed="right"
-                header-align="center"
-                align="center"
-                width="180"
-                label="操作"
-            >
-                <template #default="scope">
-                    <el-button
-                        v-if="isAuth('mall:goods:info')"
-                        type="text"
-                        size="small"
-                        @click="showDetails(scope.row.id)"
-                        >查看
-                    </el-button>
-                    <el-button
-                        v-if="isAuth('mall:goods:update')"
-                        type="text"
-                        size="small"
-                        @click="addOrUpdateHandle(scope.row.id)"
-                        >编辑
-                    </el-button>
-                    <el-button
-                        v-if="isAuth('mall:goods:delete')"
-                        type="text"
-                        size="small"
-                        @click="deleteHandle(scope.row.id)"
-                    >
-                        删除
-                    </el-button>
+            <el-table-column fixed="right" align="center" width="240" label="操作">
+                <template #default="{row}">
+                    <div class="product-actions">
+                        <el-button
+                            v-if="isAuth('mall:goods:info')"
+                            link
+                            type="primary"
+                            @click="showDetails(row.id)"
+                            >查看</el-button
+                        >
+                        <el-button
+                            v-if="isAuth('mall:goods:update') && isAuth('mall:goods:info')"
+                            link
+                            type="primary"
+                            @click="addOrUpdateHandle(row.id)"
+                            >编辑</el-button
+                        >
+                        <el-button
+                            v-if="isAuth('mall:goods:update')"
+                            plain
+                            size="small"
+                            :disabled="salePending !== null"
+                            @click="changeSale(row)"
+                        >
+                            {{ row.isOnSale === 1 ? '下架' : '上架' }}
+                        </el-button>
+                        <el-dropdown v-if="isAuth('mall:goods:delete')" trigger="click">
+                            <el-button link aria-label="更多商品操作">更多</el-button>
+                            <template #dropdown>
+                                <el-dropdown-menu>
+                                    <el-dropdown-item @click="deleteHandle(row.id)">
+                                        移入回收站
+                                    </el-dropdown-item>
+                                </el-dropdown-menu>
+                            </template>
+                        </el-dropdown>
+                    </div>
                 </template>
             </el-table-column>
         </el-table>
@@ -160,7 +132,7 @@ export default {
             pageIndex: 1,
             pageSize: 10,
             totalPage: 0,
-            dataListSelections: [],
+            salePending: null,
         };
     },
     /** 页面激活时刷新当前业务数据. */
@@ -215,9 +187,33 @@ export default {
             this.pageIndex = val;
             this.getDataList();
         },
-        /** 保存表格当前勾选项以供后续批量操作. */
-        selectionChangeHandle(val) {
-            this.dataListSelections = val;
+        /** 显示现有成品品类, 历史空值留待商家补齐. */
+        categoryLabel(type) {
+            return (
+                {NECKLACE: '项链', EARRING: '耳饰', BRACELET: '手链', RING: '戒指'}[type] ||
+                '待填写'
+            );
+        },
+        /** 上架或下架只请求修改商品销售状态. */
+        async changeSale(row) {
+            if (this.salePending !== null) return;
+            this.salePending = row.id;
+            try {
+                const onSale = row.isOnSale !== 1;
+                const {data} = await this.$http({
+                    url: '/mall/goods/sale',
+                    method: 'post',
+                    data: {id: row.id, onSale},
+                    showError: false,
+                });
+                if (data?.code !== 0) throw new Error(data?.msg || '操作失败，请重试');
+                this.$message.success(onSale ? '商品已上架' : '商品已下架');
+                this.getDataList();
+            } catch (error) {
+                this.$message.error(error.response?.data?.msg || error.message);
+            } finally {
+                this.salePending = null;
+            }
         },
         /** 路由进入商品详情, 保留名称筛选和分页. */
         showDetails(id) {
@@ -235,9 +231,9 @@ export default {
                     : {name: 'mall-goods-new', query: this.$route.query}
             );
         },
-        /** 确认后删除指定或勾选的业务记录. */
+        /** 二次确认后将指定商品移入回收站. */
         deleteHandle(id) {
-            const ids = id ? [id] : this.dataListSelections.map((item) => item.id);
+            const ids = [id];
             this.$confirm(
                 '商品将从商城下架并移入回收站，三十天内可恢复。是否继续？',
                 '移入回收站',
@@ -265,110 +261,32 @@ export default {
                 })
                 .catch(() => {});
         },
-        // 导入商品、相册、参数、规格和 SKU / Imports a complete product aggregate from JSON.
-        importGoodsJson(file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const aggregate = JSON.parse(event.target.result);
-                    if (!aggregate.goods || !aggregate.goods.name || !aggregate.goods.categoryId) {
-                        throw new Error('JSON 必须包含 goods.name 和 goods.categoryId');
-                    }
-                    aggregate.goods.id = null;
-                    this.$confirm(
-                        `确认导入商品“${aggregate.goods.name}”及其相册、参数、规格和 SKU？`,
-                        '导入确认',
-                        {
-                            type: 'warning',
-                        }
-                    )
-                        .then(() =>
-                            this.$http({
-                                url: '/mall/goods/aggregate/save',
-                                method: 'post',
-                                data: aggregate,
-                                showError: false,
-                            })
-                        )
-                        .then(({data}) => {
-                            if (!data || data.code !== 0) {
-                                throw new Error((data && data.msg) || '导入失败');
-                            }
-                            this.$message.success(`商品导入成功，商品 ID：${data.data}`);
-                            this.getDataList(1);
-                        })
-                        .catch((error) => {
-                            if (error !== 'cancel' && error !== 'close') {
-                                this.$message.error(`导入失败：${error.message || error}`);
-                            }
-                        });
-                } catch (error) {
-                    this.$message.error(`JSON 解析失败：${error.message}`);
-                }
-            };
-            reader.onerror = () => this.$message.error('无法读取所选 JSON 文件');
-            reader.readAsText(file.raw, 'UTF-8');
-        },
-        // 下载完整商品导入模板 / Downloads a complete product import template.
-        downloadGoodsTemplate() {
-            const template = {
-                goods: {
-                    name: '演示商品名称',
-                    categoryId: 1999001,
-                    pearlSource: '',
-                    jewelryType: '',
-                    pearlVariety: '',
-                    pearlOrigin: '',
-                    pearlShape: '',
-                    pearlLuster: '',
-                    pearlBlemish: '',
-                    pearlDiameterMin: null,
-                    pearlDiameterMax: null,
-                    goodsSn: 'DEMO-IMPORT-001',
-                    goodsNumber: 10,
-                    retailPrice: 999,
-                    marketPrice: 1299,
-                    isOnSale: 0,
-                    isNew: 1,
-                    isHot: 0,
-                    goodsBrief: '商品简介',
-                    goodsDesc: '<p>商品详情</p>',
-                    primaryPicUrl: '',
-                    listPicUrl: '',
-                    goodsUnit: '件',
-                },
-                attributes: [],
-                gallery: [{imgUrl: '', imgDesc: '主图', sortOrder: 1}],
-                specs: [],
-                skuList: [
-                    {
-                        goodsSn: 'DEMO-IMPORT-001-STD',
-                        goodsNumber: 10,
-                        retailPrice: 999,
-                        marketPrice: 1299,
-                    },
-                ],
-            };
-            this.downloadJson('完整商品导入模板.json', template);
-        },
-        // 下载 JSON 文件 / Downloads a JSON file.
-        downloadJson(filename, data) {
-            const blob = new Blob([JSON.stringify(data, null, 2)], {
-                type: 'application/json;charset=utf-8',
-            });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-            URL.revokeObjectURL(link.href);
-        },
     },
 };
 </script>
 
 <style scoped>
-.inline-upload {
-    display: inline-block;
-    margin-left: 10px;
+.product-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+.product-actions :deep(.el-button) {
+    margin-left: 0;
+}
+.product-thumb,
+.image-pending {
+    width: 72px;
+    height: 56px;
+    border-radius: 4px;
+}
+.image-pending {
+    display: inline-grid;
+    place-items: center;
+    color: #52615a;
+    background: #f0eee8;
+    font-size: 12px;
 }
 </style>

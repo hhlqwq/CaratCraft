@@ -197,6 +197,22 @@ public class MallGoodsController extends AbstractController {
         return RestResponse.ok();
     }
 
+    /** 仅变更商品销售状态, 依原商品修改权限及归属鉴权. */
+    @PostMapping("/sale")
+    @RequiresPermissions("mall:goods:update")
+    @SysLog("变更商品销售状态")
+    public RestResponse<String> changeSale(@RequestBody SaleStatus request) {
+        if (request.id() == null || request.onSale() == null) {
+            throw new IllegalArgumentException("请选择商品和销售状态");
+        }
+        authority.require("mall:goods:update", Resource.GOODS, request.id());
+        mallGoodsService.changeSale(request.id(), request.onSale());
+        return RestResponse.ok();
+    }
+
+    /** 标识单品及预期发布状态. */
+    public record SaleStatus(Integer id, Boolean onSale) {}
+
     /** 修改聚合 */
     @Operation(summary = "修改聚合", description = "修改聚合")
     @SysLog("修改聚合")

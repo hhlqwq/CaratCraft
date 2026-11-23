@@ -45,6 +45,23 @@ public class PearlProductValidator {
         bindVideo(item);
     }
 
+    /** 校验新上架商品使用已登记于本工作室的实物主图. */
+    public void requireUploadedPhoto(MallGoodsEntity item) {
+        String photo = item.getPrimaryPicUrl();
+        if (photo == null
+                || photo.isBlank()
+                || item.getScopeOrgNo() == null
+                || !Boolean.TRUE.equals(
+                        jdbc.queryForObject(
+                                "SELECT COUNT(*)>0 FROM SYS_OSS WHERE URL=? AND"
+                                    + " CREATE_USER_ORG_NO=?",
+                                Boolean.class,
+                                photo,
+                                item.getScopeOrgNo()))) {
+            throw new IllegalArgumentException("上架前请从商品表单上传实物主图并保存");
+        }
+    }
+
     /** 直径区间允许完全未知, 填写时必须有有效且有序的两个端点. */
     private static void validateDiameter(BigDecimal min, BigDecimal max) {
         if ((min == null) != (max == null)) {

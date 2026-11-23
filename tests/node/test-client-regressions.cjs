@@ -217,7 +217,9 @@ test('结算先读取所选地址, 提交按钮阻止重复请求', async () => 
 
 /** 使用当前Vue编译器读取组件, 导入依赖替换为占位对象, 不依赖旧Babel工具链. */
 function loadVue(relative) {
-    const compiler = require(path.join(root, 'apps/admin-ui/node_modules/@vue/compiler-sfc'));
+    const modules =
+        process.env.CARATCRAFT_NODE_MODULES || path.join(root, 'apps/admin-ui/node_modules');
+    const compiler = require(path.join(modules, '@vue/compiler-sfc'));
     const source = compiler.parse(fs.readFileSync(path.join(root, relative), 'utf8')).descriptor
         .script.content;
     let transformed = compiler.rewriteDefault(source, '_component');
@@ -248,27 +250,27 @@ function loadVue(relative) {
     return module.exports.default;
 }
 
-/** 合法商品JSON必须进入确认和保存, 不再报未定义变量. */
-test('合法商品JSON可以进入确认与保存', async () => {
+/** 商品列表上架和下架只提交销售状态, 保留既有商品及 SKU. */
+test('商品列表不提供 JSON 导入且可修改销售状态', async () => {
     const component = loadVue('apps/admin-ui/src/views/modules/mall/goods.vue');
-    let saves = 0;
+    const calls = [];
     const context = {
-        $confirm: () => Promise.resolve(),
-        $http: () => {
-            saves++;
-            return Promise.resolve({data: {code: 0, data: 1}});
+        salePending: null,
+        $http: (request) => {
+            calls.push(request);
+            return Promise.resolve({data: {code: 0}});
         },
-        $message: {
-            success: () => {},
-            error: (message) => {
-                throw new Error(message);
-            },
-        },
+        $message: {success: () => {}, error: (message) => assert.fail(message)},
         getDataList: () => {},
     };
-    component.methods.importGoodsJson.call(context, {raw: {}});
-    await new Promise(setImmediate);
-    assert.equal(saves, 1);
+    assert.equal(component.methods.importGoodsJson, undefined);
+    assert.equal(component.methods.downloadGoodsTemplate, undefined);
+    await component.methods.changeSale.call(context, {id: 99, isOnSale: 0});
+    await component.methods.changeSale.call(context, {id: 99, isOnSale: 1});
+    assert.equal(calls[0].url, '/mall/goods/sale');
+    assert.equal(JSON.stringify(calls[0].data), '{"id":99,"onSale":true}');
+    assert.equal(JSON.stringify(calls[1].data), '{"id":99,"onSale":false}');
+    assert.equal(context.salePending, null);
 });
 
 /** 未知尺寸不得被自动写成最小值或零, 小数精度和范围需在提交前校验. */

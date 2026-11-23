@@ -172,6 +172,59 @@ class OrderPermissionHttpTest {
         tokens.clear();
     }
 
+    /** 校验商品上下架只影响销售状态, 未授权账号和演示主图均不能发布. */
+    @Test
+    void goodsSaleRequiresUploadedPhotoAndPreservesInventory() {
+        int id = 1999107;
+        String photo = "/upload/fixtures-product-photo.png";
+        var original =
+                jdbc.queryForMap(
+                        "SELECT scope_org_no, primary_pic_url, is_on_sale FROM mall_goods WHERE"
+                            + " id=?",
+                        id);
+        try {
+            jdbc.update("UPDATE mall_goods SET scope_org_no='QT-A',is_on_sale=0 WHERE id=?", id);
+            var inventory =
+                    jdbc.queryForList(
+                            "SELECT id,goods_number FROM mall_product WHERE goods_id=?", id);
+            var publish = Map.of("id", id, "onSale", true);
+            send("empty", HttpMethod.POST, "/mall/goods/sale", publish, 403);
+            send("operator", HttpMethod.POST, "/mall/goods/sale", publish, 400);
+            jdbc.update("UPDATE mall_goods SET primary_pic_url=? WHERE id=?", photo, id);
+            jdbc.update(
+                    "INSERT INTO SYS_OSS(ID,URL,CREATE_DATE,CREATE_USER_ORG_NO)"
+                            + " VALUES('cc-perm-asset-a',?,NOW(),'QT-A')",
+                    photo);
+            send("operator", HttpMethod.POST, "/mall/goods/sale", publish, 200);
+            assertEquals(
+                    1,
+                    jdbc.queryForObject(
+                            "SELECT is_on_sale FROM mall_goods WHERE id=?", Integer.class, id));
+            send(
+                    "operator",
+                    HttpMethod.POST,
+                    "/mall/goods/sale",
+                    Map.of("id", id, "onSale", false),
+                    200);
+            assertEquals(
+                    0,
+                    jdbc.queryForObject(
+                            "SELECT is_on_sale FROM mall_goods WHERE id=?", Integer.class, id));
+            assertEquals(
+                    inventory,
+                    jdbc.queryForList(
+                            "SELECT id,goods_number FROM mall_product WHERE goods_id=?", id));
+        } finally {
+            jdbc.update(
+                    "UPDATE mall_goods SET scope_org_no=?,primary_pic_url=?,is_on_sale=? WHERE"
+                        + " id=?",
+                    original.get("scope_org_no"),
+                    original.get("primary_pic_url"),
+                    original.get("is_on_sale"),
+                    id);
+        }
+    }
+
     /** 正常发货写入物流字段, 同一账号可以查阅但三类退款写入一律403. */
     @Test
     void fulfillmentCanShipButCannotChangeRefunds() {
