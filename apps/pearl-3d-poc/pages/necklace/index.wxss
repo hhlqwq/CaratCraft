@@ -1,0 +1,162 @@
+page {
+    background: #f8f5ee;
+    color: #26342d;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    height: 100%;
+}
+
+.study {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 22rpx 30rpx calc(14rpx + env(safe-area-inset-bottom));
+}
+
+.heading {
+    align-items: flex-end;
+    display: flex;
+    gap: 16rpx;
+    justify-content: space-between;
+    padding-bottom: 20rpx;
+}
+
+.brand {
+    color: #435348;
+    font-family: Georgia, serif;
+    font-size: 33rpx;
+    line-height: 1.1;
+}
+
+.title {
+    font-family: "Songti SC", SimSun, serif;
+    font-size: 51rpx;
+    line-height: 1.28;
+    margin-top: 10rpx;
+}
+
+.version,
+.notice {
+    color: #626a5c;
+    font-size: 20rpx;
+}
+
+.stage {
+    background: #e4dcd0;
+    border: 1rpx solid #d4ccbf;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
+.jewel {
+    display: block;
+    height: 100%;
+    width: 100%;
+}
+
+.stage-status {
+    background: #f8f5ee;
+    border: 1rpx solid #d0c7b8;
+    color: #39473b;
+    font-size: 26rpx;
+    left: 50%;
+    max-width: 90%;
+    padding: 16rpx 24rpx;
+    position: absolute;
+    text-align: center;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: max-content;
+}
+
+.guide {
+    color: #535e52;
+    font-size: 22rpx;
+    padding: 14rpx 0 16rpx;
+    text-align: center;
+}
+
+.size-panel {
+    border-top: 1rpx solid #dcd5c8;
+    padding-top: 14rpx;
+}
+
+.size-heading {
+    align-items: baseline;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 26rpx;
+    font-weight: 600;
+    gap: 12rpx;
+    justify-content: space-between;
+    margin-bottom: 12rpx;
+}
+
+.selection {
+    color: #536152;
+    font-size: 22rpx;
+    font-weight: 400;
+}
+
+.sizes {
+    display: flex;
+    gap: 10rpx;
+}
+
+.size {
+    background: #fffcf6;
+    border: 1rpx solid #aeb4a7;
+    border-radius: 5rpx;
+    color: #304335;
+    flex: 1 1 0;
+    font-size: 24rpx;
+    line-height: 84rpx;
+    margin: 0;
+    min-width: 0;
+    padding: 0 4rpx;
+    white-space: nowrap;
+}
+
+.size::after {
+    border: 0;
+}
+
+.size[disabled] {
+    background: #eeebe2;
+    border-color: #d5d3c8;
+    color: #676e63;
+}
+
+.size.size-current {
+    background: #31473a;
+    border-color: #31473a;
+    color: #fffdf6;
+}
+
+.notice {
+    margin-top: 14rpx;
+    text-align: center;
+}
+
+@media (max-height: 550px) {
+    .study {
+        padding-top: 8rpx;
+    }
+
+    .heading {
+        padding-bottom: 8rpx;
+    }
+
+    .title {
+        font-size: 39rpx;
+        margin-top: 4rpx;
+    }
+
+    .guide,
+    .notice {
+        margin-top: 4rpx;
+        padding: 6rpx 0;
+    }
+}

@@ -1,0 +1,27 @@
+<view class="study">
+    <view class="heading">
+        <view>
+            <view class="brand">CaratCraft</view>
+            <view class="title">珍珠项链</view>
+        </view>
+        <text class="version">{{version}}</text>
+    </view>
+    <view class="stage">
+        <canvas id="jewel" type="webgl" class="jewel"
+            bindtouchstart="begin" catchtouchmove="move"
+            bindtouchend="end" bindtouchcancel="cancel"></canvas>
+        <view wx:if="{{status}}" class="stage-status" role="status">{{status}}</view>
+    </view>
+    <view class="guide">单指旋转 · 双指缩放 · 点选珍珠</view>
+    <view class="size-panel">
+        <view class="size-heading">
+            <text>珍珠尺寸</text>
+            <text class="selection">{{selected >= 0 ? '第 ' + (selected + 1) + ' 颗 · ' + diameter + ' mm' : '先点选画面中的一颗珍珠'}}</text>
+        </view>
+        <view class="sizes">
+            <button wx:for="{{sizes}}" wx:key="*this" class="size {{selected >= 0 && item === diameter ? 'size-current' : ''}}"
+                aria-label="{{item + ' 毫米'}}" data-size="{{item}}" disabled="{{selected < 0}}" bindtap="resizePearl">{{item}} mm</button>
+        </view>
+    </view>
+    <view class="notice">程序化材质样机 · 非实物照片或 SKU 复刻</view>
+</view>

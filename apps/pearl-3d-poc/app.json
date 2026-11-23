@@ -1,0 +1,11 @@
+{
+    "pages": ["pages/necklace/index"],
+    "window": {
+        "navigationBarTitleText": "CaratCraft 珠宝实验",
+        "navigationBarTextStyle": "black",
+        "navigationBarBackgroundColor": "#f8f5ee",
+        "backgroundColor": "#f8f5ee"
+    },
+    "style": "v2",
+    "sitemapLocation": "sitemap.json"
+}

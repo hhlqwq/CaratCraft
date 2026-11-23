@@ -19,6 +19,8 @@
 
 商家录入实拍图片、维护 SKU 及发布商品的操作见[商家商品维护](docs/功能使用文档.md#7-商家商品维护). 消费者选择款式、编辑材料及保存草稿见[DIY项链](docs/功能使用文档.md#3-diy项链).
 
+珍珠项链 3D 技术验证见[独立小程序样机](apps/pearl-3d-poc/README.md)，预 Alpha 版本及变更记录见[样机 Changelog](apps/pearl-3d-poc/CHANGELOG.md)。
+
 ## 仓库结构
 
 | 目录 | 职责 |

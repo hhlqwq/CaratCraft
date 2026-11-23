@@ -1,0 +1,13 @@
+{
+    "appid": "touristappid",
+    "projectname": "CaratCraft-Pearl-3D-R3",
+    "compileType": "miniprogram",
+    "miniprogramRoot": "./",
+    "libVersion": "3.15.1",
+    "setting": {
+        "es6": true,
+        "minifyWXSS": true,
+        "minifyWXML": true,
+        "urlCheck": true
+    }
+}
