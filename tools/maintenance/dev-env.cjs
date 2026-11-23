@@ -9,11 +9,13 @@ const apiPath = '/platform-framework-api/app/';
 
 /** 读取项目唯一配置, 拒绝重复键, 保留秘密供本机进程使用. */
 function readConfig(file) {
+    return parseConfig(fs.readFileSync(file, 'utf8'));
+}
+
+/** 解析 UTF-8 键值, 区分缺失键和空值. */
+function parseConfig(text) {
     const config = Object.create(null);
-    const lines = fs
-        .readFileSync(file, 'utf8')
-        .replace(/^\uFEFF/, '')
-        .split(/\r?\n/);
+    const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/);
     for (const line of lines) {
         if (!line.trim() || line.trimStart().startsWith('#')) {
             continue;
@@ -25,6 +27,139 @@ function readConfig(file) {
         config[pair[1]] = pair[2].trim();
     }
     return config;
+}
+
+const envExample = path.join(root, 'deploy/.env.example');
+
+/** 读取公开模板声明的启动规则及安全默认值. */
+function configurationPolicy(template) {
+    const defaults = parseConfig(template);
+    const rules = new Map();
+    for (const match of template.matchAll(
+        /^# @startup (default|port|required|secret)\r?\n([A-Z][A-Z0-9_]*)=/gm
+    )) {
+        rules.set(match[2], match[1]);
+    }
+    return {defaults, rules};
+}
+
+/** 只对标记了安全策略的缺失项提供默认值, 保留所有已有值. */
+function safeDefault(key, config, {rules, defaults}) {
+    const rule = rules.get(key);
+    const value = defaults[key];
+    if (!value || (rule !== 'default' && rule !== 'port')) {
+        return false;
+    }
+    if (key === 'CARATCRAFT_ENV' && config.MINIAPP_LAN_ORIGIN) {
+        return false;
+    }
+    return (
+        rule !== 'port' ||
+        (/^[0-9]{1,5}$/.test(value) &&
+            Number(value) >= 1 &&
+            Number(value) <= 65535 &&
+            !Array.from(rules).some(
+                ([other, type]) =>
+                    other !== key && type === 'port' && Number(config[other]) === Number(value)
+            ))
+    );
+}
+
+/** 汇总配置错误, 只返回键名和操作提示. */
+function inspectStartup(config, policy, allowProduction = false) {
+    const issues = [];
+    const ports = new Map();
+    for (const [key, rule] of policy.rules) {
+        const value = config[key];
+        if (!value) {
+            const repairable = !Object.hasOwn(config, key) && safeDefault(key, config, policy);
+            issues.push(
+                key +
+                    ' 缺失。' +
+                    (repairable
+                        ? '可执行 repair-config 补齐安全默认值。'
+                        : '请手工核对并填写原配置。')
+            );
+        } else if (rule === 'secret' && value.length < 24) {
+            issues.push(key + ' 不足24个字符。请核对原有凭据。');
+        } else if (rule === 'port') {
+            const number = Number(value);
+            if (!/^[0-9]{1,5}$/.test(value) || number < 1 || number > 65535) {
+                issues.push(key + ' 端口无效。');
+            } else if (ports.has(number)) {
+                issues.push(key + ' 与 ' + ports.get(number) + ' 端口重复。');
+            } else {
+                ports.set(number, key);
+            }
+        }
+    }
+    const jwt = config.JWT_SECRET;
+    if (jwt && jwt.length >= 24) {
+        const bytes = Buffer.from(jwt, 'base64');
+        if (bytes.length < 32 || bytes.toString('base64') !== jwt) {
+            issues.push('JWT_SECRET 应为至少32字节随机数的标准 Base64 编码。');
+        }
+    }
+    if (config.MYSQL_APP_USER?.toLowerCase() === 'root') {
+        issues.push('MYSQL_APP_USER 不得使用 root。');
+    }
+    const modes = allowProduction ? ['local', 'lan', 'production'] : ['local', 'lan'];
+    if (config.CARATCRAFT_ENV && !modes.includes(config.CARATCRAFT_ENV)) {
+        issues.push('CARATCRAFT_ENV 必须是 ' + modes.join('、') + '。');
+    }
+    if (config.CARATCRAFT_ENV === 'lan' && !config.MINIAPP_LAN_ORIGIN) {
+        issues.push('MINIAPP_LAN_ORIGIN 缺失。请填写手机可访问的局域网地址。');
+    }
+    return issues;
+}
+
+/** 串行追加可安全修复的缺项, 既有内容保持原样. */
+function repairConfig(file, policy) {
+    if (!fs.lstatSync(file).isFile()) {
+        throw new Error('deploy/.env 必须是普通文件。');
+    }
+    const lock = file + '.compat.lock';
+    const handle = fs.openSync(lock, 'wx', 0o600);
+    try {
+        const raw = fs.readFileSync(file);
+        const text = raw.toString('utf8');
+        const config = parseConfig(text);
+        const added = [];
+        for (const key of policy.rules.keys()) {
+            if (!Object.hasOwn(config, key) && safeDefault(key, config, policy)) {
+                config[key] = policy.defaults[key];
+                added.push(key);
+            }
+        }
+        if (added.length) {
+            const newline = text.includes('\r\n') ? '\r\n' : '\n';
+            if (!raw.equals(fs.readFileSync(file))) {
+                throw new Error('deploy/.env 已被其他进程修改，请重新执行。');
+            }
+            const prefix = text.endsWith('\n') || !text ? '' : newline;
+            fs.appendFileSync(
+                file,
+                prefix + added.map((key) => key + '=' + config[key]).join(newline) + newline
+            );
+        }
+        return added;
+    } finally {
+        fs.closeSync(handle);
+        fs.unlinkSync(lock);
+    }
+}
+
+/** 同时显示旧文件遗漏的可选键, 缺失值及秘密不进入日志. */
+function reportConfiguration(config, policy, allowProduction) {
+    const missing = Object.keys(policy.defaults).filter((key) => !Object.hasOwn(config, key));
+    if (missing.length) {
+        console.log('配置文件缺少这些键（含可选项） ' + missing.join('、'));
+    }
+    const issues = inspectStartup(config, policy, allowProduction);
+    for (const issue of issues) {
+        console.error(issue);
+    }
+    return issues.length === 0;
 }
 
 /** 校验独立环境的站点源, 拒绝凭据、子路径及发布环境的非 HTTPS 地址. */
@@ -230,13 +365,27 @@ function main(command) {
     if (!fs.existsSync(envFile)) {
         throw new Error('缺少 deploy/.env, 请先按维护文档执行 configure');
     }
-    const config = readConfig(envFile);
     if (command === 'miniapp') {
+        const config = readConfig(envFile);
         console.log(`已生成 ${target} ${JSON.stringify(generate(config, target))}`);
-    } else if (command === 'diagnose') {
-        diagnose(config, resolveMiniapp(config));
+    } else if (['diagnose', 'check-config', 'repair-config'].includes(command)) {
+        const policy = configurationPolicy(fs.readFileSync(envExample, 'utf8'));
+        if (command === 'repair-config') {
+            const added = repairConfig(envFile, policy);
+            console.log(added.length ? '已追加 ' + added.join('、') : '没有可安全追加的配置项');
+        }
+        const config = readConfig(envFile);
+        if (!reportConfiguration(config, policy, command === 'diagnose')) {
+            process.exitCode = 1;
+            return;
+        }
+        if (command === 'diagnose') {
+            diagnose(config, resolveMiniapp(config));
+        } else {
+            console.log('启动配置检查通过');
+        }
     } else {
-        throw new Error('请选择 miniapp 或 diagnose');
+        throw new Error('请选择 miniapp、diagnose、check-config 或 repair-config');
     }
 }
 
@@ -249,4 +398,11 @@ if (require.main === module) {
     }
 }
 
-module.exports = {readConfig, resolveMiniapp, generate};
+module.exports = {
+    readConfig,
+    resolveMiniapp,
+    generate,
+    configurationPolicy,
+    inspectStartup,
+    repairConfig,
+};

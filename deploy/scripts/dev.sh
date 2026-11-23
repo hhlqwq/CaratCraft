@@ -13,7 +13,7 @@ NO_BUILD="false"
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
-    echo "用法: ./deploy/scripts/dev.sh [configure|build|init-db|upgrade-db|reset-db|start|stop|restart|status|logs|miniapp|diagnose] [--no-build]"
+    echo "用法: ./deploy/scripts/dev.sh [configure|build|init-db|upgrade-db|reset-db|start|stop|restart|status|logs|miniapp|diagnose|check-config|repair-config] [--no-build]"
 }
 
 # 校验 Docker Engine 和 Compose / Validates Docker Engine and Compose.
@@ -50,34 +50,76 @@ initialize_environment() {
 
 # 读取简单的键值配置, 拒绝重复键.
 config_value() {
-    sed -n "s/^$1=//p" "$ENV_FILE" | tr -d '\r'
+    awk -v key="$1" '
+        NR==1{sub(/^\357\273\277/,"")}
+        index($0,key"=")==1 {sub(/^[^=]+=/,""); sub(/^[[:space:]]*/,""); sub(/[[:space:]]*$/,""); print}
+    ' "$ENV_FILE"
 }
 
-# 校验模式、密钥和宿主端口配置.
+# 读取公开启动规则, 汇总出错项, 不记录配置值.
 assert_startup_configuration() {
-    local key value jwt_size seen=" "
-    if ! awk '/^[[:space:]]*($|#)/ {next} !/^[A-Z][A-Z0-9_]*=/ {exit 1} {key=$0; sub(/=.*/, "", key); if (seen[key]++) exit 1}' "$ENV_FILE"; then
-        echo 'deploy/.env 包含重复或无效配置行。'; return 1
+    local key value jwt_size canonical number kind rule="" line
+    local -a failures=() bound_ports=() port_keys=()
+    if ! awk 'NR==1{sub(/^\357\273\277/,"")} /^[[:space:]]*($|#)/ {next} !/^[A-Z][A-Z0-9_]*=/ {print "deploy/.env 第 " NR " 行无效。"; exit 1} {key=$0; sub(/=.*/, "", key); if (seen[key]++) {print "重复配置项 " key "。"; exit 1}}' "$ENV_FILE"; then
+        return 1
     fi
-    for key in MYSQL_ROOT_PASSWORD MYSQL_APP_PASSWORD REDIS_PASSWORD JWT_SECRET; do
-        value="$(config_value "$key")"
-        [[ ${#value} -ge 24 ]] || { echo "$key 缺失或过弱, 请检查 deploy/.env。"; return 1; }
-    done
-    jwt_size="$(printf '%s' "$(config_value JWT_SECRET)" | openssl base64 -d -A | wc -c)"
-    [[ "$jwt_size" -ge 32 ]] || { echo 'JWT_SECRET 应为至少32字节随机数的 Base64 编码。'; return 1; }
-    [[ "$(config_value MYSQL_APP_USER)" != root ]] || { echo '应用账号不得使用root。'; return 1; }
-    case "$(config_value CARATCRAFT_ENV)" in
-        local) ;;
-        lan) [[ -n "$(config_value MINIAPP_LAN_ORIGIN)" ]] || { echo 'lan 环境缺少 MINIAPP_LAN_ORIGIN。'; return 1; } ;;
-        *) echo '本地启动需要 CARATCRAFT_ENV=local 或 lan。'; return 1 ;;
-    esac
-    for key in NGINX_PORT MYSQL_PORT REDIS_PORT; do
-        value="$(config_value "$key")"
-        if [[ ! "$value" =~ ^[0-9]{1,5}$ ]] || (( 10#$value < 1 || 10#$value > 65535 )) || [[ "$seen" == *" $value "* ]]; then
-            echo "$key 缺失、无效或与项目其他端口重复。"; return 1
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="${line%$'\r'}"
+        if [[ "$line" =~ ^\#\ @startup\ (default|port|required|secret)$ ]]; then
+            rule="${BASH_REMATCH[1]}"
+            continue
         fi
-        seen="$seen$value "
-    done
+        kind="$rule"
+        rule=""
+        if [[ -z "$kind" || ! "$line" =~ ^([A-Z][A-Z0-9_]*)= ]]; then continue; fi
+        key="${BASH_REMATCH[1]}"
+        value="$(config_value "$key")"
+        if [[ -z "$value" ]]; then
+            if [[ "$kind" =~ ^(default|port)$ ]] && ! grep -q "^$key=" "$ENV_FILE"; then
+                failures+=("$key 缺失。可执行 repair-config 补齐安全默认值。")
+            else
+                failures+=("$key 缺失。请在 deploy/.env 手工填写，沿用现有环境配置。")
+            fi
+        elif [[ "$kind" == secret && ${#value} -lt 24 ]]; then
+            failures+=("$key 不足24个字符。请核对原有凭据。")
+        elif [[ "$kind" == port ]]; then
+            if [[ ! "$value" =~ ^[0-9]{1,5}$ ]] || (( 10#$value < 1 || 10#$value > 65535 )); then
+                failures+=("$key 端口无效。")
+                continue
+            fi
+            number=$((10#$value))
+            local index
+            for index in "${!bound_ports[@]}"; do
+                if [[ "${bound_ports[$index]}" == "$number" ]]; then
+                    failures+=("$key 与 ${port_keys[$index]} 端口重复。")
+                fi
+            done
+            bound_ports+=("$number")
+            port_keys+=("$key")
+        fi
+    done < "$ENV_EXAMPLE"
+    value="$(config_value JWT_SECRET)"
+    if [[ ${#value} -ge 24 ]]; then
+        jwt_size="$(printf '%s' "$value" | openssl base64 -d -A | wc -c)"
+        canonical="$(printf '%s' "$value" | openssl base64 -d -A | openssl base64 -A)"
+        if [[ "$jwt_size" -lt 32 || "$canonical" != "$value" ]]; then
+            failures+=("JWT_SECRET 应为至少32字节随机数的标准 Base64 编码。")
+        fi
+    fi
+    if [[ "$(config_value MYSQL_APP_USER)" == [Rr][Oo][Oo][Tt] ]]; then
+        failures+=("MYSQL_APP_USER 不得使用 root。")
+    fi
+    case "$(config_value CARATCRAFT_ENV)" in
+        local|'') ;;
+        lan) if [[ -z "$(config_value MINIAPP_LAN_ORIGIN)" ]]; then
+            failures+=("MINIAPP_LAN_ORIGIN 缺失。请填写手机可访问的局域网地址。")
+        fi ;;
+        *) failures+=("CARATCRAFT_ENV 必须是 local 或 lan。") ;;
+    esac
+    if [[ ${#failures[@]} -gt 0 ]]; then
+        printf '%s\n' "${failures[@]}"
+        return 1
+    fi
 }
 
 # 清除继承的 Compose 同名变量, 仅从指定的配置文件取值.
@@ -351,7 +393,7 @@ done
 
 case "$ACTION" in
     configure) initialize_environment; exit ;;
-    miniapp|diagnose) exec node "$ROOT_DIR/tools/maintenance/dev-env.cjs" "$ACTION" ;;
+    miniapp|diagnose|check-config|repair-config) exec node "$ROOT_DIR/tools/maintenance/dev-env.cjs" "$ACTION" ;;
     build|start|stop|restart|status|logs|init-db|upgrade-db|reset-db) ;;
     *) echo "未知操作: $ACTION"; usage; exit 1 ;;
 esac

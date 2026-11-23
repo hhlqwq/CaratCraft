@@ -1,6 +1,6 @@
 ﻿[CmdletBinding()]
 param(
-    [ValidateSet('configure', 'build', 'init-db', 'upgrade-db', 'reset-db', 'start', 'stop', 'restart', 'status', 'logs', 'miniapp', 'diagnose')]
+    [ValidateSet('configure', 'build', 'init-db', 'upgrade-db', 'reset-db', 'start', 'stop', 'restart', 'status', 'logs', 'miniapp', 'diagnose', 'check-config', 'repair-config')]
     [string]$Action = 'start',
     [ValidateSet('staff-password', 'admin-jobs')]
     [string]$Upgrade,
@@ -48,34 +48,65 @@ function Initialize-Environment {
     }
 }
 
-# 严格校验当前仓库的启动配置, 只输出配置键及错误.
+# 汇总公开启动规则与配置错误. 仅打印键名及操作建议.
 function Assert-StartupConfiguration {
     $Values = @{}
     foreach ($Line in (Get-Content -LiteralPath $EnvFile -Encoding UTF8)) {
         if (-not $Line.Trim() -or $Line.TrimStart().StartsWith('#')) { continue }
-        if ($Line -notmatch '^([A-Z][A-Z0-9_]*)=(.*)$') { throw 'deploy/.env 存在无效配置行。' }
+        if ($Line -cnotmatch '^([A-Z][A-Z0-9_]*)=(.*)$') { throw 'deploy/.env 存在无效配置行。' }
         if ($Values.ContainsKey($Matches[1])) { throw "重复配置项 $($Matches[1])。" }
         $Values[$Matches[1]] = $Matches[2].Trim()
     }
-    foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
-        if (-not $Values[$Key] -or $Values[$Key].Length -lt 24) {
-            throw "$Key 缺失或不足24个字符。请检查 deploy/.env。"
-        }
-    }
-    try { $JwtKey = [Convert]::FromBase64String($Values['JWT_SECRET']) }
-    catch { throw 'JWT_SECRET 应为至少32字节随机数的 Base64 编码。' }
-    if ($JwtKey.Length -lt 32) { throw 'JWT_SECRET 应为至少32字节随机数的 Base64 编码。' }
-    if ($Values['MYSQL_APP_USER'] -eq 'root') { throw '应用账号不得使用root。' }
-    if ($Values['CARATCRAFT_ENV'] -notin @('local', 'lan')) { throw '本地启动需要 CARATCRAFT_ENV=local 或 lan。' }
-    if ($Values['CARATCRAFT_ENV'] -eq 'lan' -and -not $Values['MINIAPP_LAN_ORIGIN']) { throw 'lan 环境缺少 MINIAPP_LAN_ORIGIN。' }
+    $Failures = @()
     $Ports = @{}
-    foreach ($Key in @('NGINX_PORT', 'MYSQL_PORT', 'REDIS_PORT')) {
-        $Number = 0
-        if (-not [int]::TryParse($Values[$Key], [ref]$Number) -or $Number -lt 1 -or $Number -gt 65535 -or $Ports.ContainsKey($Number)) {
-            throw "$Key 缺失、无效或与项目其他端口重复。"
+    $Rule = ''
+    foreach ($Line in (Get-Content -LiteralPath $EnvExample -Encoding UTF8)) {
+        if ($Line -cmatch '^# @startup (default|port|required|secret)$') {
+            $Rule = $Matches[1]
+            continue
         }
-        $Ports[$Number] = $Key
+        if ($Rule -and $Line -cmatch '^([A-Z][A-Z0-9_]*)=') {
+            $Key = $Matches[1]
+            $Value = $Values[$Key]
+            if (-not $Value) {
+                $Hint = if (-not $Values.ContainsKey($Key) -and $Rule -in @('default','port')) {
+                    '可执行 -Action repair-config 补齐安全默认值'
+                } else {
+                    '请在 deploy/.env 手工填写，沿用现有环境配置'
+                }
+                $Failures += "$Key 缺失。$Hint。"
+            } elseif ($Rule -eq 'secret' -and $Value.Length -lt 24) {
+                $Failures += "$Key 不足24个字符。请核对原有凭据。"
+            } elseif ($Rule -eq 'port') {
+                $Number = 0
+                if ($Value -cnotmatch '^[0-9]{1,5}$' -or -not [int]::TryParse($Value, [ref]$Number) -or
+                        $Number -lt 1 -or $Number -gt 65535) {
+                    $Failures += "$Key 端口无效。"
+                } elseif ($Ports.ContainsKey($Number)) {
+                    $Failures += "$Key 与 $($Ports[$Number]) 端口重复。"
+                } else {
+                    $Ports[$Number] = $Key
+                }
+            }
+        }
+        $Rule = ''
     }
+    if ($Values['JWT_SECRET'] -and $Values['JWT_SECRET'].Length -ge 24) {
+        try {
+            $JwtKey = [Convert]::FromBase64String($Values['JWT_SECRET'])
+            if ($JwtKey.Length -lt 32 -or [Convert]::ToBase64String($JwtKey) -cne $Values['JWT_SECRET']) {
+                throw 'JWT_SECRET 格式无效'
+            }
+        } catch { $Failures += 'JWT_SECRET 应为至少32字节随机数的标准 Base64 编码。' }
+    }
+    if ($Values['MYSQL_APP_USER'] -eq 'root') { $Failures += 'MYSQL_APP_USER 不得使用 root。' }
+    if ($Values['CARATCRAFT_ENV'] -and $Values['CARATCRAFT_ENV'] -cnotin @('local', 'lan')) {
+        $Failures += 'CARATCRAFT_ENV 必须是 local 或 lan。'
+    }
+    if ($Values['CARATCRAFT_ENV'] -ceq 'lan' -and -not $Values['MINIAPP_LAN_ORIGIN']) {
+        $Failures += 'MINIAPP_LAN_ORIGIN 缺失。请填写手机可访问的局域网地址。'
+    }
+    if ($Failures.Count) { throw ($Failures -join [Environment]::NewLine) }
     return $Values
 }
 
@@ -405,7 +436,7 @@ if ($Action -eq 'configure') {
     Initialize-Environment
     return
 }
-if ($Action -in @('miniapp', 'diagnose')) {
+if ($Action -in @('miniapp', 'diagnose', 'check-config', 'repair-config')) {
     & node (Join-Path $ProjectRoot 'tools/maintenance/dev-env.cjs') $Action
     if ($LASTEXITCODE -ne 0) { throw "环境工具执行失败: $Action" }
     return

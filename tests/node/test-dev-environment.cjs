@@ -1,6 +1,15 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const {resolveMiniapp} = require('../../tools/maintenance/dev-env.cjs');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const {
+    resolveMiniapp,
+    readConfig,
+    configurationPolicy,
+    inspectStartup,
+    repairConfig,
+} = require('../../tools/maintenance/dev-env.cjs');
 
 /** 用两个不同局域网地址模拟配置切换, 体验版与正式版选择独立配置. */
 test('小程序 local、lan 和 production 选择独立地址', () => {
@@ -52,4 +61,39 @@ test('小程序拒绝缺失配置、设备回环及不安全发布地址', () =>
             }),
         /MINIAPP_PRODUCTION_ORIGIN/
     );
+});
+
+/** 旧配置保持原字节, 显式补齐缺项时保留已有密码. */
+test('旧配置升级只补安全默认值并可重复运行', (t) => {
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'caratcraft-config-'));
+    t.after(() => fs.rmSync(temp, {recursive: true}));
+    const file = path.join(temp, '.env');
+    const policy = configurationPolicy(
+        fs.readFileSync(path.resolve(__dirname, '../../deploy/.env.example'), 'utf8')
+    );
+    const secret = Buffer.alloc(32, 49).toString('base64');
+    const original = [
+        '# 老配置',
+        'MYSQL_DATABASE=existing',
+        'MYSQL_APP_USER=existing_app',
+        'MYSQL_ROOT_PASSWORD=' + secret,
+        'REDIS_PORT=8888',
+        'MYSQL_PORT=3306',
+        '',
+    ].join('\r\n');
+    fs.writeFileSync(file, original);
+    const problems = inspectStartup(readConfig(file), policy).join('\n');
+    assert.match(problems, /CARATCRAFT_ENV 缺失/);
+    assert.match(problems, /MYSQL_APP_PASSWORD 缺失/);
+    assert.match(problems, /JWT_SECRET 缺失/);
+    assert(!problems.includes(secret));
+    assert.deepEqual(repairConfig(file, policy), ['CARATCRAFT_ENV']);
+    assert.equal(fs.readFileSync(file, 'utf8'), original + 'CARATCRAFT_ENV=local\r\n');
+    assert.deepEqual(repairConfig(file, policy), []);
+    assert.equal(readConfig(file).MYSQL_APP_USER, 'existing_app');
+    assert.equal(readConfig(file).MYSQL_APP_PASSWORD, undefined);
+    assert.equal(readConfig(file).NGINX_PORT, undefined);
+    fs.writeFileSync(file, original + 'MINIAPP_LAN_ORIGIN=http://192.168.1.7:8888\r\n');
+    assert.deepEqual(repairConfig(file, policy), []);
+    assert.equal(readConfig(file).CARATCRAFT_ENV, undefined);
 });
