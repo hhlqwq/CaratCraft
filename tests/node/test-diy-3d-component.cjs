@@ -45,9 +45,9 @@ function fixture() {
     const instance = {
         ...definition.methods,
         properties: {
-            nodes: [
-                {optionId: 8, type: 'pearl', x: 30, y: 70, diameter: 10},
-                {optionId: 8, type: 'pearl', x: 60, y: 70, diameter: 10},
+            optionIds: [8, 8],
+            groups: [
+                {options: [{id: 8, componentType: 'pearl', materialParams: '{"diameterMm":8}'}]},
             ],
             selected: -1,
         },

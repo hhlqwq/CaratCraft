@@ -603,6 +603,7 @@ Page({
         this.setData({
             arrangementOptionIds: ids.slice(),
             arrangementNodes: nodes,
+            preview3d: ids.length > 0 && this.data.preview3d,
             selectedOptionIds: Array.from(new Set(ids)),
             componentGroups: groups,
             canUndo: Boolean(this._history && this._history.length),

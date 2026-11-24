@@ -6,10 +6,10 @@ const FRAME_FALLBACK = 80;
 
 /** 取 Canvas 输入的本地坐标, 兼容只报告 x/y 的基础库. */
 function point(touch, bounds) {
-    if (Number.isFinite(touch.clientX) && Number.isFinite(touch.clientY)) {
-        return {x: touch.clientX - bounds.left, y: touch.clientY - bounds.top};
+    if (Number.isFinite(touch.x) && Number.isFinite(touch.y)) {
+        return {x: touch.x, y: touch.y};
     }
-    return {x: touch.x, y: touch.y};
+    return {x: touch.clientX - bounds.left, y: touch.clientY - bounds.top};
 }
 
 /** 计算手势像素距离. */
@@ -19,7 +19,8 @@ function separation(a, b) {
 
 Component({
     properties: {
-        nodes: {type: Array, value: []},
+        optionIds: {type: Array, value: []},
+        groups: {type: Array, value: []},
         selected: {type: Number, value: -1},
     },
 
@@ -27,7 +28,7 @@ Component({
 
     observers: {
         /** 材料改动只更新 3D 投影, 不触发业务请求. */
-        nodes() {
+        'optionIds, groups'() {
             if (this.renderer) {
                 try {
                     this.applyScene();
@@ -136,10 +137,10 @@ Component({
 
         /** 将画面与实例索引配对, 保证选中事件对应当前排列. */
         applyScene() {
-            const result = previewScene(this.properties.nodes);
+            const result = previewScene(this.properties.optionIds, this.properties.groups);
             this.renderer.setScene(result);
             this.renderer.setSelection(this.properties.selected);
-            this.optionIds = result.optionIds;
+            this.renderedIds = result.optionIds;
             this.setData({limitation: result.limitation});
         },
 
@@ -300,9 +301,10 @@ Component({
             const x = (2 * cursor.x) / this.bounds.width - 1;
             const y = 1 - (2 * cursor.y) / this.bounds.height;
             const index = this.renderer.select(x, y);
-            const optionId = this.optionIds[index];
+            const optionId = this.renderedIds[index];
             if (optionId != null) {
                 this.triggerEvent('pick', {index, optionId});
+                this.queue();
             }
         },
 

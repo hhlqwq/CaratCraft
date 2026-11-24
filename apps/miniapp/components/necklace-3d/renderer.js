@@ -2,6 +2,7 @@ const geometry = require('./geometry.js');
 const shaders = require('./materials.js');
 
 const SPREAD = 0.382;
+const VIEW_RADIUS = 75;
 const INITIAL_YAW = -0.1;
 const INITIAL_PITCH = 0.26;
 const QUAD = [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1];
@@ -29,7 +30,6 @@ function createRenderer(canvas) {
 
     const buffers = [];
     const programs = [];
-    const bufferSizes = new Map();
     const high =
         typeof gl.getShaderPrecisionFormat === 'function'
             ? gl.getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT)
@@ -45,13 +45,13 @@ function createRenderer(canvas) {
     let yaw = INITIAL_YAW;
     let pitch = INITIAL_PITCH;
     let selection = -1;
+    let pickedPart = null;
     let parts = [];
     let shadowData;
     let disposed = false;
     let firstFrame = true;
     let scene;
     const projection = new Float32Array(16);
-    let extent = 75;
 
     /** 编译并校验着色器, 失败时回收单个对象. */
     function shader(kind, source) {
@@ -114,11 +114,10 @@ function createRenderer(canvas) {
         return result;
     }
 
-    /** 上传数据并记录几何缓冲的实际分配字节数. */
+    /** 将已分配的几何数据上传到现有 GPU 缓冲. */
     function upload(target, handle, data, usage) {
         gl.bindBuffer(target, handle);
         gl.bufferData(target, data, usage);
-        bufferSizes.set(handle, data.byteLength);
     }
 
     /** 复用 GPU 缓冲上传完整索引网格. */
@@ -153,14 +152,21 @@ function createRenderer(canvas) {
         if (next.parts.length > MAX_PARTS) {
             throw new Error('超出 3D 绘制预算');
         }
-        parts = next.parts;
-        extent = next.extent;
-        distance = extent / Math.sin(Math.atan(Math.min(1, viewportRatio) * SPREAD));
+        const unitScale = VIEW_RADIUS / next.extent;
+        parts = next.parts.map((part) => ({
+            ...part,
+            point: part.point.map((coordinate) => coordinate * unitScale),
+            radius: part.radius * unitScale,
+        }));
+        pickedPart = null;
     }
 
     /** 由页面选中的实例索引确定高亮对象. */
     function setSelection(index) {
         selection = index;
+        if (pickedPart && pickedPart.index !== index) {
+            pickedPart = null;
+        }
     }
 
     /** 按真实绘图区和像素预算重置投影, 默认完整取景. */
@@ -189,7 +195,7 @@ function createRenderer(canvas) {
         projection[10] = (far + near) / (near - far);
         projection[11] = -1;
         projection[14] = (2 * far * near) / (near - far);
-        distance = extent / Math.sin(Math.atan(Math.min(1, viewportRatio) * SPREAD));
+        distance = VIEW_RADIUS / Math.sin(Math.atan(Math.min(1, viewportRatio) * SPREAD));
         gl.viewport(0, 0, w, h);
     }
 
@@ -267,13 +273,18 @@ function createRenderer(canvas) {
                 bindMesh(scene.meshes[mesh]);
                 boundMesh = mesh;
             }
+            const turn = part.rotation || 0;
+            gl.uniform2f(uniforms.uTurn, Math.cos(turn), Math.sin(turn));
             gl.uniform1f(uniforms.uMaterial, part.material);
             gl.uniform3f(uniforms.uCenter, ...part.point);
             gl.uniform1f(uniforms.uRadius, part.radius);
             gl.uniform1f(uniforms.uSeed, part.index * 0.037);
             gl.drawElements(gl.TRIANGLES, scene.meshes[mesh].count, gl.UNSIGNED_SHORT, 0);
         });
-        const pearl = parts.find((part) => part.index === selection);
+        const pearl =
+            pickedPart?.index === selection
+                ? pickedPart
+                : parts.find((part) => part.index === selection);
         if (pearl) {
             const point = geometry.viewPoint(pearl.point, matrix, depth);
             const halo = scene.halo.uniforms;
@@ -320,7 +331,7 @@ function createRenderer(canvas) {
 
     /** 在真实观察空间拾取, 由父页决定最终选中项. */
     function select(x, y) {
-        return geometry.pick(
+        pickedPart = geometry.pick(
             parts,
             geometry.rotation(yaw, pitch),
             distance / zoom,
@@ -329,6 +340,7 @@ function createRenderer(canvas) {
             SPREAD,
             viewportRatio
         );
+        return pickedPart ? pickedPart.index : -1;
     }
 
     /** 释放已分配的资源, 失败和正常退出共用此路径. */
@@ -342,7 +354,6 @@ function createRenderer(canvas) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
         programs.forEach((value) => gl.deleteProgram(value));
         buffers.forEach((value) => gl.deleteBuffer(value));
-        bufferSizes.clear();
     }
 
     try {
@@ -362,6 +373,7 @@ function createRenderer(canvas) {
                     'uDistance',
                     'uMaterial',
                     'uSeed',
+                    'uTurn',
                 ]
             ),
             backdrop: program(shaders.backdropVertex, shaders.backdropFragment, ['aPosition'], []),

@@ -228,7 +228,7 @@ function viewPoint(point, matrix, depth) {
 function pick(pearls, matrix, depth, x, y, spread, aspect) {
     const ray = unit(x * spread * aspect, y * spread, -1);
     let nearest = Infinity;
-    let selected = -1;
+    let selected = null;
     pearls.forEach((pearl) => {
         const point = viewPoint(pearl.point, matrix, depth);
         const projection = point[0] * ray[0] + point[1] * ray[1] + point[2] * ray[2];
@@ -237,7 +237,7 @@ function pick(pearls, matrix, depth, x, y, spread, aspect) {
         if (discriminant >= 0 && projection > 0) {
             const hit = projection - Math.sqrt(discriminant);
             if (hit >= 0 && hit < nearest) {
-                selected = pearl.index;
+                selected = pearl;
                 nearest = hit;
             }
         }

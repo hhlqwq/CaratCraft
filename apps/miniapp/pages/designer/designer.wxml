@@ -38,7 +38,7 @@
                 <button class="preview-mode {{preview3d ? 'preview-mode-active' : ''}}" data-mode="3d" bindtap="changePreview" disabled="{{!arrangementNodes.length}}">3D</button>
                 <text wx:if="{{previewNotice}}" role="status">{{previewNotice}}</text>
             </view>
-            <necklace-3d wx:if="{{preview3d && arrangementNodes.length}}" nodes="{{arrangementNodes}}" selected="{{activeIndex}}"
+            <necklace-3d wx:if="{{preview3d && arrangementNodes.length}}" option-ids="{{arrangementOptionIds}}" groups="{{componentGroups}}" selected="{{activeIndex}}"
                          bindpick="pickPreview" bindunavailable="fallbackPreview" />
             <view wx:else class="necklace-stage">
                 <image wx:if="{{stageChainImage}}" class="stage-chain" src="{{stageChainImage}}" mode="aspectFit" webp="{{true}}"></image>
