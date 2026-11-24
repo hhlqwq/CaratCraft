@@ -41,8 +41,8 @@
 
 从 GitHub 克隆 `main` 后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)创建本机 `deploy/.env`. Windows 使用 Docker Desktop 的 Linux 容器和 Compose V2. 建库、升级和重置各有独立入口. 标准启动在镜像或数据库校验失败时停止并保留数据卷.
 
-- Windows 本地环境统一使用 `deploy/scripts/build-local-test.cmd` 构建镜像, 记录 Git SHA 和源码摘要.
-- `deploy/scripts/start-local-test.cmd` 只启动匹配当前版本的镜像. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`.
+- Windows 本地环境统一使用 `deploy/scripts/build-local-test.cmd` 按需构建 Java 后端和 Vue/Nginx 镜像.
+- `deploy/scripts/start-local-test.cmd` 校验数据库和镜像摘要, 启动或更新有变化的应用服务. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`.
 - 微信开发者工具的 AppID 配置见[新建开发环境](docs/项目维护文档.md#新建开发环境)。
 - `deploy/scripts/dev.ps1 -Action miniapp` 从本机配置生成小程序地址. `tools/dev-env-check.cmd` 输出脱敏环境诊断. 小程序配置工具使用 Node.js.
 

@@ -146,7 +146,7 @@ set_git_revision() {
         [[ "$BUILD_GIT_SHA" =~ ^[0-9a-f]{40}$ ]] || return 1
     fi
     export BUILD_GIT_SHA
-    echo "Git: $BUILD_GIT_SHA · 源码摘要: $BUILD_REVISION"
+    echo "Git: $BUILD_GIT_SHA"
 }
 
 # 计算单个文件的SHA256, 兼容Linux及macOS自带工具.
@@ -171,7 +171,7 @@ build_source_files() {
                     [[ "$child" == "$ENV_EXAMPLE" ]] || continue ;;
             esac
             printf '%s\n' "${child#"$ROOT_DIR/"}"
-        done < <(find "$item" \( -type d \( -name node_modules -o -name target -o -name dist -o -name .git -o -name .idea -o -name .vite -o -name .cache -o -name coverage \) \) -prune -o \( -type f -o -type l \) -print0)
+        done < <(find "$item" \( -type d \( -name node_modules -o -name target -o -name dist -o -name .git -o -name .idea -o -name .vscode -o -name .vite -o -name .cache -o -name coverage -o -name .tools -o -name .pnpm-store -o -name __pycache__ \) \) -prune -o \( -type f -o -type l \) -print0)
     else
         [[ -f "$item" ]] || { echo "构建输入缺失: $item" >&2; return 1; }
         printf '%s\n' "${item#"$ROOT_DIR/"}"
@@ -179,12 +179,14 @@ build_source_files() {
 }
 
 # 根据输入路径和文件摘要计算源码标识, 不依赖Git元数据.
-set_build_revision() {
-    local relative files name manifest
-    files="$(while IFS= read -r relative || [[ -n "$relative" ]]; do
-        relative="${relative%$'\r'}"
-        build_source_files "$ROOT_DIR/$relative" || exit 1
+build_revision() {
+    local scope="$1" entry files name manifest
+    files="$(while IFS= read -r entry || [[ -n "$entry" ]]; do
+        entry="${entry%$'\r'}"
+        [[ "$entry" == "$scope "* ]] || continue
+        build_source_files "$ROOT_DIR/${entry#* }" || exit 1
     done < "$ROOT_DIR/deploy/build-inputs.txt")" || return 1
+    [[ -n "$files" ]] || return 1
     files="$(printf '%s\n' "$files" | LC_ALL=C sort -u)"
     manifest="$(while IFS= read -r name; do
         printf '%s\0' "$ROOT_DIR/$name"
@@ -193,15 +195,32 @@ set_build_revision() {
     else
         xargs -0 shasum -a 256
     fi | awk -v root="$ROOT_DIR/" '{print substr($0, 67 + length(root)) ":" toupper(substr($0, 1, 64))}')" || return 1
-    BUILD_REVISION="$(printf '%s\n' "$manifest" | sha256_file | tr 'A-F' 'a-f')"
-    export BUILD_REVISION
+    printf '%s\n' "$manifest" | sha256_file | tr 'A-F' 'a-f'
 }
 
-# 联网构建但不启动服务, 使用公开模板而非私人运行配置.
+# 两个镜像分别记录各自的构建输入摘要.
+set_build_revisions() {
+    BACKEND_BUILD_REVISION="$(build_revision backend)" || return 1
+    ADMIN_UI_BUILD_REVISION="$(build_revision admin-ui)" || return 1
+    export BACKEND_BUILD_REVISION ADMIN_UI_BUILD_REVISION
+}
+
+# 动态选择需要构建的镜像, 不启动服务.
 build_local_environment() {
-    echo "从m.daocloud.io拉取镜像, Maven和npm依赖使用国内来源。"
-    compose pull mysql redis
-    compose build --pull --no-cache
+    local service image expected digest
+    while read -r service image expected; do
+        if digest="$(docker image inspect --format '{{index .Config.Labels "io.caratcraft.source-digest"}}' "$image" 2>/dev/null)"; then
+            if [[ -z "$expected" || "$digest" == "$expected" ]]; then
+                echo "复用镜像 $image, 构建输入未变更。"
+                continue
+            fi
+        fi
+        if [[ -z "$expected" ]]; then
+            compose pull "$service" || return $?
+        else
+            compose build "$service" || return $?
+        fi
+    done < <(local_images)
     echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
 }
 
@@ -232,19 +251,26 @@ compose() {
     docker compose -p platform-wxshop --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
 }
 
-# 校验免构建镜像的源码标识, 拒绝复用未提供新版探针的历史镜像.
+# 两个Java服务共用同一镜像, 只选一个服务构建.
+local_images() {
+    printf '%s\n' \
+        'mysql m.daocloud.io/docker.io/library/mysql:8.0.36' \
+        'redis m.daocloud.io/docker.io/library/redis:7.2-alpine' \
+        "platform-admin carat-craft-backend:local $BACKEND_BUILD_REVISION" \
+        "nginx carat-craft-admin-ui:local $ADMIN_UI_BUILD_REVISION"
+}
+
+# 按构建输入摘要校验运行镜像, Git提交仅用于追溯.
 assert_local_images() {
-    local name revision digest
-    for name in m.daocloud.io/docker.io/library/mysql:8.0.36 m.daocloud.io/docker.io/library/redis:7.2-alpine carat-craft-backend:local carat-craft-admin-ui:local; do
-        revision="$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$name" 2>/dev/null)" || {
-            echo "缺少镜像 $name, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
+    local service image expected digest
+    while read -r service image expected; do
+        digest="$(docker image inspect --format '{{index .Config.Labels "io.caratcraft.source-digest"}}' "$image" 2>/dev/null)" || {
+            echo "缺少镜像 $image, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
-        case "$name" in */mysql:*|*/redis:*) continue ;; esac
-        digest="$(docker image inspect --format '{{index .Config.Labels "io.caratcraft.source-digest"}}' "$name")" || return 1
-        [[ "$revision" == "$BUILD_GIT_SHA" && "$digest" == "$BUILD_REVISION" ]] || {
-            echo "镜像 $name 与当前源码标识不一致, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
+        [[ -z "$expected" || "$digest" == "$expected" ]] || {
+            echo "镜像 $image 的构建输入已变更, 请先运行 ./deploy/scripts/dev.sh build。"; return 1;
         }
-    done
+    done < <(local_images)
 }
 
 # 使用数据库容器自身凭据查询结构, 不输出密码或业务行.
@@ -343,9 +369,9 @@ upgrade_local_database() {
 
 # 验证镜像、数据服务和运行版本, 遇到任何错误时保留数据卷.
 start_local_environment() {
-    local service revision digest
-    assert_local_images
-    assert_data_volumes
+    local service expected digest
+    assert_local_images || return $?
+    assert_data_volumes || return $?
     if ! compose up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis ||
         ! assert_database_ready; then
         show_startup_diagnostics
@@ -357,9 +383,10 @@ start_local_environment() {
         return 1
     fi
     for service in platform-admin platform-api platform-nginx; do
-        revision="$(docker container inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$service")" || return 1
         digest="$(docker container inspect --format '{{index .Config.Labels "io.caratcraft.source-digest"}}' "$service")" || return 1
-        if [[ "$revision" != "$BUILD_GIT_SHA" || "$digest" != "$BUILD_REVISION" ]]; then
+        expected="$BACKEND_BUILD_REVISION"
+        if [[ "$service" == platform-nginx ]]; then expected="$ADMIN_UI_BUILD_REVISION"; fi
+        if [[ "$digest" != "$expected" ]]; then
             echo "$service 的运行镜像与当前版本不一致。"; return 1
         fi
     done
@@ -413,7 +440,7 @@ clear_compose_overrides
 if [[ "$ACTION" == build ]]; then
     ENV_FILE="$ENV_EXAMPLE"
     assert_host_disk
-    set_build_revision
+    set_build_revisions
     set_git_revision
     build_local_environment
     exit
@@ -430,7 +457,7 @@ case "$ACTION" in
     start|restart)
         assert_startup_configuration
         assert_host_disk
-        set_build_revision
+        set_build_revisions
         set_git_revision
         start_local_environment
         ;;

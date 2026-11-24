@@ -1,14 +1,20 @@
-backend
-apps/admin-ui
-apps/miniapp
-deploy/Dockerfile.backend
-deploy/Dockerfile.admin-ui
-.dockerignore
-deploy/docker-compose.yml
-deploy/.env.example
-deploy/maven-settings.xml
-deploy/HealthCheck.java
-deploy/nginx
-deploy/build-inputs.txt
-database
-legal
+backend backend/pom.xml
+backend backend/platform-common/pom.xml
+backend backend/platform-common/src
+backend backend/platform-biz/pom.xml
+backend backend/platform-biz/src
+backend backend/platform-admin/pom.xml
+backend backend/platform-admin/src
+backend backend/platform-api/pom.xml
+backend backend/platform-api/src
+backend deploy/Dockerfile.backend
+backend deploy/maven-settings.xml
+backend deploy/HealthCheck.java
+backend .dockerignore
+backend legal
+admin-ui apps/admin-ui
+admin-ui apps/miniapp/static/images
+admin-ui deploy/Dockerfile.admin-ui
+admin-ui deploy/nginx/default.conf
+admin-ui .dockerignore
+admin-ui legal

@@ -116,7 +116,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile.backend
       args:
-        BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_REVISION: ${BACKEND_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-admin
     restart: unless-stopped
@@ -150,7 +150,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile.backend
       args:
-        BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_REVISION: ${BACKEND_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-api
     restart: unless-stopped
@@ -183,7 +183,7 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile.admin-ui
       args:
-        BUILD_REVISION: ${BUILD_REVISION:-workspace}
+        BUILD_REVISION: ${ADMIN_UI_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-nginx
     restart: unless-stopped

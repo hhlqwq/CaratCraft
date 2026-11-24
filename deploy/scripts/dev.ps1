@@ -147,13 +147,17 @@ function Set-GitRevision {
         if ($LASTEXITCODE -ne 0 -or $Sha -notmatch '^[0-9a-f]{40}$') { throw '无法读取当前仓库 Git HEAD。' }
         $env:BUILD_GIT_SHA = $Sha
     }
-    Write-Host "Git: $env:BUILD_GIT_SHA · 源码摘要: $env:BUILD_REVISION"
+    Write-Host "Git: $env:BUILD_GIT_SHA"
 }
 
 # 根据交付源码计算稳定摘要, ZIP解压环境无需安装Git且修改源码后必须重新构建.
-function Set-BuildRevision {
-    Write-Host '正在计算项目源码标识...'
-    $Inputs = [IO.File]::ReadAllLines((Join-Path $ProjectRoot 'deploy/build-inputs.txt'))
+function Get-BuildRevision {
+    param([string]$Scope)
+    $Prefix = "$Scope "
+    $Inputs = [IO.File]::ReadAllLines((Join-Path $ProjectRoot 'deploy/build-inputs.txt')) |
+        Where-Object { $_.StartsWith($Prefix, [StringComparison]::Ordinal) } |
+        ForEach-Object { $_.Substring($Prefix.Length) }
+    if (-not $Inputs) { throw "构建输入清单为空: $Scope" }
     $Files = foreach ($Relative in $Inputs) {
         Get-BuildSourceFiles -Path (Join-Path $ProjectRoot $Relative)
     }
@@ -171,14 +175,20 @@ function Set-BuildRevision {
             [void]$Manifest.Append($Relative).Append(':').Append($Digest).Append("`n")
             $Processed++
             if ($Processed % 250 -eq 0 -or $Processed -eq $BuildFiles.Count) {
-                Write-Host "源码摘要进度: $Processed/$($BuildFiles.Count)"
+                Write-Host "$Scope 构建输入: $Processed/$($BuildFiles.Count)"
             }
         }
         $Bytes = [Text.Encoding]::UTF8.GetBytes($Manifest.ToString())
-        $env:BUILD_REVISION = [BitConverter]::ToString($Hasher.ComputeHash($Bytes)).Replace('-', '').ToLowerInvariant()
+        return [BitConverter]::ToString($Hasher.ComputeHash($Bytes)).Replace('-', '').ToLowerInvariant()
     } finally {
         $Hasher.Dispose()
     }
+}
+
+# 为Compose设置两个镜像各自的构建摘要.
+function Set-BuildRevisions {
+    $env:BACKEND_BUILD_REVISION = Get-BuildRevision -Scope 'backend'
+    $env:ADMIN_UI_BUILD_REVISION = Get-BuildRevision -Scope 'admin-ui'
 }
 
 # 递归收集构建输入, 在进入目录前排除本机依赖、输出、私人配置和开发工具缓存.
@@ -186,7 +196,7 @@ function Get-BuildSourceFiles {
     param([string]$Path)
     $Item = Get-Item -LiteralPath $Path -Force
     if ($Item.PSIsContainer -and
-        $Item.Name -in @('node_modules', 'target', 'dist', '.git', '.idea', '.vite', '.cache', 'coverage')) { return }
+        $Item.Name -in @('node_modules', 'target', 'dist', '.git', '.idea', '.vscode', '.vite', '.cache', 'coverage', '.tools', '.pnpm-store', '__pycache__')) { return }
     if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
         throw "构建输入不允许使用链接文件或目录: $Path"
     }
@@ -245,18 +255,23 @@ function Invoke-DockerMetadata {
     return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $Text }
 }
 
-# 检查全部运行镜像并核对应用源码标识, 缺失时提示先运行构建脚本.
+# 两个Java服务共用同一镜像, 只选一个服务构建.
+function Get-LocalImages {
+    [pscustomobject]@{ Service = 'mysql'; Name = 'm.daocloud.io/docker.io/library/mysql:8.0.36'; Digest = $null }
+    [pscustomobject]@{ Service = 'redis'; Name = 'm.daocloud.io/docker.io/library/redis:7.2-alpine'; Digest = $null }
+    [pscustomobject]@{ Service = 'platform-admin'; Name = 'carat-craft-backend:local'; Digest = $env:BACKEND_BUILD_REVISION }
+    [pscustomobject]@{ Service = 'nginx'; Name = 'carat-craft-admin-ui:local'; Digest = $env:ADMIN_UI_BUILD_REVISION }
+}
+
+# 根据构建输入摘要校验镜像, Git提交仅用于追溯.
 function Assert-LocalImages {
-    foreach ($Name in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
-        $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Name)
-        $Metadata = $Result.Output
-        if ($Result.ExitCode -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像。" }
-        $Image = ($Metadata -join "`n") | ConvertFrom-Json
-        if ($Name -in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine')) { continue }
-        $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
-        $Digest = $Image[0].Config.Labels.'io.caratcraft.source-digest'
-        if ($Revision -cne $env:BUILD_GIT_SHA -or $Digest -cne $env:BUILD_REVISION) {
-            throw "镜像 $Name 的源码标识与当前代码不一致, 请先运行 build-local-test.cmd 更新镜像; -NoBuild 不会更新源码。"
+    foreach ($Target in Get-LocalImages) {
+        $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Target.Name)
+        if ($Result.ExitCode -ne 0) { throw "缺少镜像 $($Target.Name), 请先运行 build-local-test.cmd 构建镜像。" }
+        if ($Target.Service -in @('mysql', 'redis')) { continue }
+        $Image = ($Result.Output -join "`n") | ConvertFrom-Json
+        if ($Image[0].Config.Labels.'io.caratcraft.source-digest' -cne $Target.Digest) {
+            throw "镜像 $($Target.Name) 的构建输入已变更, 请先运行 build-local-test.cmd。"
         }
     }
 }
@@ -382,10 +397,22 @@ function Show-StartupDiagnostics {
 # 只构建镜像, 保留原始构建错误, 不操作运行中的容器或数据库.
 function Build-LocalEnvironment {
     try {
-        Write-Host '[1/2] 从国内来源下载MySQL和Redis镜像...'
-        Invoke-Compose -Arguments @('pull', 'mysql', 'redis')
-        Write-Host '[2/2] 从国内来源获取构建镜像和依赖, 在容器内编译前后端...'
-        Invoke-Compose -Arguments @('build', '--pull', '--no-cache')
+        foreach ($Target in Get-LocalImages) {
+            $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Target.Name)
+            if ($Target.Service -in @('mysql', 'redis')) {
+                if ($Result.ExitCode -ne 0) { Invoke-Compose -Arguments @('pull', $Target.Service) }
+                continue
+            }
+            if ($Result.ExitCode -eq 0) {
+                $Image = ($Result.Output -join "`n") | ConvertFrom-Json
+                if ($Image[0].Config.Labels.'io.caratcraft.source-digest' -ceq $Target.Digest) {
+                    Write-Host "复用镜像 $($Target.Name), 构建输入未变更。"
+                    continue
+                }
+            }
+            Write-Host "正在构建 $($Target.Name)..."
+            Invoke-Compose -Arguments @('build', $Target.Service)
+        }
         Write-Host '镜像构建完成, 请运行 start-local-test.cmd 启动环境。'
     } catch {
         Write-Warning '构建失败, 已停止后续步骤。请查看上方具体错误; 下载失败请检查m.daocloud.io、maven.aliyun.com及registry.npmmirror.com的网络访问或限流提示, 然后重新运行build-local-test.cmd。'
@@ -410,8 +437,8 @@ function Start-LocalEnvironment {
             $Result = Invoke-DockerMetadata -Arguments @('container', 'inspect', $Name)
             if ($Result.ExitCode -ne 0) { throw "无法核对运行镜像: $Name" }
             $Container = ($Result.Output -join "`n") | ConvertFrom-Json
-            if ($Container[0].Config.Labels.'org.opencontainers.image.revision' -cne $env:BUILD_GIT_SHA -or
-                $Container[0].Config.Labels.'io.caratcraft.source-digest' -cne $env:BUILD_REVISION) {
+            $ExpectedDigest = if ($Name -eq 'platform-nginx') { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
+            if ($Container[0].Config.Labels.'io.caratcraft.source-digest' -cne $ExpectedDigest) {
                 throw "$Name 的运行镜像与当前版本不一致。"
             }
         }
@@ -454,7 +481,7 @@ Clear-ComposeOverrides
 if ($Action -eq 'build') {
     $EnvFile = $EnvExample
     Assert-HostResources
-    Set-BuildRevision
+    Set-BuildRevisions
     Set-GitRevision
     Build-LocalEnvironment
     return
@@ -469,7 +496,7 @@ switch ($Action) {
     'init-db' { Assert-HostResources -Values (Assert-StartupConfiguration); Initialize-LocalDatabase }
     default {
         Assert-HostResources -Values (Assert-StartupConfiguration)
-        Set-BuildRevision
+        Set-BuildRevisions
         Set-GitRevision
         Start-LocalEnvironment -RestartApps:($Action -eq 'restart')
     }
