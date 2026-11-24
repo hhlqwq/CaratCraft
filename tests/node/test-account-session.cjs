@@ -152,16 +152,22 @@ test('DIY账号切换清除草稿和身体输入但同账号保留编辑', () =>
     assert.equal(page.data.referenceResult, null);
 });
 
-/** 首页游客进入只请求商品区块, 不交换微信身份或写会话. */
-test('首页不再请求已停用的静默登录接口', () => {
-    const {page} = fixture('pages/index/index.js', {
-        '../../utils/util.js': {},
-        '../../config/api.js': {},
-    });
-    let loaded = 0;
-    page.getIndexData = () => {
-        loaded++;
+/** 游客首页读取宣传及组合筛选, 不交换微信身份或写会话. */
+test('商城游客首页只请求宣传和组合商品，切换品类保留珍珠来源', async () => {
+    const calls = [];
+    const request = (endpoint, data) => {
+        calls.push({endpoint, data});
+        return Promise.resolve({code: 0, data: {banner: [], records: [], total: 0}});
     };
-    page.onLoad({});
-    assert.equal(loaded, 1);
+    const {exported} = fixture('services/pearl-store.js', {
+        '../utils/util.js': {request},
+        '../config/api.js': {IndexUrlBanner: 'banner', PearlCatalog: 'catalog'},
+    });
+    const {page} = fixture('pages/index/index.js', {'../../services/pearl-store.js': exported});
+    page.onLoad({source: 'SEAWATER'});
+    await new Promise((resolve) => setImmediate(resolve));
+    page.selectFilter({currentTarget: {dataset: {field: 'type', id: 'RING'}}});
+    assert.equal(calls.map((item) => item.endpoint).join(','), 'banner,catalog,catalog');
+    assert.equal(calls[2].data.source, 'SEAWATER');
+    assert.equal(calls[2].data.type, 'RING');
 });

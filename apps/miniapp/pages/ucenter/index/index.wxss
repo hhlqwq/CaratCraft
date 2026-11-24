@@ -1,28 +1,18 @@
 page {
-    background: #eee9df;
+    background: #f8f6f3;
     min-height: 100%;
 }
 
 .container {
-    background: #eee9df;
+    background: #f8f6f3;
     min-height: 100vh;
     padding-bottom: 42rpx;
 }
 
 .header {
-    background: #17231f;
+    background: #f4eef6;
     padding: 48rpx 30rpx 76rpx;
     position: relative;
-}
-
-.header::after {
-    color: rgba(205, 176, 118, 0.1);
-    content: 'CC';
-    font-family: serif;
-    font-size: 190rpx;
-    position: absolute;
-    right: 14rpx;
-    top: -20rpx;
 }
 
 .profile-btn {
@@ -39,7 +29,7 @@ page {
 }
 
 .avatar {
-    border: 4rpx solid #c5a76c;
+    border: 4rpx solid #e6e0e8;
     border-radius: 50%;
     height: 126rpx;
     padding: 6rpx;
@@ -51,14 +41,14 @@ page {
 }
 
 .nickname {
-    color: #fff;
+    color: #292337;
     font-family: serif;
     font-size: 38rpx;
     font-weight: 600;
 }
 
 .nickname::after {
-    color: #c6a86c;
+    color: #665a70;
     content: '编辑资料 →';
     display: block;
     font-family: sans-serif;
@@ -123,7 +113,7 @@ page {
 }
 
 .txt {
-    color: #37423d;
+    color: #292337;
     font-size: 24rpx;
     font-weight: 500;
     margin-left: 16rpx;
@@ -168,7 +158,7 @@ page {
 }
 
 .profile-editor-title {
-    color: #24312c;
+    color: #292337;
     font-family: serif;
     font-size: 36rpx;
     font-weight: 600;
@@ -192,8 +182,8 @@ page {
 }
 
 .wechat-profile {
-    background: #e8efe9;
-    color: #42634f;
+    background: #eee6f0;
+    color: #4d345b;
     font-size: 23rpx;
     margin-bottom: 20rpx;
 }
