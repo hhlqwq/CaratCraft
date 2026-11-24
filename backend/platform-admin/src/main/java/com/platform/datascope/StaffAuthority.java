@@ -59,6 +59,13 @@ public class StaffAuthority {
                 && Objects.equals(user.getOrgNo(), organization.defaultOrganization());
     }
 
+    /** 限制单工作室共享设置的访问范围. */
+    public void requireWorkspace(String action) {
+        if (!scope(action).permits(organization.defaultOrganization())) {
+            throw new UnauthorizedException("不在当前工作室授权范围内");
+        }
+    }
+
     /** 确保员工具体操作落在商家管理员的本工作室权限, 目标必须为员工. */
     public void requireEmployee(String action, SysUserEntity target, boolean write) {
         if (!merchant()

@@ -30,8 +30,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import com.platform.datascope.StaffAuthority;
+import com.platform.datascope.StaffAuthority.Resource;
+
 import lombok.RequiredArgsConstructor;
 
+import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,6 +63,7 @@ import java.util.Map;
 public class MallCommentController extends AbstractController {
 
     private final MallCommentService mallCommentService;
+    private final StaffAuthority authority;
 
     /** 按给定条件读取当前领域全部匹配记录. */
     @Operation(summary = "查看所有列表", description = "查看所有列表")
@@ -66,7 +71,7 @@ public class MallCommentController extends AbstractController {
     @RequiresPermissions("mall:comment:list")
     public RestResponse<List<MallCommentEntity>> queryAll(
             @RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallCommentService.queryAll(params));
+        return RestResponse.ok(mallCommentService.queryAll(scoped(params, "mall:comment:list")));
     }
 
     /** 按当前接口参数查询对应的业务列表. */
@@ -74,7 +79,7 @@ public class MallCommentController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("mall:comment:list")
     public RestResponse<Page<MallCommentEntity>> list(@RequestParam Map<String, Object> params) {
-        return RestResponse.ok(mallCommentService.queryPage(params));
+        return RestResponse.ok(mallCommentService.queryPage(scoped(params, "mall:comment:list")));
     }
 
     /** 按标识读取当前接口对应的记录详情. */
@@ -94,11 +99,7 @@ public class MallCommentController extends AbstractController {
     public RestResponse<MallCommentEntity> info(@PathVariable("id") Integer id) {
         Map<String, Object> params = new HashMap<>();
         params.put("id", String.valueOf(id));
-        List<MallCommentEntity> list = mallCommentService.queryAll(params);
-        if (list.isEmpty()) {
-            return RestResponse.ok(mallCommentService.getById(id));
-        }
-        return RestResponse.ok(list.get(0));
+        return RestResponse.ok(findInScope(id, "mall:comment:info"));
     }
 
     /** 接收当前接口的新增请求并委托业务服务保存. */
@@ -107,6 +108,7 @@ public class MallCommentController extends AbstractController {
     @PostMapping("/save")
     @RequiresPermissions("mall:comment:save")
     public RestResponse<String> save(@RequestBody MallCommentEntity mallComment) {
+        requireProduct(mallComment, "mall:comment:save");
         mallCommentService.add(mallComment);
         return RestResponse.ok();
     }
@@ -117,6 +119,8 @@ public class MallCommentController extends AbstractController {
     @PostMapping("/update")
     @RequiresPermissions("mall:comment:update")
     public RestResponse<String> update(@RequestBody MallCommentEntity mallComment) {
+        findInScope(mallComment.getId(), "mall:comment:update");
+        requireProduct(mallComment, "mall:comment:update");
         mallCommentService.update(mallComment);
         return RestResponse.ok();
     }
@@ -127,7 +131,34 @@ public class MallCommentController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("mall:comment:delete")
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
+        for (Integer id : ids) {
+            findInScope(id, "mall:comment:delete");
+        }
         mallCommentService.deleteBatch(ids);
         return RestResponse.ok();
+    }
+    /** 使用服务端已授权的商品归属范围, 消费者侧查询无关. */
+    private Map<String, Object> scoped(Map<String, Object> params, String action) {
+        params.put("commentOrgNos", authority.scope(action).organizations());
+        return params;
+    }
+
+    /** 旧专题评论和无归属评价不进入商家数据. */
+    private MallCommentEntity findInScope(Integer id, String action) {
+        if (id == null || id <= 0) {
+            throw new UnauthorizedException("评价不在当前工作室范围内");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", id);
+        return mallCommentService.queryAll(scoped(params, action)).stream().findFirst()
+                .orElseThrow(() -> new UnauthorizedException("评价不在当前工作室范围内"));
+    }
+
+    /** 写入时校验目标商品和评价类型, 不允许越权重关联. */
+    private void requireProduct(MallCommentEntity comment, String action) {
+        if (!Integer.valueOf(0).equals(comment.getTypeId()) || comment.getValueId() == null) {
+            throw new UnauthorizedException("只能管理本工作室商品的评价");
+        }
+        authority.require(action, Resource.GOODS, comment.getValueId());
     }
 }

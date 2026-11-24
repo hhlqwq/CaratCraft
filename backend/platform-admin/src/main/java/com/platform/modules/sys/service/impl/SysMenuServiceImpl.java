@@ -35,7 +35,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,9 +100,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuDao, SysMenuEntity>
             if (menu.getUrl() == null
                     || menu.getUrl().isBlank()
                     || menu.getPerms() == null
-                    || Arrays.stream(menu.getPerms().split(","))
-                            .map(String::trim)
-                            .noneMatch(effective::contains)) {
+                    || !effective.contains(menu.getPerms().split(",", 2)[0].trim())) {
                 continue;
             }
             for (SysMenuEntity item = menu;

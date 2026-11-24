@@ -67,8 +67,6 @@ public class ActResourceHandlerConfig implements WebMvcConfigurer {
                         "/mall/goodsattribute/**",
                         "/mall/goodsgallery/**",
                         "/mall/goodsspecification/**",
-                        "/mall/goodsissue/**",
-                        "/mall/comment/**",
                         "/mall/commentpicture/**");
     }
 }

@@ -18,6 +18,16 @@
         LEFT JOIN mall_goods G ON G.ID = T.VALUE_ID
         LEFT JOIN WX_USER U ON U.ID = T.USER_ID
         WHERE 1=1
+        <if test="params.commentOrgNos != null">
+            AND T.TYPE_ID = 0
+            <choose>
+                <when test="params.commentOrgNos.size() > 0">
+                    AND G.scope_org_no IN
+                    <foreach collection="params.commentOrgNos" item="org" open="(" separator="," close=")">#{org}</foreach>
+                </when>
+                <otherwise>AND 1=0</otherwise>
+            </choose>
+        </if>
         <if test="params.id != null and params.id != ''">
             AND T.ID = #{params.id}
         </if>

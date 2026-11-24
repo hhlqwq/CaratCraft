@@ -30,6 +30,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import com.platform.datascope.StaffAuthority;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -57,6 +59,7 @@ import java.util.Map;
 public class MallGoodsIssueController extends AbstractController {
 
     private final MallGoodsIssueService mallGoodsIssueService;
+    private final StaffAuthority authority;
 
     /**
      * 查看所有列表
@@ -69,6 +72,7 @@ public class MallGoodsIssueController extends AbstractController {
     @RequiresPermissions("mall:goodsissue:list")
     public RestResponse<List<MallGoodsIssueEntity>> queryAll(
             @RequestParam Map<String, Object> params) {
+        authority.requireWorkspace("mall:goodsissue:list");
         List<MallGoodsIssueEntity> list = mallGoodsIssueService.queryAll(params);
 
         return RestResponse.ok(list);
@@ -84,6 +88,7 @@ public class MallGoodsIssueController extends AbstractController {
     @GetMapping("/list")
     @RequiresPermissions("mall:goodsissue:list")
     public RestResponse<Page<MallGoodsIssueEntity>> list(@RequestParam Map<String, Object> params) {
+        authority.requireWorkspace("mall:goodsissue:list");
         Page<MallGoodsIssueEntity> page = mallGoodsIssueService.queryPage(params);
 
         return RestResponse.ok(page);
@@ -109,6 +114,7 @@ public class MallGoodsIssueController extends AbstractController {
     @GetMapping("/info/{id}")
     @RequiresPermissions("mall:goodsissue:info")
     public RestResponse<MallGoodsIssueEntity> info(@PathVariable("id") Integer id) {
+        authority.requireWorkspace("mall:goodsissue:info");
         MallGoodsIssueEntity mallGoodsIssue = mallGoodsIssueService.getById(id);
 
         return RestResponse.ok(mallGoodsIssue);
@@ -126,6 +132,7 @@ public class MallGoodsIssueController extends AbstractController {
     @RequiresPermissions("mall:goodsissue:save")
     public RestResponse<String> save(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
 
+        authority.requireWorkspace("mall:goodsissue:save");
         mallGoodsIssueService.add(mallGoodsIssue);
 
         return RestResponse.ok();
@@ -143,6 +150,7 @@ public class MallGoodsIssueController extends AbstractController {
     @RequiresPermissions("mall:goodsissue:update")
     public RestResponse<String> update(@RequestBody MallGoodsIssueEntity mallGoodsIssue) {
 
+        authority.requireWorkspace("mall:goodsissue:update");
         mallGoodsIssueService.update(mallGoodsIssue);
 
         return RestResponse.ok();
@@ -159,6 +167,7 @@ public class MallGoodsIssueController extends AbstractController {
     @PostMapping("/delete")
     @RequiresPermissions("mall:goodsissue:delete")
     public RestResponse<String> delete(@RequestBody Integer[] ids) {
+        authority.requireWorkspace("mall:goodsissue:delete");
         mallGoodsIssueService.deleteBatch(ids);
 
         return RestResponse.ok();

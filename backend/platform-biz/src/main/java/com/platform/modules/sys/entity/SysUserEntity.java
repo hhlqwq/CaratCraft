@@ -113,6 +113,10 @@ public class SysUserEntity implements Serializable {
     @TableField(exist = false)
     private List<String> roleIdList;
 
+    /** 属于当前工作室的可分配岗位显示名. */
+    @TableField(exist = false)
+    private String roleNames;
+
     /** 创建者ID */
     private String createUserId;
 

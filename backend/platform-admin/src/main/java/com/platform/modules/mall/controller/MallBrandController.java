@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.shiro.authz.annotation.Logical;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,7 +67,14 @@ public class MallBrandController extends AbstractController {
      */
     @Operation(summary = "查看所有列表", description = "查看所有列表")
     @GetMapping("/queryAll")
-    @RequiresPermissions("mall:brand:list")
+    @RequiresPermissions(
+            value = {
+                "mall:brand:list",
+                "mall:goods:info",
+                "mall:goods:save",
+                "mall:goods:update"
+            },
+            logical = Logical.OR)
     public RestResponse<List<MallBrandEntity>> queryAll(@RequestParam Map<String, Object> params) {
         List<MallBrandEntity> list = mallBrandService.queryAll(params);
 
