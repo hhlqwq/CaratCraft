@@ -13,7 +13,8 @@ $global:LocalStartupDockerCalls = New-Object 'System.Collections.Generic.List[st
 $EnvFile = 'unused.env'
 $ComposeFile = 'unused.yml'
 $ProjectRoot = $Root
-$env:BUILD_REVISION = 'startup-test'
+$env:BACKEND_BUILD_REVISION = 'backend-input'
+$env:ADMIN_UI_BUILD_REVISION = 'admin-ui-input'
 $env:BUILD_GIT_SHA = 'test-head'
 
 # 用隔离替身提供Docker响应, 不连接业务容器或修改数据库.
@@ -23,11 +24,19 @@ function docker {
     $script:Calls += ,(($args -join ' ') + ' ' + $Sql)
     $global:LocalStartupDockerCalls.Add((($args -join ' ') + ' ' + $Sql))
     if ($args[0] -eq 'volume') { return '[{"Labels":{"com.docker.compose.project":"platform-wxshop"}}]' }
-    if ($args[0] -eq 'container') { return '[{"Config":{"Labels":{"org.opencontainers.image.revision":"test-head","io.caratcraft.source-digest":"startup-test"}}}]' }
+    if ($args[0] -eq 'container') {
+        $Revision = if ($args[-1] -eq 'platform-nginx') { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
+        return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"older-build","io.caratcraft.source-digest":"' + $Revision + '"}}}]')
+    }
     if ($args[0] -eq 'image') {
-        if ($script:Mode -eq 'missing-image') { $global:LASTEXITCODE = 1; return }
-        $Revision = if ($script:Mode -eq 'old-image') { 'old' } else { 'startup-test' }
-        return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"test-head","io.caratcraft.source-digest":"' + $Revision + '"}}}]')
+        if ($script:Mode -eq 'missing-image' -or ($script:Mode -eq 'pull-error' -and $args[-1] -like '*/mysql:*')) {
+            $global:LASTEXITCODE = 1
+            return
+        }
+        $Revision = if ($args[-1] -eq 'carat-craft-admin-ui:local') { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
+        if ((($script:Mode -in @('old-image', 'build-error', 'java-updated') -or $global:LocalStartupExpectJavaUpdate) -and $args[-1] -eq 'carat-craft-backend:local') -or
+            ($script:Mode -eq 'ui-updated' -and $args[-1] -eq 'carat-craft-admin-ui:local')) { $Revision = 'old' }
+        return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"older-build","io.caratcraft.source-digest":"' + $Revision + '"}}}]')
     }
     if ($Sql -match 'SELECT TABLE_NAME') {
         if ($script:Mode -eq 'query-error') { $global:LASTEXITCODE = 1; return }
@@ -68,9 +77,9 @@ foreach ($ExpectedImage in $ExpectedImages) {
 if ($script:Calls.Count -ne $ExpectedImages.Count) { throw '启动镜像校验包含旧来源或遗漏镜像' }
 Assert-DatabaseReady
 $script:Mode = 'old-image'
-Assert-Rejected { Assert-LocalImages } 'NoBuild'
+Assert-Rejected { Assert-LocalImages } 'build-local-test.cmd'
 $script:Mode = 'missing-image'
-Assert-Rejected { Assert-LocalImages } 'NoBuild'
+Assert-Rejected { Assert-LocalImages } 'build-local-test.cmd'
 $script:Mode = 'partial-database'
 Assert-Rejected { Assert-DatabaseReady } 'sys_region'
 if ($script:Calls[-1] -notmatch 'SELECT TABLE_NAME') { throw '缺基础表后仍查询迁移台账' }
@@ -121,17 +130,18 @@ if ($script:Calls[-1] -ne 'diagnostics' -or $script:Calls -contains 'access-read
 $script:Mode = 'build-error'
 $script:Calls = @()
 Assert-Rejected { Build-LocalEnvironment } 'simulated-build-error'
-if ($script:Calls.Count -ne 2 -or $script:Calls[0] -ne 'pull mysql redis' -or
-    $script:Calls[1] -ne 'build --pull --no-cache') { throw '构建失败后仍继续启动或输出后端诊断' }
+if (@($script:Calls | Where-Object { $_ -match '^(build|pull|up) ' }) -join '|' -cne 'build platform-admin') { throw 'Build failure did not stop' }
 $script:Mode = 'pull-error'
 $script:Calls = @()
 Assert-Rejected { Build-LocalEnvironment } 'simulated-pull-error'
-if ($script:Calls.Count -ne 1 -or $script:Calls[0] -ne 'pull mysql redis') { throw '下载失败后仍继续构建' }
+if (@($script:Calls | Where-Object { $_ -match '^(build|pull|up) ' }) -join '|' -cne 'pull mysql') { throw 'Pull failure did not stop' }
+foreach ($Case in @(@('ready', ''), @('java-updated', 'build platform-admin'), @('ui-updated', 'build nginx'))) {
+    $script:Mode = $Case[0]
+    $script:Calls = @()
+    Build-LocalEnvironment
+    if (@($script:Calls | Where-Object { $_ -match '^(build|pull|up) ' }) -join '|' -cne $Case[1]) { throw "Wrong build target: $($Case[0])" }
+}
 $script:Mode = 'ready'
-$script:Calls = @()
-Build-LocalEnvironment
-if ($script:Calls.Count -ne 2 -or $script:Calls[0] -ne 'pull mysql redis' -or
-    $script:Calls[1] -ne 'build --pull --no-cache') { throw '构建操作启动了容器或访问了数据库' }
 $Wrapper = Get-Content (Join-Path $Root 'deploy/scripts/start-local-test.cmd') -Raw
 if ($Wrapper -notmatch 'dev\.ps1" -Action start %\*' -or $Wrapper -match 'docker compose|Action build') { throw '启动入口未固定为仅启动操作' }
 $BuildWrapper = Get-Content (Join-Path $Root 'deploy/scripts/build-local-test.cmd') -Raw
@@ -140,10 +150,9 @@ $script:Calls = @()
 $global:LocalStartupDockerCalls.Clear()
 & (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build
 $DispatchCalls = $global:LocalStartupDockerCalls.ToArray()
-if ($DispatchCalls.Count -ne 4 -or $DispatchCalls[0] -notmatch 'compose version' -or
-    $DispatchCalls[1].Trim() -ne 'info' -or $DispatchCalls[2] -notmatch ' pull mysql redis\s*$' -or
-    $DispatchCalls[3] -notmatch ' build --pull --no-cache\s*$') {
-    throw "构建Action调度出现启动、数据库或其他非构建操作: $($DispatchCalls -join ' | ')"
+if ($DispatchCalls.Count -ne 6 -or $DispatchCalls[0] -notmatch 'compose version' -or
+    $DispatchCalls[1].Trim() -ne 'info' -or $DispatchCalls[2..5] -match '^(?!image inspect)') {
+    throw "Unexpected build dispatch: $($DispatchCalls -join ' | ')"
 }
 Assert-Rejected { & (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build -NoBuild } 'NoBuild'
 
@@ -163,19 +172,20 @@ function Get-Content {
     throw '构建不应读取运行密钥或生成私有配置'
 }
 
+$global:LocalStartupExpectJavaUpdate = $true
 try {
     foreach ($Exists in @($false, $true)) {
         $global:LocalStartupBuildEnvironmentExists = $Exists
         $global:LocalStartupDockerCalls.Clear()
         & (Join-Path $Root 'deploy/scripts/dev.ps1') -Action build
-        $BuildCall = $global:LocalStartupDockerCalls.ToArray()[-1]
-        if ($BuildCall -notmatch '\.env\.example"?\s+-f\s+' -or $BuildCall -notmatch ' build --pull --no-cache\s*$') {
+        $BuildCall = @($global:LocalStartupDockerCalls | Where-Object { $_ -match ' build platform-admin\s*$' })
+        if ($BuildCall.Count -ne 1 -or $BuildCall[0] -notmatch '\.env\.example"?\s+-f\s+') {
             throw '构建必须使用公开模板且在容器内联网安装依赖'
         }
     }
 } finally {
     Remove-Item Function:\Test-Path, Function:\Get-Content
-    Remove-Variable LocalStartupBuildEnvironmentExists -Scope Global
+    Remove-Variable LocalStartupBuildEnvironmentExists, LocalStartupExpectJavaUpdate -Scope Global
 }
 Remove-Variable LocalStartupDockerCalls -Scope Global
 Write-Host '本地启动回归通过: 就绪结构、缺表、旧版本、认证失败、旧镜像、缺镜像、阶段顺序、下载失败中止、构建失败诊断、构建启动分离、构建使用公开模板及两个脚本入口。'
