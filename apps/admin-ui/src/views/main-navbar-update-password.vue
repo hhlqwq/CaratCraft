@@ -25,13 +25,13 @@
                 <span>{{ userName }}</span>
             </el-form-item>
             <el-form-item label="原密码" prop="password">
-                <el-input type="password" v-model="dataForm.password"></el-input>
+                <el-input type="password" show-password v-model="dataForm.password"></el-input>
             </el-form-item>
             <el-form-item label="新密码" prop="newPassword">
-                <el-input type="password" v-model="dataForm.newPassword"></el-input>
+                <el-input type="password" show-password v-model="dataForm.newPassword"></el-input>
             </el-form-item>
             <el-form-item label="确认密码" prop="confirmPassword">
-                <el-input type="password" v-model="dataForm.confirmPassword"></el-input>
+                <el-input type="password" show-password v-model="dataForm.confirmPassword"></el-input>
             </el-form-item>
         </el-form>
         <template #footer

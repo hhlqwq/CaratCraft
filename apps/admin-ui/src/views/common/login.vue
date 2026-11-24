@@ -31,6 +31,7 @@
                             <el-input
                                 v-model="dataForm.password"
                                 type="password"
+                                show-password
                                 placeholder="密码"
                                 aria-label="管理员密码"
                                 autocomplete="current-password"

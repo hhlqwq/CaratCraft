@@ -34,6 +34,7 @@
                     <el-input
                         v-model="password"
                         type="password"
+                        show-password
                         autocomplete="new-password"
                         maxlength="32"
                         placeholder="6到32位，不含空格"
@@ -43,6 +44,7 @@
                     <el-input
                         v-model="confirmPassword"
                         type="password"
+                        show-password
                         autocomplete="new-password"
                         maxlength="32"
                     />
