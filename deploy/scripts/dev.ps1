@@ -250,7 +250,7 @@ function Assert-LocalImages {
     foreach ($Name in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')) {
         $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Name)
         $Metadata = $Result.Output
-        if ($Result.ExitCode -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像, 或使用 .\dev.ps1 -Action build; -NoBuild 无法创建镜像。" }
+        if ($Result.ExitCode -ne 0) { throw "缺少镜像 $Name, 请先运行 build-local-test.cmd 构建镜像。" }
         $Image = ($Metadata -join "`n") | ConvertFrom-Json
         if ($Name -in @('m.daocloud.io/docker.io/library/mysql:8.0.36', 'm.daocloud.io/docker.io/library/redis:7.2-alpine')) { continue }
         $Revision = $Image[0].Config.Labels.'org.opencontainers.image.revision'
