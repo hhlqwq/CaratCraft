@@ -1,0 +1,7 @@
+<view class="scene">
+    <canvas id="necklace-webgl" type="webgl" class="surface"
+        bindtouchstart="begin" catchtouchmove="move" bindtouchend="end" bindtouchcancel="cancel"></canvas>
+    <view wx:if="{{loading}}" class="loading" role="status">正在载入 3D 预览…</view>
+</view>
+<view class="caption">单指旋转 · 双指缩放 · 点选材料</view>
+<view class="caption">{{limitation}}</view>

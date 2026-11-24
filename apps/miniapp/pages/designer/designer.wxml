@@ -33,7 +33,14 @@
                 </view>
                 <view class="stage-price">¥ {{quoting ? '…' : (quote.totalPrice || '--')}}</view>
             </view>
-            <view class="necklace-stage">
+            <view class="preview-modes">
+                <button class="preview-mode {{!preview3d ? 'preview-mode-active' : ''}}" data-mode="2d" bindtap="changePreview">2D</button>
+                <button class="preview-mode {{preview3d ? 'preview-mode-active' : ''}}" data-mode="3d" bindtap="changePreview" disabled="{{!arrangementNodes.length}}">3D</button>
+                <text wx:if="{{previewNotice}}" role="status">{{previewNotice}}</text>
+            </view>
+            <necklace-3d wx:if="{{preview3d && arrangementNodes.length}}" nodes="{{arrangementNodes}}" selected="{{activeIndex}}"
+                         bindpick="pickPreview" bindunavailable="fallbackPreview" />
+            <view wx:else class="necklace-stage">
                 <image wx:if="{{stageChainImage}}" class="stage-chain" src="{{stageChainImage}}" mode="aspectFit" webp="{{true}}"></image>
                 <view wx:else class="necklace-guide"></view>
                 <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">点击下方材料, 开始搭配</view>
@@ -80,7 +87,7 @@
                 <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}{{quote.lengthNotice ? '。' + quote.lengthNotice : ''}}</view>
             </view>
             <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
-            <view class="preview-disclaimer">效果为二维搭配示意, 不代表实物颜色和成品外观。</view>
+            <view wx:if="{{!preview3d}}" class="preview-disclaimer">效果为二维搭配示意, 不代表实物颜色和成品外观。</view>
         </view>
 
         <view class="material-card">

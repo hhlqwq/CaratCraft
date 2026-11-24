@@ -21,6 +21,8 @@
 
 珍珠项链 3D 技术验证见[独立小程序样机](apps/pearl-3d-poc/README.md)，预 Alpha 版本及变更记录见[样机 Changelog](apps/pearl-3d-poc/CHANGELOG.md)。
 
+正式小程序的「定制项链」可选择 3D 或二维预览, 详见[三维预览](docs/项目开发文档.md#正式-diy-三维预览--300-alpha1)。
+
 ## 仓库结构
 
 | 目录 | 职责 |

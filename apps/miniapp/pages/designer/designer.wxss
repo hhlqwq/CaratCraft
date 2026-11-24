@@ -563,3 +563,25 @@
     font-size: 23rpx;
     padding: 12rpx 0 0;
 }
+
+.preview-modes {
+    align-items: center;
+    display: flex;
+    gap: 12rpx;
+    margin: 12rpx 0;
+}
+
+.preview-mode {
+    background: #f6f3ec;
+    border-radius: 4rpx;
+    color: #304335;
+    font-size: 24rpx;
+    line-height: 68rpx;
+    margin: 0;
+    min-width: 84rpx;
+}
+
+.preview-mode-active {
+    background: #31473a;
+    color: #fffdf6;
+}

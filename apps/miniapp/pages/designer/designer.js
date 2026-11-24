@@ -18,6 +18,8 @@ function initialDesignerState() {
         selectedOptionNames: [],
         arrangementOptionIds: [],
         arrangementNodes: [],
+        preview3d: false,
+        previewNotice: '',
         activeIndex: -1,
         copyCount: 1,
         canUndo: false,
@@ -526,6 +528,28 @@ Page({
             this.setData({activeIndex: nextIndex, activeName: node.name, activeType: node.type});
         } catch (error) {
             wx.showToast({title: error.message, icon: 'none'});
+        }
+    },
+
+    /** 仅切换预览模式, 保留编辑、报价和设计草稿. */
+    changePreview(event) {
+        const use3d = event.currentTarget.dataset.mode === '3d';
+        this.setData({
+            preview3d: use3d && this.data.arrangementNodes.length > 0,
+            previewNotice: '',
+        });
+    },
+
+    /** 渲染失败时卸载画布并回到原二维, 选择 3D 可重试. */
+    fallbackPreview() {
+        this.setData({preview3d: false, previewNotice: '3D 暂不可用，已使用二维预览'});
+    },
+
+    /** 对照当前排列核验 3D 拾取, 避免在连续编辑后选错实例. */
+    pickPreview(event) {
+        const {index, optionId} = event.detail;
+        if (this.data.preview3d && this.data.arrangementOptionIds[index] === optionId) {
+            this.selectInstance({currentTarget: {dataset: {index}}});
         }
     },
 
