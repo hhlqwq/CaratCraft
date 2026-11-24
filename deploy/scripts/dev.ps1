@@ -194,7 +194,7 @@ function Get-BuildSourceFiles {
         foreach ($Child in (Get-ChildItem -LiteralPath $Path -Force)) {
             Get-BuildSourceFiles -Path $Child.FullName
         }
-    } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project\.private\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
+    } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project(\.private)?\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
         $Item.FullName -eq $EnvExample) {
         $Item
     }

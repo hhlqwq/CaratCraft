@@ -167,7 +167,7 @@ build_source_files() {
             [[ ! -L "$child" ]] || { echo "构建输入不允许链接: $child" >&2; return 1; }
             name="${child##*/}"
             case "$name" in
-                application-local*|environment.local.js|project.private.config.json|.env|.env.*|*.log|*.tmp|*.key|*.pem|*.p12)
+                application-local*|environment.local.js|project.config.json|project.private.config.json|.env|.env.*|*.log|*.tmp|*.key|*.pem|*.p12)
                     [[ "$child" == "$ENV_EXAMPLE" ]] || continue ;;
             esac
             printf '%s\n' "${child#"$ROOT_DIR/"}"

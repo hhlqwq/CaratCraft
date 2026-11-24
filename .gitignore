@@ -25,6 +25,7 @@ deploy/packages/
 deploy/secrets/*
 !deploy/secrets/README.md
 !/legal/**
+/apps/miniapp/project.config.json
 apps/miniapp/project.private.config.json
 apps/miniapp/config/environment.local.js
 # 旧运行挂载和本机缓存仅留存, 无源码或运行时回退入口.

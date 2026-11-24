@@ -42,7 +42,7 @@ def application_file(path, root):
     relative = path.relative_to(root)
     return (path.is_file()
             and not any(part in {"node_modules", ".git", "secrets", "__pycache__", "target", "dist", ".tools", "packages"} for part in relative.parts)
-            and path.name not in {"project.private.config.json", ".env"}
+            and path.name not in {"project.config.json", "project.private.config.json", ".env"}
             and (not path.name.startswith(".env.") or path.name == ".env.example")
             and not path.name.endswith((".log", ".tmp", ".key", ".pem", ".p12"))
             and "application-local" not in path.name)

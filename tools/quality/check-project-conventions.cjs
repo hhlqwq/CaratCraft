@@ -137,11 +137,11 @@ function check(root) {
             errors.push(path.relative(root, file) + ': WXML绑定表达式不能使用HTML实体代替运算符');
         }
     }
-    const miniappProject = path.join(root, 'apps/miniapp/project.config.json');
+    const miniappProject = path.join(root, 'apps/miniapp/project.config.example.json');
     if (fs.existsSync(miniappProject)) {
         const settings = JSON.parse(fs.readFileSync(miniappProject, 'utf8')).editorSetting;
         if (settings?.tabSize !== 4 || settings?.tabIndent !== 'insertSpaces') {
-            errors.push('apps/miniapp/project.config.json: 开发者工具须使用4空格缩进');
+            errors.push('apps/miniapp/project.config.example.json: 开发者工具须使用4空格缩进');
         }
     }
     for (const file of [...owned.flatMap((name) => filesAt(path.join(root, name))), ...markdown]) {

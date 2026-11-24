@@ -39,13 +39,15 @@ class DeliveryPackagingTest(unittest.TestCase):
     def test_application_excludes_private_and_development_files(self):
         """已忽略的私人配置即使存在磁盘上也不能进入应用归档."""
         temporary = self.directory
-        for name in ["app.json", "project.private.config.json", "node_modules/example.js", "secrets/token.json", ".env", "private.key"]:
+        for name in ("app.json", "project.config.example.json", "project.config.json",
+                     "project.private.config.json", "node_modules/example.js",
+                     "secrets/token.json", ".env", "private.key"):
             file = temporary / name
             file.parent.mkdir(parents=True, exist_ok=True)
             file.write_text("synthetic-test-only", encoding="utf-8")
         selected = [file.relative_to(temporary).as_posix() for file in temporary.rglob("*")
                     if DELIVERY.application_file(file, temporary)]
-        self.assertEqual(["app.json"], selected)
+        self.assertCountEqual(["app.json", "project.config.example.json"], selected)
 
     def test_dirty_source_is_rejected_before_archive_creation(self):
         """脏源码不能被标记一个提交号后当作正式交付输出."""

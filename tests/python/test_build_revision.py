@@ -16,7 +16,7 @@ class BuildRevisionTest(unittest.TestCase):
     """以真实源码和独立计算验证两个入口执行同一摘要契约."""
 
     def test_operational_scripts_do_not_change_image_revision(self):
-        """实际摘要忽略宿主机脚本, 仍对后端、Dockerfile和SQL变更敏感."""
+        """实际摘要忽略宿主机脚本及本机小程序配置, 仍对后端、Dockerfile和SQL变更敏感."""
         powershell = shutil.which("pwsh") or shutil.which("powershell")
         if not powershell:
             self.skipTest("需要已有PowerShell以执行真实摘要函数")
@@ -39,6 +39,7 @@ class BuildRevisionTest(unittest.TestCase):
             script = fixture / "deploy/scripts/dev.ps1"
             script.parent.mkdir(parents=True, exist_ok=True)
             script.write_text("host operation\n", "utf-8")
+            (fixture / "apps/miniapp/project.config.json").write_text("local settings\n", "utf-8")
             command = r'''$ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
@@ -52,7 +53,7 @@ foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automa
 }
 Set-BuildRevision
 $Results = @($env:BUILD_REVISION)
-foreach ($Relative in @('deploy/scripts/dev.ps1', 'backend/fixture.txt', 'deploy/Dockerfile.backend', 'database/fixture.txt')) {
+foreach ($Relative in @('deploy/scripts/dev.ps1', 'apps/miniapp/project.config.json', 'backend/fixture.txt', 'deploy/Dockerfile.backend', 'database/fixture.txt')) {
     [IO.File]::AppendAllText((Join-Path $ProjectRoot $Relative), 'changed')
     Set-BuildRevision
     $Results += $env:BUILD_REVISION
@@ -65,9 +66,9 @@ Write-Output ('RESULT=' + ($Results -join ','))
                                     capture_output=True, text=True, encoding="utf-8", errors="replace",
                                     env=environment, check=True)
             revisions = result.stdout.strip().splitlines()[-1].removeprefix("RESULT=").split(",")
-            self.assertEqual(len(revisions), 5)
-            self.assertEqual(revisions[0], revisions[1])
-            for before, after in zip(revisions[1:], revisions[2:]):
+            self.assertEqual(len(revisions), 6)
+            self.assertEqual(revisions[:3], [revisions[0]] * 3)
+            for before, after in zip(revisions[2:], revisions[3:]):
                 self.assertNotEqual(before, after)
 
     def test_platform_revisions_match_independent_manifest(self):
@@ -86,6 +87,7 @@ Write-Output ('RESULT=' + ($Results -join ','))
                     continue
                 name = file.name
                 if (name.startswith("application-local") or name == ".env" or name.startswith(".env.")
+                        or name in {"environment.local.js", "project.config.json", "project.private.config.json"}
                         or file.suffix in {".log", ".tmp", ".key", ".pem", ".p12"}):
                     if file != ROOT / "deploy/.env.example":
                         continue

@@ -105,7 +105,7 @@ test('门禁拒绝无法编译的WXML表达式和开发者工具缩进覆盖', (
     const directory = path.join(root, 'apps/miniapp');
     fs.mkdirSync(directory, {recursive: true});
     const template = path.join(directory, 'index.wxml');
-    const config = path.join(directory, 'project.config.json');
+    const config = path.join(directory, 'project.config.example.json');
     fs.writeFileSync(template, '<view wx:if="{{!loading &amp;&amp; !items.length}}"/>');
     fs.writeFileSync(
         config,

@@ -22,6 +22,7 @@ deploy/secrets
 **/.vite
 **/.cache
 **/coverage
+apps/miniapp/project.config.json
 apps/miniapp/project.private.config.json
 apps/miniapp/config/environment.local.js
 .start-local-test-*.ps1
