@@ -27,7 +27,7 @@
             ><span class="dialog-footer">
                 <el-button @click="visible = false">取消</el-button>
                 <el-button v-if="!disabled" type="primary" @click="dataFormSubmit()"
-                    >确定</el-button
+                    >保存</el-button
                 >
             </span></template
         >

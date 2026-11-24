@@ -109,7 +109,7 @@ async function checkRoles(page, saves) {
     await create.waitFor({state: 'hidden'});
     assert.deepEqual(saves[0], {roleName: '隔离新增', remark: '', menuIdList: ['add', 'retry']});
 
-    await page.getByRole('button', {name: '修改', exact: true}).click();
+    await page.getByRole('button', {name: '编辑', exact: true}).click();
     const edit = page.getByRole('dialog', {name: '编辑岗位'});
     await edit.getByText('另保留 1 项已有授权').waitFor();
     assert.equal(await edit.getByRole('checkbox', {name: '编辑商品', exact: true}).isChecked(), true);

@@ -125,15 +125,16 @@
                         >查看
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:brand:update')"
+                        v-if="isAuth('mall:brand:update') && isAuth('mall:brand:info')"
                         type="text"
                         size="small"
                         @click="addOrUpdateHandle(scope.row.id)"
-                        >修改
+                        >编辑
                     </el-button>
                     <el-button
                         v-if="isAuth('mall:brand:delete')"
-                        type="text"
+                        link
+                        type="danger"
                         size="small"
                         @click="deleteHandle(scope.row.id)"
                     >

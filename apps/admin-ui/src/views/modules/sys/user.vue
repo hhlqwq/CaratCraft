@@ -13,12 +13,12 @@
             <el-form-item>
                 <el-select
                     v-model="searchForm.status"
-                    placeholder="状态"
+                    placeholder="员工状态"
                     @change="getDataList(1)"
                     clearable
                 >
-                    <el-option key="0" label="禁用" value="0"> </el-option>
-                    <el-option key="1" label="正常" value="1"> </el-option>
+                    <el-option key="0" label="停用" value="0"> </el-option>
+                    <el-option key="1" label="启用" value="1"> </el-option>
                 </el-select>
             </el-form-item>
             <el-form-item>
@@ -37,15 +37,17 @@
                     >批量删除
                 </el-button>
                 <el-button
-                    v-if="isAuth('sys:user:delete')"
-                    type="danger"
+                    v-if="isAuth('sys:user:resetPw')"
                     @click="resetHandle()"
                     :disabled="dataListSelections.length <= 0"
                     >重置密码
                 </el-button>
             </el-form-item>
         </el-form>
+        <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
         <el-table
+            v-loading="loading"
+            :empty-text="listError ? '—' : '暂无员工账号'"
             :data="dataList"
             border
             @selection-change="selectionChangeHandle"
@@ -55,46 +57,34 @@
             </el-table-column>
             <el-table-column prop="userName" header-align="center" align="center" label="用户名">
             </el-table-column>
-            <el-table-column prop="sex" header-align="center" align="center" label="性别">
-                <template #default="scope">
-                    <span>{{ transDict('SEX', scope.row.sex) }}</span>
-                </template>
-            </el-table-column>
             <el-table-column prop="realName" header-align="center" align="center" label="真实姓名">
             </el-table-column>
-            <el-table-column prop="email" header-align="center" align="center" label="邮箱">
+            <el-table-column prop="email" min-width="165" show-overflow-tooltip class-name="studio-nowrap" label="邮箱">
             </el-table-column>
-            <el-table-column prop="mobile" header-align="center" align="center" label="手机号">
+            <el-table-column prop="mobile" min-width="126" class-name="studio-nowrap" label="手机号">
             </el-table-column>
             <el-table-column prop="status" header-align="center" align="center" label="状态">
                 <template #default="scope">
-                    <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
+                    <el-tag v-if="scope.row.status === 0" size="small" type="danger">停用</el-tag>
                     <el-tag v-else-if="scope.row.status === 1" size="small" type="success"
-                        >正常</el-tag
+                        >启用</el-tag
                     >
                 </template>
-            </el-table-column>
-            <el-table-column
-                prop="createTime"
-                header-align="center"
-                align="center"
-                label="创建时间"
-            >
             </el-table-column>
             <el-table-column
                 fixed="right"
                 header-align="center"
                 align="center"
-                width="150"
+                width="96"
                 label="操作"
             >
                 <template #default="scope">
                     <el-button
-                        v-if="isAuth('sys:user:update')"
+                        v-if="isAuth('sys:user:update') && isAuth('sys:user:info')"
                         type="text"
                         size="small"
                         @click="addOrUpdateHandle(scope.row.userId)"
-                        >修改
+                        >编辑
                     </el-button>
                     <el-button
                         v-if="isAuth('sys:user:delete')"
@@ -106,8 +96,11 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column prop="lastLoginAt" label="最近登录" width="180" />
-            <el-table-column label="角色与权限" width="110">
+            <el-table-column prop="lastLoginAt" label="最近登录" width="168" class-name="studio-nowrap" />
+            <el-table-column label="岗位" prop="roleNames" min-width="140" show-overflow-tooltip>
+                <template #default="{row}">{{ row.roleNames || '未分配岗位' }}</template>
+            </el-table-column>
+            <el-table-column label="权限来源" width="100">
                 <template #default="scope">
                     <el-button
                         v-if="isAuth('sys:user:info')"
@@ -121,8 +114,7 @@
         <el-dialog v-model="permissionsVisible" title="员工角色与权限来源">
             <el-table :data="permissionRows">
                 <el-table-column prop="roleName" label="角色" />
-                <el-table-column prop="orgNo" label="机构" />
-                <el-table-column prop="permissions" label="权限" />
+                <el-table-column prop="permissionLabel" label="功能权限" />
             </el-table>
         </el-dialog>
         <el-pagination
@@ -140,6 +132,7 @@
 </template>
 
 <script>
+import {rolePermissionGroups} from './role-permissions';
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
@@ -151,6 +144,8 @@ export default {
                 status: '',
             },
             dataList: [],
+            loading: false,
+            listError: '',
             pageIndex: 1,
             pageSize: 10,
             totalPage: 0,
@@ -171,12 +166,25 @@ export default {
     methods: {
         /** 读取服务端确认的人员角色、机构及授权来源. */
         async showPermissions(userId) {
-            const {data} = await this.$http({
-                url: '/sys/user/permissions/' + userId,
-                method: 'get',
-            });
-            if (data && data.code === 0) {
-                this.permissionRows = data.data;
+            const [details, catalog] = await Promise.all([
+                this.$http({url: '/sys/user/permissions/' + userId, method: 'get'}),
+                this.$http({url: '/sys/menu/list', method: 'get'}),
+            ]);
+            if (details.data?.code === 0 && catalog.data?.code === 0) {
+                const labels = new Map();
+                for (const {items} of rolePermissionGroups(catalog.data.data || [])) {
+                    for (const {label, actions} of items) {
+                        actions.forEach((action) => labels.set(action, label));
+                    }
+                }
+                this.permissionRows = details.data.data.map((row) => ({
+                    roleName: row.roleName,
+                    permissionLabel: Array.from(
+                        new Set(
+                            row.permissions.split(',').map((action) => labels.get(action) || '历史经营功能')
+                        )
+                    ).join('、'),
+                }));
                 this.permissionsVisible = true;
             }
         },
@@ -185,9 +193,12 @@ export default {
             if (page) {
                 this.pageIndex = page;
             }
+            this.loading = true;
+            this.listError = '';
             this.$http({
                 url: '/sys/user/list',
                 method: 'get',
+                showError: false,
                 params: {
                     page: this.pageIndex,
                     limit: this.pageSize,
@@ -211,9 +222,12 @@ export default {
                         this.$router.replace({name: 'sys-user', query});
                     }
                 } else {
-                    this.dataList = [];
-                    this.totalPage = 0;
+                    this.listError = data?.code === 403 ? '没有权限查看员工账号' : '员工账号加载失败, 请重试';
                 }
+            }).catch(() => {
+                this.listError = '员工账号加载失败, 请重试';
+            }).finally(() => {
+                this.loading = false;
             });
         },
         // 每页数

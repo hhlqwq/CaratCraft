@@ -55,14 +55,16 @@
                 </div>
             </el-form-item>
             <el-alert v-if="error" :title="error" type="error" :closable="false" />
-            <el-button @click="visible = false">取消</el-button>
-            <el-button
-                native-type="submit"
-                type="primary"
-                :loading="saving"
-                :disabled="loading || !ready"
-                >保存</el-button
-            >
+            <div class="studio-form-actions">
+                <el-button @click="visible = false">取消</el-button>
+                <el-button
+                    native-type="submit"
+                    type="primary"
+                    :loading="saving"
+                    :disabled="loading || !ready"
+                    >保存</el-button
+                >
+            </div>
         </el-form>
     </el-dialog>
 </template>

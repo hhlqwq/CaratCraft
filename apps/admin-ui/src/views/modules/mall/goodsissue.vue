@@ -2,7 +2,7 @@
     <div class="mod-goodsissue">
         <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
             <el-form-item>
-                <el-input v-model="searchForm.question" placeholder="参数名" clearable></el-input>
+                <el-input v-model="searchForm.question" placeholder="搜索问题" clearable></el-input>
             </el-form-item>
             <el-form-item>
                 <el-button @click="getDataList(1)">查询</el-button>
@@ -21,7 +21,10 @@
                 </el-button>
             </el-form-item>
         </el-form>
+        <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
         <el-table
+            v-loading="loading"
+            :empty-text="listError ? '—' : '暂无商品问答'"
             :data="dataList"
             border
             @selection-change="selectionChangeHandle"
@@ -56,15 +59,16 @@
                         查看
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:goodsissue:update')"
+                        v-if="isAuth('mall:goodsissue:update') && isAuth('mall:goodsissue:info')"
                         type="text"
                         size="small"
                         @click="addOrUpdateHandle(scope.row.id)"
-                        >修改
+                        >编辑
                     </el-button>
                     <el-button
                         v-if="isAuth('mall:goodsissue:delete')"
-                        type="text"
+                        link
+                        type="danger"
                         size="small"
                         @click="deleteHandle(scope.row.id)"
                         >删除
@@ -102,6 +106,8 @@ export default {
                 question: '',
             },
             dataList: [],
+            loading: false,
+            listError: '',
             pageIndex: 1,
             pageSize: 10,
             totalPage: 0,
@@ -122,9 +128,12 @@ export default {
             if (page) {
                 this.pageIndex = page;
             }
+            this.loading = true;
+            this.listError = '';
             this.$http({
                 url: '/mall/goodsissue/list',
                 method: 'get',
+                showError: false,
                 params: {
                     page: this.pageIndex,
                     limit: this.pageSize,
@@ -135,9 +144,12 @@ export default {
                     this.dataList = data.data.records;
                     this.totalPage = data.data.total;
                 } else {
-                    this.dataList = [];
-                    this.totalPage = 0;
+                    this.listError = data?.code === 403 ? '没有权限查看商品问答' : '商品问答加载失败, 请重试';
                 }
+            }).catch(() => {
+                this.listError = '商品问答加载失败, 请重试';
+            }).finally(() => {
+                this.loading = false;
             });
         },
         // 每页数

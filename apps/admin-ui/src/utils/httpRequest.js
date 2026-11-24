@@ -34,7 +34,7 @@ axios.interceptors.request.use(
             loadingLayers.set(
                 config.loadingId,
                 Loading.service({
-                    text: 'Loading...',
+                    text: '正在加载…',
                     spinner: 'el-icon-loading',
                     background: 'rgba(0, 0, 0, 0.7)',
                 })

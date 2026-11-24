@@ -1,7 +1,7 @@
 const sections = [
     {
         title: '商品与材料',
-        icon: 'goods',
+        icon: 'studio-box',
         urls: [
             'mall/goods',
             'mall/goods-recycle',
@@ -17,12 +17,12 @@ const sections = [
     },
     {
         title: '订单与制作',
-        icon: 'orders',
+        icon: 'studio-order',
         urls: ['mall/order', 'custom/work-order', 'mall/shipping'],
     },
     {
         title: '客服与售后',
-        icon: 'feedback',
+        icon: 'studio-support',
         urls: [
             'mall/aftersale',
             'mall/refund',
@@ -32,16 +32,15 @@ const sections = [
             'mall/helpissue',
         ],
     },
-    {title: '社区', icon: 'community', urls: ['community/posts', 'mall/comment']},
-    {title: '员工账号', icon: 'admin', urls: ['sys/user'], standalone: true},
-    {title: '岗位与权限', icon: 'setting', urls: ['sys/role'], standalone: true},
-    {title: '商家管理员', icon: 'admin', urls: ['platform/merchant-accounts'], standalone: true},
+    {title: '社区', icon: 'studio-community', urls: ['community/posts', 'mall/comment']},
+    {title: '员工账号', icon: 'studio-user', urls: ['sys/user'], standalone: true},
+    {title: '岗位与权限', icon: 'studio-shield', urls: ['sys/role'], standalone: true},
+    {title: '商家管理员', icon: 'studio-user', urls: ['platform/merchant-accounts'], standalone: true},
     {
         title: '系统设置',
-        icon: 'setting',
+        icon: 'studio-settings',
         urls: [
             'sys/log',
-            'sys/menu',
             'sys/config',
             'sys/dict',
             'sys/dictgroup',
@@ -52,7 +51,13 @@ const sections = [
     },
 ];
 
-const labels = {'sys/user': '员工账号', 'sys/role': '岗位与权限', 'mall/order': '订单列表'};
+const labels = {
+    'sys/user': '员工账号',
+    'sys/role': '岗位与权限',
+    'mall/order': '订单列表',
+    'mall/specification': '规格名称管理',
+    'mall/comment': '商品评价',
+};
 
 /** 展开服务端已授权菜单, 保留原路由标识和来源. */
 export function authorizedPages(menus) {

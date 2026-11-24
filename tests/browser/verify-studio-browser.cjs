@@ -122,7 +122,7 @@ async function main() {
         await moderator.goto(origin + '/#/home');
         const communityNav = moderator.locator('.site-sidebar');
         await communityNav.getByText('社区', {exact: true}).click();
-        await communityNav.getByText('评论管理', {exact: true}).click();
+        await communityNav.getByText('商品评价', {exact: true}).click();
         await moderator.waitForURL('**/#/mall-comment');
 
         const manager = await browser.newPage({viewport: {width: 1440, height: 960}});

@@ -2,7 +2,7 @@
     <div class="mod-specification">
         <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
             <el-form-item>
-                <el-input v-model="searchForm.name" placeholder="KEY名称" clearable></el-input>
+                <el-input v-model="searchForm.name" placeholder="规格名称" clearable></el-input>
             </el-form-item>
             <el-form-item>
                 <el-button @click="getDataList(1)">查询</el-button>
@@ -21,7 +21,10 @@
                 </el-button>
             </el-form-item>
         </el-form>
+        <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
         <el-table
+            v-loading="loading"
+            :empty-text="listError ? '—' : '暂无规格名称'"
             :data="dataList"
             border
             @selection-change="selectionChangeHandle"
@@ -29,7 +32,7 @@
         >
             <el-table-column type="selection" header-align="center" align="center" width="50">
             </el-table-column>
-            <el-table-column prop="name" header-align="center" align="center" label="KEY名称">
+            <el-table-column prop="name" header-align="center" align="center" label="规格名称">
             </el-table-column>
             <el-table-column prop="sortOrder" header-align="center" align="center" label="排序">
             </el-table-column>
@@ -49,15 +52,16 @@
                         >查看
                     </el-button>
                     <el-button
-                        v-if="isAuth('mall:specification:update')"
+                        v-if="isAuth('mall:specification:update') && isAuth('mall:specification:info')"
                         type="text"
                         size="small"
                         @click="addOrUpdateHandle(scope.row.id)"
-                        >修改
+                        >编辑
                     </el-button>
                     <el-button
                         v-if="isAuth('mall:specification:delete')"
-                        type="text"
+                        link
+                        type="danger"
                         size="small"
                         @click="deleteHandle(scope.row.id)"
                         >删除
@@ -95,6 +99,8 @@ export default {
                 name: '',
             },
             dataList: [],
+            loading: false,
+            listError: '',
             pageIndex: 1,
             pageSize: 10,
             totalPage: 0,
@@ -117,9 +123,12 @@ export default {
             if (page) {
                 this.pageIndex = page;
             }
+            this.loading = true;
+            this.listError = '';
             this.$http({
                 url: '/mall/specification/list',
                 method: 'get',
+                showError: false,
                 params: {
                     page: this.pageIndex,
                     limit: this.pageSize,
@@ -130,9 +139,12 @@ export default {
                     this.dataList = data.data.records;
                     this.totalPage = data.data.total;
                 } else {
-                    this.dataList = [];
-                    this.totalPage = 0;
+                    this.listError = data?.code === 403 ? '没有权限查看规格名称' : '规格名称加载失败, 请重试';
                 }
+            }).catch(() => {
+                this.listError = '规格名称加载失败, 请重试';
+            }).finally(() => {
+                this.loading = false;
             });
         },
         // 每页数

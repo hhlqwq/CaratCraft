@@ -2,6 +2,7 @@ import {pagePresentation, workspaceGroups} from '@/router/workspace-navigation';
 
 const subjects = {
     'mall/order': '订单',
+    'mall/specification': '规格名称',
     'mall/goods-recycle': '商品回收站',
     'mall/refund': '退款',
     'mall/aftersale': '售后',
@@ -58,7 +59,11 @@ export function rolePermissionGroups(catalog) {
             : permissionNames[item.perms] ||
               (actionNames[item.name] ? actionNames[item.name] + subject : item.name);
         if (groups.has(group) && /[\u3400-\u9fff]/.test(label) && !/\w+:\w+:/.test(label)) {
-            groups.get(group).push({menuId: item.menuId, label});
+            groups.get(group).push({
+                menuId: item.menuId,
+                label,
+                actions: item.perms.split(',').map((action) => action.trim()),
+            });
         }
     }
     return Array.from(groups, ([title, items]) => ({title, items})).filter(({items}) => items.length);

@@ -1,12 +1,9 @@
 <template>
-    <nav class="site-navbar" :class="'site-navbar--' + navbarLayoutType">
+    <nav class="site-navbar">
         <div class="site-navbar__header">
-            <h1 class="site-navbar__brand" @click="$router.push({name: 'home'})">
-                <a class="site-navbar__brand-lg" href="javascript:;">
-                    <span class="brand-en">CARAT CRAFT</span>
-                    <span class="brand-cn">克拉匠造 · 商家工作台</span>
-                </a>
-                <a class="site-navbar__brand-mini" href="javascript:;">克拉</a>
+            <h1 class="site-navbar__brand">
+                <router-link class="site-navbar__brand-lg" :to="brandDestination">CaratCraft</router-link>
+                <router-link class="site-navbar__brand-mini" :to="brandDestination" aria-label="CaratCraft">C</router-link>
             </h1>
         </div>
         <div class="site-navbar__body clearfix">
@@ -37,15 +34,10 @@
                 mode="horizontal"
                 :ellipsis="false"
             >
-                <el-menu-item index="1" aria-label="布局设置" @click="showTheme()">
-                    <el-badge is-dot value="new">
-                        <icon-svg name="xitongpeizhi" class="el-icon-setting"></icon-svg>
-                    </el-badge>
-                </el-menu-item>
                 <el-menu-item class="site-navbar__avatar" index="2">
                     <el-dropdown :show-timeout="0" placement="bottom">
                         <span class="el-dropdown-link">
-                            <icon-svg name="admin" class="el-icon-setting"></icon-svg>{{ userName }}
+                            <icon-svg name="studio-user"></icon-svg>{{ userName }}
                         </span>
                         <template #dropdown
                             ><el-dropdown-menu>
@@ -61,12 +53,10 @@
         </div>
         <!-- 弹窗, 修改密码 -->
         <update-password v-if="updatePassowrdVisible" ref="updatePassowrd"></update-password>
-        <theme v-if="themeVisible" ref="theme"></theme>
     </nav>
 </template>
 
 <script>
-import Theme from './common/theme';
 import UpdatePassword from './main-navbar-update-password';
 import {clearLoginInfo} from '@/utils';
 
@@ -75,19 +65,15 @@ export default {
     data() {
         return {
             updatePassowrdVisible: false,
-            themeVisible: false,
         };
     },
     components: {
         UpdatePassword,
-        Theme,
     },
     computed: {
-        navbarLayoutType: {
-            /** 读取当前控件或页面的响应式绑定值. */
-            get() {
-                return this.$store.state.common.navbarLayoutType;
-            },
+        /** 品牌链接指向当前账号的主入口. */
+        brandDestination() {
+            return {name: this.isAuth('platform:merchant:manage') ? 'platform-merchant-accounts' : 'home'};
         },
         sidebarFold: {
             /** 读取当前控件或页面的响应式绑定值. */
@@ -107,13 +93,6 @@ export default {
         },
     },
     methods: {
-        /** 打开主题设置面板并初始化其当前选项. */
-        showTheme() {
-            this.themeVisible = true;
-            this.$nextTick(() => {
-                this.$refs.theme.init();
-            });
-        },
         // 修改密码
         updatePasswordHandle() {
             this.updatePassowrdVisible = true;

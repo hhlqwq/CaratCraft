@@ -109,6 +109,9 @@ router.clearWorkspaceRoutes = () => {
 /** 用服务端返回的页面构建访问路由, 附属页还需对应的动作权限. */
 function registerMenus(menus, grants) {
     for (const page of authorizedPages(menus)) {
+        if (page.url === 'sys/menu') {
+            continue;
+        }
         const external = isURL(page.url);
         const name = external ? `i-${page.menuId}` : page.url.replace('/', '-');
         const meta = {

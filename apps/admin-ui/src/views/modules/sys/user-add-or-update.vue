@@ -79,7 +79,7 @@
                     <el-option
                         v-for="item in permissionList"
                         :key="item.menuId"
-                        :label="item.name + ' · ' + item.perms"
+                        :label="item.label"
                         :value="item.menuId"
                     />
                 </el-select>
@@ -99,6 +99,7 @@
 </template>
 
 <script>
+import {rolePermissionGroups} from './role-permissions';
 export default {
     /** 新员工归属由服务端决定, 表单仅维护员工资料和岗位. */
     data() {
@@ -206,7 +207,9 @@ export default {
                     throw new Error(detail?.data?.msg || roles.data?.msg || '员工资料加载失败');
                 }
                 this.roleList = roles.data.data || [];
-                this.permissionList = permissions.data.data || [];
+                this.permissionList = rolePermissionGroups(permissions.data.data || []).flatMap(
+                    ({items}) => items
+                );
                 if (detail) {
                     const employee = detail.data.data;
                     this.dataForm = {

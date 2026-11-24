@@ -1,7 +1,7 @@
 <template>
     <main class="studio-content">
-        <el-breadcrumb separator="/" v-if="$route.meta.group || $route.meta.parent">
-            <el-breadcrumb-item v-if="$route.meta.group">{{
+        <el-breadcrumb separator="/" v-if="$route.meta.parent">
+            <el-breadcrumb-item v-if="$route.meta.group && $route.meta.group !== $route.meta.parentTitle">{{
                 $route.meta.group
             }}</el-breadcrumb-item>
             <el-breadcrumb-item
@@ -12,6 +12,9 @@
             </el-breadcrumb-item>
             <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
         </el-breadcrumb>
+        <h1 v-else-if="$route.meta.title && $route.name !== 'home'" class="studio-page-title">
+            {{ $route.meta.title }}
+        </h1>
         <iframe
             v-if="$route.meta.iframeUrl"
             :src="$route.meta.iframeUrl"
@@ -27,7 +30,6 @@
                 </keep-alive>
             </router-view>
         </el-card>
-        <footer class="studio-footer">CaratCraft</footer>
     </main>
 </template>
 
@@ -39,7 +41,8 @@ export default {components: {ElBreadcrumb, ElBreadcrumbItem}};
 
 <style scoped>
 .studio-content {
-    padding: 16px 24px 24px;
+    min-width: 0;
+    padding: 20px 24px 24px;
 }
 .studio-content .el-breadcrumb {
     margin-bottom: 18px;
@@ -49,9 +52,10 @@ export default {components: {ElBreadcrumb, ElBreadcrumbItem}};
     min-height: calc(100vh - 140px);
     border: 0;
 }
-.studio-footer {
-    padding-top: 18px;
-    color: #69746f;
-    text-align: center;
+.studio-page-title {
+    margin: 0 0 14px;
+    color: var(--studio-text);
+    font-size: 22px;
+    font-weight: 650;
 }
 </style>

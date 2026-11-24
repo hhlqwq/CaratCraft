@@ -12,11 +12,11 @@
             @keyup.enter="dataFormSubmit()"
             label-width="80px"
         >
-            <el-form-item label="KEY名称" prop="name">
+            <el-form-item label="规格名称" prop="name">
                 <el-input
                     v-model="dataForm.name"
                     :disabled="disabled"
-                    placeholder="KEY名称"
+                    placeholder="规格名称"
                 ></el-input>
             </el-form-item>
             <el-form-item label="排序" prop="sortOrder">
@@ -33,7 +33,7 @@
             ><span class="dialog-footer">
                 <el-button @click="visible = false">取消</el-button>
                 <el-button v-if="!disabled" type="primary" @click="dataFormSubmit()"
-                    >确定</el-button
+                    >保存</el-button
                 >
             </span></template
         >
@@ -53,7 +53,7 @@ export default {
                 sortOrder: '',
             },
             dataRule: {
-                name: [{required: true, message: 'KEY名称不能为空', trigger: 'blur'}],
+                name: [{required: true, message: '规格名称不能为空', trigger: 'blur'}],
             },
         };
     },

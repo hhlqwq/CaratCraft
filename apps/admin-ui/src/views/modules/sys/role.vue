@@ -55,15 +55,16 @@
             >
                 <template #default="scope">
                     <el-button
-                        v-if="isAuth('sys:role:update')"
+                        v-if="isAuth('sys:role:update') && isAuth('sys:role:info')"
                         type="text"
                         size="small"
                         @click="addOrUpdateHandle(scope.row.roleId)"
-                        >修改
+                        >编辑
                     </el-button>
                     <el-button
                         v-if="isAuth('sys:role:delete')"
-                        type="text"
+                        link
+                        type="danger"
                         size="small"
                         @click="deleteHandle(scope.row.roleId)"
                     >

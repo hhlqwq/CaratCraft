@@ -10,7 +10,7 @@
                     @click="monitorVisible = !monitorVisible"
                     >{{ monitorVisible ? '返回业务待办' : '系统监控' }}</el-button
                 >
-                <el-button v-if="!monitorVisible" :loading="loading" @click="load"
+                <el-button v-if="!monitorVisible && (visibleCards.length || loading || error)" :loading="loading" @click="load"
                     >刷新待办</el-button
                 >
             </div>
@@ -32,7 +32,7 @@
                 </button>
             </div>
             <p v-if="!loading && !error && !visibleCards.length" class="empty-note">
-                当前账号暂无业务查看权限, 请联系管理员配置角色。
+                当前账号没有可查看的工作台待办。可从左侧进入已授权的功能。
             </p>
         </section>
     </main>
@@ -58,7 +58,7 @@ export default {
                     route: 'custom-component-stock',
                     todo: 'stockOut',
                 },
-                {key: 'diy', label: 'DIY 材料维护', route: 'custom-configuration'},
+                {key: 'diy', label: '定制材料维护', route: 'custom-configuration'},
                 {
                     key: 'workReview',
                     label: '待处理工单',
@@ -118,7 +118,6 @@ export default {
                 },
                 {key: 'employees', label: '员工账号管理', route: 'sys-user'},
                 {key: 'roles', label: '角色管理', route: 'sys-role'},
-                {key: 'permissions', label: '权限配置', route: 'sys-menu'},
                 {key: 'audit', label: '系统审计', route: 'sys-log'},
             ],
         };
@@ -179,11 +178,11 @@ export default {
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
-    padding: 12px 0 24px;
+    padding: 0 0 16px;
 }
 h1 {
     margin: 10px 0;
-    font-size: clamp(25px, 3vw, 36px);
+    font-size: 22px;
 }
 p {
     color: #67766c;
@@ -201,11 +200,11 @@ p {
 }
 .task-card {
     min-width: 0;
-    min-height: 168px;
-    padding: 24px;
+    min-height: 108px;
+    padding: 16px;
     text-align: left;
     border: 1px solid #e0e6de;
-    border-radius: 16px;
+    border-radius: 6px;
     background: #fff;
     color: #344d3e;
     cursor: pointer;
@@ -214,8 +213,8 @@ p {
         transform 0.2s;
 }
 .task-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px #25443012;
+    border-color: var(--el-color-primary-light-5);
+    background: #f8fbf9;
 }
 .task-card:focus-visible {
     outline: 3px solid #9fb6a2;
@@ -228,8 +227,8 @@ p {
 }
 .task-card strong {
     display: block;
-    font-size: 38px;
-    margin: 18px 0;
+    font-size: 29px;
+    margin: 6px 0 0;
     font-weight: 600;
 }
 .task-card small {

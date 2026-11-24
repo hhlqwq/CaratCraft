@@ -413,7 +413,7 @@
                 <el-table-column prop="zIndex" label="图层" width="70"></el-table-column>
                 <el-table-column label="操作" width="130">
                     <template #default="scope">
-                        <el-button type="text" @click="editOption(scope.row)">编辑</el-button>
+                        <el-button v-if="isAuth('custom:config:update')" link @click="editOption(scope.row)">编辑</el-button>
                         <el-button
                             v-if="isAuth('custom:config:update')"
                             type="text"

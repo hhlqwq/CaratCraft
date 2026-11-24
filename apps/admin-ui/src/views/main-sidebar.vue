@@ -1,5 +1,5 @@
 <template>
-    <aside class="site-sidebar" :class="'site-sidebar--' + $store.state.common.sidebarLayoutSkin">
+    <aside class="site-sidebar">
         <div class="site-sidebar__inner">
             <el-menu
                 :default-active="$route.meta.menuName || $route.name"
@@ -13,7 +13,7 @@
                     index="home"
                     :route="{name: 'home'}"
                 >
-                    <icon-svg name="shouye" class="site-sidebar__menu-icon" />
+                    <icon-svg name="studio-home" class="site-sidebar__menu-icon" />
                     <template #title>工作台</template>
                 </el-menu-item>
                 <template v-for="group in groups" :key="group.title">

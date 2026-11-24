@@ -2,15 +2,9 @@
     <div class="site-wrapper site-page--login min300">
         <div class="site-content__wrapper">
             <div class="site-content">
-                <div class="brand-info brand-info--intro">
-                    <div class="brand-info__kicker">CARAT CRAFT · MERCHANT</div>
-                    <h2 class="brand-info__text">克拉匠造</h2>
-                    <p class="brand-info__intro">
-                        珠宝商品、定制组件与订单生产的一站式商家工作台。
-                    </p>
-                </div>
                 <div class="login-main">
-                    <h3 class="login-title">管理员登录</h3>
+                    <p class="login-brand">CaratCraft</p>
+                    <h1 class="login-title">管理员登录</h1>
                     <el-form
                         :model="dataForm"
                         :rules="dataRule"
@@ -83,11 +77,6 @@
                     </el-form>
                 </div>
 
-                <div class="brand-info brand-info--footer">
-                    <p class="brand-info__intro">
-                        <span>CaratCraft · 商家管理平台</span>
-                    </p>
-                </div>
             </div>
         </div>
     </div>
@@ -242,196 +231,81 @@ export default {
 </script>
 
 <style lang="scss">
-body {
-    background: #16231f;
-    height: auto;
-}
-
 .site-wrapper.site-page--login {
-    bottom: 0;
-    left: 0;
-    overflow: hidden;
-    position: absolute;
-    right: 0;
-    top: 0;
+    min-width: 0;
 
     .site-content__wrapper {
-        bottom: 0;
-        left: 0;
         margin: 0;
-        overflow-x: hidden;
-        overflow-y: auto;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        top: 0;
-        background: linear-gradient(90deg, #16231f 0, #16231f 52%, #eeeae2 52%, #eeeae2 100%);
+        padding: 20px;
+        display: grid;
+        place-items: center;
     }
 
     .site-content {
-        align-items: center;
-        display: grid;
-        grid-template-columns: 52% 48%;
-        grid-template-rows: 1fr auto;
-        min-height: 100vh;
+        width: min(100%, 424px);
         padding: 0;
     }
 
-    .brand-info {
-        color: #fff;
-        margin: 0;
-    }
-
-    .brand-info--intro {
-        grid-column: 1;
-        padding: 0 10vw;
-    }
-
-    .brand-info__kicker {
-        color: #c8a96e;
-        font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 5px;
-    }
-
-    .brand-info__text {
-        color: #fff;
-        font-family: Georgia, 'Times New Roman', 'Microsoft YaHei', serif;
-        font-size: 52px;
-        font-weight: 500;
-        letter-spacing: 8px;
-        margin: 22px 0 18px;
-    }
-
-    .brand-info__intro {
-        color: rgba(255, 255, 255, 0.58);
-        font-size: 14px;
-        line-height: 1.8;
-        margin: 0;
-        max-width: 430px;
-    }
-
     .login-main {
-        background: #fff;
-        border-left: 4px solid #b88d4e;
-        box-shadow: 0 24px 70px rgba(26, 33, 29, 0.18);
-        grid-column: 2;
-        margin: 0 auto;
-        max-width: 430px;
-        min-width: 340px;
-        padding: 48px 52px 40px;
-        width: 60%;
+        width: 100%;
+        padding: clamp(22px, 6vw, 36px);
+        background: var(--studio-surface);
+        border: 1px solid var(--studio-edge);
+        border-radius: 8px;
+    }
 
-        .el-form {
-            border: 0;
-            padding: 0;
-        }
+    .login-brand {
+        margin: 0 0 5px;
+        color: var(--studio-brand);
+        font-size: 21px;
+        font-weight: 650;
+    }
 
-        .el-input__inner {
-            background: #f7f5f0;
-            border: 0;
-            border-bottom: 1px solid #cfc8bd;
-            border-radius: 0;
-            height: 46px;
-        }
+    .login-title {
+        margin: 0 0 25px;
+        font-size: 17px;
+        font-weight: 550;
+    }
 
-        .el-input__inner:focus {
-            border-bottom-color: #a77b3f;
-        }
-
-        .login-submit.el-button--primary {
-            background: #17231f;
-            border-color: #17231f;
-            border-radius: 0;
-            height: 46px;
-            letter-spacing: 6px;
-            margin-top: 10px;
-        }
+    .el-input__wrapper,
+    .login-submit {
+        min-height: 40px;
     }
 
     .login-password-actions {
         display: flex;
-        flex-wrap: wrap;
-        gap: 4px 18px;
+        gap: 4px 16px;
         justify-content: flex-end;
-        margin: -8px 0 16px;
+        margin: -9px 0 14px;
 
         button {
-            background: none;
             border: 0;
-            border-radius: 2px;
-            color: #4c6358;
-            cursor: pointer;
+            background: none;
+            color: var(--studio-brand);
             font: inherit;
-            font-size: 13px;
+            cursor: pointer;
             min-height: 28px;
-            padding: 0 2px;
 
             &:hover,
             &:focus-visible {
-                color: #17231f;
                 text-decoration: underline;
-                text-underline-offset: 3px;
-            }
-
-            &:focus-visible {
-                outline: 2px solid #8b6937;
-                outline-offset: 2px;
             }
         }
     }
 
-    .login-title {
-        color: #27332e;
-        font-family: Georgia, 'Times New Roman', 'Microsoft YaHei', serif;
-        font-size: 24px;
-        font-weight: 500;
-        letter-spacing: 3px;
-        margin: 0 0 34px;
-        text-align: left;
-    }
-
     .login-captcha {
-        align-items: center;
         display: flex;
-        height: 46px;
-        overflow: hidden;
+        align-items: center;
 
-        > img {
+        img {
             cursor: pointer;
-            height: 38px !important;
+            object-fit: cover;
             width: 100% !important;
         }
     }
 
-    .brand-info--footer {
-        bottom: 22px;
-        grid-column: 1 / 3;
-        position: fixed;
-        text-align: center;
-
-        .brand-info__intro {
-            max-width: none;
-        }
-    }
-
-    @media (max-width: 900px) {
-        .site-content__wrapper {
-            background: #eeeae2;
-        }
-
-        .site-content {
-            display: flex;
-            justify-content: center;
-        }
-
-        .brand-info--intro {
-            display: none;
-        }
-
-        .login-main {
-            width: calc(100% - 48px);
-        }
+    .el-form-item:last-child {
+        margin-bottom: 0;
     }
 }
 </style>
