@@ -1,8 +1,10 @@
 # CaratCraft 珍珠项链 3D 样机
 
-当前预 Alpha 为 **3.0.0-0.2**，对应 **v3.0.0 / R3** 技术验证。这个目录是独立微信小程序项目，启动页为 `pages/necklace/index`。
+当前预 Alpha 为 **3.0.0-0.3**，对应 **v3.0.0 / R3** 技术验证。这个目录是独立微信小程序项目，启动页为 `pages/necklace/index`。
 
 ## 导入和体验
+
+新检出后，先在此目录将 project.config.example.json 复制为 project.config.json。仓库模板使用游客 AppID。已有本机配置时直接使用。微信开发者工具生成或修改的 project.config.json 和 project.private.config.json 均由 Git 忽略。
 
 1. 在微信开发者工具选择「项目 → 导入项目」，目录选择 `D:\code\github\CaratCraft\apps\pearl-3d-poc`。
 2. 选择小程序项目及「不使用 AppID」，编译。项目配置的基础库为 `3.15.1`，如果工具自动选择其他版本，在「详情」中查看并记录实际使用的版本。
