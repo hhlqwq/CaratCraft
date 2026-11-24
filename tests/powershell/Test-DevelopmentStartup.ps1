@@ -34,6 +34,10 @@ function docker {
         if ($script:Mode -eq 'old-schema') { '0' }
         elseif ($script:Mode -eq 'unknown-version') { '2' }
         else { '1' }
+    } elseif ($Sql -match 'SELECT CONCAT\(needed') {
+        if ($script:Mode -eq 'missing-tier-columns') { 'sys_user.account_type' }
+    } elseif ($Sql -match 'ACCOUNT_TYPE') {
+        if ($script:Mode -eq 'unmapped-account') { '0' } else { '1' }
     } elseif ($Sql -eq 'SELECT 1;') { '1' }
 }
 
@@ -57,7 +61,7 @@ function Show-AccessInfo { $Script:Ready = $true }
 # 只记录诊断请求, 不调用真实Docker.
 function Show-StartupDiagnostics { $Script:Diagnostics++ }
 
-foreach ($Case in @('root-auth', 'app-auth', 'missing-table', 'old-schema', 'sql-error', 'application-error', 'unknown-version')) {
+foreach ($Case in @('root-auth', 'app-auth', 'missing-table', 'old-schema', 'sql-error', 'application-error', 'unknown-version', 'missing-tier-columns', 'unmapped-account')) {
     $Script:Mode = $Case
     $Script:Actions = @(); $Script:Resets = 0; $Script:Ready = $false; $Script:Diagnostics = 0
     $Rejected = $false
@@ -70,4 +74,4 @@ foreach ($Case in @('root-auth', 'app-auth', 'missing-table', 'old-schema', 'sql
         throw "启动故障包含重试或破坏性操作: $Case"
     }
 }
-Write-Host '开发启动回归通过: 七类失败立即停止, 数据库和 Redis 卷始终保留. Docker 调用均为替身.'
+Write-Host '开发启动回归通过: 九类失败立即停止, 数据库和 Redis 卷始终保留. Docker 调用均为替身.'

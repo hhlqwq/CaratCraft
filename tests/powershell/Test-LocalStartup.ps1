@@ -39,6 +39,10 @@ function docker {
         if ($script:Mode -eq 'old-schema') { '0' }
         elseif ($script:Mode -eq 'unknown-version') { '2' }
         else { '1' }
+    } elseif ($Sql -match 'SELECT CONCAT\(needed') {
+        if ($script:Mode -eq 'missing-tier-columns') { 'sys_user.account_type', 'sys_role.direct_user_id' }
+    } elseif ($Sql -match 'ACCOUNT_TYPE') {
+        if ($script:Mode -eq 'unmapped-account') { '0' } else { '1' }
     }
 }
 
@@ -76,6 +80,10 @@ $script:Mode = 'old-schema'
 Assert-Rejected { Assert-DatabaseReady } '完整初始化'
 $script:Mode = 'unknown-version'
 Assert-Rejected { Assert-DatabaseReady } '未知'
+$script:Mode = 'missing-tier-columns'
+Assert-Rejected { Assert-DatabaseReady } 'sys_user.account_type'
+$script:Mode = 'unmapped-account'
+Assert-Rejected { Assert-DatabaseReady } '账号层级'
 
 # 替换外部副作用, 检查完整启动阶段的先后顺序和失败退出.
 function Invoke-Compose {

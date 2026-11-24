@@ -284,6 +284,14 @@ assert_database_ready() {
         fi
     done
     assert_database_schema || return $?
+    local missing tiers
+    missing="$(database_query "$(cat "$ROOT_DIR/deploy/schema-preflight.sql")")" || return $?
+    if [[ -n "$missing" ]]; then
+        printf '本地库缺少必需字段, 请参照项目维护文档备份并执行对应增量, 数据卷已保留:\n%s\n' "$missing" >&2
+        return 1
+    fi
+    tiers="$(database_query "SELECT IF(EXISTS(SELECT 1 FROM SYS_USER WHERE USER_ID='1' AND ACCOUNT_TYPE='PLATFORM_ADMIN') AND NOT EXISTS(SELECT 1 FROM SYS_USER WHERE ACCOUNT_TYPE IS NULL OR (USER_ID<>'1' AND ACCOUNT_TYPE NOT IN ('MERCHANT_ADMIN','EMPLOYEE'))),1,0);")" || return $?
+    [[ "$tiers" == 1 ]] || { echo '本地库的账号层级尚未完成迁移, 停止应用启动。' >&2; return 1; }
     version="$(database_query "SELECT 1;" application)" || return $?
     [[ "$version" == 1 ]] || return 1
 }

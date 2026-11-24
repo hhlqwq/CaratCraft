@@ -343,6 +343,13 @@ function Assert-DatabaseReady {
         throw "本地开发库结构不是当前版本, 缺少: $($Missing -join ', ')。"
     }
     Assert-DatabaseSchema
+    $RequiredColumns = Get-Content -LiteralPath (Join-Path $ProjectRoot 'deploy/schema-preflight.sql') -Raw -Encoding UTF8
+    $MissingColumns = @(Invoke-DatabaseQuery -Query $RequiredColumns)
+    if ($MissingColumns.Count) {
+        throw "本地库缺少必需字段: $($MissingColumns -join ', ')。请参照项目维护文档备份并执行对应增量, 数据卷已保留。"
+    }
+    $AccountTiers = Invoke-DatabaseQuery -Query "SELECT IF(EXISTS(SELECT 1 FROM SYS_USER WHERE USER_ID='1' AND ACCOUNT_TYPE='PLATFORM_ADMIN') AND NOT EXISTS(SELECT 1 FROM SYS_USER WHERE ACCOUNT_TYPE IS NULL OR (USER_ID<>'1' AND ACCOUNT_TYPE NOT IN ('MERCHANT_ADMIN','EMPLOYEE'))),1,0);"
+    if (($AccountTiers -join '').Trim() -ne '1') { throw '本地库的账号层级尚未完成迁移, 停止应用启动。' }
     $Application = Invoke-DatabaseQuery -Query 'SELECT 1;' -ApplicationUser
     if (($Application -join '').Trim() -ne '1') {
         throw 'MySQL应用账号连通性检查未返回预期结果。'
