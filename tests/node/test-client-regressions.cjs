@@ -421,8 +421,8 @@ test('实测颈围变更立即废弃参考', async () => {
     const pending = page.requestReference();
     page.refreshQuote = () => Promise.resolve();
     page.changeSizing({
-        currentTarget: {dataset: {field: 'neckCircumferenceMm'}},
-        detail: {value: '360'},
+        currentTarget: {dataset: {field: 'neckCm'}},
+        detail: {value: '36'},
     });
     requests[0].resolve({code: 0, data: {goodsId: 10, lengthsMm: [405], materials: []}});
     await pending;
@@ -451,7 +451,7 @@ test('定制报价失败禁止结算但可以保留原草稿', async () => {
 });
 
 /** 配置乱序返回时仅采纳当前商品, 必选类型读取商家配置. */
-test('定制配置拒绝过期响应并采用商家必选项', async () => {
+test('定制配置拒绝过期响应，基础款不自动填入珍珠', async () => {
     const {page, requests} = designerFixture();
     page.data.goodsId = 1;
     const first = page.loadConfig();
@@ -492,7 +492,8 @@ test('定制配置拒绝过期响应并采用商家必选项', async () => {
     assert.equal(page.data.primaryProductId, 22);
     assert.equal(page.data.componentGroups[0].required, true);
     assert.equal(page.data.arrangementNodes[0].name, '链长');
-    assert.equal(page.data.arrangementNodes[0].known, false);
+    assert.equal(page.data.activeOptions[0].sizeLabel, '尺寸待商家确认');
+    assert.equal(page.data.pearlCount, 0);
     assert.deepEqual(Array.from(page.data.arrangementOptionIds), [2]);
 });
 

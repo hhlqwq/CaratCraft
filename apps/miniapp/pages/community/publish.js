@@ -11,7 +11,7 @@ Page({
         content: '',
         images: [],
         designs: [],
-        designLabels: [],
+
         designIndex: -1,
         consent: false,
         saving: false,
@@ -22,7 +22,8 @@ Page({
         loadingDesigns: false,
     },
     /** 加载本人可分享设计, 不获取其他人的草稿. */
-    onLoad() {
+    onLoad(query = {}) {
+        this._initialDesignId = Number(query.designId) || 0;
         this._requestKey = community.requestKey();
         this.loadDesigns();
     },
@@ -37,18 +38,21 @@ Page({
                 const designs = res.data.records.filter(function (row) {
                     try {
                         return (
-                            (JSON.parse(row.priceBreakdownJson || '{}').arrangement || []).length >
-                            0
+                            (JSON.parse(row.priceBreakdownJson || '{}').arrangement || []).some((part) => part.componentType === 'pearl')
                         );
                     } catch (error) {
                         return false;
                     }
                 });
                 this.setData({
-                    designs: designs,
-                    designLabels: designs.map(function (row) {
-                        return '设计 #' + row.id + ' · ' + row.updateTime;
-                    }),
+                    designs: designs.map((row) => ({
+                        ...row,
+                        label: row.goodsName || '珍珠项链',
+                        cover: /^\/upload\//.test(row.previewUrl || '')
+                            ? api.ApiOrigin + row.previewUrl
+                            : (/^https:\/\//i.test(row.previewUrl || '') ? row.previewUrl : ''),
+                    })),
+                    designIndex: designs.findIndex((row) => Number(row.id) === this._initialDesignId),
                 });
             })
             .catch((error) => {
@@ -76,12 +80,15 @@ Page({
     },
     /** 切换分享类型时不默认授权设计公开. */
     kind(event) {
-        this.setData({kindIndex: Number(event.detail.value), consent: false});
+        this.setData({kindIndex: Number(event.detail.value), consent: false, images: []});
         this.changed();
     },
     /** 明确选择本人草稿后再次确认公开. */
     selectDesign(event) {
-        this.setData({designIndex: Number(event.detail.value), consent: false});
+        const index = Number(event.currentTarget.dataset.index);
+        if (this.data.saving || !this.data.designs[index]) return;
+        this._initialDesignId = Number(this.data.designs[index].id);
+        this.setData({designIndex: index, consent: false});
         this.changed();
     },
     /** 公开设计只在用户主动勾选后发送. */
@@ -147,7 +154,7 @@ Page({
         if (this.data.saving || this.data.uploading || !community.loggedIn()) {
             return;
         }
-        if (!this.data.title.trim() || !this.data.content.trim()) {
+        if (!this.data.title.trim() || (this.data.kindIndex !== 0 && !this.data.content.trim())) {
             this.setData({error: '请填写标题和正文'});
             return;
         }
@@ -166,7 +173,7 @@ Page({
                     kind: ['DESIGN', 'FINISHED', 'SUGGESTION'][this.data.kindIndex],
                     title: this.data.title,
                     content: this.data.content,
-                    mediaIds: this.data.images.map(function (image) {
+                    mediaIds: this.data.kindIndex === 0 ? [] : this.data.images.map(function (image) {
                         return image.id;
                     }),
                     snapshotId: this.data.kindIndex === 0 ? design.id : null,

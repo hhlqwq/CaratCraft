@@ -48,3 +48,38 @@
     background: #315c4b;
     color: #fff;
 }
+
+.design-choice {
+    align-items: center;
+    background: #fff;
+    border: 1rpx solid #e6e0e8;
+    border-radius: 12rpx;
+    color: #292337;
+    display: flex;
+    font-size: 27rpx;
+    gap: 14rpx;
+    line-height: 1.5;
+    margin: 12rpx 0;
+    padding: 12rpx;
+    text-align: left;
+}
+
+.design-choice::after {
+    border: 0;
+}
+
+.design-choice.selected {
+    background: #eee6f0;
+    border-color: #baabc2;
+}
+
+.design-choice image {
+    border-radius: 8rpx;
+    flex: none;
+    height: 80rpx;
+    width: 80rpx;
+}
+
+.design-choice text {
+    display: block;
+}

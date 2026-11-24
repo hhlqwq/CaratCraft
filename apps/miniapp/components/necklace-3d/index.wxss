@@ -3,7 +3,8 @@
 }
 
 .scene {
-    background: #e4dcd0;
+    background: #ede7eb;
+    border-radius: 20rpx;
     height: 560rpx;
     overflow: hidden;
     position: relative;
@@ -16,8 +17,11 @@
 }
 
 .loading {
-    background: #f8f5ee;
-    color: #37483a;
+    background: #fff;
+    border-radius: 14rpx;
+    text-align: center;
+    width: 80%;
+    color: #292337;
     font-size: 25rpx;
     left: 50%;
     padding: 12rpx;
@@ -27,7 +31,20 @@
 }
 
 .caption {
-    color: #526152;
+    color: #665a70;
     font-size: 22rpx;
     margin-top: 8rpx;
+}
+
+.view-reset {
+    background: #fff;
+    border-radius: 12rpx;
+    bottom: 14rpx;
+    color: #4d345b;
+    position: absolute;
+    right: 14rpx;
+}
+
+.view-reset::after {
+    border: 0;
 }

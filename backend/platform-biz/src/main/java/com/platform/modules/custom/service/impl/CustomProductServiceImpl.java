@@ -1,10 +1,13 @@
 package com.platform.modules.custom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.platform.modules.custom.dao.ComponentStockDao;
 import com.platform.modules.custom.dao.CustomComponentOptionDao;
 import com.platform.modules.custom.dao.CustomProductDao;
+import com.platform.modules.custom.entity.ComponentStockEntity;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
+import com.platform.modules.custom.service.ComponentRules;
 import com.platform.modules.custom.service.CustomProductService;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.entity.MallProductEntity;
@@ -22,6 +25,7 @@ import java.util.Map;
 public class CustomProductServiceImpl implements CustomProductService {
     private final CustomProductDao customProductDao;
     private final CustomComponentOptionDao componentOptionDao;
+    private final ComponentStockDao componentStockDao;
     private final MallGoodsService mallGoodsService;
     private final MallProductService mallProductService;
 
@@ -29,10 +33,12 @@ public class CustomProductServiceImpl implements CustomProductService {
     public CustomProductServiceImpl(
             CustomProductDao customProductDao,
             CustomComponentOptionDao componentOptionDao,
+            ComponentStockDao componentStockDao,
             MallGoodsService mallGoodsService,
             MallProductService mallProductService) {
         this.customProductDao = customProductDao;
         this.componentOptionDao = componentOptionDao;
+        this.componentStockDao = componentStockDao;
         this.mallGoodsService = mallGoodsService;
         this.mallProductService = mallProductService;
     }
@@ -67,8 +73,39 @@ public class CustomProductServiceImpl implements CustomProductService {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("product", product);
         result.put("options", options);
+        var referenceOptions = componentOptionDao.selectList(
+                new LambdaQueryWrapper<CustomComponentOptionEntity>()
+                        .eq(CustomComponentOptionEntity::getGoodsId, goodsId)
+                        .eq(CustomComponentOptionEntity::getEnabled, 0)
+                        .likeRight(CustomComponentOptionEntity::getOptionCode, "client-"))
+                .stream().filter(ComponentRules::isCatalogReference).toList();
+        result.put("referenceOptions", referenceOptions);
+        result.put("referenceImages", com.platform.modules.custom.service.CustomerMaterialCatalog.template(goodsId).get("referenceImages"));
+        result.put("availableInstances", availableInstances(goodsId, options));
         result.put("primaryProductId", primaryProductId);
         return result;
+    }
+
+    /** 查询启用材料的可追加库存件数, 正式报价和下单仍重新查库存. */
+    private Map<Long, Integer> availableInstances(
+            Integer goodsId, List<CustomComponentOptionEntity> options) {
+        Map<String, Integer> stock = new LinkedHashMap<>();
+        for (ComponentStockEntity row :
+                componentStockDao.selectList(
+                        new LambdaQueryWrapper<ComponentStockEntity>()
+                                .eq(ComponentStockEntity::getGoodsId, goodsId))) {
+            stock.put(row.getComponentType() + ":" + row.getOptionCode(), row.getStock());
+        }
+        Map<Long, Integer> availability = new LinkedHashMap<>();
+        for (CustomComponentOptionEntity option : options) {
+            int quantity = ComponentRules.parse(option.getMaterialParams()).quantity();
+            if (quantity > 0) {
+                int balance = java.util.Objects.requireNonNullElse(
+                        stock.get(ComponentRules.key(option)), 0);
+                availability.put(option.getId(), Math.max(0, balance / quantity));
+            }
+        }
+        return availability;
     }
 
     /** 使用当前定制模板和商城状态提供款式, 避免客户端依赖示例编号. */

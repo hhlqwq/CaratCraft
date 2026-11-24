@@ -1,4 +1,4 @@
-<button class="contact-entry" bindtap="open" aria-label="联系商家客服">客服</button>
+<button class="contact-entry {{inline ? 'contact-inline' : ''}}" bindtap="open" aria-label="联系商家客服">客服</button>
 <view wx:if="{{visible}}" class="contact-mask" bindtap="close"></view>
 <view wx:if="{{visible}}" class="contact-sheet" catchtap="stopPropagation">
     <view class="contact-heading"><text>{{contact.merchantName || '商家客服'}}</text><button class="close" bindtap="close">关闭</button></view>

@@ -41,7 +41,8 @@ def main():
             raise ValueError("客户候选目录与初始化种子不一致")
     else:
         TARGET.write_text(content, encoding="utf-8", newline="\n")
-    print("客户候选初始化一致: 112项, 默认停用、库存0")
+    count = len(json.loads(CATALOG.read_text("utf-8"))["options"])
+    print(f"客户候选初始化一致: {count}项, 默认停用、库存0")
 
 
 if __name__ == "__main__":

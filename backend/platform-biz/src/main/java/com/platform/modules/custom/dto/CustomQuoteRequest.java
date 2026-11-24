@@ -17,4 +17,6 @@ public class CustomQuoteRequest {
     private Long version;
     private java.math.BigDecimal neckCircumferenceMm;
     private java.math.BigDecimal targetLengthMm;
+    private java.math.BigDecimal layoutSpacingMm;
+    private java.math.BigDecimal layoutOffsetMm;
 }

@@ -38,23 +38,7 @@ test('重复材料插入复制调序删除保持实例顺序', () => {
     assert.deepEqual(arrangement.edit(added, 'right', 1), [1, 2, 1]);
     assert.deepEqual(arrangement.edit(added, 'remove', 0), [1, 2]);
     assert.deepEqual(arrangement.edit(added, 'clear', 0), []);
-    assert.throws(() => arrangement.edit(Array(300).fill(1), 'insert', 0, 1), /300/);
-});
-
-/** 相对直径由实测值决定, 不将缺失规格变成实际尺寸. */
-test('不同尺寸珍珠按相同比例展示, 缺失尺寸明确未知', () => {
-    const nodes = arrangement.preview(
-        [1, 2, 3],
-        [
-            {id: 1, name: '小珠', componentType: 'pearl', materialParams: '{"diameterMm":5}'},
-            {id: 2, name: '大珠', componentType: 'pearl', materialParams: '{"diameterMm":10}'},
-            {id: 3, name: '规格未定', componentType: 'pearl', materialParams: '{}'},
-        ]
-    );
-    assert.equal(nodes[1].diameter / nodes[0].diameter, 2);
-    assert.equal(nodes[2].known, false);
-    assert.equal(nodes[2].sizeMm, null);
-    assert.ok(nodes.every((node) => Number.isFinite(node.x) && Number.isFinite(node.y)));
+    assert.throws(() => arrangement.edit(Array(2048).fill(1), 'insert', 0, 1), /2048/);
 });
 
 /** 清空可撤回, 报价请求包含重复实例而不退回单选模型. */
@@ -74,7 +58,7 @@ test('编辑器清空撤回恢复完整排列并发送有序报价', async () =>
         },
         {showModal: (options) => options.success({confirm: true})}
     );
-    page.data.componentGroups = [{options: [{id: 1, name: '珍珠', componentType: 'pearl'}]}];
+    page.data.componentGroups = [{type: 'pearl', options: [{id: 1, name: '珍珠', componentType: 'pearl'}]}];
     await page.updateArrangement([1, 1], false);
     page.editInstance({currentTarget: {dataset: {action: 'clear'}}});
     assert.equal(page.data.arrangementOptionIds.length, 0);
@@ -233,7 +217,7 @@ test('四板块导航和购物车路由保持一致', () => {
 });
 
 /** 社区二维示意只从公开副本重建, 不需要原草稿或内部材料ID. */
-test('公开设计副本可以独立生成尺寸比例示意', () => {
+test('公开设计副本仅在详情创建只读三维材料', () => {
     const module = {exports: {}};
     vm.runInNewContext(fs.readFileSync(path.join(root, 'services/community.js'), 'utf8'), {
         module,
@@ -252,8 +236,9 @@ test('公开设计副本可以独立生成尺寸比例示意', () => {
             ],
         }),
         imagesJson: '["/upload/owned.png"]',
-    });
-    assert.equal(post.publicNodes.length, 2);
-    assert.equal(post.publicNodes[1].diameter / post.publicNodes[0].diameter, 2);
+    }, true);
+    assert.equal(post.publicOptionIds.length, 2);
+    const [first, second] = post.publicGroups[0].options;
+    assert.equal(JSON.parse(second.materialParams).diameterMm / JSON.parse(first.materialParams).diameterMm, 2);
     assert.equal(post.images[0], 'https://merchant.example/upload/owned.png');
 });

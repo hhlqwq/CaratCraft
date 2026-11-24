@@ -137,6 +137,22 @@ public class CustomConfigurationService {
                 throw new IllegalArgumentException("存在重复材料代码");
             }
         }
+        if (!replace && rows.stream().allMatch(ComponentRules::isCatalogReference)) {
+            Set<String> existing = new HashSet<>();
+            options.selectList(new LambdaQueryWrapper<CustomComponentOptionEntity>()
+                    .eq(CustomComponentOptionEntity::getGoodsId, product.getGoodsId()))
+                    .forEach(option -> existing.add(ComponentRules.key(option).toLowerCase(java.util.Locale.ROOT)));
+            for (CustomComponentOptionEntity row : rows) {
+                if (existing.add(ComponentRules.key(row).toLowerCase(java.util.Locale.ROOT))) {
+                    saveOption(row);
+                }
+            }
+            if (products.selectOne(new LambdaQueryWrapper<CustomProductEntity>()
+                    .eq(CustomProductEntity::getGoodsId, product.getGoodsId())) == null) {
+                saveProduct(product);
+            }
+            return;
+        }
         if (replace) {
             options.update(
                     null,
@@ -197,6 +213,13 @@ public class CustomConfigurationService {
             throw new IllegalArgumentException("材料价格超出范围或精度");
         }
         row.setEnabled(Integer.valueOf(0).equals(row.getEnabled()) ? 0 : 1);
+        if (row.getEnabled() == 1 && row.getMaterialParams() != null && !row.getMaterialParams().isBlank()) {
+            var params = com.platform.common.utils.JsonContract.object(row.getMaterialParams());
+            if (params instanceof com.fasterxml.jackson.databind.node.ObjectNode object && object.has("candidateOnly")) {
+                object.remove("candidateOnly");
+                row.setMaterialParams(object.toString());
+            }
+        }
         row.setZIndex(row.getZIndex() == null ? 0 : row.getZIndex());
     }
 

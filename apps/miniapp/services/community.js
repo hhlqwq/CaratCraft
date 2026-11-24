@@ -1,6 +1,5 @@
 const util = require('../utils/util.js');
 const api = require('../config/api.js');
-const necklace = require('./necklace-arrangement.js');
 
 /** 检查会话后导航登录, 公共浏览不强制登录. */
 function loggedIn() {
@@ -29,7 +28,7 @@ function request(path, data, method, json) {
 }
 
 /** 将JSON字段转为仅包含展示数据的对象, 图片只允许已审核站内或HTTPS地址. */
-function present(item) {
+function present(item, includeScene = false) {
     let images = [];
     let design = {};
     try {
@@ -43,7 +42,7 @@ function present(item) {
         /* 不显示损坏的设计副本. */
     }
     const parts = Array.isArray(design.arrangement) ? design.arrangement : [];
-    const options = parts.map(function (part, index) {
+    const options = includeScene ? parts.map(function (part, index) {
         return {
             id: index + 1,
             componentType: part.componentType,
@@ -52,9 +51,16 @@ function present(item) {
                 diameterMm: part.sizeMm,
                 spanMm: part.sizeMm,
                 lengthMm: part.sizeMm,
+                lengthRole: part.lengthRole,
+                axialMm: part.axialMm,
+                mountSpanMm: part.mountSpanMm,
+                claspRole: part.claspRole,
+                chainStyle: part.chainStyle,
+                shape: part.shape,
+                color: part.color,
             }),
         };
-    });
+    }) : [];
     return Object.assign({}, item, {
         kindText:
             {DESIGN: '设计分享', FINISHED: '成品分享', SUGGESTION: '改进建议'}[item.kind] || '分享',
@@ -72,12 +78,8 @@ function present(item) {
                 return /^\/upload\//.test(url) ? api.ApiOrigin + url : url;
             }),
         arrangement: parts,
-        publicNodes: necklace.preview(
-            options.map(function (option) {
-                return option.id;
-            }),
-            options
-        ),
+        publicOptionIds: options.map((option) => option.id),
+        publicGroups: options.length ? [{options}] : [],
     });
 }
 

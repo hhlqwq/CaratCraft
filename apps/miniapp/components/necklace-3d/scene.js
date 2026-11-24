@@ -1,9 +1,12 @@
-const INSTANCE_LIMIT = 96;
-const TRACK_STEPS = 192;
-const GAP_MM = 0.35;
-const TYPE_FIELDS = {pearl: 'diameterMm', chain: 'lengthMm', clasp: 'spanMm', accessory: 'spanMm'};
+const TRACK_STEPS = 512;
+const SIZE_FIELDS = {pearl: 'diameterMm', chain: 'lengthMm', clasp: 'spanMm', accessory: 'spanMm'};
 
-/** 保留商家提供的测量值, 缺失或无效时保留未知. */
+/** 只接受商家配置的有效尺寸, 未知尺寸保留为空. */
+function measure(value) {
+    return Number.isFinite(value) && value > 0 && value <= 3000 ? value : null;
+}
+
+/** 保留实例顺序和材料规格, 与业务排列共享同一组 ID. */
 function readMaterials(optionIds, groups) {
     const options = new Map();
     for (const group of groups) {
@@ -20,178 +23,235 @@ function readMaterials(optionIds, groups) {
         } catch (error) {
             params = {};
         }
-        const measured = params[TYPE_FIELDS[type]];
-        const sizeMm =
-            Number.isFinite(measured) && measured > 0 && measured <= 3000 ? measured : null;
+        const actualSize = measure(params[SIZE_FIELDS[type]]);
+        const rangeMax = type === 'pearl' && option?.referenceOnly ? measure(params.candidateDiameterMaxMm) : null;
+        const sizeMm = actualSize || rangeMax;
+        const hanging = (type === 'pearl' || type === 'accessory') && params.lengthRole === 'HANGING';
+        const spanMm = hanging ? measure(params.mountSpanMm) || sizeMm :
+            (type === 'pearl' ? measure(params.axialMm) || sizeMm : sizeMm);
         return {
-            index,
-            optionId,
-            type,
-            sizeMm,
-            hanging: type === 'accessory' && params.lengthRole === 'HANGING',
+            index, optionId, type, sizeMm, spanMm, hanging,
+            referenceOnly: Boolean(option?.referenceOnly),
+            extender: params.claspRole === 'EXTENDER' || option?.optionCode === 'client-extension',
+            chainStyle: params.chainStyle || '',
+            dropMm: measure(params.dropMm),
+            shape: params.shape || '',
+            color: params.color || params.variety || '',
+            metal: params.metal || params.material || option?.name || '',
+            claspStyle: params.claspStyle || option?.name || '',
         };
     });
 }
 
-/** 按现有二维语义把链身上的部件沿下弧从左到右排列. */
-function pointAt(t, width, height, z = 0) {
-    const angle = t * Math.PI * 2;
-    return [-width * Math.sin(angle) * (1 - 0.1 * Math.cos(angle)), height * Math.cos(angle), z];
-}
-
-/** 采集下弧距离, 为不同直径保留实际显示间距. */
-function arcTrack(width, height) {
+/** 构造连续中心线, 以等弧长定位全部材料和尾扣. */
+function createTrack(length) {
     const points = [];
     const distances = [0];
     for (let index = 0; index <= TRACK_STEPS; index++) {
-        const point = pointAt(0.28 + (0.44 * index) / TRACK_STEPS, width, height, 0.8);
-        if (index > 0) {
-            const [x, y] = points[index - 1];
-            distances.push(distances[index - 1] + Math.hypot(point[0] - x, point[1] - y));
+        const angle = (index * 2 * Math.PI) / TRACK_STEPS;
+        const point = [-Math.sin(angle), 1.16 * Math.cos(angle), 0];
+        if (index) {
+            const previous = points[index - 1];
+            distances.push(distances[index - 1] + Math.hypot(point[0] - previous[0], point[1] - previous[1]));
         }
         points.push(point);
     }
-    return {points, distances, length: distances[TRACK_STEPS]};
-}
+    const scale = length / distances[TRACK_STEPS];
 
-/** 通过累计距离定位位置, 保留原始逐项顺序. */
-function sample(track, distance) {
-    let low = 0;
-    let high = TRACK_STEPS;
-    while (high - low > 1) {
-        const mid = (low + high) >> 1;
-        if (track.distances[mid] <= distance) {
-            low = mid;
-        } else {
-            high = mid;
+    /** 在同一条闭合曲线上插值, 支持跨尾扣中心的区间. */
+    return function at(distance) {
+        const target = (((distance % length) + length) % length) / scale;
+        let low = 0;
+        let high = TRACK_STEPS;
+        while (high - low > 1) {
+            const middle = (high + low) >> 1;
+            if (distances[middle] <= target) {
+                low = middle;
+            } else {
+                high = middle;
+            }
         }
+        const fraction = (target - distances[low]) / (distances[high] - distances[low]);
+        return points[low].map((value, axis) => (value + fraction * (points[high][axis] - value)) * scale);
+    };
+}
+
+/** 从声明颜色选择示意色, 未声明的材料保持中性. */
+function pearlTint(color) {
+    if (/黑|灰|大溪地|black|grey|gray/i.test(color)) return [0.51, 0.55, 0.64];
+    if (/真多麻|银灰/i.test(color)) return [0.75, 0.85, 0.99];
+    if (/粉|橙|pink|orange/i.test(color)) return [1, 0.80, 0.84];
+    if (/金珠|羽黄金|黄|gold|yellow/i.test(color)) return [1, 0.88, 0.61];
+    if (/紫|purple|lavender/i.test(color)) return [0.92, 0.83, 1];
+    return [1, 1, 1];
+}
+
+/** 区分商家已声明的常见金属色, 未声明则显示中性金属. */
+function metalTint(metal) {
+    if (/玫瑰金|rose gold/i.test(metal)) return [1, 0.69, 0.53];
+    if (/黄金|18[Kk] 金|yellow gold/i.test(metal)) return [1, 0.82, 0.47];
+    return [0.90, 0.92, 0.96];
+}
+
+/** 依据实际配置区分线材、盒仔、肖邦及卡地亚链节, 兼容未标款式的普通链. */
+function chainMesh(item) {
+    const style = item?.chainStyle || '';
+    if (!item || /钢丝|棉线/.test(style)) return 'thread';
+    if (/盒仔/.test(style)) return 'box';
+    if (/肖邦/.test(style)) return 'chopin';
+    if (/卡地亚/.test(style)) return 'cartier';
+    return 'chain';
+}
+
+/** 将环线区间转换为相接的金属链环或连接线, 无材质叠盖. */
+function connect(parts, at, item, start, end, step) {
+    if (end - start < 0.01) return;
+    const count = Math.max(1, Math.ceil((end - start) / step));
+    const stride = (end - start) / count;
+    for (let index = 0; index < count; index++) {
+        const from = at(start + index * stride);
+        const to = at(start + (index + 1) * stride);
+        const dx = to[0] - from[0];
+        const dy = to[1] - from[1];
+        const span = Math.hypot(dx, dy);
+        const mesh = chainMesh(item);
+        parts.push({
+            index: item ? item.index : -1,
+            mesh,
+            material: item && !/棉线/.test(item.chainStyle || '') ? 1 : 3,
+            tint: metalTint(item?.metal),
+            point: [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, (from[2] + to[2]) / 2],
+            rotation: Math.atan2(dy, dx),
+            radius: span / (mesh === 'thread' ? 2 : 1.65),
+            pickRadius: Math.max(0.85, span / 2),
+            extent: span / 2,
+        });
     }
-    const fraction =
-        (distance - track.distances[low]) / (track.distances[high] - track.distances[low]);
-    return track.points[low].map(
-        (part, axis) => part + fraction * (track.points[high][axis] - part)
-    );
 }
 
-/** 计算各部件所占宽度, 只服务几何布局. */
-function occupied(items) {
-    return items.reduce((sum, item) => sum + item.span + GAP_MM, 0) - (items.length ? GAP_MM : 0);
-}
-
-/** 构建绘制部分, 保持其对应的业务实例索引及材质局限. */
-function makePart(item, mesh, point, radius, rotation = 0) {
-    return {
+/** 连接配饰挂点和主体, 挂点占位不等同于挂件外形. */
+function attachment(parts, item, anchor, radius) {
+    const drop = Math.min(2.5, radius * 0.6);
+    parts.push({
         index: item.index,
-        mesh,
-        point,
-        radius,
-        rotation,
-        material: mesh === 'pearl' ? 0 : item.sizeMm === null ? 2 : 1,
-    };
+        mesh: 'chain',
+        material: 1,
+        point: [anchor[0], anchor[1] - drop / 2, anchor[2]],
+        rotation: Math.PI / 2,
+        radius: drop / 1.65,
+        extent: drop,
+    });
+    return [anchor[0], anchor[1] - radius - drop, anchor[2]];
 }
 
-/** 用同一实例的若干通用链环覆盖对应链段, 不创建额外材料用量. */
-function chainParts(chains, width, height, opening) {
-    const parts = [];
-    const sum = chains.reduce((total, chain) => total + chain.span, 0);
-    const extra = Math.max(0, 36 - chains.length);
-    let start = opening;
-    for (const chain of chains) {
-        const portion = chain.span / sum;
-        const length = (1 - 2 * opening) * portion;
-        const count = 1 + Math.floor(extra * portion);
-        for (let index = 0; index < count; index++) {
-            const position = start + ((index + 0.5) / count) * length;
-            const point = pointAt(position, width, height, -1.1);
-            const offset = length / count / 4;
-            const a = pointAt(position - offset, width, height);
-            const b = pointAt(position + offset, width, height);
-            const span = Math.hypot(b[0] - a[0], b[1] - a[1]) * 2;
-            parts.push(
-                makePart(chain, 'chain', point, span * 0.65, Math.atan2(b[1] - a[1], b[0] - a[0]))
-            );
-        }
-        start += length;
-    }
-    return parts;
-}
-
-/** 由商家材料与唯一的排列 ID 生成只读预览, 无报价、库存和订单语义. */
-function previewScene(optionIds, groups) {
-    if (!optionIds.length || optionIds.length > INSTANCE_LIMIT) {
-        throw new Error('当前排列使用二维预览');
-    }
-    const materials = readMaterials(optionIds, groups);
-    const known = materials.filter((item) => item.sizeMm !== null && item.type !== 'chain');
-    // 示例尺度仅供缺参符号绘制, 不写回材料业务属性.
-    const symbol = known.length ? Math.min(10, Math.max(3, known[0].sizeMm * 0.75)) : 6;
-    const withSpan = materials.map((item) => ({
+/** 投影当前排列, 少量珠子居中, 串接部件占用的链线区间不再生成链环. */
+function previewScene(optionIds, groups, rules = {}, placement = {}) {
+    const items = readMaterials(optionIds, groups).map((item) => ({
         ...item,
-        span: item.sizeMm === null ? (item.type === 'chain' ? symbol * 20 : symbol) : item.sizeMm,
+        span: item.spanMm || (item.type === 'chain' ? 420 : item.hanging ? 4 : 7),
     }));
-    const chains = withSpan.filter((item) => item.type === 'chain');
-    const clasps = withSpan.filter((item) => item.type === 'clasp');
-    const pendants = withSpan.filter((item) => item.hanging);
-    const inline = withSpan.filter(
-        (item) => item.type !== 'chain' && item.type !== 'clasp' && !item.hanging
-    );
-    const inlineWidth = occupied(inline);
-    const claspWidth = occupied(clasps);
-    const pendantWidth = occupied(pendants);
-    const chainLength = chains.reduce((total, chain) => total + chain.span, 0);
-    // 环形场景半径只用于取景. 保留真实珠径比例, 不输出工艺或成品长度.
-    const width = Math.max(
-        symbol * 4.5,
-        inlineWidth * 0.46,
-        claspWidth * 0.9,
-        pendantWidth * 0.53,
-        chainLength / (2 * Math.PI * 1.06)
-    );
-    const height = width * 1.12;
-    const track = arcTrack(width, height);
-    const opening = claspWidth ? Math.min(0.13, claspWidth / (Math.PI * width * 4)) : 0;
-    const parts = chainParts(chains, width, height, opening);
-
-    let cursor = (track.length - inlineWidth) / 2;
-    for (const item of inline) {
-        const mesh = item.type === 'pearl' && item.sizeMm !== null ? 'pearl' : 'decoration';
-        parts.push(makePart(item, mesh, sample(track, cursor + item.span / 2), item.span / 2));
-        cursor += item.span + GAP_MM;
+    const chains = items.filter((item) => item.type === 'chain');
+    const clasps = items.filter((item) => item.type === 'clasp').sort((left, right) => Number(left.extender) - Number(right.extender));
+    const beads = items.filter((item) => item.type !== 'chain' && item.type !== 'clasp');
+    const spacing = Math.max(measure(rules.spacingMm) || 0, measure(placement.spacingMm) || 0);
+    const occupied = beads.reduce((total, item) => total + item.span, 0) + Math.max(0, beads.length - 1) * spacing;
+    const claspSpan = clasps.reduce((total, item) => total + item.span, 0);
+    const chainSpan = chains.reduce((total, item) => total + item.span, 0);
+    const useSum = rules.mode === 'SUM';
+    const inline = beads.filter((item) => !item.hanging);
+    const inlineLength = inline.reduce((total, item) => total + item.span, 0) +
+        Math.max(0, inline.length - 1) * spacing;
+    const usable = Math.max(occupied, chainSpan + (useSum ? inlineLength : 0), !chains.length && !beads.length ? 0 : 20);
+    if (!usable) {
+        return {parts: [], optionIds: optionIds.slice(), extent: 12, limitation: ''};
     }
-    cursor = -claspWidth / 2;
-    for (const item of clasps) {
-        parts.push(makePart(item, 'clasp', [cursor + item.span / 2, height, 0], item.span / 2));
-        cursor += item.span + GAP_MM;
-    }
-    const inlineRadius = inline.reduce((max, item) => Math.max(max, item.span / 2), 0);
-    cursor = -pendantWidth / 2;
-    for (const item of pendants) {
-        parts.push(
-            makePart(
-                item,
-                'decoration',
-                [cursor + item.span / 2, -height - inlineRadius - item.span / 2 - GAP_MM, 0.8],
-                item.span / 2
-            )
-        );
-        cursor += item.span + GAP_MM;
+    const at = createTrack(usable + claspSpan);
+    const start = claspSpan / 2;
+    const end = start + usable;
+    const maxOffset = (usable - occupied) / 2;
+    const offset = Math.max(-maxOffset, Math.min(maxOffset, Number(placement.offsetMm) || 0));
+    const bodyStart = start + maxOffset + offset;
+    const bodyEnd = bodyStart + occupied;
+    const parts = [];
+    const chainStep = Math.max(3.2, Math.max(chainSpan, usable - occupied) / 100);
+    let cusp = start - claspSpan;
+    for (const clasp of clasps) {
+        if (clasp.extender) {
+            connect(parts, at, clasp, cusp, cusp + clasp.span, 3.2);
+            cusp += clasp.span;
+            continue;
+        }
+        const center = cusp + clasp.span / 2;
+        const from = at(cusp);
+        const to = at(cusp + clasp.span);
+        parts.push({
+            index: clasp.index, mesh: /弹簧|spring/i.test(clasp.claspStyle) ? 'chain' : 'clasp',
+            material: clasp.sizeMm === null ? 2 : 1, tint: metalTint(clasp.metal),
+            point: at(center), radius: Math.hypot(to[0] - from[0], to[1] - from[1]) / 2,
+            rotation: Math.atan2(to[1] - from[1], to[0] - from[0]),
+        });
+        cusp += clasp.span;
     }
 
-    parts.sort((a, b) => a.index - b.index);
-    const extent =
-        parts.reduce(
-            (farthest, part) => Math.max(farthest, Math.hypot(...part.point) + part.radius),
-            12
-        ) * 1.06;
-    const unknown = materials.filter((item) => item.sizeMm === null).length;
+    /** 在金属链的剩余弧段分配实际链段顺序, 穿珠区只保留必要连接. */
+    function drawChain(from, to) {
+        if (!chains.length) {
+            connect(parts, at, null, from, to, 3);
+            return;
+        }
+        const chainDistance = from >= bodyEnd ? from - start - occupied : from - start;
+        const visible = usable - occupied;
+        let boundary = 0;
+        let cursor = from;
+        for (const chain of chains) {
+            boundary += (chain.span / chainSpan) * visible;
+            const segmentEnd = Math.min(to, from + Math.max(0, boundary - chainDistance));
+            if (segmentEnd > cursor) {
+                connect(parts, at, chain, cursor, segmentEnd, chainStep);
+                cursor = segmentEnd;
+            }
+        }
+    }
+
+    let cursor = bodyStart;
+    drawChain(start, cursor);
+    for (let index = 0; index < beads.length; index++) {
+        const item = beads[index];
+        const point = at(cursor + item.span / 2);
+        const radius = (item.sizeMm || item.span || 7) / 2;
+        parts.push({
+            index: item.index,
+            mesh: item.type === 'pearl' && item.sizeMm !== null ?
+                (/巴洛克|异形|baroque/i.test(item.shape) ? 'baroque' : 'pearl') : 'decoration',
+            material: item.sizeMm === null ? 2 : item.type === 'pearl' ? 0 : 1,
+            tint: pearlTint(item.color),
+            point: item.hanging ? attachment(parts, item, point, radius) : point,
+            radius,
+        });
+        if (item.hanging) {
+            connect(parts, at, chains[0], cursor, cursor + item.span, chainStep);
+        }
+        cursor += item.span;
+        if (index < beads.length - 1) {
+            connect(parts, at, chains[0], cursor, cursor + spacing, chainStep);
+            cursor += spacing;
+        }
+    }
+    drawChain(cursor, end);
+    const branch = chains.find((chain) => /^[Yy]字链/.test(chain.chainStyle));
+    if (branch) {
+        const anchor = at(start + usable / 2);
+        const drop = branch.dropMm || 24;
+        const down = (distance) => [anchor[0], anchor[1] - distance, anchor[2]];
+        connect(parts, down, branch, 0, drop, 3.2);
+    }
+    const extent = parts.reduce((max, part) => Math.max(max, Math.hypot(...part.point) + (part.extent || part.radius)), 12) * 1.08;
     return {
-        parts,
-        optionIds: optionIds.slice(),
-        extent,
-        limitation: unknown
-            ? '有 ' + unknown + ' 项缺少尺寸，以占位形状显示。材质为通用示意。'
-            : '款式和材质为通用示意，不代表实物或制作结果。',
+        parts, optionIds: optionIds.slice(), extent,
+        limitation: items.some((item) => item.referenceOnly || item.sizeMm === null || item.spanMm === null || (/^[Yy]字链/.test(item.chainStyle) && !item.dropMm))
+            ? '部分材料缺少实测尺寸或挂点尺寸，以示意形状展示。'
+            : '材质和颜色为预览示意，实物以商家资料为准。',
     };
 }
 
-module.exports = {readMaterials, previewScene, INSTANCE_LIMIT};
+module.exports = {readMaterials, previewScene};

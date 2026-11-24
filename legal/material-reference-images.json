@@ -1,0 +1,41 @@
+{
+    "notice": "作者授权的品种参考照片，按原来源缩略图保存，不作为具体销售商品或实测尺寸凭证。",
+    "references": [
+        {
+            "asset": "/static/images/material-reference/tahitian-cabmok.jpg",
+            "material": "大溪地",
+            "author": "Cabmok",
+            "license": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "source": "https://commons.wikimedia.org/wiki/File:Tahitian-pearls-gauguinspearl.jpg",
+            "thumbnail": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Tahitian-pearls-gauguinspearl.jpg/330px-Tahitian-pearls-gauguinspearl.jpg",
+            "sha256": "daa0c94be3549053759aa9014814a46ab016c9044d33f5bfa2ea5afff23bb2ae"
+        },
+        {
+            "asset": "/static/images/material-reference/akoya-mauro-cateb.jpg",
+            "material": "Akoya白色",
+            "author": "Mauro Cateb",
+            "license": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "source": "https://commons.wikimedia.org/wiki/File:Akoya_pearls.JPG",
+            "thumbnail": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Akoya_pearls.JPG/330px-Akoya_pearls.JPG",
+            "sha256": "09b83b3bad3af451e6f3cb56c71bb1e3b43b076d1c5aac11758412361add4137"
+        },
+        {
+            "asset": "/static/images/material-reference/baroque-w-carter.jpg",
+            "material": "巴洛克",
+            "author": "W.carter",
+            "license": "https://creativecommons.org/licenses/by/4.0/",
+            "source": "https://commons.wikimedia.org/wiki/File:Silver_clasp_on_a_pearl_necklace_with_cultured_baroque_saltwater_pearls.jpg",
+            "thumbnail": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a2/Silver_clasp_on_a_pearl_necklace_with_cultured_baroque_saltwater_pearls.jpg/330px-Silver_clasp_on_a_pearl_necklace_with_cultured_baroque_saltwater_pearls.jpg",
+            "sha256": "0f10d8fb6fc9c129fe3f899e4deda462dbd7c7423ef687433381b1e05b9e16f6"
+        },
+        {
+            "asset": "/static/images/material-reference/freshwater-w-carter.jpg",
+            "material": "淡水珍珠",
+            "author": "W.carter",
+            "license": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "source": "https://commons.wikimedia.org/wiki/File:White_Wedding_-_pearl_necklace.jpg",
+            "thumbnail": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ac/White_Wedding_-_pearl_necklace.jpg/330px-White_Wedding_-_pearl_necklace.jpg",
+            "sha256": "5e01fc7580fca986597981f57c1d3ebfc8fc0f65b882998d0bfcd943309ab8b8"
+        }
+    ]
+}

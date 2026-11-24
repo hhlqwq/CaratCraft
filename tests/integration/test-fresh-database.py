@@ -36,12 +36,12 @@ def verify(mysql, env):
     catalog = json.loads((ROOT / "backend/platform-biz/src/main/resources/catalog/customer-material-catalog.json").read_text("utf-8"))
     actual = sql("SELECT option_code,component_type,name,material_params,z_index,enabled,price_delta FROM CC_COMPONENT_OPTION WHERE goods_id=1999105 AND option_code LIKE 'client-%' ORDER BY option_code")
     rows = {row[0]: row[1:] for row in (line.split("\t") for line in actual.splitlines())}
-    checks["catalogExact"] = len(rows) == len(catalog["options"]) == 112
+    checks["catalogExact"] = len(rows) == len(catalog["options"]) == 113
     for expected in catalog["options"]:
         row = rows.get(expected["optionCode"])
         if row is None or [row[0], row[1], json.loads(row[2]), int(row[3]), int(row[4]), Decimal(row[5])] != [expected["componentType"], expected["name"], json.loads(expected["materialParams"]), expected["zIndex"], 0, 0]:
             checks["catalogExact"] = False
-    checks["candidateStockZero"] = sql("SELECT COUNT(*) FROM CC_COMPONENT_STOCK WHERE goods_id=1999105 AND option_code LIKE 'client-%' AND stock=0") == "112"
+    checks["candidateStockZero"] = sql("SELECT COUNT(*) FROM CC_COMPONENT_STOCK WHERE goods_id=1999105 AND option_code LIKE 'client-%' AND stock=0") == "113"
     spec = importlib.util.spec_from_file_location("encoding", ROOT / "tools/database/check-text-encoding.py")
     encoding = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(encoding)
@@ -79,7 +79,7 @@ def main():
         report = verify(mysql, env)
         report["verifiedDate"] = args.date
         (ROOT / "docs/资料/数据库初始化验证.json").write_text(json.dumps(report, ensure_ascii=False, indent=4) + "\n", "utf-8", newline="\n")
-        print("完整初始化、112项同源候选、46181条地区和全库Unicode检查通过", flush=True)
+        print("完整初始化、113项同源候选、46181条地区和全库Unicode检查通过", flush=True)
     finally:
         fixtures.close()
 

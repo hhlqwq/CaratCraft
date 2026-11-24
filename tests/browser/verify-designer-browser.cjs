@@ -8,7 +8,7 @@ const project = path.resolve(__dirname, '../../apps/miniapp');
 const route = './pages/designer/designer.wxml';
 
 /** 将官方编译的节点映射成可点击的页面, 不修改模板条件或事件绑定. */
-function mountBrowserFixture({designer, arrangement}) {
+function mountBrowserFixture({designer, arrangement, scripts}) {
     const {document} = globalThis;
     const status = document.querySelector('#status');
     const root = document.querySelector('#editor');
@@ -32,6 +32,19 @@ function mountBrowserFixture({designer, arrangement}) {
         },
         {id: 4, componentType: 'chain', name: '测试链条', materialParams: '{"lengthMm":440}'},
     ];
+    const loaded = new Map();
+    /** 在浏览器装配正式 WebGL 源码, 微信 Canvas 接口由浏览器 Canvas 承载. */
+    function loadRenderer(name) {
+        if (!loaded.has(name)) {
+            const module = {exports: {}};
+            loaded.set(name, module);
+            new Function('module', 'require', scripts[name])(module, loadRenderer);
+        }
+        return loaded.get(name).exports;
+    }
+    let renderer;
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'width:100%;height:265px;display:block;touch-action:none';
     let snapshot;
     let purchase;
     let page;
@@ -91,7 +104,7 @@ function mountBrowserFixture({designer, arrangement}) {
 
     /** 用固定尺寸和价格匹配测试任务, 服务端工艺由Java用例验证. */
     function quote(payload) {
-        const ready = payload.neckCircumferenceMm === 350 && payload.targetLengthMm === 450;
+        const ready = payload.targetLengthMm === 450 && payload.arrangementOptionIds.includes(2);
         const totalPrice = payload.arrangementOptionIds.reduce(
             (total, id) => total + (options.find((item) => item.id === id).priceDelta || 0),
             399
@@ -128,11 +141,40 @@ function mountBrowserFixture({designer, arrangement}) {
         });
     }
 
+    /** 挂载正式渲染器, 使用真实页面状态绘制并经真实拾取事件更新选中项. */
+    function drawPreview() {
+        if (!canvas.isConnected) {
+            renderer?.dispose();
+            renderer = null;
+            return;
+        }
+        if (!renderer) {
+            renderer = loadRenderer('./renderer.js').createRenderer(canvas);
+        }
+        renderer.fit(canvas.clientWidth, canvas.clientHeight, 1);
+        const state = page.data;
+        const materialScene = loadRenderer('./scene.js').previewScene(
+            state.arrangementOptionIds, state.componentGroups, state.lengthRules,
+            {spacingMm: state.layoutSpacingMm, offsetMm: state.layoutOffsetMm}
+        );
+        renderer.setScene(materialScene);
+        renderer.setSelection(state.activeIndex);
+        renderer.draw();
+        canvas.onclick = (event) => {
+            const index = renderer.select(2 * event.offsetX / canvas.clientWidth - 1,
+                1 - 2 * event.offsetY / canvas.clientHeight);
+            if (index >= 0) {
+                page.pickPreview({detail: {index, optionId: state.arrangementOptionIds[index]}});
+            }
+        };
+    }
+
     /** 适配浏览器的标签、表单状态和 rpx, 模板文字与显隐由 WCC 返回. */
     function renderNode(node) {
         if (typeof node !== 'object') {
             return document.createTextNode(String(node));
         }
+        if (node.tag === 'wx-necklace-3d' || node.tag === 'necklace-3d') return canvas;
         const tags = {
             'wx-button': 'button',
             'wx-image': 'img',
@@ -191,6 +233,7 @@ function mountBrowserFixture({designer, arrangement}) {
                 globalThis.queueMicrotask(() => {
                     pending = false;
                     root.replaceChildren(renderNode(renderWxml(page.data, {})));
+                    drawPreview();
                 });
             }
         };
@@ -227,7 +270,7 @@ async function main() {
         ['-o', compiled, route],
         {cwd: project}
     );
-    const browser = await chromium.launch({channel: 'msedge', headless: true});
+    const browser = await chromium.launch({channel: 'msedge', headless: true, args: ['--enable-unsafe-swiftshader']});
     try {
         const page = await browser.newPage({viewport: {width: 430, height: 1050}});
         await page.setContent(
@@ -243,17 +286,22 @@ async function main() {
         await page.addScriptTag({path: compiled});
         await page.evaluate(mountBrowserFixture, {
             designer: fs.readFileSync(path.join(project, 'pages/designer/designer.js'), 'utf8'),
+            scripts: Object.fromEntries(['geometry', 'materials', 'scene', 'renderer'].map((name) => ["./" + name + ".js", fs.readFileSync(path.join(project, 'components/necklace-3d', name + '.js'), 'utf8')])),
             arrangement: fs.readFileSync(
                 path.join(project, 'services/necklace-arrangement.js'),
                 'utf8'
             ),
         });
         await page.getByRole('button', {name: /隔离测试项链/}).click();
-        await page.locator('.node-placeholder').first().click();
+        await page.locator('canvas').first().waitFor();
+        await page.screenshot({path: path.join(evidence, 'stage2-empty-chain.png')});
+        await page.getByText('测试珍珠 6 mm', {exact: true}).click();
+        await page.getByRole('button', {name: '测试珍珠 6 mm', exact: true}).click();
         await page.getByText('测试珍珠 8 mm', {exact: true}).click();
         assert.deepEqual(await page.evaluate(() => globalThis.designerFixture.getOrder()), [2, 4]);
+        await page.screenshot({path: path.join(evidence, 'stage2-single-pearl.png')});
         await page.getByRole('button', {name: '在选中项后添加'}).click();
-        await page.getByText('配饰', {exact: true}).click();
+        await page.locator('.group-tab').getByText('配饰', {exact: true}).click();
         await page.getByText('测试配饰', {exact: true}).click();
         assert.deepEqual(
             await page.evaluate(() => globalThis.designerFixture.getOrder()),
@@ -271,7 +319,7 @@ async function main() {
             await page.evaluate(() => globalThis.designerFixture.getOrder()),
             [2, 3, 4]
         );
-        await page.getByText('¥ 429', {exact: true}).waitFor();
+        await page.getByText('当前报价 ¥ 429', {exact: true}).waitFor();
         await page.screenshot({path: path.join(evidence, 'stage3-diy-arrangement.png')});
         await page.evaluate(() => globalThis.designerFixture.setStockFailure(true));
         await page.getByText('测试配饰库存不足', {exact: true}).waitFor();
@@ -285,11 +333,11 @@ async function main() {
             [2, 3, 4]
         );
         await page.evaluate(() => globalThis.designerFixture.setStockFailure(false));
-        await page.getByText('尺寸与规则参考', {exact: true}).click();
-        await page.getByPlaceholder('选填, 未知请留空').fill('350');
-        await page.getByPlaceholder('选填', {exact: true}).fill('450');
-        await page.getByText('预计成品 450 mm', {exact: true}).waitFor();
-        await page.getByText('目标长度 450 mm', {exact: true}).waitFor();
+        await page.getByText('佩戴尺寸', {exact: true}).click();
+        await page.getByPlaceholder('选填, 未知请留空').fill('35');
+        await page.getByPlaceholder('选填', {exact: true}).fill('45');
+        await page.getByText('预计成品 45 cm', {exact: true}).waitFor();
+        await page.locator('.length-summary').getByText('45 cm', {exact: true}).last().waitFor();
         await page.screenshot({path: path.join(evidence, 'stage3-diy-sizing.png'), fullPage: true});
         await page.getByRole('button', {name: '下一步'}).click();
         await page.getByText(/checkoutId=isolated-checkout/).waitFor();

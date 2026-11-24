@@ -4,7 +4,7 @@
             type="info"
             :closable="false"
             show-icon
-            title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 配件和二维图层。"
+            title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 材料和素材。"
         ></el-alert>
         <el-alert
             type="warning"
@@ -283,11 +283,7 @@
                             ></el-input-number></el-form-item
                     ></el-col>
                     <el-col :xs="24" :sm="24" :lg="12"
-                        ><el-form-item label="2D 图层 URL"
-                            ><el-input
-                                v-model="option.assetUrl"
-                                placeholder="PNG/SVG 图片地址"
-                            ></el-input></el-form-item
+                        ><el-form-item label="材料图片"><el-img v-model="option.assetUrl" :disabled="writing" /></el-form-item>
                     ></el-col>
                 </el-row>
                 <el-row :gutter="18">
@@ -349,18 +345,54 @@
                                 clearable
                                 placeholder="实测尺寸, 未知留空" /></el-form-item
                     ></el-col>
-                    <el-col v-if="option.componentType === 'accessory'" :xs="24" :sm="12" :lg="12">
-                        <el-form-item label="配饰计长位置">
+                    <el-col v-if="option.componentType === 'accessory' || option.componentType === 'pearl'" :xs="24" :sm="12" :lg="12">
+                        <el-form-item label="材料连接方式">
                             <el-select
                                 v-model="ruleForm.lengthRole"
                                 clearable
                                 placeholder="请按实际工艺确认"
                             >
-                                <el-option value="INLINE" label="串接, 按实测跨度计长" />
-                                <el-option value="HANGING" label="悬挂, 不占项链周长" />
+                                <el-option value="INLINE" label="穿链或串接" />
+                                <el-option value="HANGING" label="垂挂，通过挂点连接" />
                             </el-select>
                         </el-form-item>
                     </el-col>
+                    <el-col v-if="option.componentType === 'clasp'" :xs="24" :sm="12">
+                        <el-form-item label="尾扣用途">
+                            <el-select v-model="ruleForm.claspRole" clearable placeholder="主尾扣或延长链">
+                                <el-option value="CLOSURE" label="主尾扣" />
+                                <el-option value="EXTENDER" label="延长链" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'pearl'" :xs="24" :sm="12">
+                        <el-form-item label="珍珠品种"><el-input v-model="ruleForm.variety" maxlength="30" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'pearl'" :xs="24" :sm="12">
+                        <el-form-item label="珍珠颜色"><el-input v-model="ruleForm.color" maxlength="30" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'pearl'" :xs="24" :sm="12">
+                        <el-form-item label="穿孔方向占长 mm"><el-input v-model="ruleForm.axialMm" inputmode="decimal" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'pearl' && ruleForm.lengthRole !== 'HANGING'" :xs="24" :sm="12">
+                        <el-form-item label="珍珠孔径 mm"><el-input v-model="ruleForm.holeDiameterMm" inputmode="decimal" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="ruleForm.lengthRole === 'HANGING'" :xs="24" :sm="12">
+                        <el-form-item label="挂点占长 mm"><el-input v-model="ruleForm.mountSpanMm" inputmode="decimal" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'chain'" :xs="24" :sm="12">
+                        <el-form-item label="链条款式"><el-input v-model="ruleForm.chainStyle" maxlength="30" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'chain' || option.componentType === 'clasp'" :xs="24" :sm="12">
+                        <el-form-item label="材质"><el-input v-model="ruleForm.material" maxlength="30" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'chain'" :xs="24" :sm="12">
+                        <el-form-item label="链或线的穿孔直径 mm"><el-input v-model="ruleForm.wireDiameterMm" inputmode="decimal" /></el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'chain' && ruleForm.chainStyle === 'Y字链'" :xs="24" :sm="12">
+                        <el-form-item label="Y 字垂段长度 mm"><el-input v-model="ruleForm.dropMm" inputmode="decimal" /></el-form-item>
+                    </el-col>
+
                     <el-col :xs="24" :sm="12" :lg="12"
                         ><el-form-item label="形状"
                             ><el-input
@@ -823,6 +855,16 @@ export default {
                     spanMm: rules.spanMm || null,
                     lengthMm: rules.lengthMm || null,
                     lengthRole: rules.lengthRole || null,
+                    claspRole: rules.claspRole ?? null,
+                    variety: rules.variety ?? null,
+                    color: rules.color ?? null,
+                    chainStyle: rules.chainStyle ?? null,
+                    material: rules.material ?? null,
+                    axialMm: rules.axialMm ?? null,
+                    mountSpanMm: rules.mountSpanMm ?? null,
+                    holeDiameterMm: rules.holeDiameterMm ?? null,
+                    wireDiameterMm: rules.wireDiameterMm ?? null,
+                    dropMm: rules.dropMm ?? null,
                     shape: rules.shape || '近正圆',
                     luster: rules.luster || '极光',
                     blemish: rules.blemish || '微瑕',
@@ -845,6 +887,16 @@ export default {
                     spanMm: this.measuredSize(this.ruleForm.spanMm),
                     lengthMm: this.measuredSize(this.ruleForm.lengthMm),
                     lengthRole: this.ruleForm.lengthRole || null,
+                    claspRole: this.ruleForm.claspRole || null,
+                    variety: this.ruleForm.variety || null,
+                    color: this.ruleForm.color || null,
+                    chainStyle: this.ruleForm.chainStyle || null,
+                    material: this.ruleForm.material || null,
+                    axialMm: this.measuredSize(this.ruleForm.axialMm),
+                    mountSpanMm: this.measuredSize(this.ruleForm.mountSpanMm),
+                    holeDiameterMm: this.measuredSize(this.ruleForm.holeDiameterMm),
+                    wireDiameterMm: this.measuredSize(this.ruleForm.wireDiameterMm),
+                    dropMm: this.measuredSize(this.ruleForm.dropMm),
                     shape: this.ruleForm.shape,
                     luster: this.ruleForm.luster,
                     blemish: this.ruleForm.blemish,
@@ -934,7 +986,7 @@ export default {
                     }
                     this.$confirm(
                         payload.replaceOptions === false
-                            ? '导入会更新模板及同代码材料, 保留其他材料和已有库存; 候选须核对后单独启用。是否继续？'
+                            ? '导入仅补充缺失的参考条目，保留原有模板、材料、图片、价格及库存。是否继续？'
                             : '导入将停用未出现的旧配件并更新同代码材料, 保留已有库存。是否继续？',
                         '导入确认',
                         {

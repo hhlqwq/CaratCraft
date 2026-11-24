@@ -3,18 +3,23 @@ const shaders = require('./materials.js');
 
 const SPREAD = 0.382;
 const VIEW_RADIUS = 75;
-const INITIAL_YAW = -0.1;
-const INITIAL_PITCH = 0.26;
+const INITIAL_YAW = 0;
+const INITIAL_PITCH = 0;
 const QUAD = [-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1];
 const MAX_DPR = 1.75;
 const PIXEL_BUDGET = 620000;
-const MAX_PARTS = 144;
+
 const MESHES = {
     pearl: geometry.pearlMesh,
     smallPearl: geometry.smallPearlMesh,
     decoration: geometry.charmMesh,
     clasp: geometry.genericClaspMesh,
     chain: geometry.linkMesh,
+    box: () => geometry.styledLinkMesh('box'),
+    chopin: () => geometry.styledLinkMesh('chopin'),
+    cartier: () => geometry.styledLinkMesh('cartier'),
+    baroque: geometry.baroqueMesh,
+    thread: geometry.threadMesh,
 };
 
 /** 创建单一 Canvas 的原生 WebGL 1 渲染器, 管理其全部 GPU 资源. */
@@ -149,14 +154,17 @@ function createRenderer(canvas) {
 
     /** 接收当前设计的显示投影, 复用所有 GPU 网格. */
     function setScene(next) {
-        if (next.parts.length > MAX_PARTS) {
-            throw new Error('超出 3D 绘制预算');
+        const required = next.parts.length * QUAD.length * 5 / 2;
+        if (required > shadowData.length) {
+            shadowData = new Float32Array(required);
+            upload(gl.ARRAY_BUFFER, scene.shadows, shadowData, gl.DYNAMIC_DRAW);
         }
         const unitScale = VIEW_RADIUS / next.extent;
         parts = next.parts.map((part) => ({
             ...part,
             point: part.point.map((coordinate) => coordinate * unitScale),
             radius: part.radius * unitScale,
+            pickRadius: part.pickRadius ? part.pickRadius * unitScale : undefined,
         }));
         pickedPart = null;
     }
@@ -204,7 +212,7 @@ function createRenderer(canvas) {
         let offset = 0;
         const yAxis = Math.max(0.3, Math.abs(matrix[8]));
         parts.forEach((pearl) => {
-            if (pearl.mesh === 'chain') {
+            if (pearl.mesh === 'chain' || pearl.mesh === 'thread') {
                 return;
             }
             const p = geometry.viewPoint(pearl.point, matrix, depth);
@@ -244,7 +252,7 @@ function createRenderer(canvas) {
             return;
         }
         if (typeof gl.isContextLost === 'function' && gl.isContextLost()) {
-            throw new Error('WebGL 上下文已丢失, 请重新打开样机');
+            throw new Error('WebGL 上下文已丢失, 请重试');
         }
         const matrix = geometry.rotation(yaw, pitch);
         const depth = distance / zoom;
@@ -265,7 +273,7 @@ function createRenderer(canvas) {
         gl.uniformMatrix4fv(uniforms.uProjection, false, projection);
         gl.uniformMatrix3fv(uniforms.uRotation, false, matrix);
         gl.uniform1f(uniforms.uDistance, depth);
-        const dense = parts.length > 42;
+        const dense = parts.filter((part) => part.mesh === 'pearl').length > 48;
         let boundMesh;
         parts.forEach((part) => {
             const mesh = dense && part.mesh === 'pearl' ? 'smallPearl' : part.mesh;
@@ -276,6 +284,7 @@ function createRenderer(canvas) {
             const turn = part.rotation || 0;
             gl.uniform2f(uniforms.uTurn, Math.cos(turn), Math.sin(turn));
             gl.uniform1f(uniforms.uMaterial, part.material);
+            gl.uniform3f(uniforms.uTint, ...(part.tint || [1, 1, 1]));
             gl.uniform3f(uniforms.uCenter, ...part.point);
             gl.uniform1f(uniforms.uRadius, part.radius);
             gl.uniform1f(uniforms.uSeed, part.index * 0.037);
@@ -372,6 +381,7 @@ function createRenderer(canvas) {
                     'uRadius',
                     'uDistance',
                     'uMaterial',
+                    'uTint',
                     'uSeed',
                     'uTurn',
                 ]
@@ -391,7 +401,7 @@ function createRenderer(canvas) {
             ),
         };
         upload(gl.ARRAY_BUFFER, scene.quad, new Float32Array(QUAD), gl.STATIC_DRAW);
-        shadowData = new Float32Array(MAX_PARTS * 6 * 5);
+        shadowData = new Float32Array(128 * 6 * 5);
         upload(gl.ARRAY_BUFFER, scene.shadows, shadowData, gl.DYNAMIC_DRAW);
         Object.entries(MESHES).forEach(([name, factory]) => {
             const mesh = {vertex: buffer(), index: buffer()};
@@ -402,7 +412,16 @@ function createRenderer(canvas) {
         dispose();
         throw error;
     }
-    return {fit, draw, rotate, scale, select, setScene, setSelection, dispose};
+    /** 恢复完整正面取景, 保留当前材料选中项. */
+    function resetView() {
+        yaw = INITIAL_YAW;
+        pitch = INITIAL_PITCH;
+        zoom = 1;
+        centerX = centerY = 0;
+        projection[8] = projection[9] = 0;
+    }
+
+    return {fit, draw, rotate, scale, select, setScene, setSelection, resetView, dispose};
 }
 
 module.exports = {createRenderer};

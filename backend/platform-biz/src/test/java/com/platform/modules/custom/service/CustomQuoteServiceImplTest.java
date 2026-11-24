@@ -123,7 +123,7 @@ class CustomQuoteServiceImplTest {
         CustomQuoteRequest request = request();
         request.setArrangementOptionIds(java.util.List.of());
         assertEquals(false, service.quote(request).get("checkoutReady"));
-        request.setArrangementOptionIds(java.util.Collections.nCopies(301, 1L));
+        request.setArrangementOptionIds(java.util.Collections.nCopies(2049, 1L));
         assertThrows(IllegalArgumentException.class, () -> service.quote(request));
         request.setArrangementOptionIds(Arrays.asList(1L, 2L));
         request.setOptionIds(Arrays.asList(1L, 2L));
@@ -152,6 +152,50 @@ class CustomQuoteServiceImplTest {
         assertEquals("微瑕", arranged.get(0).get("blemish"));
     }
 
+    /** 项链单独要求至少一颗珍珠并校验单扣, 草稿仍可保留原设计. */
+    @Test
+    void chainOnlyAndMultipleClaspsAreDraftOnly() {
+        var goods = goodsService.getById(10);
+        goods.setJewelryType("NECKLACE");
+        var product = new CustomProductEntity();
+        product.setRequiredComponentTypes("chain");
+        product.setLengthRules("{\"mode\":\"OVERLAY_MAX\",\"claspMm\":10,\"connectionMm\":0,"
+                + "\"lossMm\":0,\"toleranceMm\":5,\"minLengthMm\":300,\"maxLengthMm\":600}");
+        when(productDao.selectOne(any())).thenReturn(product);
+        var chain = option(1L, "chain", "20.00");
+        chain.setMaterialParams("{\"lengthMm\":440}");
+        var pearl = option(2L, "pearl", "10.00");
+        pearl.setMaterialParams("{\"diameterMm\":8}");
+        var clasp = option(3L, "clasp", "5.00");
+        clasp.setMaterialParams("{\"spanMm\":10}");
+        when(optionDao.selectList(any())).thenReturn(java.util.List.of(chain, pearl, clasp));
+        var request = request();
+        request.setTargetLengthMm(new BigDecimal("450"));
+        request.setArrangementOptionIds(java.util.List.of(1L, 3L));
+        assertEquals(false, service.quote(request).get("checkoutReady"));
+        request.setArrangementOptionIds(java.util.List.of(1L, 3L, 2L));
+        assertEquals(true, service.quote(request).get("checkoutReady"));
+        request.setArrangementOptionIds(java.util.List.of(1L, 3L, 2L, 3L));
+        assertEquals(false, service.quoteDraft(request).get("checkoutReady"));
+    }
+
+    /** 目录参考品允许组成草稿, 无法生成成交报价; 兼容延长链可以与主扣同用. */
+    @Test
+    void referenceMaterialsNeverBecomePurchasable() {
+        var reference = option(8L, "pearl", "0");
+        reference.setOptionCode("client-test-reference");
+        reference.setEnabled(0);
+        reference.setMaterialParams("{\"candidateOnly\":true}");
+        when(optionDao.selectList(any())).thenReturn(java.util.List.of(reference));
+        var request = request();
+        request.setArrangementOptionIds(java.util.List.of(8L));
+        assertEquals(true, service.quoteDraft(request).get("referencePreview"));
+        assertEquals(false, service.quote(request).get("checkoutReady"));
+        assertEquals(null, service.quote(request).get("totalPrice"));
+        reference.setOptionCode("merchant-disabled");
+        assertThrows(IllegalArgumentException.class, () -> service.quoteDraft(request));
+    }
+
     /** 创建报价请求 / Creates a quote request. */
     private CustomQuoteRequest request(Long... optionIds) {
         CustomQuoteRequest request = new CustomQuoteRequest();
@@ -164,6 +208,7 @@ class CustomQuoteServiceImplTest {
     private CustomComponentOptionEntity option(Long id, String type, String delta) {
         CustomComponentOptionEntity option = new CustomComponentOptionEntity();
         option.setId(id);
+        option.setEnabled(1);
         option.setComponentType(type);
         option.setPriceDelta(new BigDecimal(delta));
         return option;

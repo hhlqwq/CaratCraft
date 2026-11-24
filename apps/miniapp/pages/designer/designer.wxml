@@ -28,52 +28,33 @@
         <view class="stage-card">
             <view class="stage-head">
                 <view class="stage-title-row">
-                    <view class="stage-title">项链搭配预览</view>
-                    <text class="style-back" bindtap="changeStyle">换款</text>
+                    <view class="stage-title">编辑项链</view>
+                    <view class="stage-links"><merchant-contact inline="{{true}}" /><button class="style-back" bindtap="changeStyle">换款</button></view>
                 </view>
-                <view class="stage-price">¥ {{quoting ? '…' : (quote.totalPrice || '--')}}</view>
+                <view class="stage-price">当前报价 ¥ {{quoting ? '…' : (quote.totalPrice || '--')}}</view>
             </view>
-            <view class="preview-modes">
-                <button class="preview-mode {{!preview3d ? 'preview-mode-active' : ''}}" data-mode="2d" bindtap="changePreview">2D</button>
-                <button class="preview-mode {{preview3d ? 'preview-mode-active' : ''}}" data-mode="3d" bindtap="changePreview" disabled="{{!arrangementNodes.length}}">3D</button>
-                <text wx:if="{{previewNotice}}" role="status">{{previewNotice}}</text>
-            </view>
-            <necklace-3d wx:if="{{preview3d && arrangementNodes.length}}" option-ids="{{arrangementOptionIds}}" groups="{{componentGroups}}" selected="{{activeIndex}}"
-                         bindpick="pickPreview" bindunavailable="fallbackPreview" />
-            <view wx:else class="necklace-stage">
-                <image wx:if="{{stageChainImage}}" class="stage-chain" src="{{stageChainImage}}" mode="aspectFit" webp="{{true}}"></image>
-                <view wx:else class="necklace-guide"></view>
-                <view wx:if="{{!arrangementNodes.length}}" class="necklace-empty">点击下方材料, 开始搭配</view>
-                <block wx:for="{{arrangementNodes}}" wx:key="index">
-                    <image wx:if="{{item.onArc && item.image}}" class="node node-arc {{item.pearl ? 'node-pearl' : ''}} {{activeIndex === index ? 'node-active' : ''}}"
-                                style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
-                                src="{{item.image}}" mode="aspectFit" webp="{{true}}"
-                                data-index="{{index}}" bindtap="selectInstance"></image>
-                    <image wx:elif="{{item.hanging && item.image}}" class="node node-hanging {{activeIndex === index ? 'node-active' : ''}}"
-                                style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
-                                src="{{item.image}}" mode="aspectFit" webp="{{true}}"
-                                data-index="{{index}}" bindtap="selectInstance"></image>
-                    <view wx:elif="{{item.clasp}}" class="node node-clasp {{activeIndex === index ? 'node-active' : ''}}"
-                                style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
-                                data-index="{{index}}" bindtap="selectInstance">扣</view>
-                    <view wx:elif="{{item.onArc || item.hanging}}" class="node node-placeholder {{activeIndex === index ? 'node-active' : ''}}"
-                                style="left:{{item.x}}%;top:{{item.y}}%;width:{{item.diameter}}%;height:{{item.diameter}}%;"
-                                data-index="{{index}}" bindtap="selectInstance">{{item.pearl ? '珠' : '饰'}}</view>
-                    <text wx:elif="{{item.type === 'chain'}}" class="chain-choice {{activeIndex === index ? 'chain-choice-active' : ''}}"
-                                data-index="{{index}}" bindtap="selectInstance">链条</text>
-                </block>
-            </view>
+            <necklace-3d option-ids="{{arrangementOptionIds}}" groups="{{componentGroups}}"
+                        length-rules="{{lengthRules}}" spacing-mm="{{layoutSpacingMm}}" offset-mm="{{layoutOffsetMm}}" selected="{{activeIndex}}" bindpick="pickPreview" />
             <view class="length-summary">
-                <text>预计成品 {{quote.sizing.estimatedFinishedLengthMm ? quote.sizing.estimatedFinishedLengthMm + ' mm' : '待测算'}}</text>
-                <text>目标长度 {{targetLengthMm ? targetLengthMm + ' mm' : '未填写'}}</text>
+                <view><text>珍珠</text><text class="metric">{{pearlCount}} 颗</text></view>
+                <view><text>预计成品</text><text class="metric">{{estimatedLengthCm ? estimatedLengthCm + ' cm' : '待测算'}}</text></view>
+                <view><text>目标长度</text><text class="metric">{{targetCm ? targetCm + ' cm' : '未填写'}}</text></view>
             </view>
+            <view class="preview-disclaimer" wx:if="{{!arrangementNodes.length}}">先选择基础链条，再搭配珍珠。</view>
+            <view class="preview-disclaimer" wx:if="{{quote.sizing.capacityReady === false}}">{{quote.sizing.notice}}</view>
+            <view class="preview-disclaimer" wx:elif="{{quote.sizing.remainingCapacityMm != null}}">链身剩余容量 {{quote.sizing.remainingCapacityMm}} mm</view>
+            <scroll-view wx:if="{{arrangementNodes.length}}" scroll-x enhanced show-scrollbar="{{false}}" class="arrangement-list" aria-label="已选材料">
+                <button wx:for="{{arrangementNodes}}" wx:key="index" size="mini"
+                        class="instance {{activeIndex === index ? 'instance-active' : ''}}"
+                        data-index="{{index}}" bindtap="selectInstance">{{item.name}}</button>
+            </scroll-view>
             <view wx:if="{{activeIndex >= 0}}" class="active-bar">
                 <view class="active-name">已选第 {{activeIndex + 1}} 项 · {{activeName}}</view>
                 <view class="active-actions">
                     <text class="action" data-action="left" bindtap="editInstance" wx:if="{{activeIndex > 0}}">前移</text>
                     <text class="action" data-action="right" bindtap="editInstance" wx:if="{{activeIndex < arrangementNodes.length - 1}}">后移</text>
-                    <text class="action" data-action="copy" bindtap="editInstance">复制</text>
-                    <input class="copy-count" type="number" maxlength="3" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" />
+                    <text wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="action" data-action="copy" bindtap="editInstance">复制</text>
+                    <input wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="copy-count" type="number" maxlength="4" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" />
                     <text class="action danger" data-action="remove" bindtap="editInstance">删除</text>
                 </view>
             </view>
@@ -82,24 +63,27 @@
                 <text class="tool {{arrangementNodes.length && !saving ? '' : 'tool-disabled'}}" data-action="clear" bindtap="editInstance">清空</text>
                 <text class="tool" bindtap="toggleDetail">{{showDetail ? '收起明细' : '报价明细'}}</text>
             </view>
+            <view class="stage-tools" wx:if="{{pearlCount && activeGroupType === 'pearl'}}">
+                <text class="tool" data-action="space" bindtap="adjustPlacement" wx:if="{{pearlCount > 1}}">加大间距</text>
+                <text class="tool" data-action="left" bindtap="adjustPlacement">搭配左移</text>
+                <text class="tool" data-action="right" bindtap="adjustPlacement">搭配右移</text>
+                <text class="tool" data-action="reset" bindtap="adjustPlacement" wx:if="{{layoutSpacingMm || layoutOffsetMm}}">恢复居中紧排</text>
+            </view>
             <view wx:if="{{showDetail}}" class="detail-panel">
                 <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
                 <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}{{quote.lengthNotice ? '。' + quote.lengthNotice : ''}}</view>
             </view>
-            <view wx:if="{{dimensionNotice}}" class="preview-disclaimer">{{dimensionNotice}}</view>
-            <view wx:if="{{!preview3d}}" class="preview-disclaimer">效果为二维搭配示意, 不代表实物颜色和成品外观。</view>
         </view>
 
         <view class="material-card">
-            <view class="material-actions">
+            <view class="material-actions" wx:if="{{activeGroupType === 'pearl' || activeGroupType === 'accessory'}}">
                 <button class="mode-button {{editMode === 'replace' ? 'mode-active' : ''}}"
                             data-mode="replace" bindtap="setEditMode" disabled="{{activeIndex < 0 || saving}}">替换选中</button>
                 <button class="mode-button {{editMode === 'insert' ? 'mode-active' : ''}}"
                             data-mode="insert" bindtap="setEditMode" disabled="{{saving}}">{{activeIndex >= 0 ? '在选中项后添加' : '添加材料'}}</button>
+                <label class="add-count" wx:if="{{editMode === 'insert'}}">数量<input class="copy-count" type="number" maxlength="4" value="{{addCount}}" bindinput="changeAddCount" disabled="{{saving}}" /></label>
             </view>
-            <view class="material-hint">
-                {{activeIndex < 0 ? '点选预览中的珠子或配饰可修改。' : (editMode === 'insert' ? '选择要添加的材料。' : (activeGroupType === activeType ? '选择同类材料替换这一项。' : '请切换回同类材料，或选择添加。'))}}
-            </view>
+            <view class="material-hint">{{activeGroupType === 'chain' || activeGroupType === 'clasp' ? '点击材料直接切换。' : (editMode === 'replace' ? '点击同类材料替换选中项。' : '点击材料添加，或先填写数量。')}}</view>
             <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="group-tabs">
                 <view class="group-tab {{activeGroupType === group.type ? 'group-tab-active' : ''}}"
                             wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type"
@@ -107,13 +91,24 @@
                     {{group.name}}<text wx:if="{{group.required}}" class="required-mark">*</text>
                 </view>
             </scroll-view>
+            <scroll-view wx:if="{{materialVariants.length > 1}}" class="variant-strip"
+                        scroll-x enhanced show-scrollbar="{{false}}">
+                <button size="mini" class="instance {{!activeMaterialVariant ? 'instance-active' : ''}}"
+                        bindtap="selectMaterialVariant">全部</button>
+                <button wx:for="{{materialVariants}}" wx:key="*this" size="mini"
+                        class="instance {{activeMaterialVariant === item ? 'instance-active' : ''}}"
+                        data-variant="{{item}}" bindtap="selectMaterialVariant">{{item}}</button>
+            </scroll-view>
             <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="option-strip">
                 <view class="option {{option.selected ? 'option-selected' : ''}}"
                             wx:for="{{activeOptions}}" wx:for-item="option" wx:key="id"
                             data-id="{{option.id}}" data-type="{{activeGroupType}}" bindtap="selectOption">
                     <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
+                    <view wx:else class="option-placeholder">{{activeGroupName}}</view>
                     <view class="option-name">{{option.displayName}}</view>
-                    <view class="option-price">{{option.priceDelta > 0 ? '+¥' + option.priceDelta : '不加价'}}</view>
+                    <text wx:if="{{option.photoCredit}}" class="option-info" data-id="{{option.id}}" catchtap="referenceCredit">摄影出处</text>
+                    <view class="option-info">{{option.sizeLabel}}</view>
+                    <view class="option-price">{{option.referenceOnly ? '参考 · 待确认' : (option.priceDelta > 0 ? '+¥' + option.priceDelta : '不加价')}}</view>
                 </view>
             </scroll-view>
             <text wx:if="{{!activeGroupRequired && activeGroupHasSelection}}" class="clear-group"
@@ -123,23 +118,26 @@
         <view class="sizing-card">
             <view class="sizing-toggle" bindtap="toggleSizing">
                 <view>
-                    <view class="sizing-title">尺寸与规则参考</view>
-                    <view class="sizing-description">下单前需要校验实测颈围和目标长度</view>
+                    <view class="sizing-title">佩戴尺寸</view>
+                    <view class="sizing-description">可以实测颈围，也可直接填写目标长度</view>
                 </view>
                 <text class="sizing-icon">{{showSizing ? '收起' : '展开'}}</text>
             </view>
             <view wx:if="{{showSizing}}" class="sizing-panel">
+                <view class="measurement-guide">用软尺贴着颈部量一圈，保持自然松紧。想确认佩戴位置时，可用软绳围出目标长度试戴，再平放测量。</view>
+                <view class="neck-measure" aria-hidden="true"><view class="neck-outline"></view><view class="tape-line"></view><text>软尺水平绕颈一周</text></view>
                 <view class="sizing-fields">
-                    <label>实测颈围 mm<input type="digit" value="{{neckCircumferenceMm}}" data-field="neckCircumferenceMm" bindinput="changeSizing" placeholder="选填, 未知请留空" disabled="{{saving}}" /></label>
-                    <label>目标成品长度 mm<input type="digit" value="{{targetLengthMm}}" data-field="targetLengthMm" bindinput="changeSizing" placeholder="选填" disabled="{{saving}}" /></label>
+                    <label>实测颈围 cm<input type="digit" value="{{neckCm}}" data-field="neckCm" bindinput="changeSizing" placeholder="选填, 未知请留空" disabled="{{saving}}" /></label>
+                    <label>自定义长度 cm<input type="digit" value="{{targetCm}}" data-field="targetCm" bindinput="changeSizing" placeholder="选填" disabled="{{saving}}" /></label>
                 </view>
                 <picker range="{{referencePreferences}}" value="{{referencePreferenceIndex}}" bindchange="changeReferencePreference" disabled="{{saving}}">
                     <view class="reference-preference">长度偏好: {{referencePreferences[referencePreferenceIndex]}} <text>更改 ›</text></view>
                 </picker>
-                <button class="reference-action" bindtap="requestReference" loading="{{referenceLoading}}" disabled="{{referenceLoading || saving}}">{{referenceLoading ? '正在计算参考' : '查看规则参考'}}</button>
+                <button class="reference-action" bindtap="requestReference" loading="{{referenceLoading}}" disabled="{{referenceLoading || saving}}">{{referenceLoading ? '正在计算参考' : '查看长度参考'}}</button>
                 <view wx:if="{{referenceError}}" class="config-state error">{{referenceError}}</view>
                 <view wx:if="{{referenceResult}}" class="reference-result">
-                    <view class="reference-length">{{referenceResult.lengthsLabel ? '可比较长度 ' + referenceResult.lengthsLabel + ' cm' : '当前条件下无可比较长度'}}</view>
+                    <view class="reference-length">{{referenceResult.lengthsLabel ? '选择参考长度' : '当前条件下无可比较长度'}}</view>
+                    <button wx:for="{{referenceResult.lengthsMm}}" wx:key="*this" size="mini" data-mm="{{item}}" bindtap="applyReference">{{item / 10}} cm</button>
                     <view class="reference-reason">{{referenceResult.reason}}</view>
                     <view class="reference-note">{{referenceResult.notice}}</view>
                     <view class="reference-note">单项库存可用材料 {{referenceResult.materialCount}} 项: {{referenceResult.materialNames || '暂无可用材料'}}{{referenceResult.materialCount > 12 ? '（列出前12项）' : ''}}</view>
@@ -147,7 +145,8 @@
                 </view>
                 <view wx:if="{{quote.sizing}}">
                     <view class="reference-note">{{quote.sizing.notice}}</view>
-                    <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}" class="reference-note">商家工艺估算成品长度: {{quote.sizing.estimatedFinishedLengthMm}}mm</view>
+                    <view wx:if="{{wearingClearanceCm !== ''}}" class="reference-note">成品比实测颈围长 {{wearingClearanceCm}} cm，请用软绳试戴确认</view>
+                    <view wx:if="{{quote.sizing.estimatedFinishedLengthMm}}" class="reference-note">预计成品 {{estimatedLengthCm}} cm</view>
                 </view>
                 <input class="engraving" maxlength="20" placeholder="个性刻字（可选, 最多20字符）"
                             value="{{engraving}}" bindinput="changeEngraving" disabled="{{saving}}"></input>
@@ -161,9 +160,8 @@
         </view>
         <button class="secondary" bindtap="saveDraft" loading="{{saving}}"
                         disabled="{{saving}}">保存草稿</button>
+        <button class="secondary" bindtap="shareDesign" disabled="{{saving || quoting || !pearlCount || quoteError || quote.referencePreview}}">分享作品</button>
         <button class="primary" bindtap="submitDesign" loading="{{saving}}"
-                        disabled="{{quoting || quoteError || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
+                        disabled="{{quoting || quoteError || !pearlCount || !quote.totalPrice || quote.checkoutReady !== true || saving}}">下一步</button>
     </view>
 </view>
-
-<merchant-contact />

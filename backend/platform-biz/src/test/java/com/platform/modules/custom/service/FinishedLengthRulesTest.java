@@ -41,7 +41,7 @@ class FinishedLengthRulesTest {
         assertEquals(new BigDecimal("450"), result.get("estimatedFinishedLengthMm"));
     }
 
-    /** 缺少实测或商家规则仍可形成草稿数据, 但不能下单. */
+    /** 用户可使用自定义长度, 缺少商家规则或材料尺寸仍只能存草稿. */
     @Test
     void incompleteMeasurementsAndRulesStayDraftOnly() {
         assertEquals(
@@ -49,7 +49,7 @@ class FinishedLengthRulesTest {
                 FinishedLengthRules.evaluate(null, request(null, null), arrangement("200", "240"))
                         .get("ready"));
         assertEquals(
-                false,
+                true,
                 FinishedLengthRules.evaluate(RULES, request(null, "450"), arrangement("200", "240"))
                         .get("ready"));
         assertEquals(
@@ -125,6 +125,7 @@ class FinishedLengthRulesTest {
         var accessory = new LinkedHashMap<String, Object>();
         accessory.put("componentType", "accessory");
         accessory.put("lengthRole", "HANGING");
+        accessory.put("mountSpanMm", new BigDecimal("5"));
         var arrangement =
                 Map.<String, Object>of(
                         "arrangement",
@@ -141,6 +142,30 @@ class FinishedLengthRulesTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> ComponentRules.parse("{\"lengthRole\":\"guess\"}"));
+    }
+
+    /** 混径、异形连接、挂点和间距共同占用链身, 换短链重新校验. */
+    @Test
+    void measuresAvailableSpaceWithMixedAndHangingMaterials() {
+        String overlay = RULES.replace("SUM", "OVERLAY_MAX");
+        var request = request(null, "450");
+        request.setLayoutSpacingMm(new BigDecimal("2"));
+        request.setLayoutOffsetMm(new BigDecimal("5"));
+        Map<String, Object> irregular = item("pearl", "12");
+        irregular.put("axialMm", new BigDecimal("9"));
+        Map<String, Object> hanging = item("accessory", "30");
+        hanging.put("lengthRole", "HANGING");
+        hanging.put("mountSpanMm", new BigDecimal("3"));
+        var arrangement = Map.<String, Object>of("arrangement",
+                List.of(item("chain", "440"), item("pearl", "7"), irregular, hanging));
+        var result = FinishedLengthRules.evaluate(overlay, request, arrangement);
+        assertEquals(true, result.get("ready"));
+        assertEquals(new BigDecimal("407"), result.get("remainingCapacityMm"));
+        request.setLayoutOffsetMm(new BigDecimal("211"));
+        assertEquals(false, FinishedLengthRules.evaluate(overlay, request, arrangement).get("capacityReady"));
+        var tooShort = Map.<String, Object>of("arrangement",
+                List.of(item("chain", "8"), item("pearl", "7"), irregular));
+        assertEquals(false, FinishedLengthRules.evaluate(overlay, request, tooShort).get("capacityReady"));
     }
 
     /** 创建实测输入, 不使用任何AI估计字段. */

@@ -110,7 +110,7 @@ public class CommunityService {
             throw new IllegalArgumentException("分享类型无效");
         }
         String title = text(request.getTitle(), 1, 60, "标题");
-        String content = text(request.getContent(), 1, 2000, "内容");
+        String content = text(request.getContent(), "DESIGN".equals(request.getKind()) ? 0 : 1, 2000, "内容");
         Long count =
                 jdbc.queryForObject(
                         "SELECT COUNT(*) FROM CC_COMMUNITY_POST WHERE user_id=? AND"
@@ -164,6 +164,10 @@ public class CommunityService {
                 for (String key :
                         List.of(
                                 "position",
+                                "lengthRole",
+                                "claspRole",
+                                "axialMm",
+                                "mountSpanMm",
                                 "componentType",
                                 "name",
                                 "sizeMm",
@@ -173,6 +177,9 @@ public class CommunityService {
                     copy.put(key, line.get(key));
                 }
                 publicItems.add(copy);
+            }
+            if (publicItems.stream().noneMatch(item -> "pearl".equals(item.get("componentType")))) {
+                throw new IllegalArgumentException("分享设计至少需要一颗珍珠");
             }
             designJson = JSON.toJSONString(Map.of("arrangement", publicItems));
         } else if (request.getSnapshotId() != null) {

@@ -1,6 +1,7 @@
 const contacts = require('../../services/merchant-contact.js');
 
 Component({
+    properties: {inline: {type: Boolean, value: false}},
     data: {visible: false, loading: false, contact: {}, error: '', configured: false},
     lifetimes: {
         /** 记录组件存活状态, 防止迟到请求更新已经卸载的页面组件. */

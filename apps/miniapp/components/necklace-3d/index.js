@@ -22,13 +22,17 @@ Component({
         optionIds: {type: Array, value: []},
         groups: {type: Array, value: []},
         selected: {type: Number, value: -1},
+        readOnly: {type: Boolean, value: false},
+        lengthRules: {type: Object, value: {}},
+        spacingMm: {type: Number, value: 0},
+        offsetMm: {type: Number, value: 0},
     },
 
-    data: {loading: true, limitation: ''},
+    data: {loading: true, limitation: '', renderError: ''},
 
     observers: {
         /** 材料改动只更新 3D 投影, 不触发业务请求. */
-        'optionIds, groups'() {
+        'optionIds, groups, lengthRules, spacingMm, offsetMm'() {
             if (this.renderer) {
                 try {
                     this.applyScene();
@@ -39,7 +43,7 @@ Component({
             }
         },
 
-        /** 二维和材料面板选中后立即同步高亮. */
+        /** 材料面板选中后立即同步高亮. */
         selected(index) {
             if (this.renderer) {
                 this.renderer.setSelection(index);
@@ -88,12 +92,12 @@ Component({
     },
 
     methods: {
-        /** 首帧直接绘制, 画布查询无响应时通知页面恢复二维. */
+        /** 首帧直接绘制, 画布查询无响应时保留设计并提示重试. */
         start() {
             this.release();
             const attempt = {};
             this.attempt = attempt;
-            this.setData({loading: true});
+            this.setData({loading: true, renderError: ''});
             this.startup = setTimeout(() => {
                 if (this.attempt === attempt) {
                     this.unavailable(new Error('画布查询超时'));
@@ -137,7 +141,7 @@ Component({
 
         /** 将画面与实例索引配对, 保证选中事件对应当前排列. */
         applyScene() {
-            const result = previewScene(this.properties.optionIds, this.properties.groups);
+            const result = previewScene(this.properties.optionIds, this.properties.groups, this.properties.lengthRules || {}, {spacingMm: this.properties.spacingMm, offsetMm: this.properties.offsetMm});
             this.renderer.setScene(result);
             this.renderer.setSelection(this.properties.selected);
             this.renderedIds = result.optionIds;
@@ -148,7 +152,23 @@ Component({
         unavailable(error) {
             this.release();
             console.warn('[CaratCraft DIY 3D]', error.message);
+            this.setData({loading: false, renderError: '3D 预览暂不可用，请重试。'});
             this.triggerEvent('unavailable');
+        },
+
+        /** 保留当前设计并重新申请画布. */
+        retry() {
+            if (this.isReady && !this.hidden) {
+                this.start();
+            }
+        },
+
+        /** 恢复首屏视角, 保留当前选中实例. */
+        resetView() {
+            if (this.renderer) {
+                this.renderer.resetView();
+                this.queue();
+            }
         },
 
         /** 每帧合并触摸和编辑, 原生帧未回调时兜底. */
@@ -287,6 +307,7 @@ Component({
             }
             this.gesture = null;
             if (
+                this.properties.readOnly ||
                 g.moved ||
                 g.pinched ||
                 Date.now() - g.startedAt > 380 ||

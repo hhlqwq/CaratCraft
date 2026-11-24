@@ -97,3 +97,20 @@
     margin-bottom: 18rpx;
     background: #fff;
 }
+
+.contact-inline {
+    background: #fff;
+    border: 1rpx solid #e6e0e8;
+    border-radius: 12rpx;
+    color: #4d345b;
+    font-size: 24rpx;
+    line-height: 64rpx;
+    margin: 0;
+    min-width: 86rpx;
+    padding: 0 14rpx;
+    position: static;
+}
+
+.contact-inline::after {
+    border: 0;
+}

@@ -12,6 +12,7 @@
 - 当前发布索引列出12份需要随应用交付处理的对应Java库源码. 历史原文和源码仍保留在仓库. 微信支付 SDK 的[上游固定版本许可证](licenses/wechatpay-java-0.2.17/LICENSE)随发布材料提供.
 - 若旧MIT npm包未附独立LICENSE, 保留同版本官方MIT元数据、经完整性校验的原始发布包及标准MIT文本. 原包内版权声明原样保留, 不编造版权日期或把作者改为项目作者.
 - CSS内复制的normalize.css7.0.0另有MIT证据. ElementUI图标字体保留原已核验的2.15.10副本, 新组件运行代码使用Element Plus, 保留其MIT文本; 这些库字体不是项目自有字体.
+- [材料参考实拍来源](material-reference-images.json)记录每张参考图的作者、原始页面、许可与缩略图哈希. 图片用于识别品种, SKU售价及实测属性由商家确认.
 - [项目素材来源](project-assets.json)记录160个重新绘制的资源, 由`tools/assets/generate-project-assets.py`中的几何图形生成. 珠宝图片是标注DEMO的功能示意, 商家上线必须使用其有权发布的真实商品图与文案.
 
 源码原有BSD/Apache版权头保留, 包括只出现在法律声明里的历史名称. [源码声明集合](SOURCE-NOTICES.txt)同时随应用提供. 无关品牌的产品展示、推广、回调默认值和统计账号已清理. 许可材料中出现第三方名字不表示其为本项目提供背书.

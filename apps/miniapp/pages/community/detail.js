@@ -21,7 +21,7 @@ Page({
                 if (seq !== this._seq) {
                     return;
                 }
-                this.setData({post: community.present(post)});
+                this.setData({post: community.present(post, true)});
                 if (wx.getStorageSync('token')) {
                     return community
                         .request('states', [this.data.id], 'POST', true)

@@ -53,6 +53,7 @@ public final class CustomerMaterialCatalog {
                     catalog.path("notice").asText(),
                     "accessorySourceText",
                     catalog.path("accessorySourceText").asText(),
+                    "referenceImages", catalog.path("referenceImages"),
                     "sourceSha256",
                     catalog.path("sourceSha256").asText());
         } catch (IOException error) {

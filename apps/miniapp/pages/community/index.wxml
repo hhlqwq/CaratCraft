@@ -8,8 +8,6 @@
         <view data-id="{{item.id}}" bindtap="open"><view class="post-meta">{{item.kindText}} <text wx:if="{{mine}}"> · {{item.statusText}}</text></view><view class="post-title">{{item.title}}</view><view class="post-content">{{item.content}}</view>
             <view class="post-images"><image wx:for="{{item.images}}" wx:for-item="image" wx:key="*this" src="{{image}}" mode="aspectFill" /></view>
             <view wx:if="{{item.arrangement.length}}" class="design-summary">含公开材料排列 · {{item.arrangement.length}}个实例</view>
-            <view wx:if="{{item.publicNodes.length && item.publicNodes.length <= 100}}" class="public-necklace"><view class="public-guide"></view><view wx:for="{{item.publicNodes}}" wx:for-item="node" wx:key="index" class="public-node {{node.pearl ? 'public-pearl' : 'public-part'}}" style="left:{{node.x}}%;top:{{node.y}}%;width:{{node.diameter}}%;height:{{node.diameter}}%;"></view></view>
-            <view wx:if="{{item.arrangement.length}}" class="community-note">保存时的二维排列示意, 实物颜色与工艺以商家确认为准。点击查看完整材料顺序。</view>
         </view>
         <view wx:if="{{mine && item.moderationReason}}" class="moderation-note">审核说明: {{item.moderationReason}}</view>
         <view class="post-footer"><text>{{item.createTime}}</text><button wx:if="{{!mine || item.status === 'PUBLISHED'}}" size="mini" data-id="{{item.id}}" bindtap="like">{{item.liked ? '已赞' : '赞'}} {{item.likes}}</button><button wx:if="{{mine || item.owned}}" size="mini" data-id="{{item.id}}" bindtap="remove">删除</button></view>

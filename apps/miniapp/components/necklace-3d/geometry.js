@@ -198,6 +198,28 @@ function linkMesh() {
     return mesh;
 }
 
+/** 以独立链节截面展示实际款式, 共用链身路径和拾取. */
+function styledLinkMesh(style) {
+    const mesh = meshData();
+    const square = style === 'box';
+    const woven = style === 'chopin';
+    const width = style === 'cartier' ? 0.36 : 0.48;
+    for (let strand = 0; strand < (woven ? 2 : 1); strand++) {
+        const points = Array.from({length: 25}, (_, index) => {
+            const angle = (index * TAU) / 24;
+            const x = Math.cos(angle);
+            const y = Math.sin(angle);
+            if (square) {
+                return [0.77 * Math.sign(x) * Math.sqrt(Math.abs(x)), width * Math.sign(y) * Math.sqrt(Math.abs(y)), 0.1 * y];
+            }
+            return [0.77 * x, width * y, woven ? (strand === 0 ? 0.25 : -0.25) * Math.sin(angle * 2) : 0.12 * y];
+        });
+        appendTube(mesh, points, woven ? 0.12 : 0.14, 0.14, 6, true);
+    }
+    return mesh;
+}
+
+
 /** 归一化通用扣件几何, 由场景确定实际显示尺度. */
 function genericClaspMesh() {
     const mesh = claspMesh([-7, 0, 0], [7, 0, 0]);
@@ -245,11 +267,28 @@ function pick(pearls, matrix, depth, x, y, spread, aspect) {
     return selected;
 }
 
+/** 用克制的外形差异表示异形珍珠, 不推断单颗实物轮廓. */
+function baroqueMesh() {
+    const mesh = meshData();
+    appendSphere(mesh, [0, 0, 0], [1, 0.82, 0.88], 16, 24);
+    return mesh;
+}
+
+/** 生成连接用细线, 与链环共用相同中心线路径. */
+function threadMesh() {
+    const mesh = meshData();
+    appendTube(mesh, [[-1, 0, 0], [1, 0, 0]], 0.18, 0.18, 6);
+    return mesh;
+}
+
 module.exports = {
+    baroqueMesh,
+    threadMesh,
     pearlMesh,
     smallPearlMesh,
     charmMesh,
     linkMesh,
+    styledLinkMesh,
     genericClaspMesh,
     rotation,
     viewPoint,

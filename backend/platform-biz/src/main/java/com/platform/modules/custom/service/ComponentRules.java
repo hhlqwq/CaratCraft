@@ -36,7 +36,7 @@ public record ComponentRules(
             if (unit.isBlank() || unit.length() > 10) {
                 throw new IllegalArgumentException();
             }
-            for (String key : List.of("diameterMm", "spanMm", "lengthMm")) {
+            for (String key : List.of("diameterMm", "spanMm", "lengthMm", "axialMm", "mountSpanMm", "holeDiameterMm", "wireDiameterMm", "dropMm")) {
                 JsonNode value = root.path(key);
                 if (!value.isMissingNode() && !value.isNull()) {
                     if (!value.isNumber()) {
@@ -66,6 +66,10 @@ public record ComponentRules(
                             || !List.of("INLINE", "HANGING").contains(role.asText()))) {
                 throw new IllegalArgumentException();
             }
+            JsonNode claspRole = root.path("claspRole");
+            if (!claspRole.isMissingNode() && !claspRole.isNull() && !List.of("CLOSURE", "EXTENDER").contains(claspRole.asText())) {
+                throw new IllegalArgumentException();
+            }
             return new ComponentRules(
                     quantity,
                     unit,
@@ -74,6 +78,30 @@ public record ComponentRules(
         } catch (Exception failure) {
             throw new IllegalArgumentException("材料规则格式无效, 请检查单位、用量、尺寸、品质和搭配规则");
         }
+    }
+
+
+    /** 扩展链位于尾扣组, 但和主尾扣属于不同连接职责. */
+    public static boolean isExtender(CustomComponentOptionEntity option) {
+        if (!"clasp".equals(option.getComponentType())) {
+            return false;
+        }
+        return "EXTENDER".equals(parameters(option).path("claspRole").asText())
+                || "client-extension".equals(option.getOptionCode());
+    }
+
+    /** 只公开目录参考项, 常规停用材料继续从消费者选项中隐藏. */
+    public static boolean isCatalogReference(CustomComponentOptionEntity option) {
+        return Integer.valueOf(0).equals(option.getEnabled())
+                && option.getOptionCode() != null
+                && option.getOptionCode().startsWith("client-")
+                && parameters(option).path("candidateOnly").asBoolean(false);
+    }
+
+    /** 读取可选配置字段, 旧材料没有字段时沿用主尾扣等既有语义. */
+    private static JsonNode parameters(CustomComponentOptionEntity option) {
+        String json = option.getMaterialParams();
+        return JsonContract.object(json == null || json.isBlank() ? "{}" : json);
     }
 
     /** 配件稳定标识用于工艺规则, 与数据库自增ID和展示名解耦. */
@@ -92,6 +120,31 @@ public record ComponentRules(
             }
             if (!keys.containsAll(rules.required())) {
                 throw new IllegalArgumentException(option.getName() + "缺少商家要求的搭配材料");
+            }
+        }
+    }
+
+    /** 穿链与连续串接使用实际孔径校验, 垂挂件沿用商家配置的连接件约束. */
+    public static void validateFit(List<CustomComponentOptionEntity> selected) {
+        var carrier = selected.stream()
+                .filter(option -> "chain".equals(option.getComponentType()))
+                .map(option -> parameters(option).path("wireDiameterMm"))
+                .filter(JsonNode::isNumber)
+                .map(JsonNode::decimalValue)
+                .max(java.util.Comparator.naturalOrder());
+        if (carrier.isEmpty()) {
+            return;
+        }
+        for (CustomComponentOptionEntity option : selected) {
+            if (!"pearl".equals(option.getComponentType())) {
+                continue;
+            }
+            JsonNode params = parameters(option);
+            JsonNode hole = params.path("holeDiameterMm");
+            if (!"HANGING".equals(params.path("lengthRole").asText())
+                    && hole.isNumber()
+                    && hole.decimalValue().compareTo(carrier.get()) < 0) {
+                throw new IllegalArgumentException(option.getName() + "的孔径小于所选链材");
             }
         }
     }

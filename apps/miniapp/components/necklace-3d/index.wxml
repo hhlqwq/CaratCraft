@@ -2,6 +2,8 @@
     <canvas id="necklace-webgl" type="webgl" class="surface"
         bindtouchstart="begin" catchtouchmove="move" bindtouchend="end" bindtouchcancel="cancel"></canvas>
     <view wx:if="{{loading}}" class="loading" role="status">正在载入 3D 预览…</view>
+    <view wx:elif="{{renderError}}" class="loading" role="status">{{renderError}} <button bindtap="retry" size="mini">重试</button></view>
+    <button wx:else class="view-reset" bindtap="resetView" size="mini">复位视角</button>
 </view>
-<view class="caption">单指旋转 · 双指缩放 · 点选材料</view>
+<view class="caption">单指旋转 · 双指缩放{{readOnly ? '' : ' · 点选材料'}}</view>
 <view class="caption">{{limitation}}</view>

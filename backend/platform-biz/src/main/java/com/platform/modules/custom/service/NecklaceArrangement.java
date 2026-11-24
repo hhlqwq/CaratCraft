@@ -42,10 +42,16 @@ public final class NecklaceArrangement {
             item.put("name", option.getName());
             item.put("sizeMm", size);
             item.put("assetUrl", option.getAssetUrl());
-            if ("accessory".equals(option.getComponentType())) {
+            if (ComponentRules.isExtender(option)) {
+                item.put("claspRole", "EXTENDER");
+            }
+            if (pearl || "accessory".equalsIgnoreCase(option.getComponentType())) {
                 item.put("lengthRole", params.path("lengthRole").asText(null));
+                item.put("mountSpanMm", dimension(params, "mountSpanMm"));
             }
             if (pearl) {
+                BigDecimal axial = dimension(params, "axialMm");
+                item.put("axialMm", axial == null ? size : axial);
                 item.put(
                         "shape",
                         params.path("shape").asText(null) == null

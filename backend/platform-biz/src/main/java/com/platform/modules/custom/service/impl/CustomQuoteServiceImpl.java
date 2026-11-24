@@ -9,6 +9,7 @@ import com.platform.modules.custom.entity.ComponentStockEntity;
 import com.platform.modules.custom.entity.CustomComponentOptionEntity;
 import com.platform.modules.custom.entity.CustomProductEntity;
 import com.platform.modules.custom.service.CustomQuoteService;
+import com.platform.modules.custom.service.ComponentRules;
 import com.platform.modules.mall.entity.MallGoodsEntity;
 import com.platform.modules.mall.service.MallGoodsService;
 
@@ -79,8 +80,8 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         if (arranged && request.getOptionIds() != null && !request.getOptionIds().isEmpty()) {
             throw new IllegalArgumentException("不能同时提交排列和旧版选项");
         }
-        if (instanceIds != null && instanceIds.size() > 300) {
-            throw new IllegalArgumentException("单件设计最多300个材料实例");
+        if (instanceIds != null && instanceIds.size() > 2048) {
+            throw new IllegalArgumentException("排列请求超过2048项处理容量");
         }
         Map<Long, Integer> counts = new LinkedHashMap<>();
         if (instanceIds != null) {
@@ -102,8 +103,7 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         List<CustomComponentOptionEntity> options =
                 componentOptionDao.selectList(
                         new LambdaQueryWrapper<CustomComponentOptionEntity>()
-                                .eq(CustomComponentOptionEntity::getGoodsId, request.getGoodsId())
-                                .eq(CustomComponentOptionEntity::getEnabled, 1));
+                                .eq(CustomComponentOptionEntity::getGoodsId, request.getGoodsId()));
         Map<Long, CustomComponentOptionEntity> selected = new LinkedHashMap<>();
         Set<String> selectedTypes = new HashSet<>();
         for (Long optionId : counts.keySet()) {
@@ -113,12 +113,22 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
             CustomComponentOptionEntity option =
                     options.stream()
                             .filter(item -> item.getId().equals(optionId))
+                            .filter(item -> Integer.valueOf(1).equals(item.getEnabled()) || ComponentRules.isCatalogReference(item))
                             .findFirst()
                             .orElseThrow(() -> new IllegalArgumentException("包含无效的定制选项"));
             if (!selectedTypes.add(option.getComponentType()) && !arranged) {
                 throw new IllegalArgumentException("同类组件只能选择一个");
             }
             selected.put(optionId, option);
+        }
+        if (selected.values().stream().anyMatch(ComponentRules::isCatalogReference)) {
+            return Map.of(
+                    "goodsId", goods.getId(),
+                    "checkoutReady", false,
+                    "referencePreview", true,
+                    "sizing", Map.of(
+                            "ready", false,
+                            "notice", "设计含待核对材料，可保存草稿，确认库存、价格及工艺后再购买"));
         }
         try {
             return calculate(request, goods, customProduct, instanceIds, counts, selected);
@@ -202,7 +212,8 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
             optionTotal = optionTotal.add(unitPrice.multiply(BigDecimal.valueOf(instances)));
         }
         boolean requiredComplete = hasRequiredTypes(customProduct, selectedTypes);
-        com.platform.modules.custom.service.ComponentRules.validate(selectedOptions);
+        ComponentRules.validate(selectedOptions);
+        ComponentRules.validateFit(selectedOptions);
         BigDecimal totalPrice = basePrice.add(optionTotal);
         if (totalPrice.compareTo(new BigDecimal("0.01")) < 0) {
             throw new IllegalArgumentException("定制商品价格配置无效");
@@ -223,7 +234,24 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         Map<String, Object> sizing =
                 com.platform.modules.custom.service.FinishedLengthRules.evaluate(
                         customProduct.getLengthRules(), request, arrangement);
-        if (!requiredComplete) {
+        boolean necklace = "NECKLACE".equals(goods.getJewelryType());
+        long claspCount =
+                selected.values().stream()
+                        .filter(option -> "clasp".equals(option.getComponentType()) && !ComponentRules.isExtender(option))
+                        .mapToLong(option -> counts.get(option.getId()))
+                        .sum();
+        long extenderCount = selected.values().stream()
+                .filter(ComponentRules::isExtender).mapToLong(option -> counts.get(option.getId())).sum();
+        if (necklace && !selectedTypes.contains("pearl")) {
+            sizing.put("ready", false);
+            sizing.put("notice", "请至少添加一颗珍珠");
+        } else if (necklace && extenderCount > 0 && (claspCount != 1 || extenderCount > 1)) {
+            sizing.put("ready", false);
+            sizing.put("notice", "延长链须搭配一个兼容的主尾扣");
+        } else if (necklace && claspCount > 1) {
+            sizing.put("ready", false);
+            sizing.put("notice", "普通单股项链只能使用一个尾扣");
+        } else if (!requiredComplete) {
             sizing.put("ready", false);
             sizing.put("notice", "必选材料尚未补齐, 可以保存草稿后继续编辑");
         }
