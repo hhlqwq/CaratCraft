@@ -62,7 +62,7 @@ Page(
             readPage(
                 this,
                 'TopicRelated',
-                () => util.request(api.TopicRelated, {id: this.data.id}),
+                () => util.request(api.TopicRelated),
                 (res) => {
                     if (res.code === 0) {
                         this.setData({

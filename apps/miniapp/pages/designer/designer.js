@@ -226,7 +226,7 @@ Page({
         this.setData({loadingStyles: true, stylesError: ''});
         const current = () => sequence === this._stylesSeq && !this._unloaded;
         return util
-            .request(api.CustomizationStyles)
+            .request(api.CustomizationStyles, {}, 'GET')
             .then((res) => {
                 if (!current()) {
                     return;

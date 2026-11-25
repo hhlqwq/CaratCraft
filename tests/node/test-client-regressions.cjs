@@ -295,12 +295,13 @@ function designerFixture() {
         'apps/miniapp/pages/designer/designer.js',
         {
             '../../utils/util.js': {
-                request: (url, data) =>
+                request: (url, data, method) =>
                     new Promise((resolve, reject) => {
-                        requests.push({url, data, resolve, reject});
+                        requests.push({url, data, method, resolve, reject});
                     }),
             },
             '../../config/api.js': {
+                CustomizationStyles: '/styles',
                 CustomizationConfig: '/config',
                 CustomizationQuote: '/quote',
                 CustomizationReference: '/reference',
@@ -331,6 +332,19 @@ function designerFixture() {
         },
     };
 }
+
+/** 款式列表请求使用读取接口, 防止回退为默认 POST. */
+test('定制页使用 GET 加载款式', async () => {
+    const {page, requests} = designerFixture();
+    const pending = page.loadStyles();
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].url, '/styles');
+    assert.equal(requests[0].method, 'GET');
+    requests[0].resolve({code: 0, data: [{goodsId: 10}]});
+    await pending;
+    assert.equal(page.data.styles[0].goodsId, 10);
+    assert.equal(page.data.stylesError, '');
+});
 
 /** 规则参考仅发送毫米测量和偏好, 并发点击防重, 返回值不得修改设计或生产尺寸. */
 test('规则参考复用实测输入且不自动采用长度和材料', async () => {

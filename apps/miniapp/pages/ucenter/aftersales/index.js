@@ -41,7 +41,7 @@ Page({
         const page = this.data.page;
         this.setData({loading: true, error: ''});
         try {
-            const response = await util.request(api.RefundList, {page, limit: 20});
+            const response = await util.request(api.RefundList, {page, limit: 20}, 'GET');
             if (version !== this.requestVersion) {
                 return;
             }
