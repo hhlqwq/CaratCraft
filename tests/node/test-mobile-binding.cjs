@@ -48,14 +48,14 @@ function fixture() {
 
 /** 四位验证码被拒绝, 六位只提交一次并等待用户确认后跳转. */
 test('手机号绑定校验六位验证码并防重', async () => {
-    const {page, calls, messages, modals, switches} = fixture();
+    const {page, calls, modals, switches} = fixture();
     assert.equal(page._unloaded, false);
-    assert.equal(page.data.userInfo.nickname, '隔离用户');
+    assert.equal(page.data.formError, '');
     page.bindInputMobile({detail: {value: '138-0000-0000'}});
     page.setData({disableSubmitMobileCode: false});
     await page.bindLoginMobilecode({detail: {value: {code: '1234'}}});
     assert.equal(calls.length, 0);
-    assert.ok(messages.includes('请输入六位验证码'));
+    assert.equal(page.data.formError, '请输入六位验证码');
     const first = page.bindLoginMobilecode({detail: {value: {code: '123456'}}});
     const second = page.bindLoginMobilecode({detail: {value: {code: '123456'}}});
     assert.equal(calls.length, 1);
@@ -69,7 +69,7 @@ test('手机号绑定校验六位验证码并防重', async () => {
 
 /** 短信发送失败立即恢复按钮, 成功才启动倒计时. */
 test('手机号验证码失败恢复按钮且成功后倒计时', async () => {
-    const {page, calls, messages} = fixture();
+    const {page, calls} = fixture();
     page.setData({mobile: '13800000000'});
     const failed = page.countDownPassCode();
     assert.equal(page.data.sendingCode, true);
@@ -77,7 +77,7 @@ test('手机号验证码失败恢复按钮且成功后倒计时', async () => {
     await failed;
     assert.equal(page.data.sendingCode, false);
     assert.equal(page.data.disableGetMobileCode, false);
-    assert.ok(messages.includes('offline'));
+    assert.equal(page.data.formError, 'offline');
     const sent = page.countDownPassCode();
     calls[1].resolve({code: 0, data: '短信发送成功'});
     await sent;

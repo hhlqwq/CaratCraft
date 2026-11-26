@@ -6,10 +6,7 @@ Page({
     data: {
         mobile: '',
         mobileCode: '',
-        userInfo: {
-            avatar: '',
-            nickname: '',
-        },
+        formError: '',
         disableGetMobileCode: false,
         disableSubmitMobileCode: true,
         getCodeButtonText: '获取验证码',
@@ -22,7 +19,7 @@ Page({
         this._unloaded = false;
         const token = wx.getStorageSync('token') || '';
         this._session = {token};
-        this.setData({userInfo: app.globalData.userInfo || {}});
+        this.setData({formError: ''});
         if (!app.globalData.token && token) {
             app.globalData.token = token;
         }
@@ -67,21 +64,10 @@ Page({
 
     /** 校验国内手机号格式, 不合法时提示并阻止后续提交. */
     bindCheckMobile(mobile) {
-        if (!mobile) {
-            wx.showModal({
-                title: '错误',
-                content: '请输入手机号码',
-            });
-            return false;
-        }
-        if (!/^1[3-9]\d{9}$/.test(mobile)) {
-            wx.showModal({
-                title: '错误',
-                content: '手机号格式不正确，仅支持国内手机号码',
-            });
-            return false;
-        }
-        return true;
+        const formError = !mobile ? '请输入手机号码' :
+            (/^1[3-9]\d{9}$/.test(mobile) ? '' : '请输入有效的中国大陆手机号');
+        this.setData({formError});
+        return !formError;
     },
 
     /** 仅保留数字并同步手机号输入. */
@@ -91,13 +77,14 @@ Page({
             .slice(0, 11);
         this.setData({
             mobile,
+            formError: '',
             disableSubmitMobileCode: mobile !== this._issuedMobile,
         });
     },
 
     /** 同步验证码输入, 切换账号时可以清空输入框. */
     bindInputCode(event) {
-        this.setData({mobileCode: event.detail.value});
+        this.setData({mobileCode: event.detail.value, formError: ''});
     },
 
     /** 请求六位短信验证码并启动页面级倒计时, 失败立即恢复按钮. */
@@ -115,7 +102,7 @@ Page({
         if (!this.bindCheckMobile(mobile)) {
             return Promise.resolve(false);
         }
-        this.setData({sendingCode: true, disableGetMobileCode: true});
+        this.setData({sendingCode: true, disableGetMobileCode: true, formError: ''});
         return util
             .request(api.SmsCode, {phone: mobile}, 'POST', 'application/json')
             .then((res) => {
@@ -136,12 +123,7 @@ Page({
             })
             .catch((error) => {
                 if (this.isCurrentSession(session)) {
-                    this.setData({disableGetMobileCode: false});
-                    wx.showToast({
-                        title: error.message || '验证码发送失败',
-                        icon: 'none',
-                        duration: 2000,
-                    });
+                    this.setData({disableGetMobileCode: false, formError: error.message || '验证码发送失败'});
                 }
                 return false;
             })
@@ -196,7 +178,7 @@ Page({
         }
         const code = event && event.detail && event.detail.value ? event.detail.value.code : '';
         if (!/^[0-9]{6}$/.test(String(code || ''))) {
-            wx.showToast({title: '请输入六位验证码', icon: 'none'});
+            this.setData({formError: '请输入六位验证码'});
             return Promise.resolve(false);
         }
         const current = () => this.isCurrentSession(session);
@@ -229,11 +211,7 @@ Page({
             })
             .catch((error) => {
                 if (current()) {
-                    wx.showModal({
-                        title: '提示',
-                        content: error.message || '绑定失败',
-                        showCancel: false,
-                    });
+                    this.setData({formError: error.message || '绑定失败'});
                 }
                 return false;
             })

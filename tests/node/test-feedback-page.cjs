@@ -60,12 +60,28 @@ test('反馈校验类型正文和手机号', async () => {
     const f = fixture();
     await f.page.submitFeedback();
     assert.equal(f.calls.length, 0);
+    assert.equal(f.notices.at(-1), '请选择反馈类型');
+    f.page.setData({index: 1});
+    await f.page.submitFeedback();
+    assert.equal(f.notices.at(-1), '请输入 1 到 500 字的反馈内容');
     f.page.contentInput({detail: {value: '三个字', cursor: 0}});
     assert.equal(f.page.data.contentLength, 3);
     f.valid();
     f.page.setData({mobile: '123'});
     await f.page.submitFeedback();
     assert.equal(f.calls.length, 0);
+    assert.equal(f.notices.at(-1), '请输入有效的中国大陆手机号');
+});
+
+/** 电话为空仍提交反馈, 业务接口使用同一个请求体. */
+test('反馈不填电话也可提交', async () => {
+    const f = fixture();
+    f.page.setData({index: 1, content: '反馈', mobile: ''});
+    const result = f.page.submitFeedback();
+    assert.equal(f.calls.length, 1);
+    assert.equal(f.calls[0].data.mobile, '');
+    f.calls[0].resolve({code: 0});
+    assert.equal(await result, true);
 });
 
 /** 连点只发送一次, 失败保留输入且释放锁, 成功即清除当前输入. */

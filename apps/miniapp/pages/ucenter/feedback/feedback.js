@@ -22,9 +22,10 @@ Page(
             mobile: '',
         },
         /** 提交期间保持本次类型和正文不变. */
-        bindPickerChange(event) {
-            if (!this.data.actionBusy) {
-                this.setData({index: Number(event.detail.value)});
+        selectFeedbackType(event) {
+            const index = Number(event.currentTarget.dataset.type);
+            if (!this.data.actionBusy && Number.isInteger(index) && index > 0 && index < this.data.array.length) {
+                this.setData({index});
             }
         },
         /** 保存当前联系方式, 写入期间不修改正在提交的输入. */
@@ -47,15 +48,16 @@ Page(
             const index = Number(this.data.index);
             const content = this.data.content.trim();
             const mobile = this.data.mobile.trim();
-            if (
-                !Number.isInteger(index) ||
-                index < 1 ||
-                index > 7 ||
-                !content ||
-                content.length > 500 ||
-                !/^1[3-9]\d{9}$/.test(mobile)
-            ) {
-                util.showErrorToast('请选择反馈类型, 填写1到500字正文和有效手机号');
+            if (!Number.isInteger(index) || index < 1 || index > 7) {
+                util.showErrorToast('请选择反馈类型');
+                return Promise.resolve(false);
+            }
+            if (!content || content.length > 500) {
+                util.showErrorToast('请输入 1 到 500 字的反馈内容');
+                return Promise.resolve(false);
+            }
+            if (mobile && !/^1[3-9]\d{9}$/.test(mobile)) {
+                util.showErrorToast('请输入有效的中国大陆手机号');
                 return Promise.resolve(false);
             }
             return performPageAction(this, {

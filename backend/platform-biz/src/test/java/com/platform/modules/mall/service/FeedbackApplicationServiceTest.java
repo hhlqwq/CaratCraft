@@ -63,6 +63,19 @@ class FeedbackApplicationServiceTest {
         assertEquals(0, row.getStatus());
     }
 
+    /** 未填写联系电话时使用数据库现有的空字符串表示. */
+    @Test
+    void acceptsFeedbackWithoutPhone() {
+        var dao = mock(MallFeedbackDao.class);
+        when(dao.insert(any(MallFeedbackEntity.class))).thenReturn(1);
+        var request = request();
+        request.setMobile(null);
+        new FeedbackApplicationService(dao).submit(7L, "用户", request);
+        var captured = ArgumentCaptor.forClass(MallFeedbackEntity.class);
+        verify(dao).insert(captured.capture());
+        assertEquals("", captured.getValue().getMobile());
+    }
+
     /** 写入失败不向用户报告成功. */
     @Test
     void failedInsertDoesNotReportSuccess() {

@@ -1,24 +1,27 @@
-<view class="userinfo">
-    <image class="userinfo-avatar" src="{{userInfo.avatar}}" background-size="cover"></image>
-    <text class="userinfo-nickname">{{userInfo.nickname}}</text>
-</view>
-
-<view class="separate"></view>
-
-<view>
-    <view>
-        <view class="login-title">关联手机号</view>
-        <form bindsubmit="bindLoginMobilecode">
-            <view class="login">
-                <view class="first-line"><input type="number" name="mobile" bindinput="bindInputMobile" placeholder="输入手机号" value="{{mobile}}" maxlength="11" auto-focus/></view>
-                <view class="second-line">
-                    <input type="number" name="code" bindinput="bindInputCode" value="{{mobileCode}}" placeholder="六位验证码" maxlength="6"/>
-                    <button type="default" bindtap="countDownPassCode" disabled="{{disableGetMobileCode}}">{{getCodeButtonText}}</button>
+<view class="service-form">
+    <view class="service-title">绑定手机号</view>
+    <view class="service-description">绑定后可完善账号资料。</view>
+    <form bindsubmit="bindLoginMobilecode">
+        <view class="service-card">
+            <view class="service-field">
+                <text class="service-label">手机号码</text>
+                <input class="service-input" type="number" name="mobile" maxlength="11" value="{{mobile}}"
+                       bindinput="bindInputMobile" placeholder="输入 11 位手机号" placeholder-class="service-placeholder"
+                       disabled="{{sendingCode || submitting}}" />
+            </view>
+            <view class="service-field">
+                <text class="service-label">短信验证码</text>
+                <view class="mobile-code-row">
+                    <input class="service-input" type="number" name="code" maxlength="6" value="{{mobileCode}}"
+                           bindinput="bindInputCode" placeholder="输入 6 位验证码" placeholder-class="service-placeholder"
+                           disabled="{{sendingCode || submitting}}" />
+                    <button class="send-code" bindtap="countDownPassCode" loading="{{sendingCode}}"
+                            disabled="{{disableGetMobileCode || submitting}}">{{getCodeButtonText}}</button>
                 </view>
             </view>
-            <view class="third-line"><button formType="submit" disabled="{{disableSubmitMobileCode || submitting}}">{{submitting ? '提交中...' : '提交'}}</button></view>
-        </form>
-    </view>
+            <view wx:if="{{formError}}" class="mobile-form-error">{{formError}}</view>
+        </view>
+        <button class="service-action" form-type="submit" loading="{{submitting}}"
+                disabled="{{disableSubmitMobileCode || submitting || sendingCode}}">确认绑定</button>
+    </form>
 </view>
-
-<merchant-contact />
