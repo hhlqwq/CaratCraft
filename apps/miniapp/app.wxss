@@ -90,3 +90,14 @@ textarea {
     border-radius: 2rpx;
     color: #fff;
 }
+
+.catalog-contact {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12rpx 24rpx;
+}
+.no-reviews {
+    padding: 24rpx;
+    color: #5c675f;
+    font-size: 25rpx;
+}

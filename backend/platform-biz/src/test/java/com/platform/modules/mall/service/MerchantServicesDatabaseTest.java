@@ -61,7 +61,6 @@ class MerchantServicesDatabaseTest {
         assertEquals("", contact.phone());
         assertEquals("", contact.wechatId());
         assertEquals("", contact.qrUrl());
-        assertFalse(contact.wxChatEnabled());
     }
 
     /** 保存与记录使用同一版本, 迟到编辑不能覆盖已保存资料. */
@@ -123,14 +122,14 @@ class MerchantServicesDatabaseTest {
                 IllegalArgumentException.class,
                 () ->
                         contacts.save(
-                                new MerchantContactService.Contact("", "+++++", "", "", false, 0),
+                                new MerchantContactService.Contact("", "+++++", "", "", 0),
                                 "operator"));
         assertThrows(
                 IllegalArgumentException.class,
                 () ->
                         contacts.save(
                                 new MerchantContactService.Contact(
-                                        "", "", "https://wrong.invalid", "", false, 0),
+                                        "", "", "https://wrong.invalid", "", 0),
                                 "operator"));
         assertThrows(
                 IllegalArgumentException.class,
@@ -200,7 +199,7 @@ class MerchantServicesDatabaseTest {
     /** 模拟经营者表单, 测试资料不会写入业务库或实际发布为客服. */
     private MerchantContactService.Contact contact(int version, String qr) {
         return new MerchantContactService.Contact(
-                "测试商家", "01012345678", "owned_wechat", qr, false, version);
+                "测试商家", "01012345678", "owned_wechat", qr, version);
     }
 
     /** 在同一测试事务插入独立订单及售后记录, 使用数据库生成的标识避免冲突. */

@@ -110,11 +110,16 @@ test('客服组件保留未配置状态并忽略卸载后的响应', async () =>
     assert.equal(updates, before);
 });
 
-/** 所有已注册页面都保留显眼客服入口, 包括独立售后中心. */
-test('全部注册页面包含统一客服组件', () => {
+/** 只在有业务需要的页面显示统一客服, 账户和社区编辑场景保留操作空间. */
+test('客服入口按业务页面显示', () => {
     const app = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8'));
     assert.equal(app.usingComponents['merchant-contact'], '/components/merchant-contact/index');
     assert.ok(app.pages.includes('pages/ucenter/aftersales/index'));
+    const supported = new Set([
+        'pages/catalog/catalog', 'pages/designer/designer', 'pages/goods/goods',
+        'pages/ucenter/aftersales/index', 'pages/ucenter/index/index',
+        'pages/ucenter/order/order', 'pages/ucenter/orderDetail/orderDetail',
+    ]);
     for (const route of app.pages) {
         for (const extension of ['js', 'json', 'wxml', 'wxss']) {
             assert.ok(
@@ -122,11 +127,9 @@ test('全部注册页面包含统一客服组件', () => {
                 route + '.' + extension
             );
         }
-        assert.match(
-            fs.readFileSync(path.join(root, route + '.wxml'), 'utf8'),
-            /<merchant-contact\s*\/>/,
-            route
-        );
+        const markup = fs.readFileSync(path.join(root, route + '.wxml'), 'utf8');
+        assert.equal(/<merchant-contact\s+inline=/.test(markup), supported.has(route), route);
+        assert.doesNotMatch(markup, /open-type="contact"/);
     }
 });
 

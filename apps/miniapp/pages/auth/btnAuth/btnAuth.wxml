@@ -1,11 +1,13 @@
-<view class="page">
-    <view class="hd"><image class="logo" src="/static/images/logo.png" /><view class="title">欢迎使用克拉匠造</view></view>
-    <view class="bd"><text class="m_name">使用微信身份登录, 昵称和头像可稍后自愿填写</text><text class="s_name">请先阅读用户协议与隐私政策, 未同意时仍可浏览商城.</text>
+<view class="service-form sign-in">
+    <view class="sign-in-brand">
+        <image class="sign-in-logo" src="/static/images/logo.png" mode="aspectFit" />
+        <text>CaratCraft · 克拉匠造</text>
+    </view>
+    <view class="service-title">登录克拉匠造</view>
+    <view class="service-description">登录后可保存自己的设计、查看订单和分享作品。</view>
+    <view class="service-card sign-in-card">
         <legal-consent bindchange="consentChanged" />
-        <navigator url="/pages/ucenter/legal/index">查看全部协议与隐私说明</navigator>
+        <button class="service-action" disabled="{{!legalAcceptance || saving}}" loading="{{saving}}" bindtap="confirmLogin">使用微信登录</button>
     </view>
-    <view class="btn spacing">
-        <button bindtap="confirmLogin" disabled="{{!legalAcceptance || saving}}" loading="{{saving}}" class="weui_btn weui_btn_primary">微信登录</button>
-    </view>
+    <navigator class="guest-entry" open-type="switchTab" url="/pages/index/index">先去逛逛</navigator>
 </view>
-<merchant-contact />

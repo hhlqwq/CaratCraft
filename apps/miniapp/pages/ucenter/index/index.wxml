@@ -14,10 +14,7 @@
             <text class="txt">{{ item.title }}</text>
         </navigator>
 
-        <button class="menu-item contact-btn" open-type="contact">
-            <view class="icon-badge">服</view>
-            <text class="txt">联系客服</text>
-        </button>
+        <view class="menu-item contact-btn"><merchant-contact inline="{{true}}" /></view>
 
         <navigator wx:if="{{!hasMobile}}" class="menu-item" url="/pages/auth/mobile/mobile">
             <view class="icon-badge">绑</view>
@@ -43,5 +40,3 @@
         </view>
     </view>
 </view>
-
-<merchant-contact />

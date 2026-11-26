@@ -18,5 +18,3 @@
 
     <button class="pay-btn" bindtap="startPay" loading="{{paying}}" disabled="{{loading || paying || !payable}}">确认支付</button>
 </view>
-
-<merchant-contact />

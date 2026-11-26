@@ -1,10 +1,30 @@
 .legal-consent {
-    padding: 24rpx 0;
+    color: #26312d;
     font-size: 26rpx;
-    line-height: 1.7;
-    color: #183d35;
+    line-height: 1.5;
+}
+.legal-confirm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10rpx;
+}
+.legal-label {
+    display: flex;
+    align-items: center;
+    gap: 5rpx;
+}
+.legal-label checkbox {
+    transform: scale(0.78);
+    transform-origin: left center;
+    margin-right: -5rpx;
+}
+.legal-links {
+    display: flex;
+    flex-wrap: wrap;
 }
 .legal-link {
+    color: #294d3e;
     text-decoration: underline;
-    margin-bottom: 12rpx;
 }
+.legal-status { color: #5c675f; }

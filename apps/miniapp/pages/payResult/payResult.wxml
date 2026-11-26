@@ -9,4 +9,3 @@
         <navigator class="btn" url="/pages/index/index" open-type="switchTab">继续逛</navigator>
     </view>
 </view>
-<merchant-contact />

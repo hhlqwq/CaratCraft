@@ -22,5 +22,3 @@
     </view>
     <view class="add-address" bindtap="addressAddOrUpdate" data-address-id="0">新建</view>
 </view>
-
-<merchant-contact />

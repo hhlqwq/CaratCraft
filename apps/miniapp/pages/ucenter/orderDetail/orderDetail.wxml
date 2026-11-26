@@ -2,6 +2,7 @@
 <view wx:if="{{error}}">{{error}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取订单</button></view>
 <view wx:if="{{refundError}}">{{refundError}}<button bindtap="getOrderDetail" disabled="{{loading || paying}}">重新读取售后</button></view>
 <view class="container">
+    <view class="catalog-contact"><merchant-contact inline="{{true}}" /></view>
     <view class="order-info">
         <view class="item-a">下单时间：{{orderInfo.addTime}}</view>
         <view class="item-b">订单编号：{{orderInfo.orderSn}}</view>
@@ -90,5 +91,3 @@
         </view>
     </view>
 </view>
-
-<merchant-contact />

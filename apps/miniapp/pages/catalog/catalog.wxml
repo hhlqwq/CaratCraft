@@ -1,4 +1,5 @@
 <view class="catalog-page">
+    <view class="catalog-contact"><merchant-contact inline="{{true}}" /></view>
     <view class="intro" wx:if="{{isStoreHome}}">
         <text class="title">CaratCraft</text>
         <navigator class="search" url="/pages/search/search">搜索珠宝</navigator>
@@ -38,5 +39,3 @@
     <view wx:elif="{{!goods.length}}" class="status">当前分类暂无在售商品</view>
     <button wx:elif="{{hasMore}}" class="more" bindtap="loadMore">加载更多</button>
 </view>
-
-<merchant-contact />

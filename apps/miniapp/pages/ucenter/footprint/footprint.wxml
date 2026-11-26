@@ -24,5 +24,3 @@
     </view>
     <view wx:elif="{{nomore}}">已显示全部足迹</view>
 </view>
-
-<merchant-contact />

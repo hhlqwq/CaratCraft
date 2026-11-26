@@ -1,4 +1,4 @@
-<button class="contact-entry {{inline ? 'contact-inline' : ''}}" bindtap="open" aria-label="联系商家客服">客服</button>
+<button class="contact-entry {{inline ? 'contact-inline' : ''}}" bindtap="open" aria-label="联系客服">联系客服</button>
 <view wx:if="{{visible}}" class="contact-mask" bindtap="close"></view>
 <view wx:if="{{visible}}" class="contact-sheet" catchtap="stopPropagation">
     <view class="contact-heading"><text>{{contact.merchantName || '商家客服'}}</text><button class="close" bindtap="close">关闭</button></view>
@@ -9,6 +9,5 @@
         <view wx:if="{{contact.wechatId}}" class="contact-row"><text selectable="{{true}}">微信号: {{contact.wechatId}}</text><button class="contact-action" bindtap="copyWechat">复制微信号</button></view>
         <view wx:if="{{contact.qrUrl}}" class="qr-section"><image class="contact-qr" src="{{contact.qrUrl}}" mode="aspectFit" show-menu-by-longpress="{{true}}" bindtap="previewQr" /><text>点击预览或长按识别, 添加前请核对商家身份</text></view>
         <button wx:if="{{contact.phone}}" class="contact-action" bindtap="call">拨打 {{contact.phone}}</button>
-        <button wx:if="{{contact.wxChatEnabled}}" class="contact-action primary" open-type="contact">微信客服会话</button>
     </view>
 </view>

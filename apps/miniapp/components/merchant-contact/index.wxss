@@ -3,7 +3,7 @@
     z-index: 30;
     right: 24rpx;
     bottom: calc(240rpx + env(safe-area-inset-bottom));
-    width: 98rpx;
+    width: 146rpx;
     height: 78rpx;
     padding: 0;
     line-height: 78rpx;

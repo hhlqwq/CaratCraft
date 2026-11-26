@@ -27,5 +27,3 @@
     </view>
     <button wx:if="{{designList.length < total}}" loading="{{loading}}" bindtap="loadMore">加载更多</button>
 </view>
-
-<merchant-contact />

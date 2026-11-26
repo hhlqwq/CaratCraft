@@ -14,4 +14,3 @@
         <navigator wx:for="{{history}}" wx:key="index" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.kind === 'TERMS' ? '用户协议' : '隐私政策'}} · 版本 {{item.version}} · {{item.accepted_at}}</navigator>
     </view>
 </view>
-<merchant-contact />

@@ -31,8 +31,7 @@ Component({
                     configured: !!(
                         contact.phone ||
                         contact.wechatId ||
-                        contact.qrUrl ||
-                        contact.wxChatEnabled
+                        contact.qrUrl
                     ),
                 });
             } catch (error) {

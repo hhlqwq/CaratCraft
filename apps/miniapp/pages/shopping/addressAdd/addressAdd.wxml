@@ -40,5 +40,3 @@
     </view>
 </view>
 <view class="bg-mask" bindtap="cancelSelectRegion" wx:if="{{openSelectRegion}}"></view>
-
-<merchant-contact />

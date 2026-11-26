@@ -1,7 +1,7 @@
 <template>
     <div v-loading="loading || saving" class="merchant-contact-admin">
         <el-alert
-            title="请填写本商家的客服资料, 不使用参考图中的品牌或二维码. 保存后小程序最长5分钟刷新; 微信客服会话还需在小程序平台配置客服人员."
+            title="请填写本商家的客服资料, 不使用参考图中的品牌或二维码. 保存后小程序最长5分钟刷新."
             type="info"
             :closable="false"
         />
@@ -32,17 +32,6 @@
                             placeholder="消费者可复制后自行添加"
                             :disabled="!canEdit || loading || saving" /></el-form-item
                 ></el-col>
-                <el-col :xs="24" :md="12"
-                    ><el-form-item label="微信平台客服会话"
-                        ><el-switch
-                            v-model="form.wxChatEnabled"
-                            :disabled="!canEdit || loading || saving"
-                        />
-                        <div class="hint">
-                            启用前请确认小程序平台已配置客服. 此项不代表自动添加微信好友.
-                        </div></el-form-item
-                    ></el-col
-                >
             </el-row>
             <el-form-item label="客服二维码">
                 <el-img
@@ -194,7 +183,6 @@ export default {
                     data.phone || '未填电话',
                     data.wechatId || '未填微信号',
                     data.qrUrl ? '有二维码' : '无二维码',
-                    data.wxChatEnabled ? '微信会话已启用' : '微信会话未启用',
                 ].join(' / ');
             } catch (error) {
                 return '历史记录格式异常';

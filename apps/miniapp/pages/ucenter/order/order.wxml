@@ -2,6 +2,7 @@
 <view wx:if="{{error}}">{{error}}<button bindtap="retryLoad">重新读取</button></view>
 <view wx:if="{{!loading && !error && !orderList.length}}">暂无内容</view>
 <view class="container">
+    <view class="catalog-contact"><merchant-contact inline="{{true}}" /></view>
     <view class="orders">
         <navigator url="../orderDetail/orderDetail?id={{item.id}}" class="order" wx:for="{{orderList}}" wx:key="id">
             <view class="h">
@@ -37,5 +38,3 @@
       </block>
     </view>
 </view>
-
-<merchant-contact />

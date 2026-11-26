@@ -1,10 +1,13 @@
 <view class="legal-consent">
-    <view wx:if="{{loading}}">正在读取协议...</view>
-    <view wx:elif="{{error}}"><text>{{error}}</text><button bindtap="load" size="mini">重新加载</button></view>
-    <view wx:else>
-        <view wx:for="{{documents}}" wx:key="kind">
-            <navigator class="legal-link" url="/pages/ucenter/legal/index?kind={{item.kind}}&version={{item.version}}">{{item.title}} · 版本 {{item.version}}</navigator>
+    <view wx:if="{{loading}}" class="legal-status">正在读取协议…</view>
+    <view wx:elif="{{error}}" class="legal-status"><text>{{error}}</text><button bindtap="load" size="mini">重新加载</button></view>
+    <view wx:else class="legal-confirm">
+        <checkbox-group bindchange="change">
+            <label class="legal-label"><checkbox value="agree" checked="{{checked}}" color="#294d3e" />我已阅读并同意</label>
+        </checkbox-group>
+        <view class="legal-links">
+            <navigator wx:for="{{documents}}" wx:key="kind" class="legal-link"
+                       url="/pages/ucenter/legal/index?kind={{item.kind}}&amp;version={{item.version}}">{{item.kind === 'TERMS' ? '《用户协议》' : '《隐私政策》'}}</navigator>
         </view>
-        <checkbox-group bindchange="change"><label><checkbox value="agree" checked="{{checked}}" />我已阅读并同意以上用户协议及隐私政策</label></checkbox-group>
     </view>
 </view>

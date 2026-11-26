@@ -1,5 +1,6 @@
 <view class="aftersales-page">
-    <view class="intro"><text class="eyebrow">订单服务</text><text class="title">售后中心</text><text class="description">查看本人申请与退款核对进度. 如需退货, 请先联系商家确认寄回安排.</text></view>
+    <view class="catalog-contact"><merchant-contact inline="{{true}}" /></view>
+    <view class="intro"><text class="eyebrow">订单服务</text><text class="title">售后中心</text><text class="description">查看本人申请与退款核对进度. 如需退货, 请先联系客服确认寄回安排.</text></view>
     <view wx:for="{{records}}" wx:key="orderId" class="refund-card">
         <view class="card-heading"><text class="status">{{item.statusText}}</text><text class="amount">¥ {{item.amountText}}</text></view>
         <text class="order-number" selectable="{{true}}">订单 {{item.orderSn}}</text>
@@ -14,4 +15,3 @@
     <button wx:elif="{{hasMore}}" class="load-more" bindtap="loadMore">加载更多</button>
     <view wx:else class="notice">已展示全部售后申请</view>
 </view>
-<merchant-contact />

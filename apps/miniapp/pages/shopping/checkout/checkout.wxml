@@ -90,5 +90,3 @@
         <button class="r" bindtap="submitOrder" disabled="{{actionBusy || readLoading || readError || (!checkoutReady && !createdOrderId)}}" loading="{{actionBusy}}">{{createdOrderId ? '继续付款' : actionBusy ? '提交中' : '去付款'}}</button>
     </view>
 </view>
-
-<merchant-contact />

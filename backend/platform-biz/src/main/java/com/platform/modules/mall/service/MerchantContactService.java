@@ -26,7 +26,6 @@ public class MerchantContactService {
             String phone,
             String wechatId,
             String qrUrl,
-            boolean wxChatEnabled,
             int version) {}
 
     /** 仅返回对消费者公开的联系资料, 初始未配置时保留明确的空状态. */
@@ -37,7 +36,6 @@ public class MerchantContactService {
                 String.valueOf(row.get("phone")),
                 String.valueOf(row.get("wechat_id")),
                 String.valueOf(row.get("qr_url")),
-                ((Number) row.get("wx_chat_enabled")).intValue() == 1,
                 ((Number) row.get("version")).intValue());
     }
 
@@ -69,20 +67,18 @@ public class MerchantContactService {
         int changed =
                 jdbc.update(
                         "UPDATE CC_MERCHANT_CONTACT SET"
-                            + " merchant_name=?,phone=?,wechat_id=?,qr_url=?,wx_chat_enabled=?,version=version+1,update_time=NOW()"
+                            + " merchant_name=?,phone=?,wechat_id=?,qr_url=?,version=version+1,update_time=NOW()"
                             + " WHERE id=1 AND version=?",
                         name,
                         phone,
                         wechat,
                         qr,
-                        request.wxChatEnabled() ? 1 : 0,
                         request.version());
         if (changed != 1) {
             throw new IllegalArgumentException("客服资料已被其他管理员修改, 请刷新后重新编辑");
         }
         Contact saved =
-                new Contact(
-                        name, phone, wechat, qr, request.wxChatEnabled(), request.version() + 1);
+                new Contact(name, phone, wechat, qr, request.version() + 1);
         jdbc.update(
                 "INSERT INTO CC_MERCHANT_CONTACT_LOG(version,operator_id,snapshot_json)"
                         + " VALUES(?,?,?)",
@@ -98,8 +94,6 @@ public class MerchantContactService {
                                 wechat,
                                 "qrUrl",
                                 qr,
-                                "wxChatEnabled",
-                                saved.wxChatEnabled(),
                                 "version",
                                 saved.version())));
         return saved;
