@@ -24,7 +24,11 @@ function docker {
     $script:Calls += ,(($args -join ' ') + ' ' + $Sql)
     $global:LocalStartupDockerCalls.Add((($args -join ' ') + ' ' + $Sql))
     if ($args[0] -eq 'volume') { return '[{"Labels":{"com.docker.compose.project":"platform-wxshop"}}]' }
-    if ($args[0] -eq 'exec') { return '{"code":0}' }
+    if ($args[0] -eq 'exec') {
+        if ($script:Mode -eq 'proxy-error' -or $args[-1] -notlike '*http://127.0.0.1/platform-framework-api/*' -or
+            $args[-1] -match '/app/|/internal/') { $global:LASTEXITCODE = 1 }
+        return
+    }
     if ($args[0] -eq 'container' -and $args.Count -eq 5) {
         return ('[{"Name":"/platform-admin","Image":"backend-image","Config":{"Labels":{"io.caratcraft.source-digest":"' + $env:BACKEND_BUILD_REVISION +
             '"}},"State":{"Health":{"Status":"healthy"}}},{"Name":"/platform-api","Image":"backend-image","Config":{"Labels":{"io.caratcraft.source-digest":"' + $env:BACKEND_BUILD_REVISION +
@@ -132,6 +136,8 @@ Start-LocalEnvironment
 if ($script:Calls -match '^build ' -or -not ($script:Calls -match 'GET_LOCK') -or -not ($script:Calls -match '300 mysql redis') -or
     -not ($script:Calls -match 'up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx') -or
     $script:Calls[-1] -ne 'access-ready') { throw '启动顺序错误' }
+$script:Mode = 'proxy-error'
+Assert-Rejected { Start-LocalEnvironment } 'Nginx'
 $script:Mode = 'partial-database'
 $script:Calls = @()
 Assert-Rejected { Start-LocalEnvironment } 'sys_region'

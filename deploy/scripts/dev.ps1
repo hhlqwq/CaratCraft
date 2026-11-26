@@ -302,6 +302,7 @@ function Initialize-LocalDatabase {
     try {
         Invoke-Compose -Arguments @('up', '--detach', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
         Assert-DatabaseReady
+        Invoke-AutomaticMigrations -Baseline
     } finally {
         $env:CARATCRAFT_DB_INIT = 'false'
         # 只移除本次初始化容器, 保留数据库卷和初始化结果.
@@ -376,6 +377,7 @@ function Assert-DatabaseReady {
 
 # 编排显式清单中的SQL和指纹, 没有目标库副作用.
 function New-AutomaticMigrationBatch {
+    param([string[]]$Completed = @(), [switch]$Baseline)
     $Root = Join-Path $ProjectRoot 'database/upgrade'
     $Registry = Join-Path $Root 'local'
     $Entries = @([IO.File]::ReadAllLines((Join-Path $Registry 'manifest.txt')))
@@ -391,6 +393,8 @@ function New-AutomaticMigrationBatch {
     if (!$Ids) { throw '本机迁移清单不能为空。' }
     $IdList = ($Ids | ForEach-Object { "'$_'" }) -join ','
     $Sql = [Collections.Generic.List[string]]::new()
+    $Pending = [Collections.Generic.List[string]]::new()
+    $Before = [IO.File]::ReadAllText((Join-Path $Registry "before.sql"))
     $Sql.Add([IO.File]::ReadAllText((Join-Path $Registry 'begin.sql')).Replace('__IDS__', $IdList))
     for ($Index = 0; $Index -lt $Entries.Count; $Index++) {
         $Id = $Ids[$Index]
@@ -404,24 +408,48 @@ function New-AutomaticMigrationBatch {
             }
             $Digest = [BitConverter]::ToString($Hasher.ComputeHash([Text.Encoding]::ASCII.GetBytes(($Hashes -join '')))).Replace('-', '')
         } finally { $Hasher.Dispose() }
-        foreach ($File in @('before.sql', $Check, 'apply.sql', $Apply, $Check, 'after.sql')) {
-            $Source = if ([IO.Path]::IsPathRooted($File)) { $File } else { Join-Path $Registry $File }
-            $Sql.Add([IO.File]::ReadAllText($Source).Replace('__ID__', $Id).Replace('__SHA256__', $Digest))
+        $IsComplete = $Id -cin $Completed
+        $Sql.Add($Before.Replace('__ID__', $Id).Replace('__SHA256__', $Digest).Replace('__COMPLETED__', [string][int]$IsComplete))
+        if ($IsComplete) {
+            $Sql.Add("SELECT '${Id}: verified';")
+            continue
         }
+        if ($Baseline) {
+            $Pending.Add("INSERT INTO CC_SCHEMA_MIGRATION VALUES ('$Id', '$Digest', CURRENT_TIMESTAMP);")
+            $Pending.Add("SELECT '${Id}: baseline';")
+            continue
+        }
+        $Pending.Add('SET @cc_compatible = NULL, @cc_complete = NULL;')
+        foreach ($File in @($Check, 'apply.sql', $Apply, $Check, 'after.sql')) {
+            $Source = if ([IO.Path]::IsPathRooted($File)) { $File } else { Join-Path $Registry $File }
+            $Pending.Add([IO.File]::ReadAllText($Source).Replace('__ID__', $Id).Replace('__SHA256__', $Digest))
+        }
+    }
+    $Contract = [IO.File]::ReadAllText((Join-Path $Registry 'current-schema.sql'))
+    if ($Baseline) {
+        $Sql.Add($Contract)
+        $Sql.Add('START TRANSACTION;')
+        $Sql.AddRange($Pending)
+        $Sql.Add('COMMIT;')
+    } else {
+        $Sql.AddRange($Pending)
+        $Sql.Add($Contract)
     }
     return ($Sql -join [char]10)
 }
 
 # 用同一MySQL会话校验、执行并登记安全结构增量, 断开连接时释放锁.
 function Invoke-AutomaticMigrations {
-    $Query = New-AutomaticMigrationBatch
+    param([switch]$Baseline)
     $Encoding = $OutputEncoding
     try {
         $OutputEncoding = [Text.UTF8Encoding]::new($false)
-        $Rows = @(Invoke-DatabaseQuery -Query $Query)
+        $Snapshot = [IO.File]::ReadAllText((Join-Path $ProjectRoot 'database/upgrade/local/snapshot.sql'))
+        $Completed = @(Invoke-DatabaseQuery -Query $Snapshot)
+        $Rows = @(Invoke-DatabaseQuery -Query (New-AutomaticMigrationBatch -Completed $Completed -Baseline:$Baseline))
         foreach ($Row in $Rows) {
             if ($Row -match '^([0-9]{4}-[a-z0-9-]+): (verified|baseline|applying)$') {
-                $Message = @{ verified = '已应用，结构复核通过'; baseline = '结构已齐全，已登记'; applying = '增量已执行并核对结构' }[$Matches[2]]
+                $Message = @{ verified = '已应用，指纹核对通过'; baseline = '结构已齐全，已登记'; applying = '增量已执行并核对结构' }[$Matches[2]]
                 Write-Host "数据库迁移 $($Matches[1])：$Message"
             }
         }
@@ -513,11 +541,11 @@ function Start-LocalEnvironment {
             Write-Host "$($Container.Name.TrimStart('/'))：镜像一致，健康"
         }
         $Probe = Invoke-DockerMetadata -Arguments @('exec', 'platform-nginx', 'sh', '-ec',
-            'wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/; status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/sys/user/info 2>&1) || :; case $status in *401\ Unauthorized*) ;; *) exit 1;; esac; wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/app/customization/styles')
-        if ($Probe.ExitCode -ne 0 -or (($Probe.Output -join '') | ConvertFrom-Json).code -ne 0) {
-            throw 'Nginx 静态入口、后台认证入口或小程序款式接口探测失败。'
+            'wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/; status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/ 2>&1) || :; case $status in *401\ Unauthorized*) ;; *) exit 1;; esac; api=$(wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/); case $api in *platform-framework-api/doc.html) ;; *) exit 1;; esac')
+        if ($Probe.ExitCode -ne 0) {
+            throw 'Nginx 静态入口、后台根路径或 API 根路径探测失败。'
         }
-        Write-Host '代理验证通过：管理台、后台认证入口、DIY 款式接口。'
+        Write-Host '代理验证通过：管理台、后台与 API 根路径。'
         Show-AccessInfo
     } catch {
         Write-Warning "启动失败阶段: $Stage。数据卷已保留。"

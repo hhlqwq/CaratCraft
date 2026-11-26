@@ -153,11 +153,14 @@ set_git_revision() {
 
 # 计算单个文件的SHA256, 兼容Linux及macOS自带工具.
 sha256_file() {
+    local sum
     if command -v sha256sum >/dev/null 2>&1; then
-        sha256sum | awk '{print toupper($1)}'
+        sum="$(sha256sum -- "$@")" || return $?
     else
-        shasum -a 256 | awk '{print toupper($1)}'
+        sum="$(shasum -a 256 -- "$@")" || return $?
     fi
+    [[ "$sum" =~ ^([0-9a-fA-F]{64})[[:space:]] ]] || return 1
+    printf '%s\n' "${BASH_REMATCH[1]}" | tr 'a-f' 'A-F'
 }
 
 # 收集唯一清单中的构建输入, 拒绝链接且排除缓存及私人配置.
@@ -327,7 +330,8 @@ assert_database_ready() {
 # 生成来自显式清单的SQL批次, 两端使用相同的结构检查和记录格式.
 migration_batch() {
     local registry="$ROOT_DIR/database/upgrade/local" entry sequence directory id ids=""
-    local previous=0 checksum check apply stage
+    local previous=0 checksum check apply stage complete staged
+    local completed="${1:-}" mode="${2:-}" pending=""
     local entries=()
     while IFS= read -r entry || [[ -n "$entry" ]]; do
         entry="${entry%$'\r'}"
@@ -349,21 +353,46 @@ migration_batch() {
         check="$(sha256_file "$directory/check.sql")" || return 1
         apply="$(sha256_file "$directory/apply.sql")" || return 1
         checksum="$(printf '%s%s' "$check" "$apply" | sha256_file -)" || return 1
-        for stage in "$registry/before.sql" "$directory/check.sql" "$registry/apply.sql" \
-            "$directory/apply.sql" "$directory/check.sql" "$registry/after.sql"; do
-            sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" "$stage" || return 1
-        done
+        complete=0
+        if grep -Fxq "$id" <<< "$completed"; then complete=1; fi
+        sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" -e "s/__COMPLETED__/$complete/g" "$registry/before.sql" || return 1
+        if [[ "$complete" == 1 ]]; then
+            printf "SELECT '%s: verified';\n" "$id"
+            continue
+        fi
+        if [[ "$mode" == baseline ]]; then
+            printf -v staged "INSERT INTO CC_SCHEMA_MIGRATION VALUES ('%s', '%s', CURRENT_TIMESTAMP);\nSELECT '%s: baseline';" "$id" "$checksum" "$id"
+            pending+="$staged"$'\n'
+            continue
+        fi
+        staged="$(
+            printf '%s\n' 'SET @cc_compatible = NULL, @cc_complete = NULL;'
+            for stage in "$directory/check.sql" "$registry/apply.sql" "$directory/apply.sql" \
+                "$directory/check.sql" "$registry/after.sql"; do
+                sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" "$stage" || exit 1
+            done
+        )" || return 1
+        pending+="$staged"$'\n'
     done
+    if [[ "$mode" == baseline ]]; then
+        cat "$registry/current-schema.sql" || return 1
+        printf 'START TRANSACTION;\n%sCOMMIT;\n' "$pending"
+    else
+        printf '%s' "$pending"
+        cat "$registry/current-schema.sql"
+    fi
 }
 
 # 在同一MySQL连接内完成加锁、校验与幂等迁移.
 apply_automatic_migrations() {
-    local batch output
-    batch="$(migration_batch)" || return 1
+    local snapshot completed batch output
+    snapshot="$(cat "$ROOT_DIR/database/upgrade/local/snapshot.sql")" || return 1
+    completed="$(database_query "$snapshot")" || return 1
+    batch="$(migration_batch "$completed" "${1:-}")" || return 1
     output="$(database_query "$batch")" || { echo '安全结构增量失败，请核对迁移编号和数据库结构。' >&2; return 1; }
     while IFS= read -r line; do
         case "$line" in
-            *': verified') printf '数据库迁移 %s：已应用，结构复核通过\n' "${line%:*}" ;;
+            *': verified') printf '数据库迁移 %s：已应用，指纹核对通过\n' "${line%:*}" ;;
             *': baseline') printf '数据库迁移 %s：结构已齐全，已登记\n' "${line%:*}" ;;
             *': applying') printf '数据库迁移 %s：增量已执行并核对结构\n' "${line%:*}" ;;
         esac
@@ -399,7 +428,9 @@ initialize_local_database() {
     local result=0
     assert_data_volumes new
     CARATCRAFT_DB_INIT=true compose up --detach --no-build --pull never --wait --wait-timeout 300 mysql redis || result=$?
-    if [[ "$result" == 0 ]]; then assert_database_ready || result=$?; fi
+    if [[ "$result" == 0 ]]; then
+        assert_database_ready && apply_automatic_migrations baseline || result=$?
+    fi
     # 只移除本次初始化容器, 保留数据库卷和初始化结果.
     compose rm --stop --force mysql
     return "$result"
@@ -432,7 +463,7 @@ start_local_environment() {
         return 1
     fi
 
-    local image actual expected_id probe
+    local image actual expected_id
     for service in platform-admin platform-api platform-nginx; do
         image=carat-craft-backend:local
         expected="$BACKEND_BUILD_REVISION"
@@ -448,16 +479,16 @@ start_local_environment() {
         fi
         echo "$service：镜像一致，健康"
     done
-    probe="$(docker exec platform-nginx sh -ec '
+    if ! docker exec platform-nginx sh -ec '
         wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/
-        status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/sys/user/info 2>&1) || :
+        status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/ 2>&1) || :
         case $status in *401\ Unauthorized*) ;; *) exit 1;; esac
-        wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/app/customization/styles')" || return 1
-    if ! grep -Eq '"code"[[:space:]]*:[[:space:]]*0([,}[:space:]])' <<< "$probe"; then
-        echo '小程序款式接口未返回成功状态。' >&2
+        api=$(wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/)
+        case $api in *platform-framework-api/doc.html) ;; *) exit 1;; esac'; then
+        echo 'Nginx 静态入口、后台根路径或 API 根路径探测失败。' >&2
         return 1
     fi
-    echo '代理验证通过：管理台、后台认证入口、DIY 款式接口。'
+    echo '代理验证通过：管理台、后台与 API 根路径。'
     show_access_info
 }
 

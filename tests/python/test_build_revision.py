@@ -115,7 +115,9 @@ docker() {
         'image inspect carat-craft-backend:local'|'image inspect carat-craft-admin-ui:local') echo 'image-id' ;;
         'container inspect platform-nginx') echo 'image-id vue healthy' ;;
         'container inspect platform-admin'|'container inspect platform-api') echo 'image-id java healthy' ;;
-        'exec platform-nginx '*) echo '{"code":0}' ;;
+        'exec platform-nginx '*)
+            [[ "${!#}" == *'http://127.0.0.1/platform-framework-api/'* &&
+                "${!#}" != *'/app/'* && "${!#}" != *'/internal/'* ]] ;;
         *) return 1 ;;
     esac
 }
@@ -133,7 +135,7 @@ start_local_environment
             "platform-admin：镜像一致，健康",
             "platform-api：镜像一致，健康",
             "platform-nginx：镜像一致，健康",
-            "代理验证通过：管理台、后台认证入口、DIY 款式接口。",
+            "代理验证通过：管理台、后台与 API 根路径。",
             "ready"])
         functions += r'''assert_local_images() { return 1; }
 show_startup_diagnostics() { echo failed; }
