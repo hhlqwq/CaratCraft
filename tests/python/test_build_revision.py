@@ -49,6 +49,7 @@ class BuildRevisionTest(unittest.TestCase):
                            CARATCRAFT_REVISION_SOURCE=str(ROOT / "deploy/scripts/dev.ps1"))
                 ps = r"""
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $ProjectRoot = $env:CARATCRAFT_REVISION_FIXTURE
 $WorkspaceRoot = $ProjectRoot
 $EnvExample = Join-Path $ProjectRoot 'deploy/.env.example'
@@ -61,7 +62,7 @@ Set-BuildRevisions
 Write-Output "RESULT=$env:BACKEND_BUILD_REVISION,$env:ADMIN_UI_BUILD_REVISION"
 """
                 result = subprocess.run([powershell, "-NoProfile", "-Command", ps], env=env, check=True,
-                                        capture_output=True, text=True, encoding="utf-8", errors="replace")
+                                        capture_output=True, text=True, encoding="utf-8")
                 self.assertEqual(expected, result.stdout.splitlines()[-1].removeprefix("RESULT=").split(","))
                 shell = r"""
 source <(sed '/^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)
@@ -79,16 +80,16 @@ printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
             for relative in ("README.md", "AGENTS.md", "deploy/.env", ".git/config",
                              "apps/miniapp/pages/demo.js", "apps/miniapp/pages/demo.wxml", "apps/miniapp/pages/demo.wxss",
                              "apps/miniapp/project.config.json", "apps/admin-ui/.env.local",
-                             "backend/platform-admin/src/application-local.yml"):
+                             "backend/platform-admin/src/main/application-local.yml", "backend/platform-admin/src/test/ignored.java", "apps/admin-ui/README.md"):
                 local = fixture / relative
                 local.parent.mkdir(parents=True, exist_ok=True)
                 local.write_bytes(b"excluded change")
             self.assertEqual(before, revisions())
-            (fixture / "apps/admin-ui/fixture.txt").write_bytes(b"Vue change")
+            (fixture / "apps/admin-ui/src/fixture.txt").write_bytes(b"Vue change")
             vue = revisions()
             self.assertEqual(before[0], vue[0])
             self.assertNotEqual(before[1], vue[1])
-            (fixture / "backend/platform-admin/src/fixture.txt").write_bytes(b"Java change")
+            (fixture / "backend/platform-admin/src/main/fixture.txt").write_bytes(b"Java change")
             java = revisions()
             self.assertEqual(vue[1], java[1])
             self.assertNotEqual(vue[0], java[0])
@@ -97,8 +98,8 @@ printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
             self.assertEqual(java[0], shared[0])
             self.assertNotEqual(java[1], shared[1])
 
-    def test_bash_start_never_builds_and_failure_stops_next_stage(self):
-        """Bash启动只使用本地镜像, 镜像检查失败后不再启动服务."""
+    def test_bash_no_build_checks_images_and_stops_on_failure(self):
+        """显式禁止构建时只检查镜像, 镜像失配不再启动服务."""
         bash = os.environ.get("CARATCRAFT_BASH")
         if not bash:
             self.skipTest("需要CARATCRAFT_BASH")
@@ -106,10 +107,20 @@ printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
         functions = r'''compose() { printf '%s\n' "$*"; }
 assert_local_images() { return 0; }
 assert_data_volumes() { return 0; }
+NO_BUILD=true
 BACKEND_BUILD_REVISION=java
 ADMIN_UI_BUILD_REVISION=vue
-docker() { if [[ "$*" == *platform-nginx ]]; then echo vue; else echo java; fi; }
+docker() {
+    case "$1 $2 ${!#}" in
+        'image inspect carat-craft-backend:local'|'image inspect carat-craft-admin-ui:local') echo 'image-id' ;;
+        'container inspect platform-nginx') echo 'image-id vue healthy' ;;
+        'container inspect platform-admin'|'container inspect platform-api') echo 'image-id java healthy' ;;
+        'exec platform-nginx '*) echo '{"code":0}' ;;
+        *) return 1 ;;
+    esac
+}
 assert_database_ready() { return 0; }
+apply_automatic_migrations() { echo migration; }
 show_access_info() { echo ready; }
 start_local_environment
 '''
@@ -117,7 +128,12 @@ start_local_environment
                                 capture_output=True, text=True, encoding="utf-8", check=True)
         self.assertEqual(result.stdout.strip().splitlines(), [
             "up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis",
+            "migration",
             "up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx",
+            "platform-admin：镜像一致，健康",
+            "platform-api：镜像一致，健康",
+            "platform-nginx：镜像一致，健康",
+            "代理验证通过：管理台、后台认证入口、DIY 款式接口。",
             "ready"])
         functions += r'''assert_local_images() { return 1; }
 show_startup_diagnostics() { echo failed; }
@@ -141,6 +157,7 @@ compose() { printf '%s\\n' "$*"; }
 assert_local_images() { return 0; }
 assert_data_volumes() { return 0; }
 reset_test_data_volumes() { echo unexpected-reset; }
+NO_BUILD=true
 database_query() {
     case "$1" in
         'SELECT TABLE_NAME'*) printf '%s\\n' sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION ;;

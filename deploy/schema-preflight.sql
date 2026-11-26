@@ -15,9 +15,6 @@ FROM (
     UNION ALL SELECT 'mall_feedback', 'staff_reply'
     UNION ALL SELECT 'cc_community_post', 'scope_org_no'
     UNION ALL SELECT 'cc_community_post', 'staff_deleted'
-    UNION ALL SELECT 'mall_comment', 'staff_reply'
-    UNION ALL SELECT 'cc_goods_question', 'status'
-    UNION ALL SELECT 'cc_goods_question', 'goods_id'
 ) needed
 LEFT JOIN information_schema.COLUMNS present
     ON present.TABLE_SCHEMA = DATABASE()

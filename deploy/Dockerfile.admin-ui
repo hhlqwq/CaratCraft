@@ -5,9 +5,11 @@ WORKDIR /workspace
 RUN npm install --global --registry=https://registry.npmmirror.com pnpm@9.15.9
 
 COPY apps/admin-ui/package.json apps/admin-ui/pnpm-lock.yaml ./
-RUN pnpm install --registry=https://registry.npmmirror.com --frozen-lockfile --ignore-scripts
+RUN --mount=type=cache,target=/pnpm/store,sharing=locked pnpm install --store-dir=/pnpm/store --registry=https://registry.npmmirror.com --frozen-lockfile --ignore-scripts
 
-COPY apps/admin-ui/ ./
+COPY apps/admin-ui/index.html apps/admin-ui/vite.config.mjs ./
+COPY apps/admin-ui/src/ ./src/
+COPY apps/admin-ui/static/ ./static/
 COPY legal/ /legal/
 RUN pnpm run build
 

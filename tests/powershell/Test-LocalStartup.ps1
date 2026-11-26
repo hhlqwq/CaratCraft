@@ -24,9 +24,19 @@ function docker {
     $script:Calls += ,(($args -join ' ') + ' ' + $Sql)
     $global:LocalStartupDockerCalls.Add((($args -join ' ') + ' ' + $Sql))
     if ($args[0] -eq 'volume') { return '[{"Labels":{"com.docker.compose.project":"platform-wxshop"}}]' }
+    if ($args[0] -eq 'exec') { return '{"code":0}' }
+    if ($args[0] -eq 'container' -and $args.Count -eq 5) {
+        return ('[{"Name":"/platform-admin","Image":"backend-image","Config":{"Labels":{"io.caratcraft.source-digest":"' + $env:BACKEND_BUILD_REVISION +
+            '"}},"State":{"Health":{"Status":"healthy"}}},{"Name":"/platform-api","Image":"backend-image","Config":{"Labels":{"io.caratcraft.source-digest":"' + $env:BACKEND_BUILD_REVISION +
+            '"}},"State":{"Health":{"Status":"healthy"}}},{"Name":"/platform-nginx","Image":"ui-image","Config":{"Labels":{"io.caratcraft.source-digest":"' + $env:ADMIN_UI_BUILD_REVISION +
+            '"}},"State":{"Health":{"Status":"healthy"}}}]')
+    }
     if ($args[0] -eq 'container') {
         $Revision = if ($args[-1] -eq 'platform-nginx') { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
         return ('[{"Config":{"Labels":{"org.opencontainers.image.revision":"older-build","io.caratcraft.source-digest":"' + $Revision + '"}}}]')
+    }
+    if ($args[0] -eq 'image' -and $args.Count -eq 4) {
+        return '[{"Id":"backend-image"},{"Id":"ui-image"}]'
     }
     if ($args[0] -eq 'image') {
         if ($script:Mode -eq 'missing-image' -or ($script:Mode -eq 'pull-error' -and $args[-1] -like '*/mysql:*')) {
@@ -119,7 +129,7 @@ $script:Mode = 'ready'
 $script:Calls = @()
 $NoBuild = $false
 Start-LocalEnvironment
-if ($script:Calls -contains 'build' -or -not ($script:Calls -match '300 mysql redis') -or
+if ($script:Calls -match '^build ' -or -not ($script:Calls -match 'GET_LOCK') -or -not ($script:Calls -match '300 mysql redis') -or
     -not ($script:Calls -match 'up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx') -or
     $script:Calls[-1] -ne 'access-ready') { throw '启动顺序错误' }
 $script:Mode = 'partial-database'
@@ -129,7 +139,7 @@ if ($script:Calls -match 'unexpected-reset|volume rm|^down') { throw '数据库�
 if ($script:Calls[-1] -ne 'diagnostics' -or $script:Calls -contains 'access-ready') { throw '失败诊断或退出错误' }
 $script:Mode = 'build-error'
 $script:Calls = @()
-Assert-Rejected { Build-LocalEnvironment } 'simulated-build-error'
+Assert-Rejected { Start-LocalEnvironment } 'simulated-build-error'
 if (@($script:Calls | Where-Object { $_ -match '^(build|pull|up) ' }) -join '|' -cne 'build platform-admin') { throw 'Build failure did not stop' }
 $script:Mode = 'pull-error'
 $script:Calls = @()

@@ -29,7 +29,7 @@
 | --- | --- |
 | `backend/` | Java多模块服务端, 模块测试就近维护 |
 | `apps/admin-ui/`、`apps/miniapp/` | 商家管理端和微信小程序 |
-| `database/init/` | 最终结构和必要种子的完整空库初始化 |
+| `database/init/`、`database/upgrade/` | 空库初始化、显式登记的本地结构增量与人工维护脚本 |
 | `deploy/` | 部署配置和scripts用户操作入口 |
 | `tools/`、`tests/` | 按职责分组的维护工具和跨模块回归 |
 | `legal/` | 许可及来源材料 |
@@ -39,10 +39,10 @@
 
 ## 本地入口
 
-从 GitHub 克隆 `main` 后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)创建本机 `deploy/.env`. Windows 使用 Docker Desktop 的 Linux 容器和 Compose V2. 建库、升级和重置各有独立入口. 标准启动在镜像或数据库校验失败时停止并保留数据卷.
+从 GitHub 克隆 `main` 后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)创建本机 `deploy/.env`. Windows 使用 Docker Desktop 的 Linux 容器和 Compose V2. 首次建库、人工迁移和重置使用独立维护入口. 日常可直接启动, 脚本按需构建镜像并应用已审核的本地结构增量.
 
 - Windows 本地环境统一使用 `deploy/scripts/build-local-test.cmd` 按需构建 Java 后端和 Vue/Nginx 镜像.
-- `deploy/scripts/start-local-test.cmd` 校验数据库和镜像摘要, 启动或更新有变化的应用服务. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`.
+- `deploy/scripts/start-local-test.cmd` 按需构建、应用安全增量并更新变化的应用服务. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`. 增量边界见[本地安全结构增量](docs/项目维护文档.md#本地安全结构增量).
 - 微信开发者工具的 AppID 配置见[新建开发环境](docs/项目维护文档.md#新建开发环境)。
 - `deploy/scripts/dev.ps1 -Action miniapp` 从本机配置生成小程序地址. `tools/dev-env-check.cmd` 输出脱敏环境诊断. 小程序配置工具使用 Node.js.
 

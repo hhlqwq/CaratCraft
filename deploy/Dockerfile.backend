@@ -7,13 +7,13 @@ COPY backend/platform-common/pom.xml platform-common/pom.xml
 COPY backend/platform-biz/pom.xml platform-biz/pom.xml
 COPY backend/platform-admin/pom.xml platform-admin/pom.xml
 COPY backend/platform-api/pom.xml platform-api/pom.xml
-COPY backend/platform-common/src platform-common/src
-COPY backend/platform-biz/src platform-biz/src
-COPY backend/platform-admin/src platform-admin/src
-COPY backend/platform-api/src platform-api/src
+COPY backend/platform-common/src/main platform-common/src/main
+COPY backend/platform-biz/src/main platform-biz/src/main
+COPY backend/platform-admin/src/main platform-admin/src/main
+COPY backend/platform-api/src/main platform-api/src/main
 COPY deploy/maven-settings.xml /workspace/maven-settings.xml
 
-RUN --mount=type=cache,target=/root/.m2/repository,sharing=locked mvn -B -s /workspace/maven-settings.xml -Pdev -pl platform-admin,platform-api -am package -DskipTests
+RUN --mount=type=cache,target=/root/.m2/repository,sharing=locked mvn -B -s /workspace/maven-settings.xml -Pdev -pl platform-admin,platform-api -am package -Dmaven.test.skip=true
 COPY deploy/HealthCheck.java /workspace/healthcheck/HealthCheck.java
 RUN javac -d /workspace/healthcheck /workspace/healthcheck/HealthCheck.java
 

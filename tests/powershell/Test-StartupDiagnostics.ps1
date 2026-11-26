@@ -54,6 +54,8 @@ Write-Host '诊断回归通过: 原生stderr缺镜像、未创建容器、引擎
 function Assert-LocalImages { throw 'primary-image-failure' }
 function Show-StartupDiagnostics { throw 'secondary-diagnostic-failure' }
 function Invoke-Compose { throw 'primary-compose-failure' }
+$NoBuild = $true
+function Assert-DataVolumes { }
 Assert-Rejected { Start-LocalEnvironment } 'primary-image-failure'
 
 # 即使诊断函数自身抛异常, 原始数据服务启动失败仍是最终返回原因.

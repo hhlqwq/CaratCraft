@@ -142,10 +142,9 @@ function Assert-HostResources {
 # 读取真实 Git 提交, 没有 Git 元数据的离线源码包明确标记 archive.
 function Set-GitRevision {
     $env:BUILD_GIT_SHA = 'archive'
-    if (Test-Path -LiteralPath (Join-Path $ProjectRoot '.git')) {
+    if ((Test-Path -LiteralPath (Join-Path $ProjectRoot '.git')) -and (Get-Command git -ErrorAction SilentlyContinue)) {
         $Sha = & git -C $ProjectRoot rev-parse --verify HEAD
-        if ($LASTEXITCODE -ne 0 -or $Sha -notmatch '^[0-9a-f]{40}$') { throw '无法读取当前仓库 Git HEAD。' }
-        $env:BUILD_GIT_SHA = $Sha
+        if ($LASTEXITCODE -eq 0 -and $Sha -match '^[0-9a-f]{40}$') { $env:BUILD_GIT_SHA = $Sha }
     }
     Write-Host "Git: $env:BUILD_GIT_SHA"
 }
@@ -191,22 +190,26 @@ function Set-BuildRevisions {
     $env:ADMIN_UI_BUILD_REVISION = Get-BuildRevision -Scope 'admin-ui'
 }
 
-# 递归收集构建输入, 在进入目录前排除本机依赖、输出、私人配置和开发工具缓存.
+# 枚举构建输入, 不逐文件调用PowerShell文件提供程序; 私有文件和工具缓存不参与摘要.
 function Get-BuildSourceFiles {
     param([string]$Path)
-    $Item = Get-Item -LiteralPath $Path -Force
-    if ($Item.PSIsContainer -and
-        $Item.Name -in @('node_modules', 'target', 'dist', '.git', '.idea', '.vscode', '.vite', '.cache', 'coverage', '.tools', '.pnpm-store', '__pycache__')) { return }
-    if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        throw "构建输入不允许使用链接文件或目录: $Path"
-    }
-    if ($Item.PSIsContainer) {
-        foreach ($Child in (Get-ChildItem -LiteralPath $Path -Force)) {
-            Get-BuildSourceFiles -Path $Child.FullName
+    $Pending = [Collections.Generic.Stack[IO.FileSystemInfo]]::new()
+    $Pending.Push((Get-Item -LiteralPath $Path -Force))
+    while ($Pending.Count) {
+        $Item = $Pending.Pop()
+        $Directory = $Item -is [IO.DirectoryInfo]
+        if ($Directory -and $Item.Name -in @('node_modules', 'target', 'dist', '.git', '.idea', '.vscode', '.vite', '.cache', 'coverage', '.tools', '.pnpm-store', '__pycache__')) {
+            continue
         }
-    } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project(\.private)?\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
-        $Item.FullName -eq $EnvExample) {
-        $Item
+        if ($Item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
+            throw "构建输入不允许使用链接文件或目录: $($Item.FullName)"
+        }
+        if ($Directory) {
+            foreach ($Child in $Item.EnumerateFileSystemInfos()) { $Pending.Push($Child) }
+        } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project(\.private)?\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
+            $Item.FullName -eq $EnvExample) {
+            $Item
+        }
     }
 }
 
@@ -322,9 +325,9 @@ function Invoke-DatabaseQuery {
     param([string]$Query, [switch]$ApplicationUser)
     $ErrorActionPreference = 'Continue'
     $Command = if ($ApplicationUser) {
-        'export MYSQL_PWD=$MYSQL_PASSWORD; exec mysql -u$MYSQL_USER --batch --skip-column-names --database=$MYSQL_DATABASE'
+        'export MYSQL_PWD=$MYSQL_PASSWORD; exec mysql -u$MYSQL_USER --default-character-set=utf8mb4 --batch --skip-column-names --database=$MYSQL_DATABASE'
     } else {
-        'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql -uroot --batch --skip-column-names --database=$MYSQL_DATABASE'
+        'export MYSQL_PWD=$MYSQL_ROOT_PASSWORD; exec mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names --database=$MYSQL_DATABASE'
     }
     $Text = @($Query | & docker compose -p platform-wxshop --env-file $EnvFile -f $ComposeFile exec -T mysql sh -c $Command 2>&1)
     if ($LASTEXITCODE -ne 0) {
@@ -371,6 +374,60 @@ function Assert-DatabaseReady {
     }
 }
 
+# 编排显式清单中的SQL和指纹, 没有目标库副作用.
+function New-AutomaticMigrationBatch {
+    $Root = Join-Path $ProjectRoot 'database/upgrade'
+    $Registry = Join-Path $Root 'local'
+    $Entries = @([IO.File]::ReadAllLines((Join-Path $Registry 'manifest.txt')))
+    $Ids = @()
+    $Previous = 0
+    foreach ($Entry in $Entries) {
+        if ($Entry -cnotmatch '^([0-9]{4}) ([a-z][a-z0-9-]{0,48})$' -or [int]$Matches[1] -le $Previous) {
+            throw "本机迁移清单条目无效或顺序错误: $Entry"
+        }
+        $Previous = [int]$Matches[1]
+        $Ids += "$($Matches[1])-$($Matches[2])"
+    }
+    if (!$Ids) { throw '本机迁移清单不能为空。' }
+    $IdList = ($Ids | ForEach-Object { "'$_'" }) -join ','
+    $Sql = [Collections.Generic.List[string]]::new()
+    $Sql.Add([IO.File]::ReadAllText((Join-Path $Registry 'begin.sql')).Replace('__IDS__', $IdList))
+    for ($Index = 0; $Index -lt $Entries.Count; $Index++) {
+        $Id = $Ids[$Index]
+        $Directory = Join-Path $Root ($Entries[$Index] -split ' ', 2)[1]
+        $Check = Join-Path $Directory 'check.sql'
+        $Apply = Join-Path $Directory 'apply.sql'
+        $Hasher = [Security.Cryptography.SHA256]::Create()
+        try {
+            $Hashes = foreach ($Source in @($Check, $Apply)) {
+                [BitConverter]::ToString($Hasher.ComputeHash([IO.File]::ReadAllBytes($Source))).Replace('-', '')
+            }
+            $Digest = [BitConverter]::ToString($Hasher.ComputeHash([Text.Encoding]::ASCII.GetBytes(($Hashes -join '')))).Replace('-', '')
+        } finally { $Hasher.Dispose() }
+        foreach ($File in @('before.sql', $Check, 'apply.sql', $Apply, $Check, 'after.sql')) {
+            $Source = if ([IO.Path]::IsPathRooted($File)) { $File } else { Join-Path $Registry $File }
+            $Sql.Add([IO.File]::ReadAllText($Source).Replace('__ID__', $Id).Replace('__SHA256__', $Digest))
+        }
+    }
+    return ($Sql -join [char]10)
+}
+
+# 用同一MySQL会话校验、执行并登记安全结构增量, 断开连接时释放锁.
+function Invoke-AutomaticMigrations {
+    $Query = New-AutomaticMigrationBatch
+    $Encoding = $OutputEncoding
+    try {
+        $OutputEncoding = [Text.UTF8Encoding]::new($false)
+        $Rows = @(Invoke-DatabaseQuery -Query $Query)
+        foreach ($Row in $Rows) {
+            if ($Row -match '^([0-9]{4}-[a-z0-9-]+): (verified|baseline|applying)$') {
+                $Message = @{ verified = '已应用，结构复核通过'; baseline = '结构已齐全，已登记'; applying = '增量已执行并核对结构' }[$Matches[2]]
+                Write-Host "数据库迁移 $($Matches[1])：$Message"
+            }
+        }
+    } finally { $OutputEncoding = $Encoding }
+}
+
 # 汇总有限的状态与健康探针错误, 保留原始启动异常供调用者判断失败.
 function Show-StartupDiagnostics {
     try {
@@ -413,7 +470,7 @@ function Build-LocalEnvironment {
             Write-Host "正在构建 $($Target.Name)..."
             Invoke-Compose -Arguments @('build', $Target.Service)
         }
-        Write-Host '镜像构建完成, 请运行 start-local-test.cmd 启动环境。'
+        Write-Host '镜像检查和按需构建完成。'
     } catch {
         Write-Warning '构建失败, 已停止后续步骤。请查看上方具体错误; 下载失败请检查m.daocloud.io、maven.aliyun.com及registry.npmmirror.com的网络访问或限流提示, 然后重新运行build-local-test.cmd。'
         throw
@@ -423,25 +480,44 @@ function Build-LocalEnvironment {
 # 启动已验证镜像, 保留数据容器和数据卷, 逐项核对运行镜像.
 function Start-LocalEnvironment {
     param([switch]$RestartApps)
-    Assert-LocalImages
-    Assert-DataVolumes
-    $Stage = 'MySQL和Redis'
+    $Stage = '检查构建输入和镜像'
     try {
+        Assert-DataVolumes
+        if (!$NoBuild) { Build-LocalEnvironment }
+        Assert-LocalImages
+        $Stage = 'MySQL和Redis'
         Invoke-Compose -Arguments @('up', '--detach', '--no-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
         $Stage = '数据库结构及账号检查'
         Assert-DatabaseReady
+        $Stage = '数据库安全结构增量'
+        Invoke-AutomaticMigrations
         $Stage = '后端和管理端'
         if ($RestartApps) { Invoke-Compose -Arguments @('restart', 'platform-admin', 'platform-api', 'nginx') }
         Invoke-Compose -Arguments @('up', '--detach', '--no-deps', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'platform-admin', 'platform-api', 'nginx')
-        foreach ($Name in @('platform-admin', 'platform-api', 'platform-nginx')) {
-            $Result = Invoke-DockerMetadata -Arguments @('container', 'inspect', $Name)
-            if ($Result.ExitCode -ne 0) { throw "无法核对运行镜像: $Name" }
-            $Container = ($Result.Output -join "`n") | ConvertFrom-Json
-            $ExpectedDigest = if ($Name -eq 'platform-nginx') { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
-            if ($Container[0].Config.Labels.'io.caratcraft.source-digest' -cne $ExpectedDigest) {
-                throw "$Name 的运行镜像与当前版本不一致。"
+        $Stage = '运行镜像、健康检查和 Nginx 代理'
+        $Names = @('platform-admin', 'platform-api', 'platform-nginx')
+        $ContainerResult = Invoke-DockerMetadata -Arguments (@('container', 'inspect') + $Names)
+        if ($ContainerResult.ExitCode -ne 0) { throw '无法核对应用容器。' }
+        $Containers = ($ContainerResult.Output -join "`n") | ConvertFrom-Json
+        $ImageResult = Invoke-DockerMetadata -Arguments @('image', 'inspect', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')
+        if ($ImageResult.ExitCode -ne 0) { throw '无法核对构建后的本地镜像。' }
+        $Images = ($ImageResult.Output -join "`n") | ConvertFrom-Json
+        foreach ($Container in $Containers) {
+            $Ui = $Container.Name -eq '/platform-nginx'
+            $Expected = if ($Ui) { $Images[1] } else { $Images[0] }
+            $Digest = if ($Ui) { $env:ADMIN_UI_BUILD_REVISION } else { $env:BACKEND_BUILD_REVISION }
+            if ($Container.Image -cne $Expected.Id -or $Container.Config.Labels.'io.caratcraft.source-digest' -cne $Digest -or
+                $Container.State.Health.Status -cne 'healthy') {
+                throw "$($Container.Name) 的运行镜像或健康状态不符合预期。"
             }
+            Write-Host "$($Container.Name.TrimStart('/'))：镜像一致，健康"
         }
+        $Probe = Invoke-DockerMetadata -Arguments @('exec', 'platform-nginx', 'sh', '-ec',
+            'wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/; status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/sys/user/info 2>&1) || :; case $status in *401\ Unauthorized*) ;; *) exit 1;; esac; wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/app/customization/styles')
+        if ($Probe.ExitCode -ne 0 -or (($Probe.Output -join '') | ConvertFrom-Json).code -ne 0) {
+            throw 'Nginx 静态入口、后台认证入口或小程序款式接口探测失败。'
+        }
+        Write-Host '代理验证通过：管理台、后台认证入口、DIY 款式接口。'
         Show-AccessInfo
     } catch {
         Write-Warning "启动失败阶段: $Stage。数据卷已保留。"
@@ -480,10 +556,13 @@ Assert-DockerReady
 Clear-ComposeOverrides
 if ($Action -eq 'build') {
     $EnvFile = $EnvExample
-    Assert-HostResources
-    Set-BuildRevisions
-    Set-GitRevision
-    Build-LocalEnvironment
+    $Watch = [Diagnostics.Stopwatch]::StartNew()
+    try {
+        Assert-HostResources
+        Set-BuildRevisions
+        Set-GitRevision
+        Build-LocalEnvironment
+    } finally { Write-Host ('构建耗时：{0:N2} 秒' -f $Watch.Elapsed.TotalSeconds) }
     return
 }
 if (-not (Test-Path -LiteralPath $EnvFile)) { throw '缺少 deploy/.env, 请先执行 configure。' }
@@ -495,9 +574,12 @@ switch ($Action) {
     'reset-db' { [void](Assert-StartupConfiguration); Reset-TestDataVolumes }
     'init-db' { Assert-HostResources -Values (Assert-StartupConfiguration); Initialize-LocalDatabase }
     default {
-        Assert-HostResources -Values (Assert-StartupConfiguration)
-        Set-BuildRevisions
-        Set-GitRevision
-        Start-LocalEnvironment -RestartApps:($Action -eq 'restart')
+        $Watch = [Diagnostics.Stopwatch]::StartNew()
+        try {
+            Assert-HostResources -Values (Assert-StartupConfiguration)
+            Set-BuildRevisions
+            Set-GitRevision
+            Start-LocalEnvironment -RestartApps:($Action -eq 'restart')
+        } finally { Write-Host ('启动及验收耗时：{0:N2} 秒' -f $Watch.Elapsed.TotalSeconds) }
     }
 }

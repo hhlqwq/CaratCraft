@@ -29,6 +29,10 @@ class RepositoryStructureTest(unittest.TestCase):
             "apps/admin-ui/pnpm-lock.yaml", "apps/miniapp/app.json",
             "deploy/docker-compose.yml", "deploy/Dockerfile.backend",
             "deploy/Dockerfile.admin-ui", "deploy/.env.example",
+            "database/upgrade/local/manifest.txt", "database/upgrade/local/begin.sql",
+            "database/upgrade/local/before.sql", "database/upgrade/local/apply.sql",
+            "database/upgrade/local/after.sql", "database/upgrade/goods-questions/check.sql",
+            "database/upgrade/goods-questions/apply.sql",
             "legal/UPSTREAM-LICENSE", "tools/quality/check-project-conventions.cjs",
             "tests/python/test_repository_structure.py", "docs/资料/仓库结构.json",
         }

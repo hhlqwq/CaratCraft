@@ -141,9 +141,11 @@ assert_host_disk() {
 # 记录当前源码的 Git 提交, 离线源码包明确标记 archive.
 set_git_revision() {
     BUILD_GIT_SHA=archive
-    if [[ -e "$ROOT_DIR/.git" ]]; then
-        BUILD_GIT_SHA="$(git -C "$ROOT_DIR" rev-parse --verify HEAD)" || return 1
-        [[ "$BUILD_GIT_SHA" =~ ^[0-9a-f]{40}$ ]] || return 1
+    if [[ -e "$ROOT_DIR/.git" ]] && command -v git >/dev/null 2>&1; then
+        local sha
+        if sha="$(git -C "$ROOT_DIR" rev-parse --verify HEAD)" && [[ "$sha" =~ ^[0-9a-f]{40}$ ]]; then
+            BUILD_GIT_SHA="$sha"
+        fi
     fi
     export BUILD_GIT_SHA
     echo "Git: $BUILD_GIT_SHA"
@@ -277,9 +279,9 @@ assert_local_images() {
 database_query() {
     local output result=0
     if [[ "${2:-root}" == application ]]; then
-        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysql -u"$MYSQL_USER" --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysql -u"$MYSQL_USER" --default-character-set=utf8mb4 --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
     else
-        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
+        output="$(compose exec -T mysql sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --default-character-set=utf8mb4 --batch --skip-column-names "$MYSQL_DATABASE" "$@"' sh "--execute=$1" 2>&1)" || result=$?
     fi
     if [[ "$result" != 0 ]]; then
         printf '%s\n' "$output" >&2
@@ -320,6 +322,52 @@ assert_database_ready() {
     [[ "$tiers" == 1 ]] || { echo '本地库的账号层级尚未完成迁移, 停止应用启动。' >&2; return 1; }
     version="$(database_query "SELECT 1;" application)" || return $?
     [[ "$version" == 1 ]] || return 1
+}
+
+# 生成来自显式清单的SQL批次, 两端使用相同的结构检查和记录格式.
+migration_batch() {
+    local registry="$ROOT_DIR/database/upgrade/local" entry sequence directory id ids=""
+    local previous=0 checksum check apply stage
+    local entries=()
+    while IFS= read -r entry || [[ -n "$entry" ]]; do
+        entry="${entry%$'\r'}"
+        [[ "$entry" =~ ^([0-9]{4})\ ([a-z][a-z0-9-]{0,48})$ ]] || {
+            echo "本机迁移清单条目无效: $entry" >&2; return 1;
+        }
+        sequence="${BASH_REMATCH[1]}"
+        (( 10#$sequence > previous )) || { echo '本机迁移清单顺序错误。' >&2; return 1; }
+        previous=$((10#$sequence))
+        id="$sequence-${BASH_REMATCH[2]}"
+        ids="${ids:+$ids,}'$id'"
+        entries+=("$entry")
+    done < "$registry/manifest.txt"
+    [[ -n "$ids" ]] || { echo '本机迁移清单不能为空。' >&2; return 1; }
+    sed "s/__IDS__/$ids/g" "$registry/begin.sql" || return 1
+    for entry in "${entries[@]}"; do
+        id="${entry/ /-}"
+        directory="$ROOT_DIR/database/upgrade/${entry#* }"
+        check="$(sha256_file "$directory/check.sql")" || return 1
+        apply="$(sha256_file "$directory/apply.sql")" || return 1
+        checksum="$(printf '%s%s' "$check" "$apply" | sha256_file -)" || return 1
+        for stage in "$registry/before.sql" "$directory/check.sql" "$registry/apply.sql" \
+            "$directory/apply.sql" "$directory/check.sql" "$registry/after.sql"; do
+            sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" "$stage" || return 1
+        done
+    done
+}
+
+# 在同一MySQL连接内完成加锁、校验与幂等迁移.
+apply_automatic_migrations() {
+    local batch output
+    batch="$(migration_batch)" || return 1
+    output="$(database_query "$batch")" || { echo '安全结构增量失败，请核对迁移编号和数据库结构。' >&2; return 1; }
+    while IFS= read -r line; do
+        case "$line" in
+            *': verified') printf '数据库迁移 %s：已应用，结构复核通过\n' "${line%:*}" ;;
+            *': baseline') printf '数据库迁移 %s：结构已齐全，已登记\n' "${line%:*}" ;;
+            *': applying') printf '数据库迁移 %s：增量已执行并核对结构\n' "${line%:*}" ;;
+        esac
+    done <<< "$output"
 }
 
 # 输出有限的容器状态和健康检查结果, 保留启动失败退出码.
@@ -369,11 +417,12 @@ upgrade_local_database() {
 
 # 验证镜像、数据服务和运行版本, 遇到任何错误时保留数据卷.
 start_local_environment() {
-    local service expected digest
-    assert_local_images || return $?
+    local service expected
     assert_data_volumes || return $?
+    if [[ "$NO_BUILD" != true ]]; then build_local_environment || return $?; fi
+    assert_local_images || return $?
     if ! compose up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis ||
-        ! assert_database_ready; then
+        ! assert_database_ready || ! apply_automatic_migrations; then
         show_startup_diagnostics
         return 1
     fi
@@ -382,14 +431,33 @@ start_local_environment() {
         show_startup_diagnostics
         return 1
     fi
+
+    local image actual expected_id probe
     for service in platform-admin platform-api platform-nginx; do
-        digest="$(docker container inspect --format '{{index .Config.Labels "io.caratcraft.source-digest"}}' "$service")" || return 1
+        image=carat-craft-backend:local
         expected="$BACKEND_BUILD_REVISION"
-        if [[ "$service" == platform-nginx ]]; then expected="$ADMIN_UI_BUILD_REVISION"; fi
-        if [[ "$digest" != "$expected" ]]; then
-            echo "$service 的运行镜像与当前版本不一致。"; return 1
+        if [[ "$service" == platform-nginx ]]; then
+            image=carat-craft-admin-ui:local
+            expected="$ADMIN_UI_BUILD_REVISION"
         fi
+        expected_id="$(docker image inspect --format '{{.Id}}' "$image")" || return 1
+        actual="$(docker container inspect --format '{{.Image}} {{index .Config.Labels "io.caratcraft.source-digest"}} {{.State.Health.Status}}' "$service")" || return 1
+        if [[ "$actual" != "$expected_id $expected healthy" ]]; then
+            echo "$service 的运行镜像或健康状态不符合预期。" >&2
+            return 1
+        fi
+        echo "$service：镜像一致，健康"
     done
+    probe="$(docker exec platform-nginx sh -ec '
+        wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/
+        status=$(wget -S -T 5 -t 1 -O /dev/null http://127.0.0.1/platform-framework/sys/user/info 2>&1) || :
+        case $status in *401\ Unauthorized*) ;; *) exit 1;; esac
+        wget -q -T 5 -t 1 -O - http://127.0.0.1/platform-framework-api/app/customization/styles')" || return 1
+    if ! grep -Eq '"code"[[:space:]]*:[[:space:]]*0([,}[:space:]])' <<< "$probe"; then
+        echo '小程序款式接口未返回成功状态。' >&2
+        return 1
+    fi
+    echo '代理验证通过：管理台、后台认证入口、DIY 款式接口。'
     show_access_info
 }
 
@@ -434,6 +502,10 @@ case "$ACTION" in
 esac
 if [[ "$ACTION" == build && "$NO_BUILD" == true ]]; then
     echo "build不能与--no-build同时使用。"; exit 1
+fi
+if [[ "$ACTION" == build || "$ACTION" == start || "$ACTION" == restart ]]; then
+    SECONDS=0
+    trap 'printf "操作耗时：%s 秒\\n" "$SECONDS"' EXIT
 fi
 assert_docker_ready
 clear_compose_overrides
