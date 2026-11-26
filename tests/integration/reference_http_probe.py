@@ -98,7 +98,49 @@ def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
             cases.append({"name": name, "status": status})
             return result.get("data")
 
+        check("feedback_requires_login", "/app/feedback/save", {"index": 1, "content": "匿名"}, 401, False)
+        check("feedback_without_mobile", "/app/feedback/save", {"index": 1, "content": "隔离反馈选填"}, 200)
+        assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND mobile='' AND content='隔离反馈选填'") == "1"
+        check("question_requires_login", "/app/goods/questions", {"goodsId": 1999105, "question": "未登录"}, 401, False)
+        check("question_pending", "/app/goods/questions", {"goodsId": 1999105, "question": "隔离待审提问"}, 200)
+        public = check("pending_question_hidden", "/app/goods/questions?goodsId=1999105", None, 200, False)
+        assert public["total"] == 0
+        assert sql("SELECT COUNT(*) FROM CC_GOODS_QUESTION WHERE user_id=9000001 AND status='PENDING'") == "1"
+        print("反馈选填及商品问答隔离HTTP通过", flush=True)
+
+        materials = sql(
+            "SELECT component_type,id FROM CC_COMPONENT_OPTION WHERE goods_id=1999105 "
+            "AND enabled=1 ORDER BY id")
+        grouped = {}
+        for line in materials.splitlines():
+            kind, identity = line.split("\t")
+            grouped.setdefault(kind, []).append(int(identity))
+        design = {"goodsId": 1999105, "arrangementOptionIds": [
+            grouped["chain"][0], grouped["pearl"][0], grouped["pearl"][1],
+            grouped["accessory"][0], grouped["clasp"][0]]}
+        quote = check("mixed_necklace_quote", "/app/customization/quote", design, 200)
+        assert quote["totalPrice"] > 0
+        saved = check("save_mixed_necklace", "/app/customization/save", design, 200)
+        snapshot_id = saved["snapshotId"]
+        snapshot = check("restore_mixed_necklace", "/app/customization/detail?snapshotId=" + str(snapshot_id), {}, 200)
+        assert json.loads(snapshot["configurationJson"])["arrangementOptionIds"] == design["arrangementOptionIds"]
+        message = {"requestKey": "review_isolated_share", "kind": "DESIGN", "title": "隔离设计分享",
+                   "content": "隔离验证", "mediaIds": [], "snapshotId": snapshot_id, "designConsent": True}
+        posted = check("share_saved_necklace", "/app/community/publish", message, 200)
+        dup = check("share_retry_idempotent", "/app/community/publish", message, 200)
+        assert posted["id"] == dup["id"]
+        public_status, _ = call("/app/community/detail?id=" + str(posted["id"]), authenticated=False)
+        assert public_status in (400, 404)
+        sql("UPDATE CC_COMMUNITY_POST SET status='PUBLISHED' WHERE id=" + str(int(posted["id"])))
+        public = check("reviewed_necklace_public", "/app/community/detail?id=" + str(posted["id"]), None, 200, False)
+        public_design = json.loads(public["designJson"])
+        assert public_design["goodsId"] == 1999105 and len(public_design["arrangement"]) == 5
+        assert not any(key in public_design for key in ("neckCircumferenceMm", "engraving", "snapshotId"))
+        before = sql("SELECT COUNT(*) FROM CC_DESIGN_SNAPSHOT WHERE user_id=" + str(user_id))
+        print("混合项链报价、保存、恢复及社区幂等隔离HTTP通过", flush=True)
+
         body = {"goodsId": 1999105, "preference": "MEDIUM", "neckCircumferenceMm": None}
+        sql("UPDATE CC_CUSTOM_PRODUCT SET enabled=0 WHERE goods_id=1999105")
         check("authentication_required", "/app/customization/reference", body, 401, False)
         check("unpublished_template_rejected", "/app/customization/reference", body, 400)
         # 新材料目录默认停用; 仅在本轮隔离库配置独立测试材料, 不启用客户候选.

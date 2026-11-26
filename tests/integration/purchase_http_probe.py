@@ -145,7 +145,12 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         assert int(sql("SELECT goods_number FROM mall_product WHERE id=" + str(product_id))) == 8 - purchase["number"]
         orders = request("/app/order/list?page=1&size=1", {})
         assert orders["total"] == 1 and orders["current"] == 1 and orders["size"] == 1 and len(orders["records"]) == 1
-        request("/app/feedback/save", {"index": 1, "mobile": "13800000000", "content": "  隔离反馈😀  "})
+        request("/app/feedback/save", {"index": 1, "content": "  隔离反馈😀  "})
+        assert sql("SELECT mobile FROM mall_feedback WHERE user_id=9000001 AND content='隔离反馈😀'") == ""
+        request("/app/goods/questions", {"goodsId": goods_id, "question": "隔离商品提问"})
+        questions = request("/app/goods/questions?goodsId=" + str(goods_id))
+        assert questions["total"] == 0
+        assert sql("SELECT COUNT(*) FROM CC_GOODS_QUESTION WHERE user_id=9000001 AND status='PENDING'") == "1"
         request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
         request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
         assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND status=0 AND feed_type=1 AND content='隔离反馈😀'") == "1"
