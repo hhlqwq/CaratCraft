@@ -213,9 +213,9 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         request("/custom/configuration/goods?page=1&size=101", expected=400, management=True)
         first = request("/custom/configuration/options?goodsId=1999105&page=1&size=100&keyword=client-", management=True)
         second = request("/custom/configuration/options?goodsId=1999105&page=2&size=100&keyword=client-", management=True)
-        assert first["total"] == second["total"] == 113
+        assert first["total"] == second["total"] == 112
         assert len(first["records"]) == 100 and len(second["records"]) == 13
-        assert len({row["id"] for row in first["records"] + second["records"]}) == 113
+        assert len({row["id"] for row in first["records"] + second["records"]}) == 112
         assert all(row["enabled"] == 0 for row in first["records"] + second["records"])
         request("/custom/configuration/options?goodsId=1999105&page=0&size=20", expected=400, management=True)
         write_report()

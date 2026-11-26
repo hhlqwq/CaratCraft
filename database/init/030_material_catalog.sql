@@ -425,7 +425,7 @@ INSERT INTO CC_COMPONENT_STOCK(id,goods_id,component_type,option_code,stock)
 VALUES (211,1999105,'accessory','client-accessory-13',0);
 
 INSERT INTO CC_COMPONENT_OPTION(id,goods_id,component_type,option_code,name,price_delta,material_params,z_index,enabled)
-VALUES (212,1999105,'accessory','client-accessory-14','皇冠',0,'{"stockQuantity":1,"stockUnit":"件","candidateOnly":true,"sameNameNeedsConfirmation":true}',84,0);
+VALUES (212,1999105,'accessory','client-accessory-14','皇冠',0,'{"stockQuantity":1,"stockUnit":"件","candidateOnly":true}',84,0);
 INSERT INTO CC_COMPONENT_STOCK(id,goods_id,component_type,option_code,stock)
 VALUES (212,1999105,'accessory','client-accessory-14',0);
 
@@ -563,10 +563,5 @@ INSERT INTO CC_COMPONENT_OPTION(id,goods_id,component_type,option_code,name,pric
 VALUES (239,1999105,'chain','client-cartier-18k-white','卡地亚链 / 18K金白',0,'{"stockQuantity":1,"stockUnit":"件","candidateOnly":true,"chainStyle":"卡地亚链","material":"18K金白"}',111,0);
 INSERT INTO CC_COMPONENT_STOCK(id,goods_id,component_type,option_code,stock)
 VALUES (239,1999105,'chain','client-cartier-18k-white',0);
-
-INSERT INTO CC_COMPONENT_OPTION(id,goods_id,component_type,option_code,name,price_delta,material_params,z_index,enabled)
-VALUES (240,1999105,'accessory','client-accessory-15-crown','皇冠',0,'{"stockQuantity":1,"stockUnit":"件","candidateOnly":true,"sameNameNeedsConfirmation":true}',72,0);
-INSERT INTO CC_COMPONENT_STOCK(id,goods_id,component_type,option_code,stock)
-VALUES (240,1999105,'accessory','client-accessory-15-crown',0);
 
 COMMIT;

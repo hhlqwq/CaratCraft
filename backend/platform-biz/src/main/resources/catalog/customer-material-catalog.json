@@ -767,7 +767,7 @@
             "priceDelta": 0,
             "enabled": 0,
             "zIndex": 84,
-            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"sameNameNeedsConfirmation\":true}"
+            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true}"
         },
         {
             "componentType": "chain",
@@ -1011,15 +1011,6 @@
             "enabled": 0,
             "zIndex": 111,
             "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"chainStyle\":\"卡地亚链\",\"material\":\"18K金白\"}"
-        },
-        {
-            "componentType": "accessory",
-            "optionCode": "client-accessory-15-crown",
-            "name": "皇冠",
-            "priceDelta": 0,
-            "enabled": 0,
-            "zIndex": 72,
-            "materialParams": "{\"stockQuantity\":1,\"stockUnit\":\"件\",\"candidateOnly\":true,\"sameNameNeedsConfirmation\":true}"
         }
     ],
     "referenceImages": [
