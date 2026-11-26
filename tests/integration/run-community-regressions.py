@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import secrets
+import signal
 import shutil
 import subprocess
 import time
@@ -66,6 +67,50 @@ class Fixtures:
                 docker(["network", "rm", self.network])
 
 
+def list_residual():
+    """列出测试资源归属和状态, 不读取容器环境或其他敏感字段."""
+    for command in (
+        ["ps", "-a", "--filter", "label=" + LABEL,
+         "--format", '{{.ID}} {{.Names}} {{.Status}} {{.Label "com.caratcraft.test.run"}}'],
+        ["network", "ls", "--filter", "label=" + LABEL, "--format", "{{.ID}} {{.Name}}"],
+    ):
+        print(docker(command).stdout.rstrip(), flush=True)
+
+
+def clean_stopped_run(run_id):
+    """仅处理指定批次的已停止容器和空专用网络, 发现活动资源即拒绝."""
+    if not re.fullmatch(r"[a-f0-9]{12}", run_id):
+        raise ValueError("测试批次标识无效")
+    label_filter = "label=" + LABEL + "=" + run_id
+    ids = docker(["ps", "-aq", "--no-trunc", "--filter", label_filter]).stdout.split()
+    networks = docker(["network", "ls", "-q", "--no-trunc", "--filter", label_filter]).stdout.split()
+    for identity in ids:
+        item = json.loads(docker(["inspect", "--type", "container", identity]).stdout)[0]
+        labels = item["Config"].get("Labels") or {}
+        if (labels.get(LABEL) != run_id or labels.get("com.docker.compose.project")
+                or item["Name"] not in {"/caratcraft-mysql-" + run_id, "/caratcraft-redis-" + run_id}
+                or item["State"]["Status"] not in {"created", "exited", "dead"}):
+            raise RuntimeError("发现活动容器或归属不明确, 拒绝清理")
+        for mount in item.get("Mounts", []):
+            if (mount["Type"] != "bind" or mount["RW"]
+                    or mount["Destination"] != "/docker-entrypoint-initdb.d"
+                    or Path(mount["Source"]).resolve() != (ROOT / "database/init").resolve()):
+                raise RuntimeError("发现预期外的挂载, 拒绝清理")
+    if len(networks) > 1:
+        raise RuntimeError("发现多个测试网络, 拒绝清理")
+    for identity in networks:
+        item = json.loads(docker(["network", "inspect", identity]).stdout)[0]
+        if (not item["Internal"] or item["Name"] != "caratcraft-test-" + run_id
+                or (item.get("Labels") or {}).get(LABEL) != run_id
+                or not set(item.get("Containers") or {}).issubset(ids)):
+            raise RuntimeError("测试网络归属不明或仍有其他容器使用, 拒绝清理")
+    for identity in ids:
+        docker(["rm", identity])
+    for identity in networks:
+        docker(["network", "rm", identity])
+    print(f"批次 {run_id}: 移除 {len(ids)} 个已停止测试容器和 {len(networks)} 个测试网络", flush=True)
+
+
 def wait_for_mysql(identity, env):
     """仅当TCP连接和完整初始化版本表均可读时继续, 输出有限等待进度."""
     for attempt in range(60):
@@ -105,10 +150,22 @@ def main():
     parser.add_argument("--redis-image", default="redis:7.2-alpine")
     parser.add_argument("--package", action="store_true", help="测试通过后打包两个后端应用")
     parser.add_argument("--http", action="store_true", help="打包后启动隔离API并验证真实HTTP参考接口")
+    parser.add_argument("--tests", help="仅运行逗号分隔的指定Java测试类")
     parser.add_argument("--http-only", action="store_true", help="只验证已有应用包的真实HTTP, 不编译或声明源码已构建")
     parser.add_argument("--native-workspace", action="store_true", help="在容器原生目录编译源码快照并恢复受控产物")
     parser.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
+    residue = parser.add_mutually_exclusive_group()
+    residue.add_argument("--list-residual", action="store_true", help="只读列出带标签的测试容器和网络")
+    residue.add_argument("--clean-stopped-run", metavar="RUN_ID", help="清理指定批次已停止且归属明确的测试资源")
     args = parser.parse_args()
+    if args.tests and not re.fullmatch(r"[A-Za-z0-9_]+(?:,[A-Za-z0-9_]+)*", args.tests):
+        parser.error("--tests 接受逗号分隔的测试类名")
+    if args.list_residual:
+        list_residual()
+        return
+    if args.clean_stopped_run:
+        clean_stopped_run(args.clean_stopped_run)
+        return
     if args.http_only and (args.http or args.package or args.native_workspace):
         parser.error("--http-only不与--http、--package或--native-workspace组合使用")
     if args.http_only:
@@ -134,6 +191,14 @@ def main():
                 "CARATCRAFT_DATABASE_TEST_PASSWORD": env["MYSQL_ROOT_PASSWORD"],
                 "CARATCRAFT_REDIS_TEST": "true", "CARATCRAFT_REDIS_TEST_PORT": "6379"})
     fixtures = Fixtures(run_id)
+
+    def finish_on_signal(signum, _frame):
+        """由主流程的finally释放已经登记的测试资源."""
+        raise SystemExit(128 + signum)
+
+    for signum in (signal.SIGTERM, getattr(signal, "SIGBREAK", None)):
+        if signum is not None:
+            signal.signal(signum, finish_on_signal)
     try:
         print("[1/4] 创建全新隔离MySQL和Redis, 不复用业务卷", flush=True)
         network = fixtures.create_network()
@@ -165,13 +230,15 @@ def main():
             command.extend(["--env", key])
         command.extend([args.maven_image, "mvn", "-o", "-B", "-s", "/tmp/test-settings.xml",
                         "-DforkCount=0", "package" if args.package or args.http else "test"])
+        if args.tests:
+            command.extend(["-Dtest=" + args.tests, "-Dsurefire.failIfNoSpecifiedTests=false"])
         if args.native_workspace:
             from native_maven import command as native_command
             command = native_command(
                 ROOT, cache, settings, output, args.maven_image, mysql,
                 "package" if args.package or args.http else "test",
                 ("CARATCRAFT_DATABASE_TEST", "CARATCRAFT_DATABASE_TEST_URL", "CARATCRAFT_DATABASE_TEST_PASSWORD",
-                 "CARATCRAFT_REDIS_TEST", "CARATCRAFT_REDIS_TEST_PORT"))
+                 "CARATCRAFT_REDIS_TEST", "CARATCRAFT_REDIS_TEST_PORT"), args.tests)
         log = output / "maven.log"
         with log.open("w", encoding="utf-8") as stream:
             result = subprocess.run(command, cwd=ROOT, env=env, stdout=stream, stderr=subprocess.STDOUT)

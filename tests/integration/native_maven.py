@@ -1,6 +1,7 @@
 """使用受控源码快照在容器原生目录构建, 避免Windows逐个class文件跨文件系统写入."""
 
 from pathlib import Path, PurePosixPath
+import shlex
 import subprocess
 import tarfile
 
@@ -49,7 +50,7 @@ def prepare_inputs(root, cache, output):
     return inputs, results
 
 
-def command(root, cache, settings, output, image, mysql, goal, environment_keys):
+def command(root, cache, settings, output, image, mysql, goal, environment_keys, tests=None):
     """生成明确Docker参数, Maven禁网解析且秘密只按环境变量名传入."""
     if goal not in {"test", "package"}:
         raise ValueError("未知Maven验收目标")
@@ -62,11 +63,12 @@ def command(root, cache, settings, output, image, mysql, goal, environment_keys)
                  "--workdir", "/native"]
     for key in environment_keys:
         arguments.extend(["--env", key])
+    selection = " -Dsurefire.failIfNoSpecifiedTests=false " + shlex.quote("-Dtest=" + tests) if tests else ""
     script = (
         "tar -xf /inputs/source.tar -C /native; "
         "tar -xf /inputs/cache.tar -C /root/.m2/repository --strip-components=1; "
         "cd /native/backend; "
-        "status=0; mvn -o -B -s /tmp/test-settings.xml -DforkCount=0 " + goal + " || status=$?; "
+        "status=0; mvn -o -B -s /tmp/test-settings.xml -DforkCount=0 " + goal + selection + " || status=$?; "
         "tar -cf /results/targets.tar --files-from /dev/null; "
         "for module in platform-common platform-biz platform-admin platform-api; do "
         "if [ -d \"$module/target\" ]; then tar -rf /results/targets.tar \"$module/target\"; fi; done; "
