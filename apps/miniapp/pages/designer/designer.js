@@ -306,6 +306,35 @@ Page({
         wx.navigateTo({url: '/pages/ucenter/design/design'});
     },
 
+    /** 重新读取公开作品, 不使用原用户的草稿、私人尺寸或刻字. */
+    async loadCommunityDesign(postId) {
+        const sequence = (this._snapshotSeq = (this._snapshotSeq || 0) + 1);
+        this._configSeq = (this._configSeq || 0) + 1;
+        this.setData({loadingConfig: true, configError: ''});
+        const current = () => sequence === this._snapshotSeq && !this._unloaded;
+        try {
+            const response = await util.request(api.CommunityBase + 'detail', {id: postId}, 'GET');
+            if (!current()) return;
+            const design = object(response.data?.designJson);
+            const goodsId = Number(design.goodsId);
+            if (response.code !== 0 || !Number.isSafeInteger(goodsId) || goodsId <= 0 ||
+                !Array.isArray(design.arrangement) || !design.arrangement.length ||
+                !design.arrangement.every((part) => part.componentType && part.optionCode)) {
+                throw new Error(response.msg || '该公开作品暂不可制作同款');
+            }
+            this.setData({goodsId, draftId: null, draftVersion: null});
+            return this.loadConfig({
+                publicMaterials: design.arrangement,
+                layoutSpacingMm: design.spacingMm,
+                layoutOffsetMm: design.offsetMm,
+            });
+        } catch (error) {
+            if (current()) {
+                this.setData({loadingConfig: false, configError: error.message || '公开设计加载失败'});
+            }
+        }
+    },
+
     /** 加载定制商品配置 / Loads custom product configuration. */
     loadConfig(restoredConfiguration) {
         this._snapshotSeq = (this._snapshotSeq || 0) + 1;
@@ -411,7 +440,11 @@ Page({
                         group.step = ++step;
                     }
                 });
-                const restoredOptionIds =
+                const publicMaterials = restoredConfiguration?.publicMaterials;
+                const restoredOptionIds = publicMaterials ? publicMaterials.map((part) =>
+                    Number(options.find((option) => !option.referenceOnly &&
+                        option.componentType === part.componentType && option.optionCode === part.optionCode)?.id)
+                ) :
                     restoredConfiguration &&
                     (restoredConfiguration.arrangementOptionIds || restoredConfiguration.optionIds)
                         ? (
@@ -430,7 +463,8 @@ Page({
                 ) {
                     this.setData({
                         loadingConfig: false,
-                        configError: '原草稿包含已停用材料, 已保留原设计, 请联系商家核对或新建设计',
+                        configError: publicMaterials ? '同款作品使用的部分材料已经停用，可换款重新搭配。' :
+                            '原草稿包含已停用材料，已保留原设计，请联系客服核对或新建设计',
                     });
                     return;
                 }
@@ -610,12 +644,13 @@ Page({
         const {activeIndex, activeType, activeGroupType, arrangementNodes, arrangementOptionIds} = this.data;
         const dedicated = activeGroupType === 'chain' || activeGroupType === 'clasp';
         const extender = arrangement.isExtender(option);
-        const existing = dedicated ? arrangementNodes.findIndex(
+        const fixedSlots = dedicated ? arrangementNodes.filter(
             (node) => node.type === activeGroupType && (activeGroupType !== 'clasp' || node.extender === extender)
-        ) : -1;
-        const replacing = dedicated ? existing >= 0 : this.data.editMode === 'replace' && activeGroupType === activeType && activeIndex >= 0;
-        const index = dedicated ? existing : activeIndex;
-        if (replacing && arrangementOptionIds[index] === id) return;
+        ) : [];
+        const replacing = dedicated ? fixedSlots.length > 0 :
+            this.data.editMode === 'replace' && activeGroupType === activeType && activeIndex >= 0;
+        const index = dedicated ? (fixedSlots[0]?.index ?? -1) : activeIndex;
+        if (replacing && arrangementOptionIds[index] === id && fixedSlots.length < 2) return;
         const count = dedicated || replacing ? 1 : Number(this.data.addCount);
         if (!Number.isSafeInteger(count) || count < 1) {
             wx.showToast({title: '请输入正整数数量', icon: 'none'});
@@ -627,6 +662,8 @@ Page({
         }
         try {
             const next = arrangement.edit(arrangementOptionIds, replacing ? 'replace' : 'insert', index, id, count);
+            // 用户明确切换固定部件时, 一并替换旧草稿中同一槽位的重复部件.
+            for (const node of fixedSlots.slice(1).reverse()) next.splice(node.index, 1);
             this.updateArrangement(next, true);
             const nextIndex = replacing ? index : index + count;
             const node = this.data.arrangementNodes[nextIndex];
@@ -852,10 +889,11 @@ Page({
             }
             const count = action === 'copy' ? Number(this.data.copyCount) : 1;
             const node = this.data.arrangementNodes[index];
+            if ((node.type === 'clasp' || node.type === 'chain') &&
+                (action === 'copy' || action === 'left' || action === 'right')) {
+                throw new Error('请在材料栏切换链条或尾扣');
+            }
             if (action === 'copy') {
-                if (node.type === 'clasp' || node.type === 'chain') {
-                    throw new Error('请在材料栏切换链条或尾扣');
-                }
                 const group = this.data.componentGroups.find((item) => item.type === node.type);
                 const option = group.options.find((item) => Number(item.id) === node.optionId);
                 const used = this.data.arrangementOptionIds.filter((id) => id === node.optionId).length;
@@ -1191,6 +1229,21 @@ Page({
             this.loadStyles();
         }
         this._sessionToken = token;
+        const postId = Number(wx.getStorageSync('designerCommunityPostId') || 0);
+        if (Number.isSafeInteger(postId) && postId > 0) {
+            wx.removeStorageSync('designerCommunityPostId');
+            const open = () => this.loadCommunityDesign(postId);
+            if (this._savedDesign && this.designFingerprint() !== this._savedDesign) {
+                wx.showModal({
+                    title: '切换到同款设计',
+                    content: '当前搭配有未保存改动，继续会离开这份搭配。',
+                    success: ({confirm}) => { if (confirm) open(); },
+                });
+            } else {
+                open();
+            }
+            return;
+        }
         const goodsId = Number(wx.getStorageSync('designerGoodsId') || 0);
         const snapshotId = Number(wx.getStorageSync('designerSnapshotId') || 0);
         if (snapshotId) {

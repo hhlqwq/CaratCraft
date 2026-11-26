@@ -18,16 +18,19 @@ const MESHES = {
     box: () => geometry.styledLinkMesh('box'),
     chopin: () => geometry.styledLinkMesh('chopin'),
     cartier: () => geometry.styledLinkMesh('cartier'),
+    crown: () => geometry.accessoryMesh('crown'),
+    clover: () => geometry.accessoryMesh('clover'),
+    marquise: () => geometry.accessoryMesh('marquise'),
     baroque: geometry.baroqueMesh,
     thread: geometry.threadMesh,
 };
 
 /** 创建单一 Canvas 的原生 WebGL 1 渲染器, 管理其全部 GPU 资源. */
-function createRenderer(canvas) {
+function createRenderer(canvas, preserveDrawingBuffer = false) {
     const gl = canvas.getContext('webgl', {
         alpha: false,
         antialias: true,
-        preserveDrawingBuffer: false,
+        preserveDrawingBuffer,
     });
     if (!gl) {
         throw new Error('当前微信环境未提供 WebGL Canvas');
@@ -282,7 +285,10 @@ function createRenderer(canvas) {
                 boundMesh = mesh;
             }
             const turn = part.rotation || 0;
+            const twist = part.twist || 0;
             gl.uniform2f(uniforms.uTurn, Math.cos(turn), Math.sin(turn));
+            gl.uniform2f(uniforms.uTwist, Math.cos(twist), Math.sin(twist));
+            gl.uniform3f(uniforms.uScale, ...(part.stretch || [1, 1, 1]));
             gl.uniform1f(uniforms.uMaterial, part.material);
             gl.uniform3f(uniforms.uTint, ...(part.tint || [1, 1, 1]));
             gl.uniform3f(uniforms.uCenter, ...part.point);
@@ -384,6 +390,8 @@ function createRenderer(canvas) {
                     'uTint',
                     'uSeed',
                     'uTurn',
+                    'uTwist',
+                    'uScale',
                 ]
             ),
             backdrop: program(shaders.backdropVertex, shaders.backdropFragment, ['aPosition'], []),

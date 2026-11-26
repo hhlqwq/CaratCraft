@@ -1,5 +1,5 @@
 .page {
-    background: #f8f6f3;
+    background: #f5f2eb;
     box-sizing: border-box;
     min-height: 100vh;
     padding: 22rpx 22rpx 220rpx;
@@ -7,7 +7,7 @@
 
 .config-state {
     background: #ffffff;
-    color: #665a70;
+    color: #58665e;
     font-size: 25rpx;
     margin-top: 18rpx;
     padding: 28rpx 24rpx;
@@ -19,7 +19,7 @@
 }
 
 .config-state-title {
-    color: #292337;
+    color: #26312d;
     font-size: 29rpx;
     font-weight: 700;
 }
@@ -29,7 +29,7 @@
 }
 
 .config-retry {
-    background: #4d345b;
+    background: #294d3e;
     color: #ffffff;
     font-size: 25rpx;
     margin-top: 18rpx;
@@ -38,7 +38,7 @@
 /* 预览区 */
 .stage-card {
     background: #ffffff;
-    padding: 24rpx;
+    padding: 18rpx;
 }
 
 .stage-head {
@@ -46,7 +46,7 @@
 }
 
 .stage-title {
-    color: #292337;
+    color: #26312d;
     font-size: 30rpx;
     font-weight: 700;
 }
@@ -58,19 +58,19 @@
 }
 
 .style-back {
-    color: #665a70;
+    color: #58665e;
     font-size: 24rpx;
 }
 
 .stage-price {
-    color: #4d345b;
+    color: #294d3e;
     font-size: 27rpx;
     font-weight: 700;
 }
 
 .active-bar {
     align-items: center;
-    background: #f4eef6;
+    background: #edf1eb;
     border-radius: 12rpx;
     display: flex;
     justify-content: space-between;
@@ -79,7 +79,7 @@
 }
 
 .active-name {
-    color: #292337;
+    color: #26312d;
     flex: 1;
     font-size: 24rpx;
     font-weight: 600;
@@ -94,7 +94,7 @@
 }
 
 .action {
-    color: #4d345b;
+    color: #294d3e;
     font-size: 24rpx;
     margin-left: 22rpx;
 }
@@ -122,7 +122,7 @@
 }
 
 .tool {
-    color: #665a70;
+    color: #58665e;
     font-size: 24rpx;
     margin-left: 30rpx;
 }
@@ -132,19 +132,19 @@
 }
 
 .detail-panel {
-    border-top: 1rpx solid #eee6f0;
+    border-top: 1rpx solid #e7eee7;
     margin-top: 12rpx;
     padding-top: 10rpx;
 }
 
 .bom-line {
-    color: #665a70;
+    color: #58665e;
     font-size: 23rpx;
     line-height: 1.9;
 }
 
 .preview-disclaimer {
-    color: #665a70;
+    color: #58665e;
     font-size: 21rpx;
     line-height: 1.6;
     margin-top: 10rpx;
@@ -162,7 +162,7 @@
 }
 
 .group-tab {
-    color: #665a70;
+    color: #58665e;
     display: inline-block;
     font-size: 26rpx;
     margin: 0 8rpx;
@@ -170,7 +170,7 @@
 }
 
 .group-tab-active {
-    background: #4d345b;
+    background: #294d3e;
     border-radius: 14rpx;
     color: #ffffff;
     font-weight: 600;
@@ -188,7 +188,7 @@
 }
 
 .option {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border: 2rpx solid transparent;
     border-radius: 14rpx;
     box-sizing: border-box;
@@ -201,7 +201,7 @@
 }
 
 .option-selected {
-    background: #f4eef6;
+    background: #edf1eb;
     border-color: #9276a0;
 }
 
@@ -211,7 +211,7 @@
 }
 
 .option-name {
-    color: #292337;
+    color: #26312d;
     font-size: 22rpx;
     line-height: 1.4;
     margin-top: 10rpx;
@@ -221,13 +221,13 @@
 }
 
 .option-price {
-    color: #4d345b;
+    color: #294d3e;
     font-size: 21rpx;
     margin-top: 6rpx;
 }
 
 .material-hint {
-    color: #665a70;
+    color: #58665e;
     font-size: 21rpx;
     margin-top: 12rpx;
     padding: 0;
@@ -247,19 +247,19 @@
 }
 
 .sizing-title {
-    color: #292337;
+    color: #26312d;
     font-size: 28rpx;
     font-weight: 700;
 }
 
 .sizing-description {
-    color: #665a70;
+    color: #58665e;
     font-size: 22rpx;
     margin-top: 6rpx;
 }
 
 .sizing-icon {
-    color: #665a70;
+    color: #58665e;
     font-size: 24rpx;
 }
 
@@ -268,14 +268,14 @@
 }
 
 .sizing-fields label {
-    color: #665a70;
+    color: #58665e;
     display: block;
     font-size: 24rpx;
     margin-bottom: 14rpx;
 }
 
 .sizing-fields input {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border-radius: 10rpx;
     font-size: 25rpx;
     margin-top: 8rpx;
@@ -283,49 +283,49 @@
 }
 
 .reference-preference {
-    color: #4d345b;
+    color: #294d3e;
     font-size: 25rpx;
     margin: 8rpx 0 14rpx;
 }
 
 .reference-preference text {
-    color: #4d345b;
+    color: #294d3e;
 }
 
 .reference-action {
-    background: #4d345b;
+    background: #294d3e;
     color: #ffffff;
     font-size: 25rpx;
 }
 
 .reference-result {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border-radius: 12rpx;
     margin-top: 16rpx;
     padding: 18rpx;
 }
 
 .reference-length {
-    color: #292337;
+    color: #26312d;
     font-size: 26rpx;
     font-weight: 700;
 }
 
 .reference-reason {
-    color: #292337;
+    color: #26312d;
     font-size: 24rpx;
     margin-top: 8rpx;
 }
 
 .reference-note {
-    color: #665a70;
+    color: #58665e;
     font-size: 22rpx;
     line-height: 1.7;
     margin-top: 8rpx;
 }
 
 .engraving {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border-radius: 10rpx;
     font-size: 25rpx;
     margin-top: 16rpx;
@@ -355,13 +355,13 @@
 }
 
 .bottom-bar .secondary {
-    background: #eee6f0;
-    color: #4d345b;
+    background: #e7eee7;
+    color: #294d3e;
     flex: 1;
 }
 
 .bottom-bar .primary {
-    background: #4d345b;
+    background: #294d3e;
     color: #ffffff;
     flex: 2;
 }
@@ -373,15 +373,15 @@
 }
 
 .style-help {
-    color: #665a70;
+    color: #58665e;
     font-size: 26rpx;
     margin-top: 12rpx;
 }
 
 .style-choice {
     align-items: center;
-    background: #f8f6f3;
-    color: #292337;
+    background: #f5f2eb;
+    color: #26312d;
     display: flex;
     font-size: 28rpx;
     gap: 16rpx;
@@ -392,12 +392,12 @@
 }
 
 .style-arrow {
-    color: #4d345b;
+    color: #294d3e;
 }
 
 .designs-link {
     background: transparent;
-    color: #4d345b;
+    color: #294d3e;
     font-size: 26rpx;
     margin-top: 24rpx;
 }
@@ -413,24 +413,24 @@
 }
 
 .mode-button {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border-radius: 10rpx;
-    color: #292337;
+    color: #26312d;
     flex: 1;
     font-size: 25rpx;
 }
 
 .mode-button.mode-active {
-    background: #4d345b;
+    background: #294d3e;
     color: #ffffff;
 }
 
 .mode-button[disabled] {
-    color: #665a70;
+    color: #58665e;
 }
 
 .length-summary {
-    color: #665a70;
+    color: #58665e;
     display: flex;
     flex-wrap: wrap;
     font-size: 23rpx;
@@ -440,11 +440,11 @@
 
 .bottom-bar button[disabled] {
     background: #eeeaf0;
-    color: #665a70;
+    color: #58665e;
 }
 
 .checkout-status {
-    color: #4d345b;
+    color: #294d3e;
     flex-basis: 100%;
     font-size: 22rpx;
     max-height: 100rpx;
@@ -475,7 +475,7 @@
     background: #fff;
     border: 1rpx solid #e6e0e8;
     border-radius: 12rpx;
-    color: #4d345b;
+    color: #294d3e;
     font-size: 24rpx;
     line-height: 64rpx;
     margin: 0;
@@ -501,12 +501,12 @@
 }
 
 .instance-active {
-    background: #eee6f0;
-    border-color: #baabc2;
+    background: #e7eee7;
+    border-color: #829689;
 }
 
 .metric {
-    color: #292337;
+    color: #26312d;
     display: block;
     font-size: 29rpx;
     font-weight: 650;
@@ -516,13 +516,13 @@
 .option-info,
 .option-placeholder,
 .measurement-guide {
-    color: #665a70;
+    color: #58665e;
     font-size: 23rpx;
 }
 
 .option-placeholder {
     align-items: center;
-    background: #eee6f0;
+    background: #e7eee7;
     border-radius: 10rpx;
     display: flex;
     height: 86rpx;
@@ -530,7 +530,7 @@
 }
 
 .measurement-guide {
-    background: #f8f6f3;
+    background: #f5f2eb;
     border-radius: 12rpx;
     line-height: 1.6;
     margin-bottom: 12rpx;
@@ -540,7 +540,7 @@
 
 .neck-measure {
     align-items: center;
-    color: #665a70;
+    color: #58665e;
     display: flex;
     font-size: 24rpx;
     gap: 14rpx;
@@ -549,7 +549,7 @@
 }
 
 .neck-outline {
-    border: solid #baabc2;
+    border: solid #829689;
     border-radius: 8rpx 8rpx 30rpx 30rpx;
     border-width: 0 2rpx 2rpx;
     height: 48rpx;
@@ -557,7 +557,7 @@
 }
 
 .tape-line {
-    border: 2rpx solid #4d345b;
+    border: 2rpx solid #294d3e;
     border-radius: 50%;
     height: 15rpx;
     left: -3rpx;
@@ -565,4 +565,11 @@
     top: 19rpx;
     transform: rotate(-6deg);
     width: 80rpx;
+}
+
+.quote-detail {
+    padding-top: 6rpx;
+}
+.quote-detail .stage-tools {
+    flex-wrap: wrap;
 }

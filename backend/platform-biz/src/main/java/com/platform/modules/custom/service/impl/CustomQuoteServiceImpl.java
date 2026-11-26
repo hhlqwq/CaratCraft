@@ -121,6 +121,9 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
             }
             selected.put(optionId, option);
         }
+        if ("NECKLACE".equals(goods.getJewelryType())) {
+            validateNecklaceSlots(counts, selected);
+        }
         if (selected.values().stream().anyMatch(ComponentRules::isCatalogReference)) {
             return Map.of(
                     "goodsId", goods.getId(),
@@ -145,6 +148,33 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
                                     false,
                                     "notice",
                                     Objects.requireNonNullElse(error.getMessage(), "当前组合无法制作")));
+        }
+    }
+
+    /** 草稿、参考预览和交易采用相同的固定槽位数量限制. */
+    private static void validateNecklaceSlots(
+            Map<Long, Integer> counts, Map<Long, CustomComponentOptionEntity> selected) {
+        int chains = 0;
+        int closures = 0;
+        int extenders = 0;
+        for (var option : selected.values()) {
+            int instances = counts.get(option.getId());
+            if ("chain".equals(option.getComponentType())) {
+                chains += instances;
+            } else if (ComponentRules.isExtender(option)) {
+                extenders += instances;
+            } else if ("clasp".equals(option.getComponentType())) {
+                closures += instances;
+            }
+        }
+        if (chains > 1) {
+            throw new IllegalArgumentException("项链只能使用一条基础链");
+        }
+        if (closures > 1) {
+            throw new IllegalArgumentException("项链只能使用一个主尾扣");
+        }
+        if (extenders > 1) {
+            throw new IllegalArgumentException("项链只能使用一条延长链");
         }
     }
 
@@ -245,12 +275,9 @@ public class CustomQuoteServiceImpl implements CustomQuoteService {
         if (necklace && !selectedTypes.contains("pearl")) {
             sizing.put("ready", false);
             sizing.put("notice", "请至少添加一颗珍珠");
-        } else if (necklace && extenderCount > 0 && (claspCount != 1 || extenderCount > 1)) {
+        } else if (necklace && extenderCount > 0 && claspCount != 1) {
             sizing.put("ready", false);
             sizing.put("notice", "延长链须搭配一个兼容的主尾扣");
-        } else if (necklace && claspCount > 1) {
-            sizing.put("ready", false);
-            sizing.put("notice", "普通单股项链只能使用一个尾扣");
         } else if (!requiredComplete) {
             sizing.put("ready", false);
             sizing.put("notice", "必选材料尚未补齐, 可以保存草稿后继续编辑");

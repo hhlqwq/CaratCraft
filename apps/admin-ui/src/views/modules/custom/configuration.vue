@@ -381,7 +381,37 @@
                         <el-form-item label="挂点占长 mm"><el-input v-model="ruleForm.mountSpanMm" inputmode="decimal" /></el-form-item>
                     </el-col>
                     <el-col v-if="option.componentType === 'chain'" :xs="24" :sm="12">
-                        <el-form-item label="链条款式"><el-input v-model="ruleForm.chainStyle" maxlength="30" /></el-form-item>
+                        <el-form-item label="链条款式">
+                            <el-select v-model="ruleForm.chainStyle" filterable allow-create clearable>
+                                <el-option v-for="style in ['钢丝', '棉线', 'O字链', '肖邦链', 'Y字链', '盒仔链', '卡地亚链']"
+                                           :key="style" :label="style" :value="style" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'clasp'" :xs="24" :sm="12">
+                        <el-form-item label="扣件用途">
+                            <el-select v-model="ruleForm.claspRole">
+                                <el-option label="主尾扣" value="CLOSURE" />
+                                <el-option label="延长链" value="EXTENDER" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'clasp' && ruleForm.claspRole === 'CLOSURE'" :xs="24" :sm="12">
+                        <el-form-item label="尾扣款式">
+                            <el-select v-model="ruleForm.claspStyle" filterable allow-create clearable>
+                                <el-option v-for="style in ['龙虾扣', '元宝扣', '磁吸扣', '抱抱扣', '弹簧扣']"
+                                           :key="style" :label="style" :value="style" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col v-if="option.componentType === 'accessory'" :xs="24" :sm="12">
+                        <el-form-item label="3D预览外观">
+                            <el-select v-model="ruleForm.previewShape" clearable placeholder="按材料名称显示示意">
+                                <el-option label="皇冠" value="crown" />
+                                <el-option label="四叶草" value="clover" />
+                                <el-option label="戴妃" value="marquise" />
+                            </el-select>
+                        </el-form-item>
                     </el-col>
                     <el-col v-if="option.componentType === 'chain' || option.componentType === 'clasp'" :xs="24" :sm="12">
                         <el-form-item label="材质"><el-input v-model="ruleForm.material" maxlength="30" /></el-form-item>
@@ -438,7 +468,7 @@
                 <el-table-column prop="priceDelta" label="每实例加价" width="90"></el-table-column>
                 <el-table-column
                     prop="assetUrl"
-                    label="2D 图层"
+                    label="材料图片"
                     min-width="210"
                     show-overflow-tooltip
                 ></el-table-column>
@@ -530,9 +560,12 @@ export default {
                 spanMm: null,
                 lengthMm: null,
                 lengthRole: null,
-                shape: '近正圆',
-                luster: '极光',
-                blemish: '微瑕',
+                claspRole: 'CLOSURE',
+                claspStyle: null,
+                previewShape: null,
+                shape: '',
+                luster: '',
+                blemish: '',
             },
             componentTypes: [
                 {value: 'pearl', label: '珍珠（pearl）'},
@@ -832,9 +865,12 @@ export default {
                 spanMm: null,
                 lengthMm: null,
                 lengthRole: null,
-                shape: '近正圆',
-                luster: '极光',
-                blemish: '微瑕',
+                claspRole: 'CLOSURE',
+                claspStyle: null,
+                previewShape: null,
+                shape: '',
+                luster: '',
+                blemish: '',
             };
         },
         // 编辑配件 / Edits a component option.
@@ -859,15 +895,18 @@ export default {
                     variety: rules.variety ?? null,
                     color: rules.color ?? null,
                     chainStyle: rules.chainStyle ?? null,
+                    claspRole: rules.claspRole ?? (this.option.optionCode === 'client-extension' ? 'EXTENDER' : 'CLOSURE'),
+                    claspStyle: rules.claspStyle ?? null,
+                    previewShape: rules.previewShape ?? null,
                     material: rules.material ?? null,
                     axialMm: rules.axialMm ?? null,
                     mountSpanMm: rules.mountSpanMm ?? null,
                     holeDiameterMm: rules.holeDiameterMm ?? null,
                     wireDiameterMm: rules.wireDiameterMm ?? null,
                     dropMm: rules.dropMm ?? null,
-                    shape: rules.shape || '近正圆',
-                    luster: rules.luster || '极光',
-                    blemish: rules.blemish || '微瑕',
+                    shape: rules.shape || '',
+                    luster: rules.luster || '',
+                    blemish: rules.blemish || '',
                 };
             } catch (error) {
                 this.$message.error('原材料规则无法读取, 请联系管理员核对');
@@ -891,6 +930,9 @@ export default {
                     variety: this.ruleForm.variety || null,
                     color: this.ruleForm.color || null,
                     chainStyle: this.ruleForm.chainStyle || null,
+                    claspRole: this.option.componentType === 'clasp' ? (this.ruleForm.claspRole || 'CLOSURE') : null,
+                    claspStyle: this.ruleForm.claspStyle || null,
+                    previewShape: this.ruleForm.previewShape || null,
                     material: this.ruleForm.material || null,
                     axialMm: this.measuredSize(this.ruleForm.axialMm),
                     mountSpanMm: this.measuredSize(this.ruleForm.mountSpanMm),

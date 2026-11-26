@@ -43,47 +43,10 @@
             <view class="preview-disclaimer" wx:if="{{!arrangementNodes.length}}">先选择基础链条，再搭配珍珠。</view>
             <view class="preview-disclaimer" wx:if="{{quote.sizing.capacityReady === false}}">{{quote.sizing.notice}}</view>
             <view class="preview-disclaimer" wx:elif="{{quote.sizing.remainingCapacityMm != null}}">链身剩余容量 {{quote.sizing.remainingCapacityMm}} mm</view>
-            <scroll-view wx:if="{{arrangementNodes.length}}" scroll-x enhanced show-scrollbar="{{false}}" class="arrangement-list" aria-label="已选材料">
-                <button wx:for="{{arrangementNodes}}" wx:key="index" size="mini"
-                        class="instance {{activeIndex === index ? 'instance-active' : ''}}"
-                        data-index="{{index}}" bindtap="selectInstance">{{item.name}}</button>
-            </scroll-view>
-            <view wx:if="{{activeIndex >= 0}}" class="active-bar">
-                <view class="active-name">已选第 {{activeIndex + 1}} 项 · {{activeName}}</view>
-                <view class="active-actions">
-                    <text class="action" data-action="left" bindtap="editInstance" wx:if="{{activeIndex > 0}}">前移</text>
-                    <text class="action" data-action="right" bindtap="editInstance" wx:if="{{activeIndex < arrangementNodes.length - 1}}">后移</text>
-                    <text wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="action" data-action="copy" bindtap="editInstance">复制</text>
-                    <input wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="copy-count" type="number" maxlength="4" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" />
-                    <text class="action danger" data-action="remove" bindtap="editInstance">删除</text>
-                </view>
-            </view>
-            <view class="stage-tools">
-                <text class="tool {{canUndo && !saving ? '' : 'tool-disabled'}}" bindtap="undoArrangement">撤回</text>
-                <text class="tool {{arrangementNodes.length && !saving ? '' : 'tool-disabled'}}" data-action="clear" bindtap="editInstance">清空</text>
-                <text class="tool" bindtap="toggleDetail">{{showDetail ? '收起明细' : '报价明细'}}</text>
-            </view>
-            <view class="stage-tools" wx:if="{{pearlCount && activeGroupType === 'pearl'}}">
-                <text class="tool" data-action="space" bindtap="adjustPlacement" wx:if="{{pearlCount > 1}}">加大间距</text>
-                <text class="tool" data-action="left" bindtap="adjustPlacement">搭配左移</text>
-                <text class="tool" data-action="right" bindtap="adjustPlacement">搭配右移</text>
-                <text class="tool" data-action="reset" bindtap="adjustPlacement" wx:if="{{layoutSpacingMm || layoutOffsetMm}}">恢复居中紧排</text>
-            </view>
-            <view wx:if="{{showDetail}}" class="detail-panel">
-                <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
-                <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}{{quote.lengthNotice ? '。' + quote.lengthNotice : ''}}</view>
-            </view>
+
         </view>
 
         <view class="material-card">
-            <view class="material-actions" wx:if="{{activeGroupType === 'pearl' || activeGroupType === 'accessory'}}">
-                <button class="mode-button {{editMode === 'replace' ? 'mode-active' : ''}}"
-                            data-mode="replace" bindtap="setEditMode" disabled="{{activeIndex < 0 || saving}}">替换选中</button>
-                <button class="mode-button {{editMode === 'insert' ? 'mode-active' : ''}}"
-                            data-mode="insert" bindtap="setEditMode" disabled="{{saving}}">{{activeIndex >= 0 ? '在选中项后添加' : '添加材料'}}</button>
-                <label class="add-count" wx:if="{{editMode === 'insert'}}">数量<input class="copy-count" type="number" maxlength="4" value="{{addCount}}" bindinput="changeAddCount" disabled="{{saving}}" /></label>
-            </view>
-            <view class="material-hint">{{activeGroupType === 'chain' || activeGroupType === 'clasp' ? '点击材料直接切换。' : (editMode === 'replace' ? '点击同类材料替换选中项。' : '点击材料添加，或先填写数量。')}}</view>
             <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="group-tabs">
                 <view class="group-tab {{activeGroupType === group.type ? 'group-tab-active' : ''}}"
                             wx:for="{{componentGroups}}" wx:for-item="group" wx:key="type"
@@ -91,6 +54,15 @@
                     {{group.name}}<text wx:if="{{group.required}}" class="required-mark">*</text>
                 </view>
             </scroll-view>
+            <view class="material-actions" wx:if="{{activeGroupType === 'pearl' || activeGroupType === 'accessory'}}">
+                <button wx:if="{{activeIndex >= 0 && activeType === activeGroupType}}"
+                            class="mode-button {{editMode === 'replace' ? 'mode-active' : ''}}"
+                            data-mode="replace" bindtap="setEditMode" disabled="{{saving}}">替换选中</button>
+                <button class="mode-button {{editMode === 'insert' ? 'mode-active' : ''}}"
+                            data-mode="insert" bindtap="setEditMode" disabled="{{saving}}">{{activeIndex >= 0 ? '在选中项后添加' : '添加材料'}}</button>
+                <label class="add-count" wx:if="{{editMode === 'insert'}}">数量<input class="copy-count" type="number" maxlength="4" value="{{addCount}}" bindinput="changeAddCount" disabled="{{saving}}" /></label>
+            </view>
+            <view class="material-hint">{{activeGroupType === 'chain' || activeGroupType === 'clasp' ? '点击材料直接切换。' : (editMode === 'replace' ? '点击同类材料替换选中项。' : '点击材料添加，或先填写数量。')}}</view>
             <scroll-view wx:if="{{materialVariants.length > 1}}" class="variant-strip"
                         scroll-x enhanced show-scrollbar="{{false}}">
                 <button size="mini" class="instance {{!activeMaterialVariant ? 'instance-active' : ''}}"
@@ -103,16 +75,53 @@
                 <view class="option {{option.selected ? 'option-selected' : ''}}"
                             wx:for="{{activeOptions}}" wx:for-item="option" wx:key="id"
                             data-id="{{option.id}}" data-type="{{activeGroupType}}" bindtap="selectOption">
-                    <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}"></image>
+                    <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}" lazy-load="{{true}}"></image>
                     <view wx:else class="option-placeholder">{{activeGroupName}}</view>
                     <view class="option-name">{{option.displayName}}</view>
                     <text wx:if="{{option.photoCredit}}" class="option-info" data-id="{{option.id}}" catchtap="referenceCredit">摄影出处</text>
                     <view class="option-info">{{option.sizeLabel}}</view>
+                    <view wx:if="{{!option.referenceOnly && option.addable != null}}" class="option-info">{{option.addable === 0 ? option.limitReason : '可再添加 ' + option.addable + ' 件'}}</view>
                     <view class="option-price">{{option.referenceOnly ? '参考 · 待确认' : (option.priceDelta > 0 ? '+¥' + option.priceDelta : '不加价')}}</view>
                 </view>
             </scroll-view>
             <text wx:if="{{!activeGroupRequired && activeGroupHasSelection}}" class="clear-group"
                             data-type="{{activeGroupType}}" bindtap="clearOptional">移除所有{{activeGroupName}}</text>
+        </view>
+
+        <view class="stage-card arrangement-card">
+            <scroll-view wx:if="{{arrangementNodes.length}}" scroll-x enhanced show-scrollbar="{{false}}" class="arrangement-list" aria-label="已选材料">
+                <button wx:for="{{arrangementNodes}}" wx:key="index" size="mini"
+                        class="instance {{activeIndex === index ? 'instance-active' : ''}}"
+                        data-index="{{index}}" bindtap="selectInstance">{{item.name}}</button>
+            </scroll-view>
+            <view wx:if="{{activeIndex >= 0 && activeType !== 'chain' && activeType !== 'clasp'}}" class="active-bar">
+                <view class="active-name">已选第 {{activeIndex + 1}} 项 · {{activeName}}</view>
+                <view class="active-actions">
+                    <text class="action" data-action="left" bindtap="editInstance" wx:if="{{activeIndex > 0}}">前移</text>
+                    <text class="action" data-action="right" bindtap="editInstance" wx:if="{{activeIndex < arrangementNodes.length - 1}}">后移</text>
+                    <text wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="action" data-action="copy" bindtap="editInstance">复制</text>
+                    <input wx:if="{{activeType !== 'chain' && activeType !== 'clasp'}}" class="copy-count" type="number" maxlength="4" value="{{copyCount}}" bindinput="changeCopyCount" disabled="{{saving}}" />
+                    <text class="action danger" data-action="remove" bindtap="editInstance">删除</text>
+                </view>
+            </view>
+            <view class="stage-tools">
+                <text class="tool {{canUndo && !saving ? '' : 'tool-disabled'}}" bindtap="undoArrangement">撤回</text>
+                <text class="tool {{arrangementNodes.length && !saving ? '' : 'tool-disabled'}}" data-action="clear" bindtap="editInstance">清除搭配</text>
+                <text class="tool" bindtap="toggleDetail">{{showDetail ? '收起明细' : '间距与报价明细'}}</text>
+            </view>
+        </view>
+
+        <view wx:if="{{showDetail}}" class="material-card quote-detail">
+            <view class="stage-tools" wx:if="{{showDetail && pearlCount && activeGroupType === 'pearl'}}">
+                <text class="tool" data-action="space" bindtap="adjustPlacement" wx:if="{{pearlCount > 1}}">加大间距</text>
+                <text class="tool" data-action="left" bindtap="adjustPlacement">搭配左移</text>
+                <text class="tool" data-action="right" bindtap="adjustPlacement">搭配右移</text>
+                <text class="tool" data-action="reset" bindtap="adjustPlacement" wx:if="{{layoutSpacingMm || layoutOffsetMm}}">恢复居中紧排</text>
+            </view>
+            <view wx:if="{{showDetail}}" class="detail-panel">
+                <view class="bom-line" wx:for="{{quote.components}}" wx:key="optionId">{{item.name}} × {{item.instances}} / 耗用 {{item.quantity}}{{item.unit}} / ¥{{item.linePrice}}</view>
+                <view class="preview-disclaimer">{{quote.lengthComplete ? '材料跨度参考: ' + quote.estimatedLengthMm + ' mm' : '完整长度待商家补齐尺寸后估算'}}{{quote.lengthNotice ? '。' + quote.lengthNotice : ''}}</view>
+            </view>
         </view>
 
         <view class="sizing-card">

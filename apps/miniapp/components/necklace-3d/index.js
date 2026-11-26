@@ -19,6 +19,7 @@ function separation(a, b) {
 
 Component({
     properties: {
+        captureEnabled: {type: Boolean, value: false},
         optionIds: {type: Array, value: []},
         groups: {type: Array, value: []},
         selected: {type: Number, value: -1},
@@ -92,6 +93,32 @@ Component({
     },
 
     methods: {
+        /** 导出当前已绘制的作品画布, 封面不含页面资料和个人参数. */
+        captureCover() {
+            if (!this.canvas || !this.renderer || this.data.loading || this.data.renderError) {
+                return Promise.reject(new Error('请等 3D 封面加载后重试'));
+            }
+            this.renderer.draw();
+            return new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('生成 3D 封面超时，请重试')), 5000);
+                wx.canvasToTempFilePath({
+                    canvas: this.canvas,
+                    fileType: 'png',
+                    destWidth: 640,
+                    destHeight: Math.round(640 * this.canvas.height / this.canvas.width),
+                    success: ({tempFilePath}) => {
+                        clearTimeout(timeout);
+                        if (tempFilePath) resolve(tempFilePath);
+                        else reject(new Error('未生成 3D 封面，请重试'));
+                    },
+                    fail: () => {
+                        clearTimeout(timeout);
+                        reject(new Error('当前设备未能导出 3D 封面，请重试'));
+                    },
+                }, this);
+            });
+        },
+
         /** 首帧直接绘制, 画布查询无响应时保留设计并提示重试. */
         start() {
             this.release();
@@ -123,7 +150,7 @@ Component({
                                 : wx.getSystemInfoSync();
                         this.bounds = rect;
                         this.canvas = canvas;
-                        this.renderer = createRenderer(canvas);
+                        this.renderer = createRenderer(canvas, this.properties.captureEnabled);
                         this.renderer.fit(rect.width, rect.height, device.pixelRatio);
                         this.applyScene();
                         this.renderer.draw();

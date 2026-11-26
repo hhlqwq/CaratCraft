@@ -52,22 +52,16 @@ public final class NecklaceArrangement {
             if (pearl) {
                 BigDecimal axial = dimension(params, "axialMm");
                 item.put("axialMm", axial == null ? size : axial);
-                item.put(
-                        "shape",
-                        params.path("shape").asText(null) == null
-                                ? "近正圆"
-                                : params.path("shape").asText(null));
-                item.put(
-                        "luster",
-                        params.path("luster").asText(null) == null
-                                ? "极光"
-                                : params.path("luster").asText(null));
-                item.put(
-                        "blemish",
-                        params.path("blemish").asText(null) == null
-                                ? "微瑕"
-                                : params.path("blemish").asText(null));
+                item.put("shape", params.path("shape").asText(null));
+                item.put("luster", params.path("luster").asText(null));
+                item.put("blemish", params.path("blemish").asText(null));
             }
+            for (String key : List.of("color", "variety", "chainStyle", "claspStyle", "metal", "material")) {
+                String value = params.path(key).asText(null);
+                if (value != null) item.put(key, value);
+            }
+            BigDecimal drop = dimension(params, "dropMm");
+            if (drop != null) item.put("dropMm", drop);
             arrangement.add(item);
             if (size == null) {
                 complete = false;

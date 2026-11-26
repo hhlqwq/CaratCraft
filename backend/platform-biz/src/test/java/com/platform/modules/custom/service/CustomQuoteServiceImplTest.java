@@ -152,9 +152,9 @@ class CustomQuoteServiceImplTest {
         assertEquals("微瑕", arranged.get(0).get("blemish"));
     }
 
-    /** 项链单独要求至少一颗珍珠并校验单扣, 草稿仍可保留原设计. */
+    /** 无珠草稿可继续编辑, 重复固定部件不能报价或另存. */
     @Test
-    void chainOnlyAndMultipleClaspsAreDraftOnly() {
+    void unfinishedNecklaceAndDuplicateFixedSlots() {
         var goods = goodsService.getById(10);
         goods.setJewelryType("NECKLACE");
         var product = new CustomProductEntity();
@@ -176,7 +176,9 @@ class CustomQuoteServiceImplTest {
         request.setArrangementOptionIds(java.util.List.of(1L, 3L, 2L));
         assertEquals(true, service.quote(request).get("checkoutReady"));
         request.setArrangementOptionIds(java.util.List.of(1L, 3L, 2L, 3L));
-        assertEquals(false, service.quoteDraft(request).get("checkoutReady"));
+        assertThrows(IllegalArgumentException.class, () -> service.quoteDraft(request));
+        request.setArrangementOptionIds(java.util.List.of(1L, 1L, 2L, 3L));
+        assertThrows(IllegalArgumentException.class, () -> service.quote(request));
     }
 
     /** 目录参考品允许组成草稿, 无法生成成交报价; 兼容延长链可以与主扣同用. */

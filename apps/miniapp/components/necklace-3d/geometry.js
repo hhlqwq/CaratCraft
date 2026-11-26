@@ -252,6 +252,7 @@ function pick(pearls, matrix, depth, x, y, spread, aspect) {
     let nearest = Infinity;
     let selected = null;
     pearls.forEach((pearl) => {
+        if (pearl.hiddenFromPick) return;
         const point = viewPoint(pearl.point, matrix, depth);
         const projection = point[0] * ray[0] + point[1] * ray[1] + point[2] * ray[2];
         const square = point[0] ** 2 + point[1] ** 2 + point[2] ** 2;
@@ -274,6 +275,32 @@ function baroqueMesh() {
     return mesh;
 }
 
+/** 构建配饰类别示意轮廓, 几何尺寸与实物模型保持独立. */
+function accessoryMesh(style) {
+    const mesh = meshData();
+    if (style === 'clover') {
+        for (const [x, y] of [[0.39, 0.39], [-0.39, 0.39], [0.39, -0.39], [-0.39, -0.39]]) {
+            appendSphere(mesh, [x, y, 0], [0.41, 0.41, 0.18], 10, 16);
+        }
+        appendSphere(mesh, [0, 0, 0.10], [0.25, 0.25, 0.17], 8, 14);
+    } else if (style === 'crown') {
+        appendTube(mesh, [
+            [-0.82, -0.34, 0], [-0.90, 0.42, 0], [-0.44, 0.14, 0],
+            [0, 0.74, 0], [0.44, 0.14, 0], [0.90, 0.42, 0],
+            [0.82, -0.34, 0], [-0.82, -0.34, 0],
+        ], 0.09, 0.11, 8);
+        appendTube(mesh, [[-0.76, -0.62, 0], [0.76, -0.62, 0]], 0.11, 0.12, 8);
+    } else {
+        const outline = Array.from({length: 29}, (_, index) => {
+            const angle = index / 28 * TAU;
+            return [0.58 * Math.cos(angle) * (0.52 + 0.48 * Math.abs(Math.cos(angle))), 0.92 * Math.sin(angle), 0];
+        });
+        appendTube(mesh, outline, 0.10, 0.13, 8, true);
+        appendSphere(mesh, [0, 0, 0.16], [0.37, 0.69, 0.26], 10, 16);
+    }
+    return mesh;
+}
+
 /** 生成连接用细线, 与链环共用相同中心线路径. */
 function threadMesh() {
     const mesh = meshData();
@@ -283,6 +310,7 @@ function threadMesh() {
 
 module.exports = {
     baroqueMesh,
+    accessoryMesh,
     threadMesh,
     pearlMesh,
     smallPearlMesh,

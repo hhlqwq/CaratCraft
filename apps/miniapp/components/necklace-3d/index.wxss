@@ -3,9 +3,9 @@
 }
 
 .scene {
-    background: #ede7eb;
-    border-radius: 20rpx;
-    height: 560rpx;
+    background: #e9e7de;
+    border-radius: 12rpx;
+    height: clamp(372rpx, 35vh, 520rpx);
     overflow: hidden;
     position: relative;
 }
