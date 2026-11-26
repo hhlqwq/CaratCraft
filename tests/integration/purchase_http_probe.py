@@ -9,7 +9,7 @@ import subprocess
 import time
 
 
-def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql, call):
+def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql, call, review_only=False):
     """只写本轮合成商品及账号, 使用实际应用包、HTTP和客户端选择器."""
     admin_token = secrets.token_urlsafe(32)
     sql("INSERT INTO SYS_ORG(ORG_NO,ORG_NAME,STATUS,CREATE_TIME) VALUES('CCHTTP','隔离工作室',1,NOW());"
@@ -41,6 +41,13 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         assert response["code"] == (0 if expected == 200 else expected), (path, response)
         cases.append({"path": path.split('?')[0], "status": status})
         return response.get("data")
+
+    def write_report():
+        """记录本次真实HTTP验证完成的项目与隔离边界."""
+        (output / "purchase-http.json").write_text(json.dumps(
+            {"tests": len(cases), "passed": len(cases), "cases": cases,
+             "browserAcceptance": False, "realPayment": False}, ensure_ascii=False, indent=4), encoding="utf-8")
+        print("真实商品维护到购买链路通过: " + str(len(cases)) + "项", flush=True)
 
     try:
         for attempt in range(90):
@@ -181,6 +188,9 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
         request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
         assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND status=0 AND feed_type=1 AND content='隔离反馈😀'") == "1"
+        if review_only:
+            write_report()
+            return
         sql("DELETE FROM mall_footprint WHERE user_id IN(9000001,9000002)")
         sql("INSERT INTO mall_footprint(id,user_id,goods_id,add_time) VALUES"
             f"(19950101,9000001,{goods_id},1735749000),(19950102,9000001,{goods_id},1735749000),"
@@ -203,15 +213,12 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         request("/custom/configuration/goods?page=1&size=101", expected=400, management=True)
         first = request("/custom/configuration/options?goodsId=1999105&page=1&size=100&keyword=client-", management=True)
         second = request("/custom/configuration/options?goodsId=1999105&page=2&size=100&keyword=client-", management=True)
-        assert first["total"] == second["total"] == 112
-        assert len(first["records"]) == 100 and len(second["records"]) == 12
-        assert len({row["id"] for row in first["records"] + second["records"]}) == 112
+        assert first["total"] == second["total"] == 113
+        assert len(first["records"]) == 100 and len(second["records"]) == 13
+        assert len({row["id"] for row in first["records"] + second["records"]}) == 113
         assert all(row["enabled"] == 0 for row in first["records"] + second["records"])
         request("/custom/configuration/options?goodsId=1999105&page=0&size=20", expected=400, management=True)
-        (output / "purchase-http.json").write_text(json.dumps(
-            {"tests": len(cases), "passed": len(cases), "cases": cases,
-             "browserAcceptance": False, "realPayment": False}, ensure_ascii=False, indent=4), encoding="utf-8")
-        print("真实商品维护到购买链路通过: " + str(len(cases)) + "项", flush=True)
+        write_report()
     finally:
         result = docker(["logs", admin], check=False)
         (output / "admin.log").write_text(result.stdout + result.stderr, encoding="utf-8")

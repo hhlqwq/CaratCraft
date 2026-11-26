@@ -151,6 +151,7 @@ def main():
     parser.add_argument("--package", action="store_true", help="测试通过后打包两个后端应用")
     parser.add_argument("--http", action="store_true", help="打包后启动隔离API并验证真实HTTP参考接口")
     parser.add_argument("--tests", help="仅运行逗号分隔的指定Java测试类")
+    parser.add_argument("--review-http", action="store_true", help="仅验收商品、定制、反馈、公开内容和优惠结算")
     parser.add_argument("--http-only", action="store_true", help="只验证已有应用包的真实HTTP, 不编译或声明源码已构建")
     parser.add_argument("--native-workspace", action="store_true", help="在容器原生目录编译源码快照并恢复受控产物")
     parser.add_argument("--date", default=datetime.now().strftime("%Y-%m-%d"))
@@ -166,6 +167,8 @@ def main():
     if args.clean_stopped_run:
         clean_stopped_run(args.clean_stopped_run)
         return
+    if args.review_http and not (args.http or args.http_only):
+        parser.error("--review-http 需要配合 --http 或 --http-only")
     if args.http_only and (args.http or args.package or args.native_workspace):
         parser.error("--http-only不与--http、--package或--native-workspace组合使用")
     if args.http_only:
@@ -215,7 +218,7 @@ def main():
         if args.http_only:
             print("[2/4] 仅验收已有应用包, 不清理或重新编译源码", flush=True)
             from reference_http_probe import verify_reference_http
-            verify_reference_http(ROOT, fixtures, mysql, args.maven_image, env, output, docker)
+            verify_reference_http(ROOT, fixtures, mysql, args.maven_image, env, output, docker, args.review_http)
             print("[4/4] 已有应用包HTTP验证完成, 清理本次资源", flush=True)
             return
         print("[2/4] 清理固定构建输出并执行完整离线回归: " + database, flush=True)
@@ -256,7 +259,7 @@ def main():
         print("[3/4] Maven回归通过, 日志: " + str(log), flush=True)
         if args.http:
             from reference_http_probe import verify_reference_http
-            verify_reference_http(ROOT, fixtures, mysql, args.maven_image, env, output, docker)
+            verify_reference_http(ROOT, fixtures, mysql, args.maven_image, env, output, docker, args.review_http)
         print("[4/4] 清理本次测试容器和内部网络", flush=True)
     finally:
         fixtures.close()

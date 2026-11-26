@@ -15,7 +15,7 @@ def encoded(value):
     return base64.urlsafe_b64encode(json.dumps(value, separators=(",", ":")).encode()).rstrip(b"=")
 
 
-def verify_reference_http(root, fixtures, mysql, image, env, output, docker):
+def verify_reference_http(root, fixtures, mysql, image, env, output, docker, review_only=False):
     """只操作本轮随机夹具, 认证密钥随机生成且不进入日志或命令参数."""
     jar = root / "backend/platform-api/target/platform-api.jar"
     with zipfile.ZipFile(jar) as archive:
@@ -186,7 +186,7 @@ VALUES(1999105,'pearl','reference-isolated-fixture','隔离规则参考材料',0
                                                      "cases": cases}, ensure_ascii=False, indent=4), encoding="utf-8")
         print("真实HTTP参考接口验证通过: " + str(len(cases)) + "项", flush=True)
         from purchase_http_probe import verify_purchase_http
-        verify_purchase_http(root, fixtures, mysql, image, application_env, output, docker, sql, call)
+        verify_purchase_http(root, fixtures, mysql, image, application_env, output, docker, sql, call, review_only)
     finally:
         result = docker(["logs", application], check=False)
         (output / "api.log").write_text(result.stdout + result.stderr, encoding="utf-8")
