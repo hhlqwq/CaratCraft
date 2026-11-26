@@ -132,7 +132,7 @@ class CustomQuoteServiceImplTest {
 
     /** 服务端长度仅使用商家实测值, 串珠与同一路径链材不重复加长. */
     @Test
-    void arrangementLengthUsesMerchantMeasurementsAndFrozenDefaults() {
+    void arrangementLengthUsesMerchantMeasurementsWithoutInventingGrades() {
         var pearl = option(1L, "pearl", "10.00");
         pearl.setMaterialParams("{\"diameterMm\":8.5,\"stockUnit\":\"颗\"}");
         var chain = option(2L, "chain", "35.00");
@@ -147,9 +147,9 @@ class CustomQuoteServiceImplTest {
         assertEquals(true, quote.get("lengthComplete"));
         assertEquals(new BigDecimal("400"), quote.get("estimatedLengthMm"));
         var arranged = ResponseAssertions.records(quote.get("arrangement"));
-        assertEquals("近正圆", arranged.get(0).get("shape"));
-        assertEquals("极光", arranged.get(0).get("luster"));
-        assertEquals("微瑕", arranged.get(0).get("blemish"));
+        assertEquals(null, arranged.get(0).get("shape"));
+        assertEquals(null, arranged.get(0).get("luster"));
+        assertEquals(null, arranged.get(0).get("blemish"));
     }
 
     /** 无珠草稿可继续编辑, 重复固定部件不能报价或另存. */

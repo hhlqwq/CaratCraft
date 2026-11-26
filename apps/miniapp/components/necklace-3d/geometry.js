@@ -275,6 +275,30 @@ function baroqueMesh() {
     return mesh;
 }
 
+/** 构建商家选择的尾扣类别, 保证两端均留出链材连接环. */
+function fastenerMesh(style) {
+    const mesh = meshData();
+    const band = style === 'magnetic' ? 0.32 : 0.28;
+    for (const side of [-1, 1]) {
+        if (style === 'hug') {
+            const arc = Array.from({length: 20}, (_, index) => {
+                const angle = -0.80 * Math.PI + index * 1.60 * Math.PI / 19;
+                return [side * (0.20 + 0.31 * Math.cos(angle)), 0.43 * Math.sin(angle), 0.09 * side];
+            });
+            appendTube(mesh, arc, 0.12, 0.13, 8);
+        } else {
+            appendSphere(mesh, [side * 0.36, style === 'ingot' ? side * 0.08 : 0, 0],
+                style === 'magnetic' ? [0.35, band, band] : [0.38, 0.38, 0.15], 12, 16);
+        }
+        const joint = Array.from({length: 14}, (_, index) => {
+            const angle = index / 13 * TAU;
+            return [side * 0.78 + 0.17 * Math.cos(angle), 0.17 * Math.sin(angle), 0];
+        });
+        appendTube(mesh, joint, 0.06, 0.06, 6, true);
+    }
+    return mesh;
+}
+
 /** 构建配饰类别示意轮廓, 几何尺寸与实物模型保持独立. */
 function accessoryMesh(style) {
     const mesh = meshData();
@@ -311,6 +335,7 @@ function threadMesh() {
 module.exports = {
     baroqueMesh,
     accessoryMesh,
+    fastenerMesh,
     threadMesh,
     pearlMesh,
     smallPearlMesh,

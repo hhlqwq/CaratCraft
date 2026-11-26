@@ -76,7 +76,7 @@
                             wx:for="{{activeOptions}}" wx:for-item="option" wx:key="id"
                             data-id="{{option.id}}" data-type="{{activeGroupType}}" bindtap="selectOption">
                     <image wx:if="{{option.assetUrl}}" class="option-image" src="{{option.assetUrl}}" mode="aspectFit" webp="{{true}}" lazy-load="{{true}}"></image>
-                    <view wx:else class="option-placeholder">{{activeGroupName}}</view>
+                    <view wx:else class="option-placeholder">{{option.referenceOnly ? '暂无参考图' : '待上传图片'}}</view>
                     <view class="option-name">{{option.displayName}}</view>
                     <text wx:if="{{option.photoCredit}}" class="option-info" data-id="{{option.id}}" catchtap="referenceCredit">摄影出处</text>
                     <view class="option-info">{{option.sizeLabel}}</view>

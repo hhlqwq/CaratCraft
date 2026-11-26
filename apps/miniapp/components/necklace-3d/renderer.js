@@ -21,6 +21,9 @@ const MESHES = {
     crown: () => geometry.accessoryMesh('crown'),
     clover: () => geometry.accessoryMesh('clover'),
     marquise: () => geometry.accessoryMesh('marquise'),
+    magnetic: () => geometry.fastenerMesh('magnetic'),
+    hug: () => geometry.fastenerMesh('hug'),
+    ingot: () => geometry.fastenerMesh('ingot'),
     baroque: geometry.baroqueMesh,
     thread: geometry.threadMesh,
 };

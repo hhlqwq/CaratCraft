@@ -4,12 +4,12 @@
             type="info"
             :closable="false"
             show-icon
-            title="商家可在“商品管理 → 商品列表”网页新增或导入完整商品，再在本页维护该商品的 DIY 材料和素材。"
+            title="请先在商品管理建立基础商品，再在这里配置可搭配的材料、实测规格、价格及素材。"
         ></el-alert>
         <el-alert
             type="warning"
             :closable="false"
-            title="DIY仅使用珍珠、尾扣、配饰、链条四类. 客户112项候选默认停用, 价格、实测尺寸、图片及库存须自行核对; 14项配饰为暂定拆分名称. 旧分类仅保留历史记录, 请停用后新建四类材料."
+            title="参考材料默认停用。可售材料请先核对实物照片、尺寸、价格及库存。"
         ></el-alert>
         <el-alert
             v-if="readErrors.goods || readErrors.products || readErrors.options"
@@ -19,23 +19,6 @@
         >
             <el-button @click="retryReads">重新加载</el-button>
         </el-alert>
-        <div class="toolbar">
-            <el-upload
-                v-if="isAuth('custom:config:update')"
-                action=""
-                accept=".json"
-                :auto-upload="false"
-                :show-file-list="false"
-                :on-change="importConfiguration"
-                :disabled="writing"
-            >
-                <el-button type="success">导入商品配件 JSON</el-button>
-            </el-upload>
-            <el-button type="text" :loading="catalogDownloading" @click="downloadTemplate"
-                >下载客户112项候选模板</el-button
-            >
-        </div>
-
         <el-card class="card" shadow="never">
             <template #header><div>定制商品</div></template>
             <el-form :inert="writing" label-width="110px">
@@ -527,7 +510,6 @@ export default {
             pageActive: true,
             pageEpoch: 0,
             writing: false,
-            catalogDownloading: false,
             reading: {goods: false, products: false, options: false},
             readErrors: {goods: '', products: '', options: ''},
             pagination: {
@@ -891,7 +873,6 @@ export default {
                     spanMm: rules.spanMm || null,
                     lengthMm: rules.lengthMm || null,
                     lengthRole: rules.lengthRole || null,
-                    claspRole: rules.claspRole ?? null,
                     variety: rules.variety ?? null,
                     color: rules.color ?? null,
                     chainStyle: rules.chainStyle ?? null,
@@ -926,7 +907,6 @@ export default {
                     spanMm: this.measuredSize(this.ruleForm.spanMm),
                     lengthMm: this.measuredSize(this.ruleForm.lengthMm),
                     lengthRole: this.ruleForm.lengthRole || null,
-                    claspRole: this.ruleForm.claspRole || null,
                     variety: this.ruleForm.variety || null,
                     color: this.ruleForm.color || null,
                     chainStyle: this.ruleForm.chainStyle || null,
@@ -1005,110 +985,6 @@ export default {
                         this.$message.error(`停用失败: ${error.message || error}`);
                     }
                 });
-        },
-        // 导入完整定制商品配件配置 / Imports a complete customization configuration.
-        importConfiguration(file) {
-            if (this.writing) {
-                return;
-            }
-            const context = this.configurationContext();
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                if (!this.isConfigurationCurrent(context)) {
-                    return;
-                }
-                try {
-                    const payload = JSON.parse(event.target.result);
-                    if (
-                        !payload.product ||
-                        !payload.product.goodsId ||
-                        !Array.isArray(payload.options)
-                    ) {
-                        throw new Error('JSON 必须包含 product.goodsId 和 options 数组');
-                    }
-                    this.$confirm(
-                        payload.replaceOptions === false
-                            ? '导入仅补充缺失的参考条目，保留原有模板、材料、图片、价格及库存。是否继续？'
-                            : '导入将停用未出现的旧配件并更新同代码材料, 保留已有库存。是否继续？',
-                        '导入确认',
-                        {
-                            type: 'warning',
-                        }
-                    )
-                        .then(() =>
-                            this.writeConfiguration(
-                                '/custom/configuration/import',
-                                payload,
-                                context,
-                                (data) => `导入成功，共 ${data.data.optionCount} 个配件`,
-                                () => {
-                                    this.selectedGoodsId = payload.product.goodsId;
-                                    this.product = Object.assign(createProduct(), payload.product);
-                                    this.resetOption();
-                                    this.options = [];
-                                    this.loadProducts();
-                                    this.loadOptions();
-                                }
-                            )
-                        )
-                        .catch((error) => {
-                            if (
-                                this.isConfigurationCurrent(context) &&
-                                error !== 'cancel' &&
-                                error !== 'close'
-                            ) {
-                                this.$message.error(`导入失败：${error.message || error}`);
-                            }
-                        });
-                } catch (error) {
-                    this.$message.error(`JSON 解析失败：${error.message}`);
-                }
-            };
-            reader.onerror = () => {
-                if (this.isConfigurationCurrent(context)) {
-                    this.$message.error('无法读取所选 JSON 文件');
-                }
-            };
-            reader.readAsText(file.raw, 'UTF-8');
-        },
-        /** 下载单一客户目录的完整停用模板, 商品切换或离页后不触发旧下载. */
-        async downloadTemplate() {
-            if (!this.selectedGoodsId || this.catalogDownloading) {
-                return;
-            }
-            const context = this.configurationContext();
-            this.catalogDownloading = true;
-            try {
-                const {data} = await this.$http({
-                    url: '/custom/configuration/catalog-template',
-                    method: 'get',
-                    params: {goodsId: this.selectedGoodsId},
-                });
-                if (!this.isConfigurationCurrent(context)) {
-                    return;
-                }
-                if (!data || data.code !== 0 || !Array.isArray(data.data?.options)) {
-                    throw new Error('客户候选目录读取失败');
-                }
-                const blob = new Blob([JSON.stringify(data.data, null, 4)], {
-                    type: 'application/json;charset=utf-8',
-                });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                try {
-                    link.href = url;
-                    link.download = '客户材料候选导入模板.json';
-                    link.click();
-                } finally {
-                    URL.revokeObjectURL(url);
-                }
-            } catch (error) {
-                if (this.isConfigurationCurrent(context)) {
-                    this.$message.error(error.message || '客户候选目录读取失败, 请重试');
-                }
-            } finally {
-                this.catalogDownloading = false;
-            }
         },
     },
 };

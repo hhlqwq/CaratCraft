@@ -120,6 +120,14 @@ function itemMesh(item) {
     return /戴妃/.test(item.name) ? 'marquise' : 'decoration';
 }
 
+/** 选择有明确款式的尾扣轮廓, 未知款式使用通用示意. */
+function claspMesh(style) {
+    if (/磁吸|magnetic/i.test(style)) return 'magnetic';
+    if (/抱抱/i.test(style)) return 'hug';
+    if (/元宝/i.test(style)) return 'ingot';
+    return /弹簧|spring/i.test(style) ? 'chain' : 'clasp';
+}
+
 /** 将环线区间转换为相接的金属链环或连接线, 无材质叠盖. */
 function connect(parts, at, item, start, end, step, through = false) {
     if (end - start < 0.01) return;
@@ -209,7 +217,7 @@ function previewScene(optionIds, groups, rules = {}, placement = {}) {
         const from = at(cusp);
         const to = at(cusp + clasp.span);
         parts.push({
-            index: clasp.index, mesh: /弹簧|spring/i.test(clasp.claspStyle) ? 'chain' : 'clasp',
+            index: clasp.index, mesh: claspMesh(clasp.claspStyle),
             material: clasp.sizeMm === null ? 2 : 1, tint: metalTint(clasp.metal),
             point: at(center), radius: Math.hypot(to[0] - from[0], to[1] - from[1]) / 2,
             rotation: Math.atan2(to[1] - from[1], to[0] - from[0]),
