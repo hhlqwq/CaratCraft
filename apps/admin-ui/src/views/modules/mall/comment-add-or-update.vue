@@ -24,6 +24,10 @@
                     placeholder="评论内容"
                 ></el-input>
             </el-form-item>
+            <el-form-item label="商家回复" prop="staffReply">
+                <el-input v-model="dataForm.staffReply" type="textarea" :rows="3" maxlength="1000"
+                          :disabled="disabled" placeholder="随已审核评价向消费者公开" />
+            </el-form-item>
             <el-form-item label="状态" prop="status">
                 <el-radio-group v-model="dataForm.status" :disabled="disabled">
                     <el-radio-button :label="0">待审核</el-radio-button>

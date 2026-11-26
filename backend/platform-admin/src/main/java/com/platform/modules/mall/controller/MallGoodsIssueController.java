@@ -59,6 +59,26 @@ import java.util.Map;
 public class MallGoodsIssueController extends AbstractController {
 
     private final MallGoodsIssueService mallGoodsIssueService;
+    private final com.platform.modules.mall.service.GoodsQuestionService questions;
+
+    public record BuyerQuestionDecision(Long id, String action, String answer) {}
+
+    /** 查询本动作授权工作室的商品提问. */
+    @GetMapping("/buyer-questions")
+    @RequiresPermissions("mall:goodsissue:list")
+    public RestResponse<Map<String, Object>> buyerQuestions(
+            @RequestParam(defaultValue = "1") int page) {
+        return RestResponse.ok(questions.manage(authority.scope("mall:goodsissue:list"), page));
+    }
+
+    /** 审核当前商品的回复或隐藏不宜公开的问答. */
+    @PostMapping("/buyer-questions/review")
+    @RequiresPermissions("mall:goodsissue:update")
+    @SysLog("审核商品提问")
+    public RestResponse<String> reviewBuyerQuestion(@RequestBody BuyerQuestionDecision decision) {
+        questions.moderate(authority.scope("mall:goodsissue:update"), decision.id(), decision.action(), decision.answer());
+        return RestResponse.ok();
+    }
     private final StaffAuthority authority;
 
     /**

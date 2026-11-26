@@ -21,20 +21,21 @@
             </view>
         </view>
         <video wx:if="{{goods.videoUrl}}" class="product-video" src="{{goods.videoUrl}}" poster="{{goods.primaryPicUrl}}" controls="{{true}}" autoplay="{{false}}" binderror="handleVideoError" />
-        <view wx:if="{{videoError}}" class="video-error">视频暂时无法播放, 可先查看图片或联系商家</view>
+        <view wx:if="{{videoError}}" class="video-error">视频暂时无法播放, 可先查看图片或联系客服</view>
         <view class="section-nav section-attr" bindtap="switchAttrPop">
             <view class="t">请选择规格数量</view>
             <image class="i" src="../../static/images/address_right.png" background-size="cover"></image>
         </view>
 
-        <view class="comments" wx:if="{{comment.count > 0}}">
+        <view class="catalog-contact"><merchant-contact inline="{{true}}" /></view>
+        <view class="comments">
             <view class="h">
                 <navigator url="../comment/comment?valueId={{goods.id}}&typeId=0">
-                    <text class="t">评价({{comment.count > 999 ? '999+' : comment.count}})</text>
+                    <text class="t">商品评价({{comment.count > 999 ? '999+' : (comment.count || 0)}})</text>
                     <text class="i">查看全部</text>
                 </navigator>
             </view>
-            <view class="b">
+            <view wx:if="{{comment.count}}" class="b">
                 <view class="item">
                     <view class="info">
                         <view class="user">
@@ -46,12 +47,14 @@
                     <view class="content">
                         {{comment.data.content}}
                     </view>
+                    <view wx:if="{{comment.data.staffReply}}" class="content">商家回复 · {{comment.data.staffReply}}</view>
                     <view class="imgs" wx:if="{{comment.data.picList.length > 0}}">
                         <image class="img" wx:for="{{comment.data.picList}}" wx:key="id" src="{{item.picUrl}}"></image>
                     </view>
                     <!-- <view class="spec">白色 2件</view> -->
                 </view>
             </view>
+            <view wx:else class="no-reviews">暂无评价</view>
         </view>
         <view class="goods-attr">
             <view class="t">商品参数</view>
@@ -67,6 +70,21 @@
             <rich-text nodes="{{goodsDetailHtml}}"></rich-text>
         </view>
 
+
+        <view class="goods-questions">
+            <view class="goods-questions-head"><text>商品问答（{{questionsTotal}}）</text><button size="mini" bindtap="toggleQuestion">{{questionOpen ? '收起' : '我要提问'}}</button></view>
+            <view wx:if="{{questionOpen}}" class="goods-question-form">
+                <textarea value="{{questionDraft}}" maxlength="500" bindinput="inputQuestion" placeholder="填写想了解的商品问题，审核通过后公开" disabled="{{questionSending}}" />
+                <button size="mini" bindtap="submitQuestion" loading="{{questionSending}}" disabled="{{questionSending}}">提交提问</button>
+            </view>
+            <view wx:if="{{questionError}}" class="goods-question-state">{{questionError}} <button size="mini" bindtap="retryQuestions">重试</button></view>
+            <view wx:elif="{{questionsLoading && !questions.length}}" class="goods-question-state">正在读取商品问答…</view>
+            <view wx:elif="{{!questions.length}}" class="goods-question-state">暂无商品问答</view>
+            <view wx:for="{{questions}}" wx:key="id" class="goods-question-row">
+                <text class="goods-question-title">{{item.question}}</text><text>商家回复 · {{item.answer}}</text>
+            </view>
+            <button wx:if="{{questions.length < questionsTotal && !questionError}}" size="mini" loading="{{questionsLoading}}" bindtap="moreQuestions">查看更多</button>
+        </view>
 
         <view class="common-problem">
             <view class="h">
@@ -154,5 +172,3 @@
     <view class="c {{submitting ? 'is-busy' : ''}}" aria-disabled="{{submitting}}" bindtap='buyGoods'>{{submitting ? '正在提交...' : '立即购买'}}</view>
     <view class="r {{submitting ? 'is-busy' : ''}}" aria-disabled="{{submitting}}" bindtap="addToCart">加入购物车</view>
 </view>
-
-<merchant-contact />

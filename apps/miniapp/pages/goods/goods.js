@@ -17,6 +17,14 @@ Page({
         gallery: [],
         attribute: [],
         issueList: [],
+        questions: [],
+        questionsPage: 1,
+        questionsTotal: 0,
+        questionsLoading: false,
+        questionError: '',
+        questionOpen: false,
+        questionDraft: '',
+        questionSending: false,
         comment: {},
         brand: {},
         specificationList: [],
@@ -71,6 +79,10 @@ Page({
                 collecting: false,
                 submitting: false,
                 openAttr: false,
+                questionOpen: false,
+                questionDraft: '',
+                questionSending: false,
+                questionsLoading: false,
                 collectBackImage: this.data.noCollectImage,
             });
             this.refreshPage();
@@ -125,6 +137,7 @@ Page({
             this.setDefSpecInfo(detail.specificationList || []);
             this.updateCollectImage();
             this.getGoodsRelated();
+            this.loadQuestions(1);
         } catch (error) {
             if (this.isCurrent(context) && version === this._detailVersion) {
                 this.setData({goodsError: error.message || '商品暂时不可查看, 请重试'});
@@ -135,6 +148,76 @@ Page({
             }
         }
     },
+    /** 独立读取问答, 接口失败不遮挡商品详情及结算. */
+    async loadQuestions(page) {
+        if (this.data.questionsLoading) return;
+        const context = this.requestContext();
+        this.setData({questionsLoading: true, questionError: ''});
+        try {
+            const response = await util.request(api.GoodsQuestions, {goodsId: this.data.id, page}, 'GET');
+            if (!this.isCurrent(context)) return;
+            if (response.code !== 0) throw new Error(response.msg || '问答暂时无法读取');
+            const records = response.data?.records || [];
+            this.setData({
+                questions: page > 1 ? this.data.questions.concat(records) : records,
+                questionsPage: page,
+                questionsTotal: response.data?.total || 0,
+            });
+        } catch (error) {
+            if (this.isCurrent(context)) this.setData({questionError: error.message || '问答暂时无法读取'});
+        } finally {
+            if (this.isCurrent(context)) this.setData({questionsLoading: false});
+        }
+    },
+
+    /** 继续读取当前商品已审核的问题. */
+    moreQuestions() {
+        return this.loadQuestions(this.data.questionsPage + 1);
+    },
+
+    /** 从第一批重新读取当前商品问答. */
+    retryQuestions() {
+        return this.loadQuestions(1);
+    },
+
+    /** 仅由用户手势打开提问表单. */
+    toggleQuestion() {
+        this.setData({questionOpen: !this.data.questionOpen});
+    },
+
+    /** 保存输入, 服务端失败后允许继续修改和重试. */
+    inputQuestion(event) {
+        if (!this.data.questionSending) this.setData({questionDraft: event.detail.value});
+    },
+
+    /** 提交问题后等待后台审核和回复. */
+    async submitQuestion() {
+        if (this.data.questionSending) return;
+        const question = this.data.questionDraft.trim();
+        if (!question || question.length > 500) {
+            util.showErrorToast('请输入 1 到 500 字的商品问题');
+            return;
+        }
+        const context = this.requestContext();
+        if (!context.token) {
+            wx.setStorageSync('navUrl', '/pages/goods/goods?id=' + this.data.id);
+            wx.navigateTo({url: '/pages/auth/btnAuth/btnAuth'});
+            return;
+        }
+        this.setData({questionSending: true});
+        try {
+            const response = await util.request(api.GoodsQuestions, {goodsId: this.data.id, question}, 'POST', 'application/json');
+            if (!this.isCurrent(context)) return;
+            if (response.code !== 0) throw new Error(response.msg || '提问提交失败');
+            this.setData({questionOpen: false, questionDraft: ''});
+            wx.showToast({title: '已提交审核', icon: 'success'});
+        } catch (error) {
+            if (this.isCurrent(context)) util.showErrorToast(error.message || '提问提交失败');
+        } finally {
+            if (this.isCurrent(context)) this.setData({questionSending: false});
+        }
+    },
+
     /** 游客不请求私人购物车, 数量读取失败可在下次进入页面时重试. */
     async loadCartCount() {
         const context = this.requestContext();

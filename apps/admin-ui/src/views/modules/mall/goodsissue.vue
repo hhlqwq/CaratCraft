@@ -1,107 +1,116 @@
 <template>
     <div class="mod-goodsissue">
-        <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
-            <el-form-item>
-                <el-input v-model="searchForm.question" placeholder="搜索问题" clearable></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-button @click="getDataList(1)">查询</el-button>
-                <el-button
-                    v-if="isAuth('mall:goodsissue:save')"
-                    type="primary"
-                    @click="addOrUpdateHandle()"
-                    >新增</el-button
-                >
-                <el-button
-                    v-if="isAuth('mall:goodsissue:delete')"
-                    type="danger"
-                    @click="deleteHandle()"
-                    :disabled="dataListSelections.length <= 0"
-                    >批量删除
-                </el-button>
-            </el-form-item>
-        </el-form>
-        <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
-        <el-table
-            v-loading="loading"
-            :empty-text="listError ? '—' : '暂无商品问答'"
-            :data="dataList"
-            border
-            @selection-change="selectionChangeHandle"
-            style="width: 100%"
-        >
-            <el-table-column type="selection" header-align="center" align="center" width="50">
-            </el-table-column>
-            <el-table-column
-                prop="question"
-                header-align="center"
-                align="center"
-                width="180"
-                label="问题"
-            >
-            </el-table-column>
-            <el-table-column prop="answer" header-align="center" align="center" label="回答">
-            </el-table-column>
-            <el-table-column
-                fixed="right"
-                header-align="center"
-                align="center"
-                width="150"
-                label="操作"
-            >
-                <template #default="scope">
+        <el-tabs v-model="questionTab">
+            <el-tab-pane label="用户提问" name="buyer" />
+            <el-tab-pane label="通用常见问题" name="faq" />
+        </el-tabs>
+        <buyer-questions v-if="questionTab === 'buyer'" />
+        <template v-else>
+            <el-form :inline="true" :model="searchForm" @keyup.enter="getDataList(1)">
+                <el-form-item>
+                    <el-input v-model="searchForm.question" placeholder="搜索问题" clearable></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="getDataList(1)">查询</el-button>
                     <el-button
-                        v-if="isAuth('mall:goodsissue:info')"
-                        type="text"
-                        size="small"
-                        @click="showDetails(scope.row.id)"
+                        v-if="isAuth('mall:goodsissue:save')"
+                        type="primary"
+                        @click="addOrUpdateHandle()"
+                        >新增</el-button
                     >
-                        查看
-                    </el-button>
-                    <el-button
-                        v-if="isAuth('mall:goodsissue:update') && isAuth('mall:goodsissue:info')"
-                        type="text"
-                        size="small"
-                        @click="addOrUpdateHandle(scope.row.id)"
-                        >编辑
-                    </el-button>
                     <el-button
                         v-if="isAuth('mall:goodsissue:delete')"
-                        link
                         type="danger"
-                        size="small"
-                        @click="deleteHandle(scope.row.id)"
-                        >删除
+                        @click="deleteHandle()"
+                        :disabled="dataListSelections.length <= 0"
+                        >批量删除
                     </el-button>
-                </template>
-            </el-table-column>
-        </el-table>
-        <el-pagination
-            @size-change="sizeChangeHandle"
-            @current-change="currentChangeHandle"
-            :current-page="pageIndex"
-            :page-sizes="[10, 20, 50, 100]"
-            :page-size="pageSize"
-            :total="totalPage"
-            layout="total, sizes, prev, pager, next, jumper"
-        >
-        </el-pagination>
-        <!-- 弹窗, 新增 / 修改 -->
-        <add-or-update
-            v-if="addOrUpdateVisible"
-            ref="addOrUpdate"
-            @refreshDataList="getDataList"
-        ></add-or-update>
+                </el-form-item>
+            </el-form>
+            <el-alert v-if="listError" :title="listError" type="error" :closable="false" />
+            <el-table
+                v-loading="loading"
+                :empty-text="listError ? '—' : '暂无商品问答'"
+                :data="dataList"
+                border
+                @selection-change="selectionChangeHandle"
+                style="width: 100%"
+            >
+                <el-table-column type="selection" header-align="center" align="center" width="50">
+                </el-table-column>
+                <el-table-column
+                    prop="question"
+                    header-align="center"
+                    align="center"
+                    width="180"
+                    label="问题"
+                >
+                </el-table-column>
+                <el-table-column prop="answer" header-align="center" align="center" label="回答">
+                </el-table-column>
+                <el-table-column
+                    fixed="right"
+                    header-align="center"
+                    align="center"
+                    width="150"
+                    label="操作"
+                >
+                    <template #default="scope">
+                        <el-button
+                            v-if="isAuth('mall:goodsissue:info')"
+                            type="text"
+                            size="small"
+                            @click="showDetails(scope.row.id)"
+                        >
+                            查看
+                        </el-button>
+                        <el-button
+                            v-if="isAuth('mall:goodsissue:update') && isAuth('mall:goodsissue:info')"
+                            type="text"
+                            size="small"
+                            @click="addOrUpdateHandle(scope.row.id)"
+                            >编辑
+                        </el-button>
+                        <el-button
+                            v-if="isAuth('mall:goodsissue:delete')"
+                            link
+                            type="danger"
+                            size="small"
+                            @click="deleteHandle(scope.row.id)"
+                            >删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-pagination
+                @size-change="sizeChangeHandle"
+                @current-change="currentChangeHandle"
+                :current-page="pageIndex"
+                :page-sizes="[10, 20, 50, 100]"
+                :page-size="pageSize"
+                :total="totalPage"
+                layout="total, sizes, prev, pager, next, jumper"
+            >
+            </el-pagination>
+            <!-- 弹窗, 新增 / 修改 -->
+            <add-or-update
+                v-if="addOrUpdateVisible"
+                ref="addOrUpdate"
+                @refreshDataList="getDataList"
+            ></add-or-update>
+        </template>
     </div>
 </template>
 
 <script>
 import AddOrUpdate from './goodsissue-add-or-update';
+import BuyerQuestions from './goodsissue-buyer-questions.vue';
 
 export default {
     /** 初始化当前组件的响应式界面和表单状态. */
     data() {
         return {
+            questionTab: 'buyer',
             searchForm: {
                 question: '',
             },
@@ -117,6 +126,7 @@ export default {
     },
     components: {
         AddOrUpdate,
+        BuyerQuestions,
     },
     /** 页面激活时刷新当前业务数据. */
     activated() {

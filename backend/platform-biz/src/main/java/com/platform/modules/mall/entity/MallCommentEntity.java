@@ -47,6 +47,7 @@ public class MallCommentEntity implements Serializable {
     private Integer typeId;
     private Integer valueId;
     private String content;
+    private String staffReply;
     private Long addTime;
     private Integer status;
     private Long userId;

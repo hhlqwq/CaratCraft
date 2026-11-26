@@ -148,6 +148,7 @@ public class CatalogApplicationService {
             CustomerReviewService.PublicReview review = approved.records().get(0);
             commentInfo.put("id", review.id());
             commentInfo.put("content", review.content());
+            commentInfo.put("staffReply", review.staffReply());
             commentInfo.put("userInfo", review.userInfo());
             commentInfo.put("picList", review.picList());
             commentInfo.put("nickname", review.userInfo().nickname());

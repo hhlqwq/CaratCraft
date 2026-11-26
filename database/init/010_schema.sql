@@ -810,6 +810,7 @@ CREATE TABLE `mall_comment` (
     `add_time` bigint unsigned DEFAULT '0' COMMENT '记录时间',
     `status` tinyint unsigned DEFAULT '0' COMMENT '状态',
     `user_id` int DEFAULT '0' COMMENT '会员Id',
+    `staff_reply` varchar(1000) DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY `id_value` (`value_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -1164,3 +1165,17 @@ CREATE TABLE CC_SCHEMA_VERSION (
     CONSTRAINT chk_schema_singleton CHECK (id = 1)
 ) ENGINE=InnoDB;
 SET FOREIGN_KEY_CHECKS=1;
+
+CREATE TABLE IF NOT EXISTS CC_GOODS_QUESTION (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    goods_id INT NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    question VARCHAR(500) NOT NULL,
+    answer VARCHAR(1000) DEFAULT NULL,
+    status VARCHAR(12) NOT NULL DEFAULT 'PENDING',
+    create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY ix_goods_question_public (goods_id, status, id),
+    KEY ix_goods_question_user (user_id, create_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

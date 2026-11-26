@@ -121,6 +121,13 @@ public class MallCommentController extends AbstractController {
     public RestResponse<String> update(@RequestBody MallCommentEntity mallComment) {
         findInScope(mallComment.getId(), "mall:comment:update");
         requireProduct(mallComment, "mall:comment:update");
+        if (mallComment.getStaffReply() != null) {
+            String reply = mallComment.getStaffReply().strip();
+            if (reply.length() > 1000) {
+                throw new IllegalArgumentException("商家回复不能超过 1000 字");
+            }
+            mallComment.setStaffReply(reply);
+        }
         mallCommentService.update(mallComment);
         return RestResponse.ok();
     }

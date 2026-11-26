@@ -17,6 +17,7 @@
                 <view class="time">{{item.addTimeText}}</view>
             </view>
             <view class="comment">{{item.content}}</view>
+            <view wx:if="{{item.staffReply}}" class="comment">商家回复 · {{item.staffReply}}</view>
             <view class="imgs" wx:if="{{item.picList.length > 0}}">
                 <image class="img" wx:for="{{item.picList}}" wx:key="id" wx:for-item="pitem" src="{{pitem.picUrl}}"></image>
             </view>
@@ -28,4 +29,3 @@
 <view wx:if="{{loading}}" class="notice">正在加载评价...</view>
 <view wx:if="{{error}}" class="notice"><text>{{error}}</text><button bindtap="getCommentList">重试</button></view>
 <view wx:if="{{!loading && !error && comments.length === 0}}" class="notice">暂无审核通过的评价</view>
-<merchant-contact />

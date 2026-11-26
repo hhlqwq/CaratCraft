@@ -37,6 +37,7 @@ public class CustomerReviewService {
     public record PublicReview(
             Integer id,
             String content,
+            String staffReply,
             long addTime,
             PublicProfile userInfo,
             List<MallCommentPictureEntity> picList) {}
@@ -208,7 +209,7 @@ public class CustomerReviewService {
                                 : "");
         List<Map<String, Object>> rows =
                 jdbc.queryForList(
-                        "SELECT c.id,c.content,c.add_time,c.user_id"
+                        "SELECT c.id,c.content,c.staff_reply,c.add_time,c.user_id"
                                 + filter
                                 + " ORDER BY c.id DESC LIMIT ? OFFSET ?",
                         goodsId,
@@ -254,6 +255,7 @@ public class CustomerReviewService {
                     new PublicReview(
                             id,
                             Base64Util.decode(row.get("content").toString()),
+                            (String) row.get("staff_reply"),
                             ((Number) row.get("add_time")).longValue(),
                             publicProfile,
                             byComment.getOrDefault(id, List.of())));
