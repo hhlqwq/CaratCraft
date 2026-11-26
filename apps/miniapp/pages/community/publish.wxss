@@ -69,8 +69,14 @@
 }
 
 .design-choice.selected {
-    background: #eee6f0;
-    border-color: #baabc2;
+    background: #eaf0ea;
+    border-color: #587563;
+}
+.design-state {
+    margin-left: auto;
+    flex: none;
+    color: #294d3e;
+    font-size: 24rpx;
 }
 
 .design-choice image {
@@ -82,4 +88,13 @@
 
 .design-choice text {
     display: block;
+}
+
+.design-cover-label {
+    margin: 20rpx 0 12rpx;
+    color: #294d3e;
+    font-weight: 600;
+}
+.design-cover {
+    margin-bottom: 20rpx;
 }

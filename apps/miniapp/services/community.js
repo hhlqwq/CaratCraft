@@ -58,12 +58,17 @@ function present(item, includeScene = false) {
                 chainStyle: part.chainStyle,
                 shape: part.shape,
                 color: part.color,
+                variety: part.variety,
+                claspStyle: part.claspStyle,
+                metal: part.metal,
+                material: part.material,
+                dropMm: part.dropMm,
             }),
         };
     }) : [];
     return Object.assign({}, item, {
         kindText:
-            {DESIGN: '设计分享', FINISHED: '成品分享', SUGGESTION: '改进建议'}[item.kind] || '分享',
+            {DESIGN: '设计分享', FINISHED: '成品分享', SUGGESTION: '公开交流'}[item.kind] || '分享',
         statusText:
             {PENDING: '待审核', PUBLISHED: '已公开', HIDDEN: '未公开', DELETED: '已删除'}[
                 item.status
@@ -78,6 +83,8 @@ function present(item, includeScene = false) {
                 return /^\/upload\//.test(url) ? api.ApiOrigin + url : url;
             }),
         arrangement: parts,
+        canRecreate: Number.isSafeInteger(design.goodsId) && design.goodsId > 0 &&
+            parts.length > 0 && parts.every((part) => part.optionCode && part.componentType),
         publicOptionIds: options.map((option) => option.id),
         publicGroups: options.length ? [{options}] : [],
     });

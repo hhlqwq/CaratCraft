@@ -47,6 +47,13 @@ Page({
                 wx.stopPullDownRefresh();
             });
     },
+    /** 仅传公开帖子编号, 编辑器重新读取审核状态和当前物料. */
+    recreate() {
+        if (!this.data.post?.canRecreate) return;
+        wx.setStorageSync('designerCommunityPostId', this.data.id);
+        wx.switchTab({url: '/pages/designer/designer'});
+    },
+
     /** 图片点击使用平台预览, 不打开任意外部网页. */
     preview(event) {
         wx.previewImage({current: event.currentTarget.dataset.url, urls: this.data.post.images});

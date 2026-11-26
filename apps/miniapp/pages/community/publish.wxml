@@ -5,20 +5,25 @@
     <view class="community-note">{{content.length}} / 2000</view>
     <view wx:if="{{kindIndex === 0}}" class="design-select"><view class="post-title">附上我的设计</view>
         <view wx:if="{{loadingDesigns}}" class="community-note">正在读取本人设计…</view>
-        <view wx:elif="{{designError}}" class="community-note">{{designError}}<button size="mini" bindtap="loadDesigns">重试</button></view>
-        <view wx:elif="{{!designs.length}}" class="community-note">请先到DIY保存一份材料排列, 再回来分享。</view>
-        <view wx:else class="design-choices">
-            <button wx:for="{{designs}}" wx:key="id" class="design-choice {{designIndex === index ? 'selected' : ''}}"
-                    data-index="{{index}}" bindtap="selectDesign" disabled="{{saving}}">
+        <view wx:if="{{designError}}" class="community-note">{{designError}}<button size="mini" bindtap="loadDesigns">重试</button></view>
+        <view wx:if="{{!loadingDesigns && !designError && !designs.length}}" class="community-note">请先到DIY保存一份材料排列, 再回来分享。</view>
+        <view wx:if="{{designs.length}}" class="design-choices">
+            <button wx:for="{{designs}}" wx:key="id" class="design-choice {{selectedDesignId === item.key ? 'selected' : ''}}"
+                    data-id="{{item.key}}" bindtap="selectDesign" disabled="{{saving || loadingDesigns}}">
                 <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" />
                 <view><text>{{item.label}}</text><text class="community-note">{{item.updateTime}}</text></view>
+                <text class="design-state">{{selectedDesignId === item.key ? '已选择' : '选择'}}</text>
             </button>
         </view>
-        <checkbox-group bindchange="consent"><label class="community-note"><checkbox value="yes" checked="{{consent}}" disabled="{{saving}}" />我同意公开所选设计的材料名称、顺序及尺寸副本, 不包含私人刻字和订单。</label></checkbox-group>
+        <view wx:if="{{coverScene.publicGroups.length}}" class="design-cover">
+            <view class="design-cover-label">公开封面预览</view>
+            <necklace-3d id="publish-cover" read-only="{{true}}" capture-enabled="{{true}}"
+                         option-ids="{{coverScene.publicOptionIds}}" groups="{{coverScene.publicGroups}}"
+                         spacing-mm="{{coverScene.spacingMm}}" offset-mm="{{coverScene.offsetMm}}" />
+        </view>
+        <checkbox-group bindchange="consent"><label class="community-note"><checkbox value="yes" checked="{{consent}}" disabled="{{saving || loadingDesigns || !selectedDesignId}}" />我同意公开所选设计的材料名称、顺序及尺寸副本, 不包含私人刻字和订单。</label></checkbox-group>
     </view>
     <view wx:if="{{kindIndex !== 0}}" class="post-images"><view class="upload-image" wx:for="{{images}}" wx:key="id"><image src="{{item.previewUrl}}" mode="aspectFill" /><button size="mini" data-id="{{item.id}}" bindtap="removeImage" disabled="{{uploading || saving}}">移除</button></view></view>
     <button wx:if="{{kindIndex !== 0}}" class="add-image" bindtap="chooseImages" disabled="{{uploading || saving || images.length >= 6}}">{{uploading ? uploadProgress : '添加图片 (' + images.length + '/6)'}} </button>
     <view wx:if="{{error}}" class="moderation-note">{{error}}</view><button class="submit-post" bindtap="submit" loading="{{saving}}" disabled="{{saving || uploading}}">提交审核</button></view>
 </view>
-
-<merchant-contact />

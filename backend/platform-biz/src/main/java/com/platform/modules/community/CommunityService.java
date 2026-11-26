@@ -144,9 +144,11 @@ public class CommunityService {
         }
         String designJson = null;
         if ("DESIGN".equals(request.getKind())) {
-            if (!Boolean.TRUE.equals(request.getDesignConsent())
-                    || request.getSnapshotId() == null) {
-                throw new IllegalArgumentException("请选择本人设计并同意公开材料排列");
+            if (request.getSnapshotId() == null) {
+                throw new IllegalArgumentException("请选择一份已保存的珍珠设计");
+            }
+            if (!Boolean.TRUE.equals(request.getDesignConsent())) {
+                throw new IllegalArgumentException("请确认同意公开所选设计的材料排列");
             }
             var snapshot = designs.getOwned(request.getSnapshotId(), userId);
             if ("ARCHIVED".equals(snapshot.getStatus())) {
@@ -169,7 +171,15 @@ public class CommunityService {
                                 "axialMm",
                                 "mountSpanMm",
                                 "componentType",
+                                "optionCode",
                                 "name",
+                                "color",
+                                "variety",
+                                "chainStyle",
+                                "claspStyle",
+                                "metal",
+                                "material",
+                                "dropMm",
                                 "sizeMm",
                                 "shape",
                                 "luster",
@@ -181,7 +191,15 @@ public class CommunityService {
             if (publicItems.stream().noneMatch(item -> "pearl".equals(item.get("componentType")))) {
                 throw new IllegalArgumentException("分享设计至少需要一颗珍珠");
             }
-            designJson = JSON.toJSONString(Map.of("arrangement", publicItems));
+            var publicDesign = new LinkedHashMap<String, Object>();
+            publicDesign.put("goodsId", snapshot.getGoodsId());
+            publicDesign.put("arrangement", publicItems);
+            var sizing = quote.getJSONObject("sizing");
+            if (sizing != null) {
+                publicDesign.put("spacingMm", sizing.getBigDecimal("spacingMm"));
+                publicDesign.put("offsetMm", sizing.getBigDecimal("layoutOffsetMm"));
+            }
+            designJson = JSON.toJSONString(publicDesign);
         } else if (request.getSnapshotId() != null) {
             throw new IllegalArgumentException("只有设计分享可以附带设计");
         }

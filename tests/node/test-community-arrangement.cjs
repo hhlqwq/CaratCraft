@@ -197,6 +197,27 @@ test('社区发布失败保留内容并沿用幂等键', async () => {
     assert.equal(page.data.saving, false);
 });
 
+/** 同一作品重复点击保留本人主动勾选, 更换作品要求重新授权. */
+test('社区设计按作品身份选中并分别校验公开授权', () => {
+    const page = pageFixture('pages/community/publish.js', {
+        '../../services/community.js': {loggedIn: () => true, requestKey: () => 'request-key'},
+        '../../utils/util.js': {},
+        '../../config/api.js': {},
+    });
+    Object.assign(page.data, {title: '作品分享', designs: [{id: 3, key: '3'}, {id: 4, key: '4'}]});
+    page.submit();
+    assert.equal(page.data.error, '请选择一份已保存的珍珠设计');
+    const first = {currentTarget: {dataset: {id: '3'}}};
+    page.selectDesign(first);
+    page.submit();
+    assert.equal(page.data.error, '请确认同意公开所选设计的材料排列');
+    page.consent({detail: {value: ['yes']}});
+    page.selectDesign(first);
+    assert.equal(page.data.consent, true);
+    page.selectDesign({currentTarget: {dataset: {id: '4'}}});
+    assert.equal(page.data.consent, false);
+});
+
 /** 社区导航替换后购物车仍可从个人中心和商品页普通导航打开. */
 test('四板块导航和购物车路由保持一致', () => {
     const app = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8'));
