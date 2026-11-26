@@ -12,14 +12,19 @@ import time
 def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql, call):
     """只写本轮合成商品及账号, 使用实际应用包、HTTP和客户端选择器."""
     admin_token = secrets.token_urlsafe(32)
-    sql("DELETE FROM SYS_USER_TOKEN WHERE USER_ID='1'")
-    sql("INSERT INTO SYS_USER_TOKEN(USER_ID,TOKEN,EXPIRE_TIME,UPDATE_TIME) VALUES('1','"
+    sql("INSERT INTO SYS_ORG(ORG_NO,ORG_NAME,STATUS,CREATE_TIME) VALUES('CCHTTP','隔离工作室',1,NOW());"
+        "INSERT INTO SYS_USER(USER_ID,USER_NAME,REAL_NAME,SEX,ORG_NO,STATUS,ACCOUNT_TYPE,PASSWORD_CHANGE_REQUIRED,CREATE_TIME) "
+        "VALUES('cc-test-shop','cc-test-shop','隔离商家',0,'CCHTTP',1,'MERCHANT_ADMIN',0,NOW());"
+        "UPDATE mall_goods SET scope_org_no='CCHTTP' WHERE id=1999105;")
+    sql("INSERT INTO SYS_USER_TOKEN(USER_ID,TOKEN,EXPIRE_TIME,UPDATE_TIME) VALUES('cc-test-shop','"
         + admin_token + "',DATE_ADD(NOW(),INTERVAL 1 HOUR),NOW())")
+    env = {**env, "CARATCRAFT_DEFAULT_BUSINESS_ORG": "CCHTTP"}
     arguments = ["--network", "container:" + mysql, "--memory", "768m", "--mount",
                  "type=bind,source=" + str(root / "backend/platform-admin/target/platform-admin.jar")
                  + ",target=/app/admin.jar,readonly"]
     for name in ("JWT_SECRET", "MYSQL_HOST", "MYSQL_PORT", "MYSQL_DATABASE", "MYSQL_USERNAME",
-                 "MYSQL_PASSWORD", "REDIS_HOST", "REDIS_PORT", "REDIS_PASSWORD", "SPRING_PROFILES_ACTIVE"):
+                 "MYSQL_PASSWORD", "REDIS_HOST", "REDIS_PORT", "REDIS_PASSWORD", "SPRING_PROFILES_ACTIVE",
+                 "CARATCRAFT_DEFAULT_BUSINESS_ORG"):
         arguments.extend(["--env", name])
     admin = fixtures.start("caratcraft-admin-" + fixtures.run_id,
                            [*arguments, image, "java", "-Xmx384m", "-jar", "/app/admin.jar"], env)
@@ -103,6 +108,21 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
             line = checkout["checkedGoodsList"][0]
             assert line["productId"] == product_id and line["number"] == 2
             assert Decimal(str(line["retailPrice"])) * line["number"] == Decimal("190.50")
+        sql("INSERT INTO mall_user_coupon(coupon_id,user_id,add_time,coupon_status,source_key) "
+            "SELECT id,9000001,NOW(),1,'WELCOME_V1' FROM mall_coupon WHERE send_type=8 ORDER BY id DESC LIMIT 1")
+        welcome = next(c for c in request("/app/coupon/list", {}) if c["sourceKey"] == "WELCOME_V1")
+        coupon_id = welcome["userCouponId"]
+        below = request("/app/buy/add", purchase)
+        request("/app/cart/checkout?type=buy&couponId=" + str(coupon_id) + "&checkoutId="
+                + below["checkoutId"], {}, expected=400)
+        above = request("/app/buy/add", {**purchase, "number": 3})
+        route = "/app/cart/checkout?type=buy&couponId=" + str(coupon_id) + "&checkoutId=" + above["checkoutId"]
+        discount = request(route, {})
+        assert Decimal(str(discount["couponPrice"])) == Decimal("10.00")
+        sql("UPDATE mall_user_coupon SET add_time=DATE_SUB(NOW(), INTERVAL 4 MONTH) WHERE id=" + str(coupon_id))
+        expired = next(c for c in request("/app/coupon/list", {}) if c["userCouponId"] == coupon_id)
+        assert expired["couponStatus"] == 3
+        request(route, {}, expected=400)
         request("/app/cart/add", {**purchase, "number": 9}, expected=400)
         request("/app/buy/add", {**purchase, "goodsId": 1999105}, expected=400)
         empty_sku = next(sku for sku in detail["productList"] if sku["id"] != product_id)
@@ -150,7 +170,14 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         request("/app/goods/questions", {"goodsId": goods_id, "question": "隔离商品提问"})
         questions = request("/app/goods/questions?goodsId=" + str(goods_id))
         assert questions["total"] == 0
-        assert sql("SELECT COUNT(*) FROM CC_GOODS_QUESTION WHERE user_id=9000001 AND status='PENDING'") == "1"
+        question = sql("SELECT id FROM CC_GOODS_QUESTION WHERE goods_id=" + str(goods_id) + " AND status='PENDING'")
+        request("/mall/goodsissue/buyer-questions/review",
+                {"id": int(question), "action": "PUBLISH", "answer": "隔离商家回复"}, management=True)
+        visible = request("/app/goods/questions?goodsId=" + str(goods_id))
+        assert visible["total"] == 1 and visible["records"][0]["answer"] == "隔离商家回复"
+        request("/mall/goodsissue/buyer-questions/review",
+                {"id": int(question), "action": "HIDE"}, management=True)
+        assert request("/app/goods/questions?goodsId=" + str(goods_id))["total"] == 0
         request("/app/feedback/save", {"index": 0, "mobile": "13800000000", "content": "无效分类"}, expected=400)
         request("/app/feedback/save", {"index": 1, "mobile": "123", "content": "无效号码"}, expected=400)
         assert sql("SELECT COUNT(*) FROM mall_feedback WHERE user_id=9000001 AND status=0 AND feed_type=1 AND content='隔离反馈😀'") == "1"
