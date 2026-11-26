@@ -147,7 +147,13 @@ class AccountLoginDatabaseTest {
                                 return accounts.login(true, openid, null, null).getId();
                             });
             start.countDown();
-            assertEquals(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS));
+            Long userId = first.get(20, TimeUnit.SECONDS);
+            assertEquals(userId, second.get(20, TimeUnit.SECONDS));
+            assertEquals(
+                    1,
+                    jdbc.queryForObject(
+                            "SELECT COUNT(*) FROM mall_user_coupon WHERE user_id=? AND source_key=?",
+                            Integer.class, userId, WelcomeCoupon.SOURCE));
             assertEquals(
                     1,
                     jdbc.queryForObject(
@@ -156,6 +162,7 @@ class AccountLoginDatabaseTest {
                             openid));
         } finally {
             // 仅删除本用例随机身份, 不影响其他隔离用例的数据.
+            jdbc.update("DELETE c FROM mall_user_coupon c JOIN WX_USER u ON c.user_id=u.id WHERE u.MA_OPENID=?", openid);
             jdbc.update("DELETE FROM WX_USER WHERE MA_OPENID=?", openid);
             jdbc.update(
                     "DELETE FROM CC_LOGIN_IDENTITY_LOCK WHERE identity_hash=SHA2(?,256)",

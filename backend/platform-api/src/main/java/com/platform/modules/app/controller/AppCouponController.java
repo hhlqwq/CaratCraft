@@ -3,22 +3,15 @@ package com.platform.modules.app.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.platform.annotation.LoginUser;
 import com.platform.common.utils.CharUtil;
-import com.platform.common.utils.Constant;
 import com.platform.common.utils.RestResponse;
 import com.platform.common.utils.StringUtils;
-import com.platform.config.RedisTemplateUtil;
 import com.platform.modules.app.request.ApiCouponExchangeRequest;
 import com.platform.modules.app.request.ApiCouponNewUserRequest;
 import com.platform.modules.app.request.ApiCouponTransActivitRequest;
 import com.platform.modules.app.service.MobileVerificationService;
-import com.platform.modules.mall.dto.BuyGoodsRequest;
-import com.platform.modules.mall.entity.MallCartEntity;
 import com.platform.modules.mall.entity.MallCouponEntity;
-import com.platform.modules.mall.entity.MallProductEntity;
 import com.platform.modules.mall.entity.MallUserCouponEntity;
-import com.platform.modules.mall.service.MallCartService;
 import com.platform.modules.mall.service.MallCouponService;
-import com.platform.modules.mall.service.MallProductService;
 import com.platform.modules.mall.service.MallUserCouponService;
 import com.platform.modules.wx.entity.WxUserEntity;
 import com.platform.modules.wx.service.WxUserService;
@@ -58,10 +51,8 @@ public class AppCouponController extends AppBaseController {
     @Autowired private WxUserService apiUserService;
     @Autowired private MallCouponService apiCouponService;
     @Autowired private MallUserCouponService apiUserCouponService;
-    @Autowired private MallProductService apiProductService;
-    @Autowired private MallCartService apiCartService;
-    @Autowired private RedisTemplateUtil redisTemplateUtil;
     @Autowired private MobileVerificationService verification;
+    @Autowired private com.platform.modules.mall.service.CartApplicationService cartCheckout;
 
     /** 获取优惠券列表 */
     @Operation(summary = "获取优惠券列表")
@@ -76,34 +67,14 @@ public class AppCouponController extends AppBaseController {
     @Operation(summary = "根据商品获取可用优惠券列表")
     @PostMapping("/listByGoods")
     public RestResponse<List<Map<String, Object>>> listByGoods(
-            @RequestParam(defaultValue = "cart") String type, @LoginUser WxUserEntity loginUser) {
-        BigDecimal goodsTotalPrice = new BigDecimal("0.00");
-        if ("cart".equals(type)) {
-            QueryWrapper<MallCartEntity> cartQueryWrapper = new QueryWrapper<>();
-            cartQueryWrapper.eq("user_id", loginUser.getId());
-            List<MallCartEntity> cartList = apiCartService.list(cartQueryWrapper);
-            // 获取购物车统计信息
-            for (MallCartEntity cartItem : cartList) {
-                goodsTotalPrice =
-                        goodsTotalPrice.add(
-                                cartItem.getRetailPrice()
-                                        .multiply(new BigDecimal(cartItem.getNumber())));
-            }
-        } else { // 是直接购买的
-            BuyGoodsRequest goodsVo =
-                    (BuyGoodsRequest)
-                            redisTemplateUtil.get(Constant.MTM_CACHE + "goods" + loginUser.getId());
-            if (goodsVo == null || goodsVo.getProductId() == null || goodsVo.getNumber() == null) {
-                return RestResponse.fail("未找到待结算商品信息");
-            }
-            MallProductEntity productInfo = apiProductService.getById(goodsVo.getProductId());
-            if (productInfo == null) {
-                return RestResponse.fail("商品货品不存在");
-            }
-            // 商品总价
-            goodsTotalPrice =
-                    productInfo.getRetailPrice().multiply(new BigDecimal(goodsVo.getNumber()));
+            @RequestParam(defaultValue = "cart") String type,
+            @RequestParam(required = false) String checkoutId,
+            @LoginUser WxUserEntity loginUser) {
+        var checkout = cartCheckout.checkout(loginUser, 0, type, checkoutId, null);
+        if (checkout.getCode() != 0 || checkout.getData() == null) {
+            return RestResponse.fail(checkout.getMsg());
         }
+        BigDecimal goodsTotalPrice = (BigDecimal) checkout.getData().get("goodsTotalPrice");
 
         // 获取可用优惠券
         List<Map<String, Object>> couponVos = queryUserCoupons(loginUser.getId(), 1, null, null);
@@ -285,6 +256,7 @@ public class AppCouponController extends AppBaseController {
             couponMap.put(coupon.getId(), coupon);
         }
         List<Map<String, Object>> result = new ArrayList<>();
+        Date now = new Date();
         for (MallUserCouponEntity userCoupon : userCouponList) {
             MallCouponEntity coupon = couponMap.get(userCoupon.getCouponId());
             if (coupon == null) {
@@ -293,22 +265,31 @@ public class AppCouponController extends AppBaseController {
             if (sendType != null && !sendType.equals(coupon.getSendType())) {
                 continue;
             }
+            boolean welcome = com.platform.modules.mall.service.WelcomeCoupon.SOURCE.equals(userCoupon.getSourceKey());
+            Date start = welcome ? userCoupon.getAddTime() : coupon.getUseStartDate();
+            Date end = welcome ? com.platform.modules.mall.service.WelcomeCoupon.expiresAt(start) : coupon.getUseEndDate();
+            boolean expired = (welcome && end == null) || (end != null && !now.before(end));
+            boolean usable = !expired && (start == null || !now.before(start));
+            if (Integer.valueOf(1).equals(couponStatus) && !usable) {
+                continue;
+            }
             Map<String, Object> item = new HashMap<>();
             item.put("id", coupon.getId());
             item.put("name", coupon.getName());
-            item.put("typeMoney", coupon.getTypeMoney());
+            item.put("typeMoney", welcome ? com.platform.modules.mall.service.WelcomeCoupon.DISCOUNT : coupon.getTypeMoney());
             item.put("sendType", coupon.getSendType());
             item.put("minAmount", coupon.getMinAmount());
             item.put("maxAmount", coupon.getMaxAmount());
             item.put("sendStartDate", coupon.getSendStartDate());
             item.put("sendEndDate", coupon.getSendEndDate());
-            item.put("useStartDate", coupon.getUseStartDate());
-            item.put("useEndDate", coupon.getUseEndDate());
-            item.put("minGoodsAmount", coupon.getMinGoodsAmount());
+            item.put("useStartDate", start);
+            item.put("useEndDate", end);
+            item.put("minGoodsAmount", welcome ? com.platform.modules.mall.service.WelcomeCoupon.MINIMUM : coupon.getMinGoodsAmount());
             item.put("minTransmitNum", coupon.getMinTransmitNum());
             item.put("couponId", userCoupon.getCouponId());
             item.put("couponNumber", userCoupon.getCouponNumber());
-            item.put("couponStatus", userCoupon.getCouponStatus());
+            item.put("couponStatus", expired && Integer.valueOf(1).equals(userCoupon.getCouponStatus())
+                    ? 3 : userCoupon.getCouponStatus());
             item.put("sourceKey", userCoupon.getSourceKey());
             item.put("referrer", userCoupon.getReferrer());
             item.put("usedTime", userCoupon.getUsedTime());

@@ -71,6 +71,12 @@ public class MallCouponEntity implements Serializable {
     /** 转发次数 */
     private Integer minTransmitNum;
 
+    @TableField(exist = false)
+    private String sourceKey;
+
+    @TableField(exist = false)
+    private Date grantedAt;
+
     // 优惠券状态 1 可用 2 已用 3 过期
     @TableField(exist = false)
     private Integer couponStatus = 1;

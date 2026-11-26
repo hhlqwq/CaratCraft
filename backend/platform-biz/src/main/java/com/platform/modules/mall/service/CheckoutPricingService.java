@@ -58,17 +58,21 @@ public class CheckoutPricingService {
         if (couponId != null && couponId != 0) {
             MallCouponEntity coupon = coupons.getUserCoupon(couponId, userId);
             Date now = new Date();
+            boolean welcome = coupon != null && WelcomeCoupon.SOURCE.equals(coupon.getSourceKey());
+            Date start = coupon == null ? null : welcome ? coupon.getGrantedAt() : coupon.getUseStartDate();
+            Date end = coupon == null ? null : welcome ? WelcomeCoupon.expiresAt(start) : coupon.getUseEndDate();
+            BigDecimal minimum = coupon == null ? null : welcome ? WelcomeCoupon.MINIMUM : coupon.getMinGoodsAmount();
             if (coupon == null
                     || !Integer.valueOf(1).equals(coupon.getCouponStatus())
-                    || (coupon.getUseStartDate() != null && now.before(coupon.getUseStartDate()))
-                    || (coupon.getUseEndDate() != null && now.after(coupon.getUseEndDate()))
-                    || (coupon.getMinGoodsAmount() != null
-                            && goods.compareTo(coupon.getMinGoodsAmount()) < 0)) {
+                    || (welcome && end == null)
+                    || (start != null && now.before(start))
+                    || (end != null && !now.before(end))
+                    || (minimum != null && goods.compareTo(minimum) < 0)) {
                 throw new IllegalArgumentException("优惠券不可用、已过期或未达到使用门槛");
             }
             discount =
-                    Objects.requireNonNullElse(coupon.getTypeMoney(), BigDecimal.ZERO)
-                            .max(BigDecimal.ZERO);
+                    welcome ? WelcomeCoupon.DISCOUNT :
+                            Objects.requireNonNullElse(coupon.getTypeMoney(), BigDecimal.ZERO).max(BigDecimal.ZERO);
         }
         BigDecimal total = goods.add(freight);
         discount = discount.min(total.subtract(new BigDecimal("0.01")).max(BigDecimal.ZERO));

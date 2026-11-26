@@ -26,14 +26,16 @@
                 ></el-input-number>
             </el-form-item>
             <el-form-item label="发放类型" prop="sendType">
-                <el-select v-model="dataForm.sendType" :disabled="disabled" placeholder="类型">
+                <el-select v-model="dataForm.sendType" :disabled="disabled || (Boolean(dataForm.id) && dataForm.sendType === 8)" placeholder="类型">
                     <el-option :key="0" label="满减券" :value="0"> </el-option>
                     <el-option :key="1" label="红包" :value="1"> </el-option>
                     <el-option :key="4" label="注册赠送" :value="4"> </el-option>
                     <el-option :key="7" label="包邮" :value="7"> </el-option>
+                    <el-option :key="8" label="新人自动发放" :value="8" :disabled="Boolean(dataForm.id)"> </el-option>
                 </el-select>
             </el-form-item>
-            <el-form-item label="最小金额" prop="minAmount">
+            <el-alert v-if="dataForm.sendType === 8" title="消费满 199 元减 10 元，每人一次，到账起三个月有效。可通过结束发送日期停止新发放。" type="info" :closable="false" />
+            <el-form-item v-if="dataForm.sendType !== 8" label="最小金额" prop="minAmount">
                 <el-input-number
                     v-model="dataForm.minAmount"
                     :disabled="disabled"
@@ -43,7 +45,7 @@
                     step-strictly
                 ></el-input-number>
             </el-form-item>
-            <el-form-item label="最大金额" prop="maxAmount">
+            <el-form-item v-if="dataForm.sendType !== 8" label="最大金额" prop="maxAmount">
                 <el-input-number
                     v-model="dataForm.maxAmount"
                     :disabled="disabled"
@@ -67,21 +69,21 @@
                     :disabled="disabled"
                 ></el-date-picker>
             </el-form-item>
-            <el-form-item label="开始使用日期" prop="useStartDate">
+            <el-form-item v-if="dataForm.sendType !== 8" label="开始使用日期" prop="useStartDate">
                 <el-date-picker
                     v-model="dataForm.useStartDate"
                     type="datetime"
                     :disabled="disabled"
                 ></el-date-picker>
             </el-form-item>
-            <el-form-item label="结束使用日期" prop="useEndDate">
+            <el-form-item v-if="dataForm.sendType !== 8" label="结束使用日期" prop="useEndDate">
                 <el-date-picker
                     v-model="dataForm.useEndDate"
                     type="datetime"
                     :disabled="disabled"
                 ></el-date-picker>
             </el-form-item>
-            <el-form-item label="最小商品金额" prop="minGoodsAmount">
+            <el-form-item v-if="dataForm.sendType !== 8" label="最小商品金额" prop="minGoodsAmount">
                 <el-input-number
                     v-model="dataForm.minGoodsAmount"
                     :disabled="disabled"
@@ -91,7 +93,7 @@
                     step-strictly
                 ></el-input-number>
             </el-form-item>
-            <el-form-item label="转发次数" prop="minTransmitNum">
+            <el-form-item v-if="dataForm.sendType !== 8" label="转发次数" prop="minTransmitNum">
                 <el-input-number
                     v-model="dataForm.minTransmitNum"
                     :disabled="disabled"

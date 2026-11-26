@@ -11,6 +11,7 @@ const sections = [
             'mall/attributecategory',
             'mall/specification',
             'mall/goodsissue',
+            'mall/coupon',
             'custom/configuration',
             'custom/component-stock',
         ],
@@ -57,6 +58,7 @@ const labels = {
     'mall/order': '订单列表',
     'mall/specification': '规格名称管理',
     'mall/comment': '商品评价',
+    'mall/coupon': '优惠券与新人活动',
 };
 
 /** 展开服务端已授权菜单, 保留原路由标识和来源. */

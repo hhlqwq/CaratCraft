@@ -141,7 +141,10 @@ Page(
         /** 仅在提交前进入优惠券选择页. */
         tapCoupon() {
             if (!this.data.actionBusy && !this.data.createdOrderId) {
-                wx.navigateTo({url: '../selCoupon/selCoupon?buyType=' + this.data.buyType});
+                wx.navigateTo({
+                    url: '../selCoupon/selCoupon?buyType=' + encodeURIComponent(this.data.buyType) +
+                        '&checkoutId=' + encodeURIComponent(this.data.checkoutId || ''),
+                });
             }
         },
         /** 已创建订单只进入统一支付页, 导航失败也不能再次下单. */

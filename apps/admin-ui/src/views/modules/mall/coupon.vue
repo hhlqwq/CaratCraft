@@ -42,6 +42,7 @@
                     <el-tag v-else-if="scope.row.sendType === 4" size="small" type="warning"
                         >注册赠送</el-tag
                     >
+                    <el-tag v-else-if="scope.row.sendType === 8" size="small" type="success">新人自动发放</el-tag>
                     <el-tag v-else-if="scope.row.sendType === 7" size="small" type="success"
                         >包邮</el-tag
                     >

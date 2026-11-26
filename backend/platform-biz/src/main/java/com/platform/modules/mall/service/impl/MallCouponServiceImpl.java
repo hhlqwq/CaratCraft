@@ -63,24 +63,56 @@ public class MallCouponServiceImpl extends ServiceImpl<MallCouponDao, MallCoupon
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean add(MallCouponEntity mallCoupon) {
-        return this.save(mallCoupon);
+        applyWelcomeRules(mallCoupon);
+        boolean saved = this.save(mallCoupon);
+        if (saved && isWelcome(mallCoupon) && mallCoupon.getId() > 255) {
+            throw new IllegalArgumentException("优惠券编号超出现有领取记录容量");
+        }
+        return saved;
     }
 
     @Override
     public boolean update(MallCouponEntity mallCoupon) {
+        var existing = this.getById(mallCoupon.getId());
+        if (isWelcome(existing) != isWelcome(mallCoupon)) {
+            throw new IllegalArgumentException("已经建立的券不可切换为新人券或其他类型");
+        }
+        applyWelcomeRules(mallCoupon);
         return this.updateById(mallCoupon);
     }
 
     @Override
     public boolean delete(Integer id) {
-        return this.removeById(id);
+        return deleteBatch(new Integer[] {id});
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteBatch(Integer[] ids) {
+        var templates = this.listByIds(Arrays.asList(ids));
+        if (templates.stream().anyMatch(MallCouponServiceImpl::isWelcome)) {
+            throw new IllegalArgumentException("请通过结束发放时间停止新人活动, 已发放优惠券仍按原有效期使用");
+        }
         return this.removeByIds(Arrays.asList(ids));
+    }
+
+    /** 区分独立新人活动和旧版注册领券. */
+    private static boolean isWelcome(MallCouponEntity value) {
+        return value != null && Integer.valueOf(
+                com.platform.modules.mall.service.WelcomeCoupon.SEND_TYPE).equals(value.getSendType());
+    }
+
+    /** 管理后台只能调整新人活动的发放窗口, 消费者用券规则固定. */
+    private static void applyWelcomeRules(MallCouponEntity value) {
+        if (!isWelcome(value)) return;
+        if (value.getSendStartDate() != null && value.getSendEndDate() != null
+                && !value.getSendEndDate().after(value.getSendStartDate())) {
+            throw new IllegalArgumentException("结束发放时间必须晚于开始时间");
+        }
+        value.setTypeMoney(com.platform.modules.mall.service.WelcomeCoupon.DISCOUNT);
+        value.setMinGoodsAmount(com.platform.modules.mall.service.WelcomeCoupon.MINIMUM);
     }
 
     /** 查询当前用户在给定条件下可用的最大优惠券. */

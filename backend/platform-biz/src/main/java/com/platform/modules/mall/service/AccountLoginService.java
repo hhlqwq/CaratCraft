@@ -99,11 +99,30 @@ public class AccountLoginService {
                     key);
         }
         documents.accept(userId, acceptance);
+        if (found == null) {
+            grantWelcomeCoupon(userId);
+        }
         WxUserEntity user = users.getById(userId);
         if (user == null) {
             throw new IllegalStateException("登录账户状态发生变化");
         }
         return user;
+    }
+
+    /** 同一登录事务中仅向新账户发放, 复用服务端持有记录和订单核销. */
+    private void grantWelcomeCoupon(Long userId) {
+        jdbc.update(
+                """
+                INSERT INTO mall_user_coupon (coupon_id, user_id, add_time, coupon_status, source_key)
+                SELECT c.id, ?, NOW(), 1, ?
+                FROM mall_coupon c
+                WHERE c.send_type = ? AND c.id <= 255
+                  AND (c.send_start_date IS NULL OR c.send_start_date <= NOW())
+                  AND (c.send_end_date IS NULL OR c.send_end_date > NOW())
+                  AND NOT EXISTS (SELECT 1 FROM mall_user_coupon u WHERE u.user_id = ? AND u.source_key = ?)
+                ORDER BY c.id DESC LIMIT 1
+                """,
+                userId, WelcomeCoupon.SOURCE, WelcomeCoupon.SEND_TYPE, userId, WelcomeCoupon.SOURCE);
     }
 
     /** 按已验证字段和入口别名解析唯一账户, 历史冲突不猜测归属. */

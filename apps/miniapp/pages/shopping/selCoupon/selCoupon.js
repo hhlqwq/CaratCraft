@@ -9,10 +9,11 @@ Page(
         data: {
             couponList: [],
             buyType: '',
+            checkoutId: '',
         },
         /** 初始化优惠券选择状态并读取页面所需数据. */
         onLoad(options) {
-            this.data.buyType = options.buyType;
+            this.setData({buyType: options.buyType, checkoutId: options.checkoutId || ''});
             this.loadListData();
         },
 
@@ -21,7 +22,7 @@ Page(
             readPage(
                 this,
                 'GoodsCouponList',
-                () => util.request(api.GoodsCouponList, {type: this.data.buyType}),
+                () => util.request(api.GoodsCouponList, {type: this.data.buyType, checkoutId: this.data.checkoutId}, 'POST'),
                 (res) => {
                     if (res.code === 0) {
                         this.setData({

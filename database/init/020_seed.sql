@@ -593,3 +593,9 @@ INSERT INTO SYS_ROLE_MENU (ID,ROLE_ID,MENU_ID) VALUES (REPLACE(UUID(),'-',''),'c
 INSERT INTO SYS_ROLE_MENU (ID,ROLE_ID,MENU_ID) VALUES (REPLACE(UUID(),'-',''),'cc-job-system','110201');
 INSERT INTO SYS_ROLE_MENU (ID,ROLE_ID,MENU_ID) VALUES (REPLACE(UUID(),'-',''),'cc-job-system','110202');
 INSERT INTO SYS_ROLE_MENU (ID,ROLE_ID,MENU_ID) VALUES (REPLACE(UUID(),'-',''),'cc-job-system','110203');
+
+-- 新人券由首登注册事务发放, 固定满199减10, 到账起三个月有效.
+INSERT INTO mall_coupon (name, type_money, send_type, min_goods_amount)
+SELECT '新人优惠券', 10.00, 8, 199.00 FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM mall_coupon WHERE send_type = 8)
+  AND (SELECT COALESCE(MAX(id), 0) FROM mall_coupon) < 255;
