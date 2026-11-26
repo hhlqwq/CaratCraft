@@ -211,12 +211,18 @@ def verify_purchase_http(root, fixtures, mysql, image, env, output, docker, sql,
         assert len(goods_page["records"]) == 1 and goods_page["total"] >= 1
         assert set(goods_page["records"][0]) == {"id", "name"}
         request("/custom/configuration/goods?page=1&size=101", expected=400, management=True)
-        first = request("/custom/configuration/options?goodsId=1999105&page=1&size=100&keyword=client-", management=True)
-        second = request("/custom/configuration/options?goodsId=1999105&page=2&size=100&keyword=client-", management=True)
-        assert first["total"] == second["total"] == 112
-        assert len(first["records"]) == 100 and len(second["records"]) == 13
-        assert len({row["id"] for row in first["records"] + second["records"]}) == 112
-        assert all(row["enabled"] == 0 for row in first["records"] + second["records"])
+        catalog = root / "backend/platform-biz/src/main/resources/catalog/customer-material-catalog.json"
+        expected_count = len(json.loads(catalog.read_text("utf-8"))["options"])
+        page_size = 100
+        options_url = "/custom/configuration/options?goodsId=1999105&keyword=client-"
+        first = request(f"{options_url}&page=1&size={page_size}", management=True)
+        second = request(f"{options_url}&page=2&size={page_size}", management=True)
+        assert first["total"] == second["total"] == expected_count
+        assert len(first["records"]) == min(expected_count, page_size)
+        assert len(second["records"]) == min(max(expected_count - page_size, 0), page_size)
+        page_records = first["records"] + second["records"]
+        assert len({row["id"] for row in page_records}) == len(page_records)
+        assert all(row["enabled"] == 0 for row in page_records)
         request("/custom/configuration/options?goodsId=1999105&page=0&size=20", expected=400, management=True)
         write_report()
     finally:
