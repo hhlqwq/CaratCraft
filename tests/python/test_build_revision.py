@@ -23,7 +23,7 @@ class BuildRevisionTest(unittest.TestCase):
             self.skipTest("Requires PowerShell and CARATCRAFT_BASH")
         inputs = (ROOT / "deploy/build-inputs.txt").read_text("utf-8")
         self.assertIn("deploy/build-inputs.txt text eol=lf", (ROOT / ".gitattributes").read_text("utf-8"))
-        scopes = {"backend": [], "admin-ui": []}
+        scopes = {"backend": [], "admin-ui": [], "maintenance": []}
         parent = Path(os.environ.get("CARATCRAFT_TEST_TEMP", "D:/tmp/hailongcodex")) / datetime.now().strftime("%Y-%m-%d")
         parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="image-inputs-", dir=parent) as directory:
@@ -58,8 +58,9 @@ $Ast = [Management.Automation.Language.Parser]::ParseFile($env:CARATCRAFT_REVISI
 foreach ($Definition in $Ast.FindAll({ param($Node) $Node -is [Management.Automation.Language.FunctionDefinitionAst] }, $false)) {
     . ([scriptblock]::Create($Definition.Extent.Text))
 }
+function Invoke-EnvironmentTool { param([string]$Command) if ($Command -eq 'release-version') { return '0.1.0' } }
 Set-BuildRevisions
-Write-Output "RESULT=$env:BACKEND_BUILD_REVISION,$env:ADMIN_UI_BUILD_REVISION"
+Write-Output "RESULT=$env:BACKEND_BUILD_REVISION,$env:ADMIN_UI_BUILD_REVISION,$env:MAINTENANCE_BUILD_REVISION"
 """
                 result = subprocess.run([powershell, "-NoProfile", "-Command", ps], env=env, check=True,
                                         capture_output=True, text=True, encoding="utf-8")
@@ -68,8 +69,9 @@ Write-Output "RESULT=$env:BACKEND_BUILD_REVISION,$env:ADMIN_UI_BUILD_REVISION"
 ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)"
 ROOT_DIR="$(cd "$1" && pwd)"
 ENV_EXAMPLE="$ROOT_DIR/deploy/.env.example"
+run_environment_tool() { if [[ "$1" == release-version ]]; then echo 0.1.0; fi; }
 set_build_revisions
-printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
+printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION" "$MAINTENANCE_BUILD_REVISION"
 """
                 result = subprocess.run([bash, "-c", shell, "fixture", fixture.as_posix()], check=True,
                                         cwd=ROOT, capture_output=True, text=True, encoding="utf-8")
@@ -106,6 +108,7 @@ printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
         prefix = r'''ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)"; '''
         functions = r'''compose() { printf '%s\n' "$*"; }
 assert_local_images() { return 0; }
+run_environment_tool() { return 0; }
 assert_data_volumes() { return 0; }
 NO_BUILD=true
 BACKEND_BUILD_REVISION=java
@@ -132,12 +135,16 @@ start_local_environment
                                 capture_output=True, text=True, encoding="utf-8", check=True)
         self.assertEqual(result.stdout.strip().splitlines(), [
             "up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis",
+            "up --detach --no-deps --no-build --pull never --wait --wait-timeout 120 maintenance",
+            "exec -T maintenance python /app/server.py guard",
+            "exec -T maintenance python /app/server.py repair-permissions",
             "migration",
             "up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx",
             "platform-admin：镜像一致，健康",
             "platform-api：镜像一致，健康",
             "platform-nginx：镜像一致，健康",
             "代理验证通过：管理台、后台与 API 根路径。",
+            "exec -T maintenance python /app/server.py record-install",
             "ready"])
         functions += r'''assert_local_images() { return 1; }
 show_startup_diagnostics() { echo failed; }
@@ -159,9 +166,11 @@ ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scr
 ROOT_DIR="$PWD"
 compose() { printf '%s\n' "$*"; }
 assert_local_images() { return 0; }
+run_environment_tool() { return 0; }
 assert_data_volumes() { return 0; }
 reset_test_data_volumes() { echo unexpected-reset; }
 NO_BUILD=true
+docker() { return 1; }
 database_query() {
     case "$1" in
         'SELECT TABLE_NAME'*) printf '%s\n' sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION ;;

@@ -9,6 +9,7 @@ x-application-environment: &application-environment
   MAIL_PASSWORD: ${MAIL_PASSWORD:-}
   MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
   MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-true}
+  CARATCRAFT_ENV: ${CARATCRAFT_ENV:-production}
   TZ: ${TZ:-Asia/Shanghai}
   CARATCRAFT_DEFAULT_BUSINESS_ORG: ${CARATCRAFT_DEFAULT_BUSINESS_ORG:-}
   MYSQL_HOST: mysql
@@ -61,6 +62,12 @@ services:
           echo 'Empty MySQL volume. Run the explicit init-db operation first.' >&2
           exit 1
         fi
+        if [ ! -d /var/lib/mysql/mysql ]; then
+          mkdir -p /docker-entrypoint-initdb.d
+          cp /caratcraft-init/* /docker-entrypoint-initdb.d/
+          chmod 0644 /docker-entrypoint-initdb.d/*
+          chmod 0755 /docker-entrypoint-initdb.d/*.sh
+        fi
         exec docker-entrypoint.sh "$$@"
       - mysql-entrypoint
     command:
@@ -71,7 +78,7 @@ services:
       - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      - ../database/init:/docker-entrypoint-initdb.d:ro
+      - ../database/init:/caratcraft-init:ro
     healthcheck:
       test:
         - CMD-SHELL
@@ -111,11 +118,12 @@ services:
       start_period: 10s
 
   platform-admin:
-    image: carat-craft-backend:local
+    image: ${CARATCRAFT_BACKEND_IMAGE:-carat-craft-backend:local}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.backend
       args:
+        BUILD_VERSION: ${BUILD_RELEASE_VERSION:-0.1.0}
         BUILD_REVISION: ${BACKEND_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-admin
@@ -132,7 +140,9 @@ services:
       JAVA_OPTS: ${PLATFORM_ADMIN_JAVA_OPTS:--Xms256m -Xmx512m}
     volumes:
       - upload-data:/data/uploads
-      - ./secrets:/run/secrets:ro
+      - ./private/runtime-secrets:/run/secrets:ro
+      - maintenance-control:/run/platform-control:ro
+      - ./private/maintenance/token:/run/platform-maintenance/token:ro
     command:
       - sh
       - -c
@@ -145,11 +155,12 @@ services:
       start_period: 60s
 
   platform-api:
-    image: carat-craft-backend:local
+    image: ${CARATCRAFT_BACKEND_IMAGE:-carat-craft-backend:local}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.backend
       args:
+        BUILD_VERSION: ${BUILD_RELEASE_VERSION:-0.1.0}
         BUILD_REVISION: ${BACKEND_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-api
@@ -165,7 +176,8 @@ services:
       JAVA_OPTS: ${PLATFORM_API_JAVA_OPTS:--Xms256m -Xmx512m}
     volumes:
       - upload-data:/data/uploads
-      - ./secrets:/run/secrets:ro
+      - ./private/runtime-secrets:/run/secrets:ro
+      - maintenance-control:/run/platform-control:ro
     command:
       - sh
       - -c
@@ -178,11 +190,12 @@ services:
       start_period: 60s
 
   nginx:
-    image: carat-craft-admin-ui:local
+    image: ${CARATCRAFT_ADMIN_UI_IMAGE:-carat-craft-admin-ui:local}
     build:
       context: ..
       dockerfile: deploy/Dockerfile.admin-ui
       args:
+        BUILD_VERSION: ${BUILD_RELEASE_VERSION:-0.1.0}
         BUILD_REVISION: ${ADMIN_UI_BUILD_REVISION:-workspace}
         BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
     container_name: platform-nginx
@@ -202,7 +215,38 @@ services:
       timeout: 5s
       retries: 6
 
+  maintenance:
+    image: ${CARATCRAFT_MAINTENANCE_IMAGE:-carat-craft-maintenance:local}
+    build:
+      context: ..
+      dockerfile: deploy/maintenance/Dockerfile
+      args:
+        BUILD_VERSION: ${BUILD_RELEASE_VERSION:-0.1.0}
+        BUILD_REVISION: ${MAINTENANCE_BUILD_REVISION:-workspace}
+        BUILD_GIT_SHA: ${BUILD_GIT_SHA:-archive}
+    container_name: platform-maintenance
+    restart: unless-stopped
+    environment:
+      CARATCRAFT_COMPOSE_PROJECT: platform-wxshop
+      PYTHONDONTWRITEBYTECODE: '1'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - .:/deployment
+      - ./private/maintenance/token:/run/maintenance/token:ro
+      - maintenance-data:/state
+      - maintenance-control:/control
+      - upload-data:/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
 volumes:
   mysql-data:
   redis-data:
   upload-data:
+  maintenance-data:
+  maintenance-control:

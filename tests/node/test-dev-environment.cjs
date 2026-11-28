@@ -218,3 +218,44 @@ test('旧配置升级只补安全默认值并可重复运行', (t) => {
     assert.deepEqual(repairConfig(file, policy), []);
     assert.equal(readConfig(file).CARATCRAFT_ENV, undefined);
 });
+
+/** 运行证书副本仅UID999可读, 源文件与已有维护令牌逐字保留. */
+test('维护凭据及既有证书安全复制并修复运行副本属主', {skip: configureSkip}, () => {
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-runtime-secrets-'));
+    const command = path.join(fixture, 'tools/maintenance/dev-env.cjs');
+    const source = path.join(fixture, 'deploy/secrets/merchant.pem');
+    const runtime = path.join(fixture, 'deploy/private/runtime-secrets/merchant.pem');
+    const token = path.join(fixture, 'deploy/private/maintenance/token');
+    try {
+        fs.chmodSync(fixture, 0o755);
+        fs.mkdirSync(path.dirname(command), {recursive: true});
+        fs.mkdirSync(path.dirname(source), {recursive: true});
+        fs.copyFileSync(path.resolve(__dirname, '../../tools/maintenance/dev-env.cjs'), command);
+        fs.writeFileSync(path.join(fixture, 'deploy/.env'), 'WX_PAY_PRIVATE_KEY_PATH=/run/secrets/merchant.pem\n');
+        fs.writeFileSync(source, 'isolated-certificate-bytes', {mode: 0o600});
+        const original = fs.readFileSync(source);
+        const first = spawnSync(process.execPath, [command, 'provision-maintenance'], {encoding: 'utf8'});
+        assert.equal(first.status, 0, first.stderr);
+        assert.deepEqual(fs.readFileSync(runtime), original);
+        assert.equal(fs.statSync(runtime).uid, 999);
+        assert.equal(fs.statSync(runtime).mode & 0o777, 0o600);
+        assert.equal(fs.statSync(source).uid, 0);
+        assert.equal(fs.statSync(source).mode & 0o777, 0o600);
+        const read = 'require("node:fs").readFileSync(process.argv[1])';
+        assert.equal(spawnSync(process.execPath, ['-e', read, runtime], {uid: 999, gid: 999}).status, 0);
+        assert.notEqual(spawnSync(process.execPath, ['-e', read, runtime], {uid: 998, gid: 998}).status, 0);
+        const originalToken = fs.readFileSync(token);
+        fs.chownSync(runtime, 0, 0);
+        assert.equal(spawnSync(process.execPath, [command, 'provision-maintenance']).status, 0);
+        assert.equal(fs.statSync(runtime).uid, 999);
+        assert.deepEqual(fs.readFileSync(token), originalToken);
+        assert.deepEqual(fs.readFileSync(source), original);
+        assert.equal(first.stdout.includes(original.toString()), false);
+        fs.unlinkSync(runtime);
+        fs.symlinkSync(source, runtime);
+        assert.notEqual(spawnSync(process.execPath, [command, 'provision-maintenance']).status, 0);
+        assert.deepEqual(fs.readFileSync(source), original);
+    } finally {
+        fs.rmSync(fixture, {recursive: true, force: true});
+    }
+});

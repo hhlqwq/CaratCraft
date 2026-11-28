@@ -23,3 +23,10 @@ admin-ui deploy/Dockerfile.admin-ui
 admin-ui deploy/nginx/default.conf
 admin-ui .dockerignore
 admin-ui legal
+backend release.json
+admin-ui release.json
+maintenance deploy/maintenance
+maintenance deploy/scripts/migrations.sh
+maintenance release.json
+maintenance legal
+maintenance deploy/maintenance/trust/release.pem

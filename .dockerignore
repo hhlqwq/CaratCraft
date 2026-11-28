@@ -29,3 +29,9 @@ apps/miniapp/project.private.config.json
 apps/miniapp/config/environment.local.js
 .start-local-test-*.ps1
 .stop-local-test-*.ps1
+.private
+deploy/private
+deploy/backups
+
+# 仅公开发行验签公钥允许进入维护镜像.
+!deploy/maintenance/trust/release.pem

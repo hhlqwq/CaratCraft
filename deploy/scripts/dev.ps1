@@ -4,6 +4,8 @@ param(
     [string]$Action = 'start',
     [ValidateSet('staff-password', 'admin-jobs')]
     [string]$Upgrade,
+    [string]$PackageOutput,
+    [string]$RecoverFailedTask,
     [switch]$NoBuild
 )
 
@@ -223,6 +225,20 @@ function Get-BuildRevision {
 
 # 为Compose设置两个镜像各自的构建摘要.
 function Set-BuildRevisions {
+    $env:BUILD_RELEASE_VERSION = Invoke-EnvironmentTool -Command 'release-version'
+    if (Test-Path -LiteralPath (Join-Path $ProjectRoot 'deploy/private/installed.json')) {
+        $Rows = @(Invoke-EnvironmentTool -Command 'installed-deployment')
+        if ($Rows.Count -ne 3) { throw '离线安装镜像记录无效。' }
+        $Backend = $Rows[0] -split ' '
+        $Ui = $Rows[1] -split ' '
+        $Maintenance = $Rows[2] -split ' '
+        $env:CARATCRAFT_BACKEND_IMAGE = $Backend[0]; $env:BACKEND_BUILD_REVISION = $Backend[1]
+        $env:CARATCRAFT_ADMIN_UI_IMAGE = $Ui[0]; $env:ADMIN_UI_BUILD_REVISION = $Ui[1]
+        $env:CARATCRAFT_MAINTENANCE_IMAGE = $Maintenance[0]; $env:MAINTENANCE_BUILD_REVISION = $Maintenance[1]
+        $script:OfflineInstall = $true
+        return
+    }
+    $env:MAINTENANCE_BUILD_REVISION = Get-BuildRevision -Scope 'maintenance'
     $env:BACKEND_BUILD_REVISION = Get-BuildRevision -Scope 'backend'
     $env:ADMIN_UI_BUILD_REVISION = Get-BuildRevision -Scope 'admin-ui'
 }
@@ -244,7 +260,7 @@ function Get-BuildSourceFiles {
         if ($Directory) {
             foreach ($Child in $Item.EnumerateFileSystemInfos()) { $Pending.Push($Child) }
         } elseif ($Item.Name -notmatch '^(application-local.*|environment\.local\.js|project(\.private)?\.config\.json|\.env(\..*)?|.*\.(log|tmp|key|pem|p12))$' -or
-            $Item.FullName -eq $EnvExample) {
+            $Item.FullName -eq $EnvExample -or $Item.FullName -eq (Join-Path $ProjectRoot 'deploy/maintenance/trust/release.pem')) {
             $Item
         }
     }
@@ -299,8 +315,9 @@ function Invoke-DockerMetadata {
 function Get-LocalImages {
     [pscustomobject]@{ Service = 'mysql'; Name = 'm.daocloud.io/docker.io/library/mysql:8.0.36'; Digest = $null }
     [pscustomobject]@{ Service = 'redis'; Name = 'm.daocloud.io/docker.io/library/redis:7.2-alpine'; Digest = $null }
-    [pscustomobject]@{ Service = 'platform-admin'; Name = 'carat-craft-backend:local'; Digest = $env:BACKEND_BUILD_REVISION }
-    [pscustomobject]@{ Service = 'nginx'; Name = 'carat-craft-admin-ui:local'; Digest = $env:ADMIN_UI_BUILD_REVISION }
+    [pscustomobject]@{ Service = 'platform-admin'; Name = $(if ($env:CARATCRAFT_BACKEND_IMAGE) { $env:CARATCRAFT_BACKEND_IMAGE } else { 'carat-craft-backend:local' }); Digest = $env:BACKEND_BUILD_REVISION }
+    [pscustomobject]@{ Service = 'nginx'; Name = $(if ($env:CARATCRAFT_ADMIN_UI_IMAGE) { $env:CARATCRAFT_ADMIN_UI_IMAGE } else { 'carat-craft-admin-ui:local' }); Digest = $env:ADMIN_UI_BUILD_REVISION }
+    [pscustomobject]@{ Service = 'maintenance'; Name = $(if ($env:CARATCRAFT_MAINTENANCE_IMAGE) { $env:CARATCRAFT_MAINTENANCE_IMAGE } else { 'carat-craft-maintenance:local' }); Digest = $env:MAINTENANCE_BUILD_REVISION }
 }
 
 # 根据构建输入摘要校验镜像, Git提交仅用于追溯.
@@ -483,6 +500,10 @@ function Invoke-AutomaticMigrations {
         $OutputEncoding = [Text.UTF8Encoding]::new($false)
         $Snapshot = [IO.File]::ReadAllText((Join-Path $ProjectRoot 'database/upgrade/local/snapshot.sql'))
         $Completed = @(Invoke-DatabaseQuery -Query $Snapshot)
+        if (!$Baseline) {
+            $Pending = @([IO.File]::ReadAllLines((Join-Path $ProjectRoot 'database/upgrade/local/manifest.txt')) | Where-Object { ($_ -replace ' ', '-') -cnotin $Completed })
+            if ($Pending.Count -gt 0) { Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'backup-startup') }
+        }
         $Rows = @(Invoke-DatabaseQuery -Query (New-AutomaticMigrationBatch -Completed $Completed -Baseline:$Baseline))
         foreach ($Row in $Rows) {
             if ($Row -match '^([0-9]{4}-[a-z0-9-]+): (verified|baseline|applying)$') {
@@ -532,6 +553,7 @@ function Build-LocalEnvironment {
                     continue
                 }
             }
+            if ($script:OfflineInstall) { throw '离线发行镜像缺失或不符, 请恢复签名发行包, 不会编译旧源码。' }
             Write-Host "正在构建 $($Target.Name)..."
             Invoke-Compose -Arguments @('build', $Target.Service)
         }
@@ -548,8 +570,18 @@ function Start-LocalEnvironment {
     $Stage = '检查构建输入和镜像'
     try {
         if ($script:FreshEnvironment) { Assert-DataVolumes -New } else { Assert-DataVolumes }
+        if ($RecoverFailedTask) {
+            Invoke-Compose -Arguments @('run', '--rm', '--no-deps', '--pull', 'never', 'maintenance', 'python', '/app/server.py', 'request-recovery', $RecoverFailedTask)
+            Invoke-Compose -Arguments @('run', '--rm', '--no-deps', '--pull', 'never', 'maintenance', 'python', '/app/server.py', 'wait-recovery', $RecoverFailedTask)
+            Remove-Item Env:CARATCRAFT_BACKEND_IMAGE,Env:CARATCRAFT_ADMIN_UI_IMAGE,Env:CARATCRAFT_MAINTENANCE_IMAGE -ErrorAction SilentlyContinue
+            $script:OfflineInstall = $false
+            Set-BuildRevisions
+        }
+        $ExistingMaintenance = Invoke-DockerMetadata -Arguments @('container', 'inspect', 'platform-maintenance')
+        if ($ExistingMaintenance.ExitCode -eq 0) { Invoke-Compose -Arguments @('run', '--rm', '--no-deps', '--pull', 'never', 'maintenance', 'python', '/app/server.py', 'guard') }
         if (!$NoBuild) { Build-LocalEnvironment }
         Assert-LocalImages
+        Invoke-EnvironmentTool -Command 'provision-maintenance'
         if ($script:FreshEnvironment) {
             $Marker = Join-Path $ProjectRoot 'deploy/.initializing'
             [void](New-Item -ItemType Directory -Path $Marker -ErrorAction Stop)
@@ -560,8 +592,12 @@ function Start-LocalEnvironment {
         Invoke-Compose -Arguments @('up', '--detach', '--no-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
         $Stage = '数据库结构及账号检查'
         Assert-DatabaseReady
-        $Stage = '数据库安全结构增量'
-        Invoke-AutomaticMigrations
+        $Stage = '维护服务及数据库安全结构增量'
+        Invoke-Compose -Arguments @('up', '--detach', '--no-deps', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '120', 'maintenance')
+        Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'guard')
+        Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'repair-permissions')
+        if ($script:OfflineInstall) { Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'verify-installed') }
+        else { Invoke-AutomaticMigrations }
         $Stage = '后端和管理端'
         if ($RestartApps) { Invoke-Compose -Arguments @('restart', 'platform-admin', 'platform-api', 'nginx') }
         Invoke-Compose -Arguments @('up', '--detach', '--no-deps', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'platform-admin', 'platform-api', 'nginx')
@@ -570,7 +606,8 @@ function Start-LocalEnvironment {
         $ContainerResult = Invoke-DockerMetadata -Arguments (@('container', 'inspect') + $Names)
         if ($ContainerResult.ExitCode -ne 0) { throw '无法核对应用容器。' }
         $Containers = ($ContainerResult.Output -join "`n") | ConvertFrom-Json
-        $ImageResult = Invoke-DockerMetadata -Arguments @('image', 'inspect', 'carat-craft-backend:local', 'carat-craft-admin-ui:local')
+        $AppImages = @(Get-LocalImages | Where-Object { $_.Service -in @('platform-admin', 'nginx') } | ForEach-Object { $_.Name })
+        $ImageResult = Invoke-DockerMetadata -Arguments (@('image', 'inspect') + $AppImages)
         if ($ImageResult.ExitCode -ne 0) { throw '无法核对构建后的本地镜像。' }
         $Images = ($ImageResult.Output -join "`n") | ConvertFrom-Json
         foreach ($Container in $Containers) {
@@ -589,6 +626,7 @@ function Start-LocalEnvironment {
             throw 'Nginx 静态入口、后台根路径或 API 根路径探测失败。'
         }
         Write-Host '代理验证通过：管理台、后台与 API 根路径。'
+        Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'record-install')
         [void][IO.Directory]::CreateDirectory((Join-Path $ProjectRoot 'deploy/.initialized'))
         if ($script:FreshEnvironment) {
             [IO.Directory]::Delete($Marker)
@@ -601,6 +639,17 @@ function Start-LocalEnvironment {
         catch { Write-Warning '附加诊断失败, 以下仍返回原始启动错误。' }
         throw
     }
+}
+
+# 只读Docker诊断与容器内配置诊断分离, 不给配置工具挂载Docker套接字.
+function Invoke-SystemDiagnostics {
+    foreach ($Name in @('platform-admin', 'platform-api', 'platform-nginx', 'platform-maintenance')) {
+        & docker inspect --format '{{.Name}} 镜像={{.Image}} 健康={{if .State.Health}}{{.State.Health.Status}}{{end}} 来源={{index .Config.Labels "io.caratcraft.source-digest"}}' $Name
+        if ($LASTEXITCODE -ne 0) { throw "无法诊断 $Name。" }
+    }
+    Invoke-Compose -Arguments @('exec', '-T', 'mysql', 'sh', '-ec', 'MYSQL_PWD="$MYSQL_PASSWORD" mysql -u"$MYSQL_USER" "$MYSQL_DATABASE" -Nse "SELECT VERSION FROM CC_SCHEMA_VERSION WHERE ID=1"')
+    Invoke-Compose -Arguments @('exec', '-T', 'redis', 'sh', '-ec', 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping')
+    Invoke-Compose -Arguments @('exec', '-T', 'maintenance', 'python', '/app/server.py', 'diagnose')
 }
 
 # 输出本地访问地址 / Prints local access URLs.
@@ -627,6 +676,7 @@ if ($Action -in @('miniapp', 'diagnose', 'check-config', 'repair-config')) {
     Assert-DockerReady
     if ($Action -eq 'diagnose' -and (Test-Path -LiteralPath $EnvFile)) { Invoke-Compose -Arguments @('ps', '--all') }
     Invoke-EnvironmentTool -Command $Action
+    if ($Action -eq 'diagnose') { Invoke-SystemDiagnostics }
     return
 }
 
@@ -640,6 +690,16 @@ if ($Action -eq 'build') {
         Set-BuildRevisions
         Set-GitRevision
         Build-LocalEnvironment
+        if ($PackageOutput) {
+            $Key = Join-Path $ProjectRoot '.private/release-signing.pem'
+            if (!(Test-Path -LiteralPath $Key -PathType Leaf)) { throw '缺少本机发行签名私钥, 请恢复安全备份。' }
+            $OutputPath = [IO.Path]::GetFullPath($PackageOutput)
+            $OutputDirectory = [IO.Path]::GetDirectoryName($OutputPath)
+            & docker run --rm --network none --mount 'type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock' `
+                --mount "type=bind,source=$ProjectRoot,target=/source,readonly" --mount "type=bind,source=$OutputDirectory,target=/output" `
+                carat-craft-maintenance:local python /source/tools/delivery/package-release.py --output "/output/$([IO.Path]::GetFileName($OutputPath))" --key /source/.private/release-signing.pem
+            if ($LASTEXITCODE -ne 0) { throw '签名发行包生成失败。' }
+        }
     } finally { Write-Host ('构建耗时：{0:N2} 秒' -f $Watch.Elapsed.TotalSeconds) }
     return
 }

@@ -8,6 +8,99 @@ const envFile = path.join(root, 'deploy/.env');
 const target = path.join(root, 'apps/miniapp/config/environment.local.js');
 const apiPath = '/platform-framework-api/app/';
 
+/** 校验离线安装指针, 只输出固定格式的镜像身份给两平台脚本. */
+function installedDeployment() {
+    const file = path.join(root, 'deploy/private/installed.json');
+    if (!fs.existsSync(file)) {
+        return;
+    }
+    const value = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (value.mode !== 'OFFLINE' || !/^\d+\.\d+\.\d+$/.test(value.version)) {
+        throw new Error('离线安装记录无效, 请恢复原记录');
+    }
+    for (const key of ['backend', 'admin-ui', 'maintenance']) {
+        const item = value.deployment?.[key];
+        if (
+            !item ||
+            !/^sha256:[a-f0-9]{64}$/.test(item.id) ||
+            !/^[a-f0-9]{64}$/.test(item.sourceDigest)
+        ) {
+            throw new Error('离线镜像身份记录无效');
+        }
+        console.log(item.id + ' ' + item.sourceDigest);
+    }
+}
+
+/** 为独立维护服务准备专用令牌及受限运行证书副本, 不更改源证书或现有配置. */
+function provisionMaintenance() {
+    if (process.getuid?.() !== 0) {
+        throw new Error('维护凭据准备必须通过标准部署入口执行');
+    }
+    const folder = path.join(root, 'deploy/private');
+    const token = path.join(folder, 'maintenance/token');
+    const runtime = path.join(folder, 'runtime-secrets');
+    for (const directory of [folder, path.dirname(token), runtime]) {
+        const metadata = fs.lstatSync(directory, {throwIfNoEntry: false});
+        if (metadata && (!metadata.isDirectory() || metadata.isSymbolicLink())) {
+            throw new Error('维护私有目录不能使用链接或普通文件');
+        }
+        fs.mkdirSync(directory, {recursive: true});
+    }
+    const existingToken = fs.lstatSync(token, {throwIfNoEntry: false});
+    if (existingToken && (!existingToken.isFile() || existingToken.isSymbolicLink())) {
+        throw new Error('维护令牌必须为独立普通文件');
+    }
+    if (!fs.existsSync(token)) {
+        fs.writeFileSync(token, randomBytes(32).toString('base64url'), {flag: 'wx', mode: 0o600});
+        fs.chownSync(token, 999, 999);
+    }
+    if (!/^[A-Za-z0-9_-]{43}$/.test(fs.readFileSync(token, 'utf8'))) {
+        throw new Error('维护令牌格式异常, 请恢复原文件');
+    }
+    fs.chownSync(token, 999, 999);
+    fs.chmodSync(token, 0o600);
+    const config = readConfig(envFile);
+    for (const key of [
+        'WX_PAY_PRIVATE_KEY_PATH',
+        'WX_PAY_PUBLIC_KEY_PATH',
+        'CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE',
+    ]) {
+        const configured = config[key];
+        if (!configured) {
+            continue;
+        }
+        if (!/^\/run\/secrets\/[A-Za-z0-9_.-]+$/.test(configured)) {
+            throw new Error(`${key} 应指向 /run/secrets 内的单个文件`);
+        }
+        const name = path.basename(configured);
+        const source = path.join(root, 'deploy/secrets', name);
+        const targetFile = path.join(runtime, name);
+        if (!fs.existsSync(source)) {
+            if (fs.existsSync(targetFile)) {
+                fs.unlinkSync(targetFile);
+            }
+            continue;
+        }
+        const metadata = fs.lstatSync(source);
+        if (!metadata.isFile() || metadata.isSymbolicLink() || metadata.size > 2 * 1024 * 1024) {
+            throw new Error(`${key} 的私有源文件不合法`);
+        }
+        const targetMetadata = fs.lstatSync(targetFile, {throwIfNoEntry: false});
+        if (targetMetadata && (!targetMetadata.isFile() || targetMetadata.isSymbolicLink())) {
+            throw new Error(`${key} 的运行副本不允许链接`);
+        }
+        const bytes = fs.readFileSync(source);
+        if (!fs.existsSync(targetFile) || !bytes.equals(fs.readFileSync(targetFile))) {
+            fs.writeFileSync(targetFile, bytes, {mode: 0o600});
+        }
+        fs.chownSync(targetFile, 999, 999);
+        fs.chmodSync(targetFile, 0o600);
+    }
+    fs.chownSync(runtime, 999, 999);
+    fs.chmodSync(runtime, 0o700);
+    console.log('维护凭据与容器运行证书准备完成, 私有源文件保持原内容');
+}
+
 /** 只为全新环境生成独立配置与超管引导文件, 已有文件使用排他创建保护. */
 function configureEnvironment() {
     if (fs.existsSync(envFile)) {
@@ -417,6 +510,21 @@ function diagnose(config, addresses) {
 
 /** 从仓库定位文件并运行生成或只读诊断. */
 function main(command) {
+    if (command === 'release-version') {
+        const release = JSON.parse(fs.readFileSync(path.join(root, 'release.json'), 'utf8'));
+        if (!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(release.version)) {
+            throw new Error('发行版本无效');
+        }
+        console.log(release.version);
+        return;
+    }
+    if (command === 'installed-deployment') {
+        installedDeployment();
+        return;
+    } else if (command === 'provision-maintenance') {
+        provisionMaintenance();
+        return;
+    }
     if (command === 'configure') {
         configureEnvironment();
         return;
@@ -438,8 +546,30 @@ function main(command) {
             process.exitCode = 1;
             return;
         }
-        if (command === 'diagnose' && !process.env.CARATCRAFT_CONTAINER_TOOL) {
-            diagnose(config, resolveMiniapp(config));
+        if (command === 'diagnose') {
+            if (process.env.CARATCRAFT_CONTAINER_TOOL) {
+                console.log('小程序预期地址 ' + JSON.stringify(resolveMiniapp(config)));
+                let actual;
+                try {
+                    actual = JSON.parse(
+                        fs
+                            .readFileSync(target, 'utf8')
+                            .split('module.exports = ')[1]
+                            .trim()
+                            .replace(/;$/, '')
+                    );
+                } catch {
+                    // 本机配置缺失时由下一行明确提示, 不猜测实际地址.
+                }
+                console.log(
+                    '小程序配置 ' +
+                        (JSON.stringify(actual) === JSON.stringify(resolveMiniapp(config))
+                            ? '一致'
+                            : '缺失或需重新生成')
+                );
+            } else {
+                diagnose(config, resolveMiniapp(config));
+            }
         } else {
             console.log('启动配置检查通过');
         }

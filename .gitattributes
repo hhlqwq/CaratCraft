@@ -26,3 +26,4 @@ Dockerfile* text eol=lf
 *.hxx text eol=lf
 *.py text eol=lf
 *.md text eol=lf
+deploy/maintenance/trust/release.pem text eol=lf

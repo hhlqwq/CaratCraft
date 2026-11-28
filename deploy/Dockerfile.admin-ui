@@ -14,6 +14,8 @@ COPY legal/ /legal/
 RUN pnpm run build
 
 FROM m.daocloud.io/docker.io/library/nginx:1.27-alpine
+ARG BUILD_VERSION=0.1.0
+LABEL org.opencontainers.image.version=${BUILD_VERSION}
 ARG BUILD_REVISION=workspace
 ARG BUILD_GIT_SHA=archive
 LABEL org.opencontainers.image.revision=${BUILD_GIT_SHA} io.caratcraft.source-digest=${BUILD_REVISION}
@@ -24,3 +26,5 @@ COPY apps/miniapp/static/images/ /usr/share/nginx/html/static/images/
 COPY legal/ /usr/share/nginx/html/legal/
 
 EXPOSE 80
+
+COPY release.json /usr/share/nginx/html/release.json

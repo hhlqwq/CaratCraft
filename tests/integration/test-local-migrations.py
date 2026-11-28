@@ -110,6 +110,8 @@ DEALLOCATE PREPARE cc_test_stmt;
 
 def verify_mysql(source, bash):
     """在临时库验证初始化、迁移恢复、合法结构演进和失败边界."""
+    # 本专项只保留待演进的历史迁移, 平台新迁移由平台HTTP隔离套件验证.
+    (source / "database/upgrade/local/manifest.txt").write_text("0001 goods-questions\n", encoding="utf-8")
     snapshot = (source / "database/upgrade/local/snapshot.sql").read_text("utf-8")
     run = "migration-" + secrets.token_hex(4)
     fixtures = ISOLATED.Fixtures(run)
@@ -119,8 +121,9 @@ def verify_mysql(source, bash):
     try:
         mysql = fixtures.start("caratcraft-" + run, ["--network", "none", "--tmpfs", "/var/lib/mysql",
             "--env", "MYSQL_ROOT_PASSWORD", "--env", "MYSQL_DATABASE", "--env", "MYSQL_USER", "--env", "MYSQL_PASSWORD",
-            "--mount", f"type=bind,source={ROOT / 'database/init'},target=/docker-entrypoint-initdb.d,readonly",
-            "m.daocloud.io/docker.io/library/mysql:8.0.36", "--default-authentication-plugin=mysql_native_password"], env)
+            "--mount", f"type=bind,source={ROOT / 'database/init'},target=/caratcraft-init,readonly",
+            "--entrypoint", "/bin/bash",
+            "m.daocloud.io/docker.io/library/mysql:8.0.36", "-ec", 'cp /caratcraft-init/* /docker-entrypoint-initdb.d/; chmod 0644 /docker-entrypoint-initdb.d/*; chmod 0755 /docker-entrypoint-initdb.d/*.sh; exec docker-entrypoint.sh --default-authentication-plugin=mysql_native_password'], env)
         ISOLATED.wait_for_mysql(mysql, env)
 
         def sql(statement, error=None):

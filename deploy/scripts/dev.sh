@@ -7,9 +7,12 @@ PROJECT_DIR="$ROOT_DIR"
 COMPOSE_FILE="$PROJECT_DIR/deploy/docker-compose.yml"
 ENV_FILE="$PROJECT_DIR/deploy/.env"
 ENV_EXAMPLE="$PROJECT_DIR/deploy/.env.example"
+source "$ROOT_DIR/deploy/scripts/migrations.sh"
 
 ACTION="start"
 NO_BUILD="false"
+PACKAGE_OUTPUT=""
+RECOVERY_TASK=""
 
 # 输出脚本使用方式 / Prints script usage.
 usage() {
@@ -38,7 +41,7 @@ initialize_environment() {
 run_environment_tool() {
     local image=m.daocloud.io/docker.io/library/node:24-alpine
     local tool_user="$(id -u):$(id -g)"
-    if [[ "$1" == configure ]]; then tool_user=0:0; fi
+    if [[ "$1" == configure || "$1" == provision-maintenance ]]; then tool_user=0:0; fi
     if ! docker image inspect "$image" >/dev/null 2>&1; then
         echo '准备配置工具镜像...'
         docker pull "$image" || return 1
@@ -120,18 +123,6 @@ set_git_revision() {
     echo "Git: $BUILD_GIT_SHA"
 }
 
-# 计算单个文件的SHA256, 兼容Linux及macOS自带工具.
-sha256_file() {
-    local sum
-    if command -v sha256sum >/dev/null 2>&1; then
-        sum="$(sha256sum -- "$@")" || return $?
-    else
-        sum="$(shasum -a 256 -- "$@")" || return $?
-    fi
-    [[ "$sum" =~ ^([0-9a-fA-F]{64})[[:space:]] ]] || return 1
-    printf '%s\n' "${BASH_REMATCH[1]}" | tr 'a-f' 'A-F'
-}
-
 # 收集唯一清单中的构建输入, 拒绝链接且排除缓存及私人配置.
 build_source_files() {
     local item="$1" name child
@@ -174,6 +165,24 @@ build_revision() {
 
 # 两个镜像分别记录各自的构建输入摘要.
 set_build_revisions() {
+    local installed
+    BUILD_RELEASE_VERSION="$(run_environment_tool release-version)" || return 1
+    export BUILD_RELEASE_VERSION
+    installed="$(run_environment_tool installed-deployment)" || return 1
+    if [[ -n "$installed" ]]; then
+        local rows=()
+        while IFS= read -r line; do rows+=("$line"); done <<< "$installed"
+        [[ "${#rows[@]}" == 3 ]] || return 1
+        read -r CARATCRAFT_BACKEND_IMAGE BACKEND_BUILD_REVISION <<< "${rows[0]}"
+        read -r CARATCRAFT_ADMIN_UI_IMAGE ADMIN_UI_BUILD_REVISION <<< "${rows[1]}"
+        read -r CARATCRAFT_MAINTENANCE_IMAGE MAINTENANCE_BUILD_REVISION <<< "${rows[2]}"
+        export CARATCRAFT_BACKEND_IMAGE CARATCRAFT_ADMIN_UI_IMAGE CARATCRAFT_MAINTENANCE_IMAGE
+        export BACKEND_BUILD_REVISION ADMIN_UI_BUILD_REVISION MAINTENANCE_BUILD_REVISION
+        OFFLINE_INSTALL=true
+        return
+    fi
+    MAINTENANCE_BUILD_REVISION="$(build_revision maintenance)" || return 1
+    export MAINTENANCE_BUILD_REVISION
     BACKEND_BUILD_REVISION="$(build_revision backend)" || return 1
     ADMIN_UI_BUILD_REVISION="$(build_revision admin-ui)" || return 1
     export BACKEND_BUILD_REVISION ADMIN_UI_BUILD_REVISION
@@ -188,6 +197,9 @@ build_local_environment() {
                 echo "复用镜像 $image, 构建输入未变更。"
                 continue
             fi
+        fi
+        if [[ "${OFFLINE_INSTALL:-false}" == true && -n "$expected" ]]; then
+            echo "离线安装镜像缺失或不符, 请恢复已签名发行包, 不会编译旧源码。" >&2; return 1
         fi
         if [[ -z "$expected" ]]; then
             compose pull "$service" || return $?
@@ -221,8 +233,9 @@ local_images() {
     printf '%s\n' \
         'mysql m.daocloud.io/docker.io/library/mysql:8.0.36' \
         'redis m.daocloud.io/docker.io/library/redis:7.2-alpine' \
-        "platform-admin carat-craft-backend:local $BACKEND_BUILD_REVISION" \
-        "nginx carat-craft-admin-ui:local $ADMIN_UI_BUILD_REVISION"
+        "platform-admin ${CARATCRAFT_BACKEND_IMAGE:-carat-craft-backend:local} $BACKEND_BUILD_REVISION" \
+        "nginx ${CARATCRAFT_ADMIN_UI_IMAGE:-carat-craft-admin-ui:local} $ADMIN_UI_BUILD_REVISION" \
+        "maintenance ${CARATCRAFT_MAINTENANCE_IMAGE:-carat-craft-maintenance:local} $MAINTENANCE_BUILD_REVISION"
 }
 
 # 按构建输入摘要校验运行镜像, Git提交仅用于追溯.
@@ -287,67 +300,21 @@ assert_database_ready() {
     [[ "$version" == 1 ]] || return 1
 }
 
-# 生成来自显式清单的SQL批次, 两端使用相同的结构检查和记录格式.
-migration_batch() {
-    local registry="$ROOT_DIR/database/upgrade/local" entry sequence directory id ids=""
-    local previous=0 checksum check apply stage complete staged
-    local completed="${1:-}" mode="${2:-}" pending=""
-    local entries=()
-    while IFS= read -r entry || [[ -n "$entry" ]]; do
-        entry="${entry%$'\r'}"
-        [[ "$entry" =~ ^([0-9]{4})\ ([a-z][a-z0-9-]{0,48})$ ]] || {
-            echo "本机迁移清单条目无效: $entry" >&2; return 1;
-        }
-        sequence="${BASH_REMATCH[1]}"
-        (( 10#$sequence > previous )) || { echo '本机迁移清单顺序错误。' >&2; return 1; }
-        previous=$((10#$sequence))
-        id="$sequence-${BASH_REMATCH[2]}"
-        ids="${ids:+$ids,}'$id'"
-        entries+=("$entry")
-    done < "$registry/manifest.txt"
-    [[ -n "$ids" ]] || { echo '本机迁移清单不能为空。' >&2; return 1; }
-    sed "s/__IDS__/$ids/g" "$registry/begin.sql" || return 1
-    for entry in "${entries[@]}"; do
-        id="${entry/ /-}"
-        directory="$ROOT_DIR/database/upgrade/${entry#* }"
-        check="$(sha256_file "$directory/check.sql")" || return 1
-        apply="$(sha256_file "$directory/apply.sql")" || return 1
-        checksum="$(printf '%s%s' "$check" "$apply" | sha256_file -)" || return 1
-        complete=0
-        if grep -Fxq "$id" <<< "$completed"; then complete=1; fi
-        sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" -e "s/__COMPLETED__/$complete/g" "$registry/before.sql" || return 1
-        if [[ "$complete" == 1 ]]; then
-            printf "SELECT '%s: verified';\n" "$id"
-            continue
-        fi
-        if [[ "$mode" == baseline ]]; then
-            printf -v staged "INSERT INTO CC_SCHEMA_MIGRATION VALUES ('%s', '%s', CURRENT_TIMESTAMP);\nSELECT '%s: baseline';" "$id" "$checksum" "$id"
-            pending+="$staged"$'\n'
-            continue
-        fi
-        staged="$(
-            printf '%s\n' 'SET @cc_compatible = NULL, @cc_complete = NULL;'
-            for stage in "$directory/check.sql" "$registry/apply.sql" "$directory/apply.sql" \
-                "$directory/check.sql" "$registry/after.sql"; do
-                sed -e "s/__ID__/$id/g" -e "s/__SHA256__/$checksum/g" "$stage" || exit 1
-            done
-        )" || return 1
-        pending+="$staged"$'\n'
-    done
-    if [[ "$mode" == baseline ]]; then
-        cat "$registry/current-schema.sql" || return 1
-        printf 'START TRANSACTION;\n%sCOMMIT;\n' "$pending"
-    else
-        printf '%s' "$pending"
-        cat "$registry/current-schema.sql"
-    fi
-}
-
 # 在同一MySQL连接内完成加锁、校验与幂等迁移.
 apply_automatic_migrations() {
     local snapshot completed batch output
     snapshot="$(cat "$ROOT_DIR/database/upgrade/local/snapshot.sql")" || return 1
     completed="$(database_query "$snapshot")" || return 1
+    if [[ "${1:-}" != baseline ]]; then
+        local id pending=false
+        while read -r id; do
+            id="${id/ /-}"
+            grep -Fxq "$id" <<< "$completed" || pending=true
+        done < "$ROOT_DIR/database/upgrade/local/manifest.txt"
+        if [[ "$pending" == true ]]; then
+            compose exec -T maintenance python /app/server.py backup-startup || return 1
+        fi
+    fi
     batch="$(migration_batch "$completed" "${1:-}")" || return 1
     output="$(database_query "$batch")" || { echo '安全结构增量失败，请核对迁移编号和数据库结构。' >&2; return 1; }
     while IFS= read -r line; do
@@ -414,17 +381,37 @@ start_local_environment() {
     else
         assert_data_volumes || return 1
     fi
+    if [[ -n "$RECOVERY_TASK" ]]; then
+        compose run --rm --no-deps --pull never maintenance python /app/server.py request-recovery "$RECOVERY_TASK" || return 1
+        compose run --rm --no-deps --pull never maintenance python /app/server.py wait-recovery "$RECOVERY_TASK" || return 1
+        # 恢复可能重写离线安装指针, 重新读取镜像身份后再执行正常启动.
+        unset CARATCRAFT_BACKEND_IMAGE CARATCRAFT_ADMIN_UI_IMAGE CARATCRAFT_MAINTENANCE_IMAGE
+        OFFLINE_INSTALL=false
+        set_build_revisions || return 1
+    fi
+    if docker container inspect platform-maintenance >/dev/null 2>&1; then
+        compose run --rm --no-deps --pull never maintenance python /app/server.py guard || return 1
+    fi
     if [[ "$NO_BUILD" != true ]]; then build_local_environment || return $?; fi
     assert_local_images || return $?
+    run_environment_tool provision-maintenance || return 1
     if [[ "${FRESH_ENVIRONMENT:-false}" == true ]]; then
         mkdir "$ROOT_DIR/deploy/.initializing" || return 1
         echo '首次初始化MySQL及Redis, 正在等待完整结构和种子...'
         initialize_local_database || return 1
     fi
     if ! compose up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis ||
-        ! assert_database_ready || ! apply_automatic_migrations; then
+        ! assert_database_ready; then
         show_startup_diagnostics
         return 1
+    fi
+    compose up --detach --no-deps --no-build --pull never --wait --wait-timeout 120 maintenance || return 1
+    compose exec -T maintenance python /app/server.py guard || return 1
+    compose exec -T maintenance python /app/server.py repair-permissions || return 1
+    if [[ "${OFFLINE_INSTALL:-false}" == true ]]; then
+        compose exec -T maintenance python /app/server.py verify-installed || return 1
+    else
+        apply_automatic_migrations || return 1
     fi
     if [[ "$ACTION" == restart ]]; then compose restart platform-admin platform-api nginx; fi
     if ! compose up --detach --no-deps --no-build --pull never --wait --wait-timeout 300 platform-admin platform-api nginx; then
@@ -434,10 +421,10 @@ start_local_environment() {
 
     local image actual expected_id
     for service in platform-admin platform-api platform-nginx; do
-        image=carat-craft-backend:local
+        image=${CARATCRAFT_BACKEND_IMAGE:-carat-craft-backend:local}
         expected="$BACKEND_BUILD_REVISION"
         if [[ "$service" == platform-nginx ]]; then
-            image=carat-craft-admin-ui:local
+            image=${CARATCRAFT_ADMIN_UI_IMAGE:-carat-craft-admin-ui:local}
             expected="$ADMIN_UI_BUILD_REVISION"
         fi
         expected_id="$(docker image inspect --format '{{.Id}}' "$image")" || return 1
@@ -458,12 +445,25 @@ start_local_environment() {
         return 1
     fi
     echo '代理验证通过：管理台、后台与 API 根路径。'
+    compose exec -T maintenance python /app/server.py record-install || return 1
     mkdir -p "$ROOT_DIR/deploy/.initialized" || return 1
     if [[ "${FRESH_ENVIRONMENT:-false}" == true ]]; then
         rmdir "$ROOT_DIR/deploy/.initializing" || return 1
         echo '超管账号 admin 的临时密码位于 deploy/secrets/platform-bootstrap.txt, 请在30分钟内登录并设置新密码。'
     fi
     show_access_info
+}
+
+# 宿主仅执行Docker只读查询, 配置诊断在Node容器内完成, 不挂载Docker给配置工具.
+system_diagnostics() {
+    local service
+    for service in platform-admin platform-api platform-nginx platform-maintenance; do
+        docker inspect --format '{{.Name}} 镜像={{.Image}} 健康={{if .State.Health}}{{.State.Health.Status}}{{end}} 来源={{index .Config.Labels "io.caratcraft.source-digest"}}' "$service" || return 1
+    done
+    compose exec -T mysql sh -ec 'MYSQL_PWD="$MYSQL_PASSWORD" mysql -u"$MYSQL_USER" "$MYSQL_DATABASE" -Nse "SELECT VERSION FROM CC_SCHEMA_VERSION WHERE ID=1"' || return 1
+    compose exec -T redis sh -ec 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping' || return 1
+    docker exec platform-nginx sh -ec 'nginx -T 2>/dev/null | grep -E "upstream|proxy_pass"; wget -q -O /dev/null http://127.0.0.1/' || return 1
+    compose exec -T maintenance python /app/server.py diagnose || return 1
 }
 
 # 输出本地访问地址 / Prints local access URLs.
@@ -493,6 +493,8 @@ fi
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --no-build) NO_BUILD="true" ;;
+        --recover-failed-task) shift; RECOVERY_TASK="${1:?缺少失败任务标识}" ;;
+        --package) shift; PACKAGE_OUTPUT="${1:?缺少发行包输出路径}" ;;
         -h|--help) usage; exit 0 ;;
         *) echo "未知参数: $1"; usage; exit 1 ;;
     esac
@@ -504,6 +506,7 @@ case "$ACTION" in
         assert_docker_ready
         if [[ "$ACTION" == diagnose && -f "$ENV_FILE" ]]; then compose ps --all; fi
         run_environment_tool "$ACTION"
+        if [[ "$ACTION" == diagnose ]]; then system_diagnostics; fi
         exit ;;
     build|start|stop|restart|status|logs|init-db|upgrade-db|reset-db) ;;
     *) echo "未知操作: $ACTION"; usage; exit 1 ;;
@@ -523,6 +526,14 @@ if [[ "$ACTION" == build ]]; then
     set_build_revisions
     set_git_revision
     build_local_environment
+    if [[ -n "$PACKAGE_OUTPUT" ]]; then
+        [[ -f "$ROOT_DIR/.private/release-signing.pem" ]] || { echo '缺少本机发行签名私钥, 请从安全备份恢复。' >&2; exit 1; }
+        package_dir="$(cd "$(dirname "$PACKAGE_OUTPUT")" && pwd)"
+        docker run --rm --network none --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+            --mount "type=bind,source=$ROOT_DIR,target=/source,readonly" \
+            --mount "type=bind,source=$package_dir,target=/output" carat-craft-maintenance:local \
+            python /source/tools/delivery/package-release.py --output "/output/$(basename "$PACKAGE_OUTPUT")" --key /source/.private/release-signing.pem
+    fi
     exit
 fi
 if [[ "$ACTION" == start || "$ACTION" == restart ]]; then prepare_local_start; fi
