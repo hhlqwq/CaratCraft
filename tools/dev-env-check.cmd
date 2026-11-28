@@ -1,4 +1,4 @@
 @echo off
 setlocal
-node "%~dp0maintenance\dev-env.cjs" diagnose
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\deploy\scripts\dev.ps1" -Action diagnose
 exit /b %ERRORLEVEL%

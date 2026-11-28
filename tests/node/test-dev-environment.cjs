@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const {spawnSync} = require('node:child_process');
 const {
     resolveMiniapp,
     readConfig,
@@ -10,6 +11,126 @@ const {
     inspectStartup,
     repairConfig,
 } = require('../../tools/maintenance/dev-env.cjs');
+const configureSkip =
+    process.platform !== 'linux' || process.getuid?.() !== 0
+        ? '首次配置文件属主测试需要Docker内的Linux root, 按维护文档执行容器专项'
+        : false;
+
+/** 独立配置副本验证首次安全配置、旧配置保留和残缺凭据拦截. */
+test('全新环境生成独立密钥及超管凭据, 已有配置逐字保留', {skip: configureSkip}, () => {
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-first-config-'));
+    const source = path.resolve(__dirname, '../../tools/maintenance/dev-env.cjs');
+    const command = path.join(fixture, 'tools/maintenance/dev-env.cjs');
+    const config = path.join(fixture, 'deploy/.env');
+    const bootstrap = path.join(fixture, 'deploy/secrets/platform-bootstrap.txt');
+    fs.mkdirSync(path.dirname(command), {recursive: true});
+    fs.mkdirSync(path.dirname(config), {recursive: true});
+    fs.copyFileSync(source, command);
+    fs.copyFileSync(
+        path.resolve(__dirname, '../../deploy/.env.example'),
+        path.join(fixture, 'deploy/.env.example')
+    );
+    try {
+        const first = spawnSync(process.execPath, [command, 'configure'], {
+            encoding: 'utf8',
+            env: {...process.env, CARATCRAFT_TOOL_UID: '1000', CARATCRAFT_TOOL_GID: '1000'},
+        });
+        assert.equal(first.status, 0, first.stderr);
+        const initial = fs.readFileSync(config);
+        const values = readConfig(config);
+        const keys = ['MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET'];
+        assert.equal(new Set(keys.map((key) => values[key])).size, 4);
+        assert.equal(Buffer.from(values.JWT_SECRET, 'base64').length, 32);
+        assert.equal(
+            values.CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE,
+            '/run/secrets/platform-bootstrap.runtime.txt'
+        );
+        const secret = fs.readFileSync(bootstrap, 'utf8');
+        const runtime = path.join(fixture, 'deploy/secrets/platform-bootstrap.runtime.txt');
+        assert.equal(fs.readFileSync(runtime, 'utf8'), secret);
+        assert.match(secret, /^[A-Za-z0-9_-]{32}$/);
+        if (process.platform !== 'win32') {
+            assert.equal(fs.statSync(bootstrap).mode & 0o777, 0o600);
+            assert.equal(fs.statSync(config).mode & 0o777, 0o600);
+            assert.equal(fs.statSync(runtime).mode & 0o777, 0o600);
+            assert.equal(fs.statSync(runtime).uid, 999);
+        }
+        assert.equal(fs.statSync(config).uid, 1000);
+        fs.chmodSync(fixture, 0o755);
+        const access = 'require("node:fs").accessSync(process.argv[1], 4)';
+        assert.equal(
+            spawnSync(process.execPath, ['-e', access, runtime], {uid: 999, gid: 999}).status,
+            0
+        );
+        assert.notEqual(
+            spawnSync(process.execPath, ['-e', access, bootstrap], {uid: 999, gid: 999}).status,
+            0
+        );
+        assert.notEqual(
+            spawnSync(process.execPath, ['-e', access, runtime], {uid: 998, gid: 998}).status,
+            0
+        );
+        assert.equal(first.stdout.includes(secret), false);
+        assert.equal(spawnSync(process.execPath, [command, 'configure']).status, 0);
+        assert.deepEqual(fs.readFileSync(config), initial);
+        fs.unlinkSync(config);
+        assert.notEqual(spawnSync(process.execPath, [command, 'configure']).status, 0);
+        assert.equal(fs.existsSync(config), false);
+    } finally {
+        fs.rmSync(fixture, {recursive: true, force: true});
+    }
+});
+
+/** 异常公开模板必须在生成任何私有文件前停止, CRLF模板仅替换指定项. */
+test('配置生成兼容CRLF, 拒绝缺失或重复密钥项', {skip: configureSkip}, () => {
+    const source = path.resolve(__dirname, '../../tools/maintenance/dev-env.cjs');
+    const template = fs.readFileSync(path.resolve(__dirname, '../../deploy/.env.example'), 'utf8');
+    for (const text of [
+        template.replace(/^JWT_SECRET=.*\n/m, ''),
+        template + '\nJWT_SECRET=\n',
+        template.replace(/\r?\n/g, '\r\n'),
+    ]) {
+        const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'cc-config-template-'));
+        const command = path.join(fixture, 'tools/maintenance/dev-env.cjs');
+        const config = path.join(fixture, 'deploy/.env');
+        const bootstrap = path.join(fixture, 'deploy/secrets/platform-bootstrap.txt');
+        try {
+            fs.mkdirSync(path.dirname(command), {recursive: true});
+            fs.mkdirSync(path.dirname(config), {recursive: true});
+            fs.copyFileSync(source, command);
+            fs.writeFileSync(path.join(fixture, 'deploy/.env.example'), text);
+            const result = spawnSync(process.execPath, [command, 'configure'], {encoding: 'utf8'});
+            if (!text.includes('\r\n')) {
+                assert.notEqual(result.status, 0);
+                assert.equal(fs.existsSync(config), false);
+                assert.equal(fs.existsSync(bootstrap), false);
+                continue;
+            }
+            assert.equal(result.status, 0, result.stderr);
+            const generated = fs.readFileSync(config, 'utf8');
+            let expected = text;
+            const values = readConfig(config);
+            for (const key of [
+                'MYSQL_ROOT_PASSWORD',
+                'MYSQL_APP_PASSWORD',
+                'REDIS_PASSWORD',
+                'JWT_SECRET',
+            ]) {
+                expected = expected.replace(
+                    new RegExp(`^${key}=[^\\r\\n]*`, 'm'),
+                    `${key}=${values[key]}`
+                );
+            }
+            expected = expected.replace(
+                /^CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE=[^\r\n]*/m,
+                'CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE=/run/secrets/platform-bootstrap.runtime.txt'
+            );
+            assert.equal(generated, expected);
+        } finally {
+            fs.rmSync(fixture, {recursive: true, force: true});
+        }
+    }
+});
 
 /** 用两个不同局域网地址模拟配置切换, 体验版与正式版选择独立配置. */
 test('小程序 local、lan 和 production 选择独立地址', () => {

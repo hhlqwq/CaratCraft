@@ -21,6 +21,8 @@ deploy/.env
 *.pem
 *.p12
 deploy/data/
+deploy/.initializing/
+deploy/.initialized/
 deploy/packages/
 deploy/secrets/*
 !deploy/secrets/README.md

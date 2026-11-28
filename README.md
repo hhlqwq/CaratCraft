@@ -39,12 +39,13 @@
 
 ## 本地入口
 
-从 GitHub 克隆 `main` 后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)创建本机 `deploy/.env`. Windows 使用 Docker Desktop 的 Linux 容器和 Compose V2. 首次建库、人工迁移和重置使用独立维护入口. 日常可直接启动, 脚本按需构建镜像并应用已审核的本地结构增量.
+取得完整项目文件后, 按[新电脑初始化](docs/项目维护文档.md#新建开发环境)执行 Build 和 Start. 宿主只需 Docker Engine/Desktop、Compose 和系统自带 Shell/PowerShell. 编译、配置工具均在 Docker 内运行, Git 仅作为可选源码追溯工具.
 
-- Windows 本地环境统一使用 `deploy/scripts/build-local-test.cmd` 按需构建 Java 后端和 Vue/Nginx 镜像.
-- `deploy/scripts/start-local-test.cmd` 按需构建、应用安全增量并更新变化的应用服务. 已有库沿用原卷, 空白环境先执行 `dev.ps1 -Action init-db`. 增量边界见[本地安全结构增量](docs/项目维护文档.md#本地安全结构增量).
+- Windows 使用 `deploy/scripts/build-local-test.cmd` 和 `deploy/scripts/start-local-test.cmd`.
+- macOS/Linux 使用 `./deploy/scripts/build-local-test.sh` 和 `./deploy/scripts/start-local-test.sh`. 两个包装入口复用现有 dev 脚本, 支持 Docker 原生 AMD64/ARM64 镜像和增量缓存.
+- Start 仅在本项目卷和容器全无时生成安全配置并首次建库. 已有环境保留配置与数据, 自动执行已审核结构增量. 残缺状态停止并提示恢复. 增量边界见[本地安全结构增量](docs/项目维护文档.md#本地安全结构增量).
 - 微信开发者工具的 AppID 配置见[新建开发环境](docs/项目维护文档.md#新建开发环境)。
-- `deploy/scripts/dev.ps1 -Action miniapp` 从本机配置生成小程序地址. `tools/dev-env-check.cmd` 输出脱敏环境诊断. 小程序配置工具使用 Node.js.
+- `deploy/scripts/dev.ps1 -Action miniapp` 或 `bash deploy/scripts/dev.sh miniapp` 在容器内生成小程序地址. `tools/dev-env-check.cmd` 或 `bash deploy/scripts/dev.sh diagnose` 检查脱敏配置和容器状态, 无需安装宿主 Node.js.
 
 本轮收敛初始化SQL来源、部署脚本、跨平台构建语义、管理端运行配置及素材生成入口. 初始化中文编码、树表格ID显示、页面验收、Windows重置兼容及商品购买修复、分项整改、验证边界及后续待办见[仓库统一标准审查与续接](docs/项目开发文档.md#8-仓库统一标准审查与续接); 结构验证与既有商品契约整改状态分别记录在开发文档. 目录迁移不会自动部署应用或升级数据库. 微信真机、真实支付/退款和生产验收需要实际账号与环境; AI安排在下一版本, 首版规则参考不依赖模型、云环境或额度. 三维颈模仍为另行确认范围.
 

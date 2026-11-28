@@ -31,95 +31,64 @@ assert_docker_ready() {
 
 # 创建本地环境变量文件 / Creates the local environment file.
 initialize_environment() {
-    if [[ ! -f "$ENV_FILE" ]]; then
-        command -v openssl >/dev/null || { echo "请安装openssl或手动创建deploy/.env并配置独立强密钥"; exit 1; }
-        umask 077
-        local line key
-        while IFS= read -r line || [[ -n "$line" ]]; do
-            line="${line%$'\r'}"
-            key="${line%%=*}"
-            case "$key" in
-                MYSQL_ROOT_PASSWORD|MYSQL_APP_PASSWORD|REDIS_PASSWORD|JWT_SECRET)
-                    printf '%s=%s\n' "$key" "$(openssl rand -base64 32)" ;;
-                *) printf '%s\n' "$line" ;;
-            esac
-        done < "$ENV_EXAMPLE" > "$ENV_FILE"
-        echo "已生成独立随机配置: $ENV_FILE, 密钥不在终端输出。"
-    fi
+    run_environment_tool configure
 }
 
-# 读取简单的键值配置, 拒绝重复键.
-config_value() {
-    awk -v key="$1" '
-        NR==1{sub(/^\357\273\277/,"")}
-        index($0,key"=")==1 {sub(/^[^=]+=/,""); sub(/^[[:space:]]*/,""); sub(/[[:space:]]*$/,""); print}
-    ' "$ENV_FILE"
+# 使用现有前端基础镜像运行维护工具, 宿主只需要Docker和Shell.
+run_environment_tool() {
+    local image=m.daocloud.io/docker.io/library/node:24-alpine
+    local tool_user="$(id -u):$(id -g)"
+    if [[ "$1" == configure ]]; then tool_user=0:0; fi
+    if ! docker image inspect "$image" >/dev/null 2>&1; then
+        echo '准备配置工具镜像...'
+        docker pull "$image" || return 1
+    fi
+    docker run --rm --network none --user "$tool_user" \
+        --mount "type=bind,source=$ROOT_DIR,target=/workspace" --workdir /workspace \
+        --env CARATCRAFT_TOOL_UID="$(id -u)" --env CARATCRAFT_TOOL_GID="$(id -g)" \
+        --env CARATCRAFT_CONTAINER_TOOL=1 "$image" node tools/maintenance/dev-env.cjs "$@"
+}
+
+# 仅完全没有本项目卷和容器时允许首次初始化, 部分状态停止并保留现场.
+prepare_local_start() {
+    local resources all_volumes all_containers kind owner found=0
+    all_volumes="$(docker volume ls --format '{{.Name}}')" || return 1
+    all_containers="$(docker container ls -a --format '{{.Names}}')" || return 1
+    resources="$(docker container ls -aq --filter label=com.docker.compose.project=platform-wxshop)" || return 1
+    [[ ! -e "$ROOT_DIR/deploy/.initializing" && ! -L "$ROOT_DIR/deploy/.initializing" ]] || {
+        echo '检测到未完成的首次初始化 deploy/.initializing, 请核对日志与数据后人工恢复。' >&2; return 1;
+    }
+    for kind in mysql-data redis-data upload-data; do
+        if grep -Fxq "platform-wxshop_$kind" <<< "$all_volumes"; then
+            owner="$(docker volume inspect --format '{{index .Labels "com.docker.compose.project"}}' "platform-wxshop_$kind")" || return 1
+            [[ "$owner" == platform-wxshop ]] || { echo "数据卷 $kind 归属异常。" >&2; return 1; }
+            found=$((found + 1))
+        fi
+    done
+    if [[ -e "$ROOT_DIR/deploy/.initialized" && "$found" != 3 ]]; then
+        echo '检测到已初始化记录但持久卷缺失, 请恢复数据卷, 不会自动重新建库。' >&2
+        return 1
+    fi
+    if [[ "$found" == 0 && -z "$resources" ]] &&
+        ! grep -Eq '^platform-(mysql|redis|admin|api|nginx)$' <<< "$all_containers"; then
+        if [[ -e "$ENV_FILE" && ( ! -f "$ROOT_DIR/deploy/secrets/platform-bootstrap.txt" ||
+            ! -f "$ROOT_DIR/deploy/secrets/platform-bootstrap.runtime.txt" ) ]]; then
+            echo '已有配置但无持久卷且缺少首次引导文件, 请核对是否丢失数据, 停止自动建库。' >&2
+            return 1
+        fi
+        FRESH_ENVIRONMENT=true
+        initialize_environment || return 1
+    elif [[ "$found" == 3 && -f "$ENV_FILE" ]]; then
+        FRESH_ENVIRONMENT=false
+    else
+        echo '配置丢失、数据卷不完整或存在残留容器, 已停止自动初始化。请恢复原配置并核对三只持久卷。' >&2
+        return 1
+    fi
 }
 
 # 读取公开启动规则, 汇总出错项, 不记录配置值.
 assert_startup_configuration() {
-    local key value jwt_size canonical number kind rule="" line
-    local -a failures=() bound_ports=() port_keys=()
-    if ! awk 'NR==1{sub(/^\357\273\277/,"")} /^[[:space:]]*($|#)/ {next} !/^[A-Z][A-Z0-9_]*=/ {print "deploy/.env 第 " NR " 行无效。"; exit 1} {key=$0; sub(/=.*/, "", key); if (seen[key]++) {print "重复配置项 " key "。"; exit 1}}' "$ENV_FILE"; then
-        return 1
-    fi
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        line="${line%$'\r'}"
-        if [[ "$line" =~ ^\#\ @startup\ (default|port|required|secret)$ ]]; then
-            rule="${BASH_REMATCH[1]}"
-            continue
-        fi
-        kind="$rule"
-        rule=""
-        if [[ -z "$kind" || ! "$line" =~ ^([A-Z][A-Z0-9_]*)= ]]; then continue; fi
-        key="${BASH_REMATCH[1]}"
-        value="$(config_value "$key")"
-        if [[ -z "$value" ]]; then
-            if [[ "$kind" =~ ^(default|port)$ ]] && ! grep -q "^$key=" "$ENV_FILE"; then
-                failures+=("$key 缺失。可执行 repair-config 补齐安全默认值。")
-            else
-                failures+=("$key 缺失。请在 deploy/.env 手工填写，沿用现有环境配置。")
-            fi
-        elif [[ "$kind" == secret && ${#value} -lt 24 ]]; then
-            failures+=("$key 不足24个字符。请核对原有凭据。")
-        elif [[ "$kind" == port ]]; then
-            if [[ ! "$value" =~ ^[0-9]{1,5}$ ]] || (( 10#$value < 1 || 10#$value > 65535 )); then
-                failures+=("$key 端口无效。")
-                continue
-            fi
-            number=$((10#$value))
-            local index
-            for index in "${!bound_ports[@]}"; do
-                if [[ "${bound_ports[$index]}" == "$number" ]]; then
-                    failures+=("$key 与 ${port_keys[$index]} 端口重复。")
-                fi
-            done
-            bound_ports+=("$number")
-            port_keys+=("$key")
-        fi
-    done < "$ENV_EXAMPLE"
-    value="$(config_value JWT_SECRET)"
-    if [[ ${#value} -ge 24 ]]; then
-        jwt_size="$(printf '%s' "$value" | openssl base64 -d -A | wc -c)"
-        canonical="$(printf '%s' "$value" | openssl base64 -d -A | openssl base64 -A)"
-        if [[ "$jwt_size" -lt 32 || "$canonical" != "$value" ]]; then
-            failures+=("JWT_SECRET 应为至少32字节随机数的标准 Base64 编码。")
-        fi
-    fi
-    if [[ "$(config_value MYSQL_APP_USER)" == [Rr][Oo][Oo][Tt] ]]; then
-        failures+=("MYSQL_APP_USER 不得使用 root。")
-    fi
-    case "$(config_value CARATCRAFT_ENV)" in
-        local|'') ;;
-        lan) if [[ -z "$(config_value MINIAPP_LAN_ORIGIN)" ]]; then
-            failures+=("MINIAPP_LAN_ORIGIN 缺失。请填写手机可访问的局域网地址。")
-        fi ;;
-        *) failures+=("CARATCRAFT_ENV 必须是 local 或 lan。") ;;
-    esac
-    if [[ ${#failures[@]} -gt 0 ]]; then
-        printf '%s\n' "${failures[@]}"
-        return 1
-    fi
+    run_environment_tool check-config
 }
 
 # 清除继承的 Compose 同名变量, 仅从指定的配置文件取值.
@@ -229,24 +198,15 @@ build_local_environment() {
     echo "镜像构建完成, 请运行 ./deploy/scripts/dev.sh start。"
 }
 
-# 人工确认后只删除归属正确的本项目数据库和缓存卷, 保留上传卷.
+# 人工确认后只删除已核对归属的固定项目数据库和缓存卷.
 reset_test_data_volumes() {
-    local mysql_volume redis_volume project_name volume owner confirmation config metadata
-    config="$(compose config --format json)" || return 1
-    mysql_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["mysql-data"]["name"])')" || return 1
-    redis_volume="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["volumes"]["redis-data"]["name"])')" || return 1
-    project_name="$(printf '%s' "$config" | python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])')" || return 1
-    for volume in "$mysql_volume" "$redis_volume"; do
-        [[ "$volume" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || return 1
-        metadata="$(docker volume inspect "$volume" 2>/dev/null)" || return 1
-        owner="$(printf '%s' "$metadata" | python3 -c 'import json,sys; print(json.load(sys.stdin)[0].get("Labels",{}).get("com.docker.compose.project",""))')" || return 1
-        [[ -n "$owner" && "$owner" == "$project_name" ]] || return 1
-    done
+    local confirmation volume
+    assert_data_volumes || return 1
     echo "仅重建本项目MySQL及Redis开发数据, 上传卷保留。"
     read -r -p "输入 RESET_DATA 确认重建开发库和缓存: " confirmation
     [[ "$confirmation" == RESET_DATA ]] || { echo "已取消数据重置"; return 1; }
     compose down --remove-orphans || return 1
-    for volume in "$mysql_volume" "$redis_volume"; do
+    for volume in platform-wxshop_mysql-data platform-wxshop_redis-data; do
         docker volume rm "$volume" || return 1
     done
 }
@@ -310,7 +270,7 @@ assert_database_ready() {
     tables="$(database_query "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('sys_region','mall_order','mall_user','mall_goods','CC_SCHEMA_VERSION');")" || return $?
     for name in sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION; do
         if ! grep -Fxq "$name" <<< "$tables"; then
-            echo "本地开发库不是当前结构, 缺少$name。"
+            echo "本地开发库不是当前结构, 缺少${name}。"
             return 1
         fi
     done
@@ -449,9 +409,18 @@ upgrade_local_database() {
 # 验证镜像、数据服务和运行版本, 遇到任何错误时保留数据卷.
 start_local_environment() {
     local service expected
-    assert_data_volumes || return $?
+    if [[ "${FRESH_ENVIRONMENT:-false}" == true ]]; then
+        assert_data_volumes new || return 1
+    else
+        assert_data_volumes || return 1
+    fi
     if [[ "$NO_BUILD" != true ]]; then build_local_environment || return $?; fi
     assert_local_images || return $?
+    if [[ "${FRESH_ENVIRONMENT:-false}" == true ]]; then
+        mkdir "$ROOT_DIR/deploy/.initializing" || return 1
+        echo '首次初始化MySQL及Redis, 正在等待完整结构和种子...'
+        initialize_local_database || return 1
+    fi
     if ! compose up --detach --no-recreate --no-build --pull never --wait --wait-timeout 300 mysql redis ||
         ! assert_database_ready || ! apply_automatic_migrations; then
         show_startup_diagnostics
@@ -477,7 +446,7 @@ start_local_environment() {
             echo "$service 的运行镜像或健康状态不符合预期。" >&2
             return 1
         fi
-        echo "$service：镜像一致，健康"
+        echo "${service}：镜像一致，健康"
     done
     if ! docker exec platform-nginx sh -ec '
         wget -q -T 5 -t 1 -O /dev/null http://127.0.0.1/
@@ -489,6 +458,11 @@ start_local_environment() {
         return 1
     fi
     echo '代理验证通过：管理台、后台与 API 根路径。'
+    mkdir -p "$ROOT_DIR/deploy/.initialized" || return 1
+    if [[ "${FRESH_ENVIRONMENT:-false}" == true ]]; then
+        rmdir "$ROOT_DIR/deploy/.initializing" || return 1
+        echo '超管账号 admin 的临时密码位于 deploy/secrets/platform-bootstrap.txt, 请在30分钟内登录并设置新密码。'
+    fi
     show_access_info
 }
 
@@ -502,7 +476,7 @@ show_access_info() {
     echo "  管理台: http://localhost:$port"
     echo "  后台接口: http://localhost:$port/platform-framework"
     echo "  商城接口: http://localhost:$port/platform-framework-api"
-    echo "  小程序配置: 执行 dev.sh miniapp 生成。"
+    echo "  小程序配置: 执行 bash deploy/scripts/dev.sh miniapp 生成。"
 }
 
 if [[ $# -gt 0 && "$1" != --* ]]; then
@@ -526,8 +500,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$ACTION" in
-    configure) initialize_environment; exit ;;
-    miniapp|diagnose|check-config|repair-config) exec node "$ROOT_DIR/tools/maintenance/dev-env.cjs" "$ACTION" ;;
+    configure|miniapp|diagnose|check-config|repair-config)
+        assert_docker_ready
+        if [[ "$ACTION" == diagnose && -f "$ENV_FILE" ]]; then compose ps --all; fi
+        run_environment_tool "$ACTION"
+        exit ;;
     build|start|stop|restart|status|logs|init-db|upgrade-db|reset-db) ;;
     *) echo "未知操作: $ACTION"; usage; exit 1 ;;
 esac
@@ -548,7 +525,8 @@ if [[ "$ACTION" == build ]]; then
     build_local_environment
     exit
 fi
-[[ -f "$ENV_FILE" ]] || { echo '缺少 deploy/.env, 请先执行 dev.sh configure。'; exit 1; }
+if [[ "$ACTION" == start || "$ACTION" == restart ]]; then prepare_local_start; fi
+[[ -f "$ENV_FILE" ]] || { echo '缺少 deploy/.env, 请恢复原配置或运行标准启动入口。'; exit 1; }
 
 case "$ACTION" in
     stop) compose down --remove-orphans ;;

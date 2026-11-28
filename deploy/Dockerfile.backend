@@ -25,8 +25,8 @@ LABEL org.opencontainers.image.revision=${BUILD_GIT_SHA} io.caratcraft.source-di
 
 WORKDIR /app
 
-RUN groupadd --system caratcraft \
-    && useradd --system --gid caratcraft --home-dir /app caratcraft \
+RUN groupadd --system --gid 999 caratcraft \
+    && useradd --system --uid 999 --gid caratcraft --home-dir /app caratcraft \
     && mkdir -p /data/uploads \
     && chown -R caratcraft:caratcraft /app /data/uploads
 

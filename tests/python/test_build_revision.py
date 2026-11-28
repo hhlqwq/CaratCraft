@@ -65,7 +65,7 @@ Write-Output "RESULT=$env:BACKEND_BUILD_REVISION,$env:ADMIN_UI_BUILD_REVISION"
                                         capture_output=True, text=True, encoding="utf-8")
                 self.assertEqual(expected, result.stdout.splitlines()[-1].removeprefix("RESULT=").split(","))
                 shell = r"""
-source <(sed '/^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)
+ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)"
 ROOT_DIR="$(cd "$1" && pwd)"
 ENV_EXAMPLE="$ROOT_DIR/deploy/.env.example"
 set_build_revisions
@@ -103,7 +103,7 @@ printf '%s\n' "$BACKEND_BUILD_REVISION" "$ADMIN_UI_BUILD_REVISION"
         bash = os.environ.get("CARATCRAFT_BASH")
         if not bash:
             self.skipTest("需要CARATCRAFT_BASH")
-        prefix = "source <(sed '/^if \\[\\[ \\$# -gt 0/,$d' deploy/scripts/dev.sh); "
+        prefix = r'''ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)"; '''
         functions = r'''compose() { printf '%s\n' "$*"; }
 assert_local_images() { return 0; }
 assert_data_volumes() { return 0; }
@@ -124,6 +124,8 @@ docker() {
 assert_database_ready() { return 0; }
 apply_automatic_migrations() { echo migration; }
 show_access_info() { echo ready; }
+# 隔离状态标记创建, 不写入真实工作区.
+mkdir() { return 0; }
 start_local_environment
 '''
         result = subprocess.run([bash, "-c", prefix + functions], cwd=ROOT,
@@ -153,16 +155,16 @@ start_local_environment
         if not bash:
             self.skipTest("Requires CARATCRAFT_BASH")
         command = r"""
-source <(sed '/^if \\[\\[ \\$# -gt 0/,$d' deploy/scripts/dev.sh)
+ROOT_DIR="$PWD"; eval "$(sed '/^ROOT_DIR=/d; /^if \[\[ \$# -gt 0/,$d' deploy/scripts/dev.sh)"
 ROOT_DIR="$PWD"
-compose() { printf '%s\\n' "$*"; }
+compose() { printf '%s\n' "$*"; }
 assert_local_images() { return 0; }
 assert_data_volumes() { return 0; }
 reset_test_data_volumes() { echo unexpected-reset; }
 NO_BUILD=true
 database_query() {
     case "$1" in
-        'SELECT TABLE_NAME'*) printf '%s\\n' sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION ;;
+        'SELECT TABLE_NAME'*) printf '%s\n' sys_region mall_order mall_user mall_goods CC_SCHEMA_VERSION ;;
         'SELECT version'*) echo 1 ;;
         *'SELECT CONCAT'*) echo sys_user.account_type ;;
         *) return 1 ;;

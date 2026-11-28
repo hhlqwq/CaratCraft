@@ -31,20 +31,57 @@ function Assert-DockerReady {
 
 # 创建本地环境变量文件 / Creates the local environment file.
 function Initialize-Environment {
-    if (-not (Test-Path -LiteralPath $EnvFile)) {
-        $Template = Get-Content -LiteralPath $EnvExample -Raw -Encoding UTF8
-        foreach ($Key in @('MYSQL_ROOT_PASSWORD', 'MYSQL_APP_PASSWORD', 'REDIS_PASSWORD', 'JWT_SECRET')) {
-            if ([regex]::Matches($Template, "(?m)^$Key=[^\r\n]*").Count -ne 1) {
-                throw "环境模板 $EnvExample 必须且只能包含一项 $Key=, 未生成本机配置。"
-            }
-            $RandomBytes = New-Object byte[] 32
-            $Generator = [Security.Cryptography.RandomNumberGenerator]::Create()
-            try { $Generator.GetBytes($RandomBytes) } finally { $Generator.Dispose() }
-            $Secret = [Convert]::ToBase64String($RandomBytes)
-            $Template = [regex]::Replace($Template, "(?m)^$Key=[^\r\n]*", "$Key=$Secret")
+    Invoke-EnvironmentTool -Command 'configure'
+}
+
+# 使用现有Node基础镜像执行配置工具, 不依赖宿主编译工具链.
+function Invoke-EnvironmentTool {
+    param([string]$Command)
+    $Image = 'm.daocloud.io/docker.io/library/node:24-alpine'
+    $Result = Invoke-DockerMetadata -Arguments @('image', 'inspect', $Image)
+    if ($Result.ExitCode -ne 0) {
+        & docker pull $Image
+        if ($LASTEXITCODE -ne 0) { throw '配置工具镜像准备失败。' }
+    }
+    & docker run --rm --network none --mount "type=bind,source=$ProjectRoot,target=/workspace" --workdir /workspace `
+        --env CARATCRAFT_CONTAINER_TOOL=1 $Image node tools/maintenance/dev-env.cjs $Command
+    if ($LASTEXITCODE -ne 0) { throw "配置工具执行失败: $Command" }
+}
+
+# 全无数据才允许自动初始化, 已有配置和卷必须完整且归属正确.
+function Prepare-LocalStart {
+    $Volumes = Invoke-DockerMetadata -Arguments @('volume', 'ls', '--format', '{{.Name}}')
+    $Containers = Invoke-DockerMetadata -Arguments @('container', 'ls', '-a', '--format', '{{.Names}}')
+    $Owned = Invoke-DockerMetadata -Arguments @('container', 'ls', '-aq', '--filter', 'label=com.docker.compose.project=platform-wxshop')
+    if ($Volumes.ExitCode -ne 0 -or $Containers.ExitCode -ne 0 -or $Owned.ExitCode -ne 0) { throw '无法核对Docker数据状态。' }
+    if (Test-Path -LiteralPath (Join-Path $ProjectRoot 'deploy/.initializing')) {
+        throw '检测到未完成的首次初始化 deploy/.initializing, 请核对日志和数据后人工恢复。'
+    }
+    $Found = 0
+    foreach ($Kind in @('mysql-data', 'redis-data', 'upload-data')) {
+        $Name = "platform-wxshop_$Kind"
+        if ($Name -cnotin $Volumes.Output) { continue }
+        $Result = Invoke-DockerMetadata -Arguments @('volume', 'inspect', $Name)
+        if ($Result.ExitCode -ne 0) { throw "无法读取数据卷 $Name。" }
+        $Volume = ($Result.Output -join [char]10) | ConvertFrom-Json
+        if ($Volume[0].Labels.'com.docker.compose.project' -cne 'platform-wxshop') { throw "数据卷 $Name 归属异常。" }
+        $Found++
+    }
+    if ((Test-Path -LiteralPath (Join-Path $ProjectRoot 'deploy/.initialized')) -and $Found -ne 3) {
+        throw '检测到已初始化记录但持久卷缺失, 请恢复数据卷, 不会自动重新建库。'
+    }
+    if ($Found -eq 0 -and !$Owned.Output -and !($Containers.Output -cmatch '^platform-(mysql|redis|admin|api|nginx)$')) {
+        if ((Test-Path -LiteralPath $EnvFile) -and
+            (!(Test-Path -LiteralPath (Join-Path $ProjectRoot 'deploy/secrets/platform-bootstrap.txt') -PathType Leaf) -or
+             !(Test-Path -LiteralPath (Join-Path $ProjectRoot 'deploy/secrets/platform-bootstrap.runtime.txt') -PathType Leaf))) {
+            throw '已有配置但无持久卷且缺少首次引导文件, 请核对是否丢失数据, 停止自动建库。'
         }
-        [IO.File]::WriteAllText($EnvFile, $Template, [Text.UTF8Encoding]::new($false))
-        Write-Host "已生成本机独立随机配置：$EnvFile, 密钥不在终端输出。"
+        $script:FreshEnvironment = $true
+        Initialize-Environment
+    } elseif ($Found -eq 3 -and (Test-Path -LiteralPath $EnvFile)) {
+        $script:FreshEnvironment = $false
+    } else {
+        throw '配置丢失、数据卷不完整或存在残留容器, 已停止自动初始化。请恢复原配置并核对三只持久卷。'
     }
 }
 
@@ -510,9 +547,15 @@ function Start-LocalEnvironment {
     param([switch]$RestartApps)
     $Stage = '检查构建输入和镜像'
     try {
-        Assert-DataVolumes
+        if ($script:FreshEnvironment) { Assert-DataVolumes -New } else { Assert-DataVolumes }
         if (!$NoBuild) { Build-LocalEnvironment }
         Assert-LocalImages
+        if ($script:FreshEnvironment) {
+            $Marker = Join-Path $ProjectRoot 'deploy/.initializing'
+            [void](New-Item -ItemType Directory -Path $Marker -ErrorAction Stop)
+            Write-Host '首次初始化MySQL及Redis, 正在等待完整结构和种子...'
+            Initialize-LocalDatabase
+        }
         $Stage = 'MySQL和Redis'
         Invoke-Compose -Arguments @('up', '--detach', '--no-recreate', '--no-build', '--pull', 'never', '--wait', '--wait-timeout', '300', 'mysql', 'redis')
         $Stage = '数据库结构及账号检查'
@@ -546,6 +589,11 @@ function Start-LocalEnvironment {
             throw 'Nginx 静态入口、后台根路径或 API 根路径探测失败。'
         }
         Write-Host '代理验证通过：管理台、后台与 API 根路径。'
+        [void][IO.Directory]::CreateDirectory((Join-Path $ProjectRoot 'deploy/.initialized'))
+        if ($script:FreshEnvironment) {
+            [IO.Directory]::Delete($Marker)
+            Write-Host '超管账号 admin 的临时密码位于 deploy/secrets/platform-bootstrap.txt, 请在30分钟内登录并设置新密码。'
+        }
         Show-AccessInfo
     } catch {
         Write-Warning "启动失败阶段: $Stage。数据卷已保留。"
@@ -571,12 +619,14 @@ function Show-AccessInfo {
 
 if ($Action -eq 'build' -and $NoBuild) { throw 'build 不能与 -NoBuild 同时使用。' }
 if ($Action -eq 'configure') {
+    Assert-DockerReady
     Initialize-Environment
     return
 }
 if ($Action -in @('miniapp', 'diagnose', 'check-config', 'repair-config')) {
-    & node (Join-Path $ProjectRoot 'tools/maintenance/dev-env.cjs') $Action
-    if ($LASTEXITCODE -ne 0) { throw "环境工具执行失败: $Action" }
+    Assert-DockerReady
+    if ($Action -eq 'diagnose' -and (Test-Path -LiteralPath $EnvFile)) { Invoke-Compose -Arguments @('ps', '--all') }
+    Invoke-EnvironmentTool -Command $Action
     return
 }
 
@@ -593,7 +643,8 @@ if ($Action -eq 'build') {
     } finally { Write-Host ('构建耗时：{0:N2} 秒' -f $Watch.Elapsed.TotalSeconds) }
     return
 }
-if (-not (Test-Path -LiteralPath $EnvFile)) { throw '缺少 deploy/.env, 请先执行 configure。' }
+if ($Action -in @('start', 'restart')) { Prepare-LocalStart }
+if (-not (Test-Path -LiteralPath $EnvFile)) { throw '缺少 deploy/.env, 请恢复原配置或运行标准启动入口。' }
 switch ($Action) {
     'stop' { Invoke-Compose -Arguments @('down', '--remove-orphans') }
     'status' { Invoke-Compose -Arguments @('ps') }

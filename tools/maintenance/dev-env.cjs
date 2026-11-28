@@ -1,11 +1,66 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const {spawnSync} = require('node:child_process');
+const {randomBytes} = require('node:crypto');
 
 const root = path.resolve(__dirname, '../..');
 const envFile = path.join(root, 'deploy/.env');
 const target = path.join(root, 'apps/miniapp/config/environment.local.js');
 const apiPath = '/platform-framework-api/app/';
+
+/** 只为全新环境生成独立配置与超管引导文件, 已有文件使用排他创建保护. */
+function configureEnvironment() {
+    if (fs.existsSync(envFile)) {
+        console.log('已有 deploy/.env, 继续使用原配置');
+        return;
+    }
+    const bootstrap = path.join(root, 'deploy/secrets/platform-bootstrap.txt');
+    const runtime = path.join(root, 'deploy/secrets/platform-bootstrap.runtime.txt');
+    if (fs.existsSync(bootstrap) || fs.existsSync(runtime)) {
+        throw new Error('配置缺失但超管引导文件仍在, 请恢复原配置并核对数据');
+    }
+    const uid = Number(process.env.CARATCRAFT_TOOL_UID || process.getuid?.());
+    const gid = Number(process.env.CARATCRAFT_TOOL_GID || process.getgid?.());
+    if (
+        process.getuid?.() !== 0 ||
+        !Number.isInteger(uid) ||
+        !Number.isInteger(gid) ||
+        uid < 0 ||
+        gid < 0
+    ) {
+        throw new Error('请通过标准部署入口在配置容器中生成首次配置');
+    }
+    let template = fs.readFileSync(envExample, 'utf8');
+    for (const key of [
+        'MYSQL_ROOT_PASSWORD',
+        'MYSQL_APP_PASSWORD',
+        'REDIS_PASSWORD',
+        'JWT_SECRET',
+    ]) {
+        const expression = new RegExp(`^${key}=[^\\r\\n]*`, 'gm');
+        if ([...template.matchAll(expression)].length !== 1) {
+            throw new Error(`公开模板必须且只能包含一个 ${key}`);
+        }
+        template = template.replace(expression, `${key}=${randomBytes(32).toString('base64')}`);
+    }
+    template = template.replace(
+        /^CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE=.*$/m,
+        'CARATCRAFT_SUPER_ADMIN_BOOTSTRAP_FILE=/run/secrets/platform-bootstrap.runtime.txt'
+    );
+    if (!fs.existsSync(path.dirname(bootstrap))) {
+        fs.mkdirSync(path.dirname(bootstrap), {recursive: true});
+        fs.chownSync(path.dirname(bootstrap), uid, gid);
+    }
+    const password = randomBytes(24).toString('base64url');
+    fs.writeFileSync(bootstrap, password, {flag: 'wx', mode: 0o600});
+    fs.chownSync(bootstrap, uid, gid);
+    // 与Dockerfile中的应用用户保持一致, 运行副本仅应用用户可读.
+    fs.writeFileSync(runtime, password, {flag: 'wx', mode: 0o600});
+    fs.chownSync(runtime, 999, 999);
+    fs.writeFileSync(envFile, template, {flag: 'wx', mode: 0o600});
+    fs.chownSync(envFile, uid, gid);
+    console.log('已生成独立配置与超管临时凭据, 请妥善保管本机私有文件');
+}
 
 /** 读取项目唯一配置, 拒绝重复键, 保留秘密供本机进程使用. */
 function readConfig(file) {
@@ -362,6 +417,10 @@ function diagnose(config, addresses) {
 
 /** 从仓库定位文件并运行生成或只读诊断. */
 function main(command) {
+    if (command === 'configure') {
+        configureEnvironment();
+        return;
+    }
     if (!fs.existsSync(envFile)) {
         throw new Error('缺少 deploy/.env, 请先按维护文档执行 configure');
     }
@@ -379,13 +438,13 @@ function main(command) {
             process.exitCode = 1;
             return;
         }
-        if (command === 'diagnose') {
+        if (command === 'diagnose' && !process.env.CARATCRAFT_CONTAINER_TOOL) {
             diagnose(config, resolveMiniapp(config));
         } else {
             console.log('启动配置检查通过');
         }
     } else {
-        throw new Error('请选择 miniapp、diagnose、check-config 或 repair-config');
+        throw new Error('请选择 configure、miniapp、diagnose、check-config 或 repair-config');
     }
 }
 
@@ -399,6 +458,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+    configureEnvironment,
     readConfig,
     resolveMiniapp,
     generate,
