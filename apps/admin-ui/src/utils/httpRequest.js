@@ -51,7 +51,11 @@ axios.interceptors.request.use(
             // post请求参数处理
             // json: 'application/json; charset=utf-8'
             // form: 'application/x-www-form-urlencoded; charset=utf-8'
-            if (config.headers['Content-Type'] !== 'multipart/form-data') {
+            if (
+                !['multipart/form-data', 'application/octet-stream'].includes(
+                    config.headers['Content-Type']
+                )
+            ) {
                 config.data = JSON.stringify(config.data);
             }
         } else if (type === 'get') {

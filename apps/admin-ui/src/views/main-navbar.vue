@@ -2,8 +2,15 @@
     <nav class="site-navbar">
         <div class="site-navbar__header">
             <h1 class="site-navbar__brand">
-                <router-link class="site-navbar__brand-lg" :to="brandDestination">CaratCraft</router-link>
-                <router-link class="site-navbar__brand-mini" :to="brandDestination" aria-label="CaratCraft">C</router-link>
+                <router-link class="site-navbar__brand-lg" :to="brandDestination"
+                    >CaratCraft</router-link
+                >
+                <router-link
+                    class="site-navbar__brand-mini"
+                    :to="brandDestination"
+                    aria-label="CaratCraft"
+                    >C</router-link
+                >
             </h1>
         </div>
         <div class="site-navbar__body clearfix">
@@ -29,6 +36,9 @@
                     </svg>
                 </el-menu-item>
             </el-menu>
+            <span class="platform-identity">{{
+                isAuth('platform:merchant:manage') ? '平台管理' : '商家工作台'
+            }}</span>
             <el-menu
                 class="site-navbar__menu site-navbar__menu--right"
                 mode="horizontal"
@@ -73,7 +83,7 @@ export default {
     computed: {
         /** 品牌链接指向当前账号的主入口. */
         brandDestination() {
-            return {name: this.isAuth('platform:merchant:manage') ? 'platform-merchant-accounts' : 'home'};
+            return {name: this.isAuth('platform:merchant:manage') ? 'platform-overview' : 'home'};
         },
         sidebarFold: {
             /** 读取当前控件或页面的响应式绑定值. */
@@ -147,5 +157,15 @@ export default {
     font-size: 15px;
     font-weight: 500;
     margin-top: 4px;
+}
+</style>
+
+<style scoped>
+.platform-identity {
+    display: inline-flex;
+    align-items: center;
+    height: 60px;
+    color: var(--el-text-color-secondary);
+    padding-left: 12px;
 }
 </style>

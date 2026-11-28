@@ -37,7 +37,7 @@
                         show-password
                         autocomplete="new-password"
                         maxlength="32"
-                        placeholder="6到32位，不含空格"
+                        :placeholder="policy?.message || '加载密码要求'"
                     />
                 </el-form-item>
                 <el-form-item label="确认新密码">
@@ -62,12 +62,14 @@
 </template>
 
 <script>
+import {loadPasswordPolicy, validPassword} from '@/utils/password-policy';
 import {getUUID} from '@/utils';
 
 export default {
     /** 保存本次找回的输入, 离开页面后不保留. */
     data() {
         return {
+            policy: null,
             userName: '',
             channel: 'email',
             uuid: '',
@@ -82,8 +84,13 @@ export default {
         };
     },
     /** 打开找回页时加载独立的图形验证码. */
-    created() {
+    async created() {
         this.refreshCaptcha();
+        try {
+            this.policy = await loadPasswordPolicy();
+        } catch {
+            this.message = '密码要求加载失败，请刷新页面';
+        }
     },
     methods: {
         /** 更换本次图形验证码, 防止复用已消费的挑战. */
@@ -131,8 +138,8 @@ export default {
                 this.message = '请填写用户名和收到的六位验证码。';
                 return;
             }
-            if (!/^(?!123456$)[!-~]{6,32}$/.test(this.password)) {
-                this.message = '请设置6到32位不含空格的新密码，且不能使用统一初始密码。';
+            if (!validPassword(this.password, this.policy)) {
+                this.message = this.policy?.message || '密码要求尚未加载';
                 return;
             }
             if (this.password !== this.confirmPassword) {

@@ -59,9 +59,20 @@
             </el-table-column>
             <el-table-column prop="realName" header-align="center" align="center" label="真实姓名">
             </el-table-column>
-            <el-table-column prop="email" min-width="165" show-overflow-tooltip class-name="studio-nowrap" label="邮箱">
+            <el-table-column
+                prop="email"
+                min-width="165"
+                show-overflow-tooltip
+                class-name="studio-nowrap"
+                label="邮箱"
+            >
             </el-table-column>
-            <el-table-column prop="mobile" min-width="126" class-name="studio-nowrap" label="手机号">
+            <el-table-column
+                prop="mobile"
+                min-width="126"
+                class-name="studio-nowrap"
+                label="手机号"
+            >
             </el-table-column>
             <el-table-column prop="status" header-align="center" align="center" label="状态">
                 <template #default="scope">
@@ -96,7 +107,12 @@
                     </el-button>
                 </template>
             </el-table-column>
-            <el-table-column prop="lastLoginAt" label="最近登录" width="168" class-name="studio-nowrap" />
+            <el-table-column
+                prop="lastLoginAt"
+                label="最近登录"
+                width="168"
+                class-name="studio-nowrap"
+            />
             <el-table-column label="岗位" prop="roleNames" min-width="140" show-overflow-tooltip>
                 <template #default="{row}">{{ row.roleNames || '未分配岗位' }}</template>
             </el-table-column>
@@ -181,7 +197,9 @@ export default {
                     roleName: row.roleName,
                     permissionLabel: Array.from(
                         new Set(
-                            row.permissions.split(',').map((action) => labels.get(action) || '历史经营功能')
+                            row.permissions
+                                .split(',')
+                                .map((action) => labels.get(action) || '历史经营功能')
                         )
                     ).join('、'),
                 }));
@@ -207,28 +225,35 @@ export default {
                     mobile: this.searchForm.mobile,
                     status: this.searchForm.status,
                 },
-            }).then(({data}) => {
-                if (data && data.code === 0) {
-                    this.dataList = data.data.records;
-                    this.totalPage = data.data.total;
-                    if (this.$route.name === 'sys-user') {
-                        const query = {
-                            page: this.pageIndex > 1 ? String(this.pageIndex) : undefined,
-                            limit: this.pageSize === 10 ? undefined : String(this.pageSize),
-                        };
-                        for (const [key, value] of Object.entries(this.searchForm)) {
-                            query[key] = value === '' || value == null ? undefined : String(value);
+            })
+                .then(({data}) => {
+                    if (data && data.code === 0) {
+                        this.dataList = data.data.records;
+                        this.totalPage = data.data.total;
+                        if (this.$route.name === 'sys-user') {
+                            const query = {
+                                page: this.pageIndex > 1 ? String(this.pageIndex) : undefined,
+                                limit: this.pageSize === 10 ? undefined : String(this.pageSize),
+                            };
+                            for (const [key, value] of Object.entries(this.searchForm)) {
+                                query[key] =
+                                    value === '' || value == null ? undefined : String(value);
+                            }
+                            this.$router.replace({name: 'sys-user', query});
                         }
-                        this.$router.replace({name: 'sys-user', query});
+                    } else {
+                        this.listError =
+                            data?.code === 403
+                                ? '没有权限查看员工账号'
+                                : '员工账号加载失败, 请重试';
                     }
-                } else {
-                    this.listError = data?.code === 403 ? '没有权限查看员工账号' : '员工账号加载失败, 请重试';
-                }
-            }).catch(() => {
-                this.listError = '员工账号加载失败, 请重试';
-            }).finally(() => {
-                this.loading = false;
-            });
+                })
+                .catch(() => {
+                    this.listError = '员工账号加载失败, 请重试';
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
         },
         // 每页数
         sizeChangeHandle(val) {
@@ -260,20 +285,17 @@ export default {
                 return;
             }
             const userId = this.dataListSelections[0].userId;
-            this.$prompt('可使用统一临时密码，员工下次登录须修改。', '重置员工密码', {
-                inputType: 'password',
-                inputValue: '123456',
-                inputPattern: /^[!-~]{6,32}$/,
-                inputErrorMessage: '请输入6到32位不含空格的密码',
-            })
-                .then(async ({value}) => {
+            this.$confirm('重置后员工须重新登录并修改临时密码，确认继续？', '重置员工密码')
+                .then(async () => {
                     const {data} = await this.$http({
                         url: '/sys/user/resetPw',
                         method: 'post',
-                        data: {userId, password: value},
+                        data: {userId},
                     });
-                    if (data && data.code === 0) {
-                        this.$message.success('密码已重置，请通过安全渠道单独告知该员工');
+                    if (data?.code === 0) {
+                        await this.$alert(data.data.temporaryPassword, '员工临时密码，请单独交付', {
+                            closeOnClickModal: false,
+                        });
                         this.getDataList();
                     }
                 })

@@ -1,4 +1,8 @@
 const sections = [
+    {title: '平台总览', icon: 'studio-home', urls: ['platform/overview'], standalone: true},
+    {title: '系统监控', icon: 'studio-settings', urls: ['platform/monitor'], standalone: true},
+    {title: '版本与更新', icon: 'studio-order', urls: ['platform/releases'], standalone: true},
+    {title: '系统日志', icon: 'studio-order', urls: ['platform/logs'], standalone: true},
     {
         title: '商品与材料',
         icon: 'studio-box',
@@ -36,7 +40,12 @@ const sections = [
     {title: '社区', icon: 'studio-community', urls: ['community/posts', 'mall/comment']},
     {title: '员工账号', icon: 'studio-user', urls: ['sys/user'], standalone: true},
     {title: '岗位与权限', icon: 'studio-shield', urls: ['sys/role'], standalone: true},
-    {title: '商家管理员', icon: 'studio-user', urls: ['platform/merchant-accounts'], standalone: true},
+    {
+        title: '商家管理员',
+        icon: 'studio-user',
+        urls: ['platform/merchant-accounts'],
+        standalone: true,
+    },
     {
         title: '系统设置',
         icon: 'studio-settings',
@@ -80,7 +89,12 @@ export function pagePresentation(page) {
 /** 从当前账号的菜单生成工作室导航, 去掉空分组. */
 export function workspaceGroups(menus) {
     const pages = new Map(authorizedPages(menus).map((page) => [page.url, page]));
-    return sections
+    const ordered = pages.has('platform/overview')
+        ? ['平台总览', '商家管理员', '系统监控', '版本与更新', '系统日志'].map((title) =>
+              sections.find((item) => item.title === title)
+          )
+        : sections;
+    return ordered
         .map((section) => ({
             ...section,
             pages: section.urls

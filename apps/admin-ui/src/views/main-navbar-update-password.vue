@@ -31,8 +31,13 @@
                 <el-input type="password" show-password v-model="dataForm.newPassword"></el-input>
             </el-form-item>
             <el-form-item label="确认密码" prop="confirmPassword">
-                <el-input type="password" show-password v-model="dataForm.confirmPassword"></el-input>
+                <el-input
+                    type="password"
+                    show-password
+                    v-model="dataForm.confirmPassword"
+                ></el-input>
             </el-form-item>
+            <p>{{ policy?.message }}</p>
         </el-form>
         <template #footer
             ><span class="dialog-footer">
@@ -45,6 +50,7 @@
 </template>
 
 <script>
+import {loadPasswordPolicy, validPassword} from '@/utils/password-policy';
 import {clearLoginInfo} from '@/utils';
 
 export default {
@@ -68,6 +74,7 @@ export default {
         };
         return {
             visible: false,
+            policy: null,
             dataForm: {
                 password: '',
                 newPassword: '',
@@ -84,8 +91,14 @@ export default {
                 newPassword: [
                     {
                         required: true,
-                        pattern: /^(?!123456$)[!-~]{6,32}$/,
-                        message: '请输入6到32位其他密码，不含空格',
+                        validator: (rule, value, callback) =>
+                            callback(
+                                validPassword(value, this.policy)
+                                    ? undefined
+                                    : new Error(
+                                          this.policy?.message || '密码要求尚未加载，请稍后重试'
+                                      )
+                            ),
                         trigger: 'blur',
                     },
                 ],
@@ -112,12 +125,17 @@ export default {
         },
     },
     methods: {
-        // 初始化
-        init() {
+        /** 打开时先重置旧输入, 异步加载规则不清除用户随后输入的内容. */
+        async init() {
             this.visible = true;
-            this.$nextTick(() => {
-                this.$refs['dataForm'].resetFields();
-            });
+            this.policy = null;
+            await this.$nextTick();
+            this.$refs['dataForm'].resetFields();
+            try {
+                this.policy = await loadPasswordPolicy();
+            } catch {
+                this.$message.error('密码要求加载失败，请重新打开');
+            }
         },
         /** 退出当前临时会话并回到登录. */
         async exitChange() {

@@ -19,7 +19,7 @@
                 ></el-input>
             </el-form-item>
             <el-form-item v-if="!dataForm.id" label="初始密码">
-                <span>123456，员工首次登录时修改</span>
+                <span>保存后显示临时密码，员工首次登录时修改</span>
             </el-form-item>
             <el-form-item v-if="dataForm.id" label="状态" prop="status">
                 <el-radio-group v-model="dataForm.status" class="width200">
@@ -35,7 +35,7 @@
                 ></el-input>
             </el-form-item>
             <el-form-item v-if="!dataForm.id" label="找回方式">
-                <span>手机号和邮箱至少填写一个。</span>
+                <span>手机号和邮箱选填，填写后请核对格式。</span>
             </el-form-item>
             <el-form-item label="邮箱" prop="email">
                 <el-input
@@ -241,9 +241,7 @@ export default {
             try {
                 await this.$refs.dataForm.validate();
                 const {id, ...profile} = this.dataForm;
-                if (!id && !profile.email && !profile.mobile) {
-                    throw new Error('请至少填写手机号或邮箱');
-                }
+
                 const {data} = await this.$http({
                     url: `/sys/user/${id ? 'update' : 'save'}`,
                     method: 'post',
@@ -257,9 +255,14 @@ export default {
                     throw new Error(data?.msg || '员工资料保存失败');
                 }
                 this.original = JSON.stringify(this.dataForm);
-                this.$message.success(
-                    id ? '员工资料已保存' : '员工已创建，初始密码为 123456，首次登录时须修改'
-                );
+                if (!id) {
+                    await this.$alert(data.data.temporaryPassword, '员工临时密码，请单独交付', {
+                        confirmButtonText: '已记录',
+                        closeOnClickModal: false,
+                    });
+                } else {
+                    this.$message.success('员工资料已保存');
+                }
                 await this.returnToList();
             } catch (error) {
                 this.error = error.response?.data?.msg || error.message || '请核对员工资料';

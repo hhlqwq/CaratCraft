@@ -11,6 +11,27 @@
             <el-form-item>
                 <el-input v-model="searchForm.ip" placeholder="所属IP" clearable></el-input>
             </el-form-item>
+            <el-form-item label="操作结果"
+                ><el-select v-model="searchForm.result" clearable style="width: 120px"
+                    ><el-option label="成功" value="SUCCESS" /><el-option
+                        label="失败"
+                        value="FAILED" /></el-select
+            ></el-form-item>
+            <el-form-item label="操作类型"
+                ><el-select v-model="searchForm.type" clearable style="width: 120px"
+                    ><el-option label="登录" value="LOGIN" /><el-option
+                        label="变更"
+                        value="CHANGE" /></el-select
+            ></el-form-item>
+            <el-form-item label="模块"
+                ><el-input v-model.trim="searchForm.module" clearable
+            /></el-form-item>
+            <el-form-item label="起始日期"
+                ><el-date-picker v-model="searchForm.start" value-format="YYYY-MM-DD"
+            /></el-form-item>
+            <el-form-item label="结束日期"
+                ><el-date-picker v-model="searchForm.end" value-format="YYYY-MM-DD"
+            /></el-form-item>
             <el-form-item>
                 <el-button @click="getDataList(1)">查询</el-button>
             </el-form-item>
@@ -21,23 +42,28 @@
             <el-table-column prop="operation" header-align="center" align="center" label="用户操作">
             </el-table-column>
             <el-table-column
-                prop="method"
+                prop="module"
                 header-align="center"
                 align="center"
                 width="150"
                 show-tooltip-when-overflow
-                label="请求方法"
+                label="操作模块"
             >
             </el-table-column>
             <el-table-column
-                prop="params"
+                prop="summary"
                 header-align="center"
                 align="center"
                 width="150"
                 show-tooltip-when-overflow
-                label="请求参数"
+                label="安全摘要"
             >
             </el-table-column>
+            <el-table-column prop="result" label="结果" /><el-table-column
+                prop="targetId"
+                label="操作对象"
+                show-overflow-tooltip
+            />
             <el-table-column
                 prop="time"
                 header-align="center"
@@ -82,6 +108,11 @@ export default {
             searchForm: {
                 key: '',
                 ip: '',
+                result: '',
+                type: '',
+                module: '',
+                start: '',
+                end: '',
             },
             dataList: [],
             pageIndex: 1,
@@ -108,6 +139,11 @@ export default {
                     limit: this.pageSize,
                     key: this.searchForm.key,
                     ip: this.searchForm.ip,
+                    result: this.searchForm.result,
+                    type: this.searchForm.type,
+                    module: this.searchForm.module,
+                    start: this.searchForm.start,
+                    end: this.searchForm.end,
                 },
             }).then(({data}) => {
                 if (data && data.code === 0) {
