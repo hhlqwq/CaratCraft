@@ -26,6 +26,9 @@ public class RefundReconciliationScheduler {
     /** 不扫描无退款的订单, 失败等待下一轮, 仅记录关键阶段数量. */
     @Scheduled(initialDelay = 60000, fixedDelay = 60000)
     public void reconcile() {
+        if (com.platform.maintenance.MaintenanceGate.active()) {
+            return;
+        }
         try {
             int count = refunds.reconcile();
             if (count > 0) {

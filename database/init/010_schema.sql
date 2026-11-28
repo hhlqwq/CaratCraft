@@ -474,6 +474,14 @@ CREATE TABLE `SYS_LOG` (
     `IP` varchar(64) DEFAULT NULL COMMENT 'IP地址',
     `CREATE_TIME` datetime NOT NULL COMMENT '创建时间',
     `SCOPE_ORG_NO` varchar(10) DEFAULT NULL COMMENT '操作人当时所属机构',
+    `actor_id` varchar(32) DEFAULT NULL,
+    `actor_type` varchar(16) DEFAULT NULL,
+    `module` varchar(50) DEFAULT NULL,
+    `operation_type` varchar(32) DEFAULT NULL,
+    `target_id` varchar(128) DEFAULT NULL,
+    `result` varchar(16) DEFAULT NULL,
+    `summary` varchar(1000) DEFAULT NULL,
+    `error_code` varchar(40) DEFAULT NULL,
     PRIMARY KEY (`ID`),
     KEY `ix_log_scope_org` (`SCOPE_ORG_NO`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='系统日志';

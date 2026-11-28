@@ -169,7 +169,8 @@ public class SysUserController extends AbstractController {
     @SysLog("保存用户")
     @PostMapping("/save")
     @RequiresPermissions("sys:user:save")
-    public RestResponse<String> save(@RequestBody SysUserEntity user) {
+    public RestResponse<Map<String, Object>> save(
+            @RequestBody SysUserEntity user, jakarta.servlet.http.HttpServletResponse response) {
         ValidatorUtils.validateEntity(user, AddGroup.class);
 
         Map<String, Object> params = new HashMap<>(2);
@@ -177,8 +178,8 @@ public class SysUserController extends AbstractController {
         user.setCreateUserId(getUserId());
         user.setCreateUserOrgNo(getOrgNo());
         sysUserService.add(user, params);
-
-        return RestResponse.ok();
+        response.setHeader("Cache-Control", "no-store");
+        return RestResponse.ok(Map.of("temporaryPassword", params.get("temporaryPassword")));
     }
 
     /**
@@ -230,9 +231,11 @@ public class SysUserController extends AbstractController {
     /** 使用专用入口为单个员工重置密码, 请求内容不进入审计日志. */
     @PostMapping("/resetPw")
     @RequiresPermissions("sys:user:resetPw")
-    public RestResponse<String> resetPw(@RequestBody PasswordReset form) {
-        sysUserService.resetPw(form.userId(), form.password());
-        return RestResponse.ok();
+    public RestResponse<Map<String, String>> resetPw(
+            @RequestBody PasswordReset form, jakarta.servlet.http.HttpServletResponse response) {
+        String issued = sysUserService.resetPw(form.userId(), form.password());
+        response.setHeader("Cache-Control", "no-store");
+        return RestResponse.ok(Map.of("temporaryPassword", issued));
     }
 
     /** 查询范围内员工的角色、机构和权限来源, 不包含认证材料. */

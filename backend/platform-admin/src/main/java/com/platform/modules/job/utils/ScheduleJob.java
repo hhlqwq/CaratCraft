@@ -61,6 +61,9 @@ public class ScheduleJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) {
+        if (com.platform.maintenance.MaintenanceGate.active()) {
+            return;
+        }
         ScheduleJobEntity scheduleJob = new ScheduleJobEntity();
 
         BeanUtils.copyProperties(

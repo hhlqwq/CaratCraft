@@ -599,3 +599,12 @@ INSERT INTO mall_coupon (name, type_money, send_type, min_goods_amount)
 SELECT '新人优惠券', 10.00, 8, 199.00 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM mall_coupon WHERE send_type = 8)
   AND (SELECT COALESCE(MAX(id), 0) FROM mall_coupon) < 255;
+
+
+-- 只在机构表完全为空时创建唯一默认工作室, 不覆盖既有机构.
+INSERT INTO SYS_ORG(ORG_NO,ORG_NAME,PARENT_NO,ORG_TYPE,STATUS,SORT,CREATE_USER_ID,CREATE_TIME)
+SELECT 'CC0001','默认工作室','0',1,1,0,'1',NOW() WHERE NOT EXISTS(SELECT 1 FROM SYS_ORG);
+INSERT INTO SYS_CONFIG(ID,PARAM_KEY,PARAM_VALUE,STATUS,REMARK)
+SELECT 'cc-platform-default-workspace','caratcraft.business.org',MIN(ORG_NO),0,'平台默认工作室'
+FROM SYS_ORG WHERE STATUS=1
+HAVING COUNT(*)=1 AND NOT EXISTS(SELECT 1 FROM SYS_CONFIG WHERE PARAM_KEY='caratcraft.business.org');

@@ -1,3 +1,5 @@
+projectVersion: ${BUILD_VERSION:unknown}
+
 spring:
   datasource:
     druid:
@@ -37,3 +39,8 @@ springdoc:
     enabled: false
 knife4j:
   enable: false
+
+# 运行日志不输出ORM绑定参数, 防止凭据和令牌进入容器日志.
+logging:
+  level:
+    com.platform.modules: INFO

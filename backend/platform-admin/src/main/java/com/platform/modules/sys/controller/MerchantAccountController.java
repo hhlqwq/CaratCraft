@@ -33,12 +33,16 @@ public class MerchantAccountController {
     @GetMapping("/list")
     public RestResponse<Page<SysUserEntity>> list(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return RestResponse.ok(accounts.list(page, size));
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String account,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Integer status) {
+        return RestResponse.ok(accounts.list(page, size, account, name, status));
     }
 
     /** 创建商家管理员并交付限时凭据. */
     @PostMapping("/create")
+    @com.platform.common.annotation.SysLog("创建商家管理员")
     public RestResponse<MerchantAccountService.Issued> create(
             @RequestBody MerchantAccountService.Create request, HttpServletResponse response) {
         ValidatorUtils.validateEntity(request);
@@ -46,8 +50,18 @@ public class MerchantAccountController {
         return RestResponse.ok(accounts.create(request));
     }
 
+    /** 更新商家管理员基本资料, 与凭据操作分离. */
+    @PostMapping("/update")
+    @com.platform.common.annotation.SysLog("编辑商家管理员")
+    public RestResponse<String> update(@RequestBody MerchantAccountService.Edit request) {
+        ValidatorUtils.validateEntity(request);
+        accounts.update(request);
+        return RestResponse.ok();
+    }
+
     /** 停用或恢复指定商家管理员. */
     @PostMapping("/status")
+    @com.platform.common.annotation.SysLog("修改商家管理员状态")
     public RestResponse<String> status(@RequestBody Status request) {
         ValidatorUtils.validateEntity(request);
         accounts.status(request.userId(), request.active());
@@ -56,6 +70,7 @@ public class MerchantAccountController {
 
     /** 为指定商家管理员更换限时凭据. */
     @PostMapping("/reset")
+    @com.platform.common.annotation.SysLog("重置商家管理员密码")
     public RestResponse<MerchantAccountService.Issued> reset(
             @RequestBody Target request, HttpServletResponse response) {
         ValidatorUtils.validateEntity(request);

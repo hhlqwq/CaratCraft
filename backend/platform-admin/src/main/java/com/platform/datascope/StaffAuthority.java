@@ -27,6 +27,7 @@ import java.util.Set;
 public class StaffAuthority {
     private final JdbcTemplate jdbc;
     private final BusinessOrganization organization;
+    private final com.platform.modules.sys.service.OperationAudit operationAudit;
 
     public enum Resource {
         GOODS("mall_goods", "id"),
@@ -142,16 +143,7 @@ public class StaffAuthority {
 
     /** 在变更同一事务写入无凭据审计, 包含对象和通过服务端校验的角色. */
     public void audit(String action, String target, String change) {
-        var actor = ShiroUtils.getUserEntity();
-        jdbc.update(
-                "INSERT INTO"
-                    + " SYS_LOG(ID,USER_NAME,OPERATION,METHOD,PARAMS,TIME,CREATE_TIME,SCOPE_ORG_NO)"
-                    + " VALUES(REPLACE(UUID(),'-',''),?,?,?,?,0,NOW(),?)",
-                actor.getUserName(),
-                action,
-                "员工与岗位授权",
-                "对象=" + target + "; " + change,
-                actor.getOrgNo());
+        operationAudit.success(action, target, change);
     }
 
     /** 仅合并明确持有本动作的现存角色所配置的启用机构, 不在此展开旧通配. */

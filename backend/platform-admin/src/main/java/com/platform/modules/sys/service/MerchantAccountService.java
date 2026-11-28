@@ -30,14 +30,19 @@ public class MerchantAccountService {
     private final SysUserTokenService tokens;
     private final StaffAuthority authority;
     private final BusinessOrganization businessOrganization;
+    private final PasswordPolicy passwordPolicy;
 
     /** 分页读取商家管理员基本资料. */
-    public Page<SysUserEntity> list(int page, int size) {
+    public Page<SysUserEntity> list(
+            int page, int size, String account, String name, Integer status) {
         requirePlatform();
         return users.page(
                 new Page<>(Math.max(page, 1), Math.max(1, Math.min(100, size))),
                 new QueryWrapper<SysUserEntity>()
                         .eq("ACCOUNT_TYPE", AccountTier.MERCHANT_ADMIN)
+                        .like(account != null && !account.isBlank(), "USER_NAME", account)
+                        .like(name != null && !name.isBlank(), "REAL_NAME", name)
+                        .eq(status != null, "STATUS", status)
                         .orderByDesc("CREATE_TIME"));
     }
 
@@ -48,9 +53,6 @@ public class MerchantAccountService {
         String org = businessOrganization.defaultOrganization();
         if (org == null) {
             throw new IllegalArgumentException("请先配置已启用的默认工作室");
-        }
-        if (blank(request.mobile()) && blank(request.email())) {
-            throw new IllegalArgumentException("请至少填写手机号或邮箱");
         }
         SysUserEntity user = new SysUserEntity();
         user.setUserName(request.userName().strip());
@@ -123,16 +125,33 @@ public class MerchantAccountService {
 
     /** 为管理员签发有效期 24 小时的独立凭据. */
     private String issue(SysUserEntity account) {
-        String password = AdminCredentials.randomPassword();
+        String password = passwordPolicy.temporary();
         AdminCredentials.replace(
                 account, password, true, Date.from(Instant.now().plus(24, ChronoUnit.HOURS)));
         return password;
     }
 
-    /** 区分省略或空白的联系方式. */
-    private boolean blank(String value) {
-        return value == null || value.isBlank();
+    /** 编辑基本账号资料, 不接收层级、角色、机构或密码参数. */
+    @Transactional(rollbackFor = Exception.class)
+    public void update(Edit request) {
+        SysUserEntity user = merchant(request.userId());
+        if (!users.update(
+                new UpdateWrapper<SysUserEntity>()
+                        .eq("USER_ID", user.getUserId())
+                        .set("REAL_NAME", request.realName().strip())
+                        .set("MOBILE", request.mobile())
+                        .set("EMAIL", request.email()))) {
+            throw new IllegalStateException("商家管理员资料保存失败");
+        }
+        authority.audit("编辑商家管理员", user.getUserId(), "已更新基本联系资料");
     }
+
+    /** 仅接受可编辑的基本资料. */
+    public record Edit(
+            @NotBlank String userId,
+            @NotBlank @Size(max = 64) String realName,
+            @Pattern(regexp = "^$|1[3-9][0-9]{9}") String mobile,
+            @Email @Size(max = 100) String email) {}
 
     /** 接收最少的开户资料, 角色和机构由服务端决定. */
     public record Create(

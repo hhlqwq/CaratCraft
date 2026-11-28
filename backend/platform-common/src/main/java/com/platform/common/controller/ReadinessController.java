@@ -26,7 +26,7 @@ public class ReadinessController {
     public ReadinessController(
             ObjectProvider<DataSource> databases,
             ObjectProvider<RedisConnectionFactory> caches,
-            @Value("${projectVersion:unknown}") String version,
+            @Value("${BUILD_VERSION:${projectVersion:unknown}}") String version,
             @Value("${BUILD_REVISION:workspace}") String revision) {
         this.databases = databases;
         this.caches = caches;

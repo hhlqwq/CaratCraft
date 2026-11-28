@@ -49,16 +49,33 @@ public class SysLogEntity implements Serializable {
     private String scopeOrgNo;
 
     /** 请求方法 */
-    private String method;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String method;
 
     /** 请求参数 */
-    private String params;
+    @com.fasterxml.jackson.annotation.JsonIgnore private String params;
 
     /** 执行时长(毫秒) */
     private Long time;
 
     /** IP地址 */
     private String ip;
+
+    /** 审计操作者稳定标识及当时身份. */
+    private String actorId;
+
+    private String actorType;
+
+    /** 模块、类型及仅含标识的操作对象. */
+    private String module;
+
+    private String operationType;
+    private String targetId;
+
+    /** 明确结果、安全摘要及非敏感错误码. */
+    private String result;
+
+    private String summary;
+    private String errorCode;
 
     /** 创建时间 */
     @TableField(fill = FieldFill.INSERT)

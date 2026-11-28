@@ -85,13 +85,24 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuDao, SysMenuEntity>
     public List<SysMenuEntity> getUserMenuList(String userId) {
         var effective = shiroService.getUserPermissions(userId);
         if (effective.contains(BackOfficePermissions.MANAGE_MERCHANTS)) {
-            SysMenuEntity page = new SysMenuEntity();
-            page.setMenuId("platform-merchants");
-            page.setName("商家管理员");
-            page.setUrl("platform/merchant-accounts");
-            page.setIcon("admin");
-            page.setType(MenuTypeEnum.MENU.getValue());
-            return List.of(page);
+            var result = new ArrayList<SysMenuEntity>();
+            String[][] items = {
+                {"overview", "平台总览", "studio-home"},
+                {"merchant-accounts", "商家管理员", "studio-users"},
+                {"monitor", "系统监控", "studio-settings"},
+                {"releases", "版本与更新", "studio-orders"},
+                {"logs", "系统日志", "studio-orders"}
+            };
+            for (String[] item : items) {
+                var page = new SysMenuEntity();
+                page.setMenuId("platform-" + item[0]);
+                page.setName(item[1]);
+                page.setUrl("platform/" + item[0]);
+                page.setIcon(item[2]);
+                page.setType(MenuTypeEnum.MENU.getValue());
+                result.add(page);
+            }
+            return result;
         }
         Map<String, SysMenuEntity> byId = new HashMap<>();
         list().forEach(menu -> byId.put(menu.getMenuId(), menu));

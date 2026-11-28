@@ -59,6 +59,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
     private final com.platform.modules.sys.service.BusinessOrganization businessOrganization;
     private final org.springframework.jdbc.core.JdbcTemplate jdbc;
     private final EmployeeDirectGrants directGrants;
+    private final com.platform.modules.sys.service.PasswordPolicy passwordPolicy;
 
     @Override
     public List<SysUserEntity> queryAll(Map<String, Object> params) {
@@ -106,11 +107,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         employee.setOrgNo(organization);
         employee.setCreateUserId(user.getCreateUserId());
         employee.setCreateUserOrgNo(user.getCreateUserOrgNo());
-        validateContacts(employee, true);
+        validateContacts(employee, false);
         if (user.getPassword() != null && !TEMPORARY_PASSWORD.equals(user.getPassword())) {
             throw new IllegalArgumentException("新员工初始密码由系统设置");
         }
-        replacePassword(employee, TEMPORARY_PASSWORD, true);
+        String issued = passwordPolicy.temporary();
+        replacePassword(employee, issued, true);
+        params.put("temporaryPassword", issued);
         if (!save(employee)) {
             throw new IllegalStateException("员工账号保存失败");
         }
@@ -194,13 +197,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void resetPw(String userId, String password) {
+    public String resetPw(String userId, String password) {
         SysUserEntity employee = lockUser(userId);
         authority.requireEmployee("sys:user:resetPw", employee, true);
-        replacePassword(employee, password == null ? TEMPORARY_PASSWORD : password, true);
+        String issued = password == null ? passwordPolicy.temporary() : password;
+        passwordPolicy.validate(issued);
+        replacePassword(employee, issued, true);
         updateCredential(employee);
         tokens.offlineBatch(new String[] {userId});
         authority.audit("重置员工密码", userId, "撤销现有会话");
+        return issued;
     }
 
     /** 以发码时的密码哈希和联系方式校验恢复上下文, 串行化改密和停用操作. */
@@ -245,7 +251,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         sysUserRoleService.saveOrUpdate(employee.getUserId(), bindings);
     }
 
-    /** 校验中国大陆手机号, 开户至少登记一个联系方式. */
+    /** 校验可选联系方式的格式, 不将其作为账号开通前置条件. */
     private void validateContacts(SysUserEntity employee, boolean creating) {
         String mobile = employee.getMobile();
         String email = employee.getEmail();
@@ -337,13 +343,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity>
         AdminCredentials.replace(employee, password, temporary, null);
     }
 
-    /** 校验本人新密码, 禁止保留统一初始密码. */
+    /** 由服务端部署环境决定本人新密码的强度. */
     @Override
     public void validateNewPassword(String password) {
-        validatePassword(password);
-        if (TEMPORARY_PASSWORD.equals(password)) {
-            throw new IllegalArgumentException("新密码不能继续使用统一初始密码");
-        }
+        passwordPolicy.validate(password);
     }
 
     /** 校验新设密码为6到32位不含空格的可打印ASCII字符. */

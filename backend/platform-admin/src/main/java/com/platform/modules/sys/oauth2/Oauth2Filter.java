@@ -139,13 +139,27 @@ public class Oauth2Filter extends AuthenticatingFilter {
     private boolean platformEndpoint(String method, String path) {
         return switch (method) {
             case "GET" ->
-                    java.util.Set.of("/platform/merchant/list", "/sys/menu/nav", "/sys/user/info")
+                    java.util.Set.of(
+                                    "/platform/merchant/list",
+                                    "/sys/menu/nav",
+                                    "/sys/user/info",
+                                    "/platform/overview",
+                                    "/platform/workspace",
+                                    "/platform/monitor",
+                                    "/platform/release",
+                                    "/platform/jobs",
+                                    "/platform/logs")
                             .contains(path);
             case "POST" ->
                     java.util.Set.of(
                                     "/platform/merchant/create",
                                     "/platform/merchant/status",
                                     "/platform/merchant/reset",
+                                    "/platform/merchant/update",
+                                    "/platform/workspace",
+                                    "/platform/packages",
+                                    "/platform/confirm",
+                                    "/platform/restore",
                                     "/sys/user/password",
                                     "/sys/logout")
                             .contains(path);

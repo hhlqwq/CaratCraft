@@ -19,94 +19,122 @@
 package com.platform.common.aspect;
 
 import com.platform.common.annotation.SysLog;
-import com.platform.common.utils.Constant;
 import com.platform.common.utils.HttpContextUtils;
-import com.platform.common.utils.IpUtils;
-import com.platform.modules.sys.entity.SysLogEntity;
-import com.platform.modules.sys.entity.SysUserEntity;
-import com.platform.modules.sys.service.SysLogService;
-
-import jakarta.servlet.http.HttpServletRequest;
+import com.platform.common.utils.RestResponse;
+import com.platform.modules.sys.form.SysLoginForm;
+import com.platform.modules.sys.service.OperationAudit;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Method;
-
-/**
- * 系统日志，切面处理类
- *
- * @author hehailong
- */
+/** 按实际返回或异常记录重要操作, 与事务内的手工审计去重. */
 @RequiredArgsConstructor
 @Aspect
 @Component
 public class SysLogAspect {
-    private final SysLogService sysLogService;
+    private final OperationAudit audit;
 
-    /** 声明需要记录操作日志的方法切点. */
-    @Pointcut("@annotation(com.platform.common.annotation.SysLog)")
-    public void logPointCut() {}
-
-    /** 拦截目标方法并执行当前切面的前后置处理. */
-    @Around("logPointCut()")
+    /** 正常响应的业务失败与抛出异常均明确记录失败, 不记录请求参数. */
+    @Around("@annotation(com.platform.common.annotation.SysLog)")
     public Object around(ProceedingJoinPoint point) throws Throwable {
-        long beginTime = System.currentTimeMillis();
-        // 执行方法
-        Object result = point.proceed();
-        // 执行时长(毫秒)
-        long time = System.currentTimeMillis() - beginTime;
-
-        // 保存日志
-        saveSysLog(point, time);
-
-        return result;
+        long start = System.currentTimeMillis();
+        Object response;
+        try {
+            response = point.proceed();
+        } catch (Throwable error) {
+            try {
+                record(
+                        point,
+                        start,
+                        false,
+                        error instanceof org.apache.shiro.authz.UnauthorizedException
+                                ? "FORBIDDEN"
+                                : "FAILED");
+            } catch (RuntimeException auditFailure) {
+                error.addSuppressed(auditFailure);
+            }
+            throw error;
+        }
+        boolean success = !(response instanceof RestResponse<?> value) || value.getCode() == 0;
+        try {
+            record(
+                    point,
+                    start,
+                    success,
+                    response instanceof RestResponse<?> value
+                            ? String.valueOf(value.getCode())
+                            : null);
+        } catch (RuntimeException auditFailure) {
+            org.slf4j.LoggerFactory.getLogger(SysLogAspect.class).error("操作审计持久化失败, 请检查数据库结构及可写状态");
+        }
+        return response;
     }
 
-    /** 从当前调用上下文构建并保存操作审计记录. */
-    private void saveSysLog(ProceedingJoinPoint joinPoint, long time) {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-
-        SysLogEntity sysLog = new SysLogEntity();
-        SysLog syslog = method.getAnnotation(SysLog.class);
-        if (syslog != null) {
-            // 注解上的描述
-            sysLog.setOperation(syslog.value());
+    /** 未被业务审计覆盖的重要系统异常和鉴权失败, 只记录固定摘要. */
+    @org.aspectj.lang.annotation.AfterReturning(
+            pointcut =
+                    "execution(*"
+                        + " com.platform.common.exception.BusinessExceptionHandler.handleException(..))"
+                        + " || execution(*"
+                        + " com.platform.common.exception.BusinessExceptionHandler.handleAuthorizationException(..))",
+            returning = "response")
+    public void recordSystemFailure(Object response) {
+        var request = HttpContextUtils.getHttpServletRequest();
+        if (request == null || Boolean.TRUE.equals(request.getAttribute(OperationAudit.RECORDED))) {
+            return;
         }
-
-        // 请求的方法名
-        String className = joinPoint.getTarget().getClass().getName();
-        String methodName = signature.getName();
-        sysLog.setMethod(className + Constant.DOT + methodName + "()");
-
-        // 请求的参数
+        String code =
+                response instanceof RestResponse<?> value ? String.valueOf(value.getCode()) : "500";
         try {
-            // 操作记录只保留方法、操作者和耗时, 不序列化密码、令牌或商户配置.
-            sysLog.setParams("[请求参数不记录]");
+            audit.write(
+                    "403".equals(code) ? "权限校验失败" : "系统请求异常",
+                    "系统操作",
+                    "SECURITY",
+                    null,
+                    "FAILED",
+                    "请求未通过, 请核对账号权限或服务诊断",
+                    code,
+                    0,
+                    null);
+            request.setAttribute(OperationAudit.RECORDED, true);
+        } catch (RuntimeException error) {
+            org.slf4j.LoggerFactory.getLogger(SysLogAspect.class).error("系统异常审计持久化失败, 请检查数据库可写状态");
+        }
+    }
 
-            // 获取request
-            HttpServletRequest request = HttpContextUtils.getHttpServletRequest();
-            // 设置IP地址
-            sysLog.setIp(IpUtils.getIpAddr(request));
-
-            // 用户名
-            var actor = (SysUserEntity) SecurityUtils.getSubject().getPrincipal();
-            sysLog.setUserName(actor.getUserName());
-            sysLog.setScopeOrgNo(actor.getOrgNo());
-
-            sysLog.setTime(time);
-            // 保存系统日志
-            sysLogService.save(sysLog);
-        } catch (Exception ignored) {
-
+    /** 仅从明确的登录表单取尝试账号, 其他请求内容均不进入日志. */
+    private void record(ProceedingJoinPoint point, long start, boolean success, String code) {
+        var request = HttpContextUtils.getHttpServletRequest();
+        if (success
+                && request != null
+                && Boolean.TRUE.equals(request.getAttribute(OperationAudit.RECORDED))) {
+            return;
+        }
+        var method = ((MethodSignature) point.getSignature()).getMethod();
+        String action = method.getAnnotation(SysLog.class).value();
+        String attempted = null;
+        for (Object argument : point.getArgs()) {
+            if (argument instanceof SysLoginForm form) {
+                attempted = form.getUserName();
+            }
+        }
+        audit.write(
+                action,
+                attempted == null ? "系统操作" : "身份认证",
+                attempted == null ? "CHANGE" : "LOGIN",
+                null,
+                success ? "SUCCESS" : "FAILED",
+                success ? "操作完成" : "操作未完成",
+                code,
+                System.currentTimeMillis() - start,
+                attempted);
+        if (request != null) {
+            request.setAttribute(OperationAudit.RECORDED, true);
         }
     }
 }

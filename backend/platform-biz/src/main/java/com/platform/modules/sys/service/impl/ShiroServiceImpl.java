@@ -59,7 +59,7 @@ public class ShiroServiceImpl extends ServiceImpl<SysUserTokenDao, SysUserTokenE
             return Set.of();
         }
         if (AccountTier.PLATFORM_ADMIN.equals(user.getAccountType())) {
-            return Set.of(BackOfficePermissions.MANAGE_MERCHANTS);
+            return BackOfficePermissions.PLATFORM;
         }
         boolean merchant = AccountTier.MERCHANT_ADMIN.equals(user.getAccountType());
         List<String> permsList =

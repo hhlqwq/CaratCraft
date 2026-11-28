@@ -13,9 +13,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.util.UrlPathHelper;
 
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Administrator
@@ -77,30 +74,7 @@ public class RequestUriLogInterceptor implements AsyncHandlerInterceptor {
 
         }
         reqInfo.append(" Operator=").append(userName);
-        reqInfo.append(" Parameters=").append(getParameters(request).toString());
         return reqInfo;
-    }
-
-    /**
-     * 将request查询参数封装至Map
-     *
-     * @param request 请求
-     * @return 参数Map
-     */
-    private Map<String, Object> getParameters(HttpServletRequest request) {
-        Enumeration<String> enume = request.getParameterNames();
-        Map<String, Object> map = new HashMap<>(8);
-        while (enume.hasMoreElements()) {
-            String key = enume.nextElement();
-            if ("token".equalsIgnoreCase(key)
-                    || "password".equalsIgnoreCase(key)
-                    || "newPassword".equalsIgnoreCase(key)) {
-                continue;
-            }
-            String value = request.getParameter(key);
-            map.put(key, value);
-        }
-        return map;
     }
 
     /**

@@ -43,16 +43,54 @@ public class SysLogServiceImpl extends ServiceImpl<SysLogDao, SysLogEntity>
         String key = (String) params.get("key");
         String ip = (String) params.get("ip");
 
-        Page<SysLogEntity> page = new Query<SysLogEntity>(params).getPage();
+        var pagination = new java.util.HashMap<String, Object>(params);
+        pagination.remove("sidx");
+        pagination.remove("asc");
+        Page<SysLogEntity> page = new Query<SysLogEntity>(pagination).getPage();
+        String module = (String) params.get("module");
+        String type = (String) params.get("type");
+        String result = (String) params.get("result");
+        String start = (String) params.get("start");
+        String end = (String) params.get("end");
         var scope = (com.platform.modules.sys.service.OrgActionScope) params.get("auditScope");
 
         return baseMapper.selectPage(
                 page,
                 new QueryWrapper<SysLogEntity>()
+                        .select(
+                                "ID",
+                                "USER_NAME",
+                                "OPERATION",
+                                "TIME",
+                                "IP",
+                                "CREATE_TIME",
+                                "SCOPE_ORG_NO",
+                                "actor_id",
+                                "actor_type",
+                                "module",
+                                "operation_type",
+                                "target_id",
+                                "result",
+                                "summary",
+                                "error_code")
                         .apply(
                                 !scope.emergency(),
                                 scope.mybatisCondition("SCOPE_ORG_NO"),
                                 scope.organizations().toArray())
+                        .eq(StringUtils.isNotBlank(module), "module", module)
+                        .eq(StringUtils.isNotBlank(type), "operation_type", type)
+                        .eq(StringUtils.isNotBlank(result), "result", result)
+                        .ge(
+                                StringUtils.isNotBlank(start),
+                                "CREATE_TIME",
+                                StringUtils.isNotBlank(start) ? java.sql.Date.valueOf(start) : null)
+                        .lt(
+                                StringUtils.isNotBlank(end),
+                                "CREATE_TIME",
+                                StringUtils.isNotBlank(end)
+                                        ? java.sql.Date.valueOf(
+                                                java.time.LocalDate.parse(end).plusDays(1))
+                                        : null)
                         .like(StringUtils.isNotBlank(ip), "IP", ip)
                         .and(
                                 StringUtils.isNotBlank(key),

@@ -90,6 +90,7 @@ public class ShiroConfig {
         filterMap.put("/internal/health/**", "anon");
         filterMap.put("/druid/**", "noSessionCreation,oauth2");
         filterMap.put("/sys/login", "anon");
+        filterMap.put("/sys/password-policy", "anon");
         filterMap.put("/sys/password-recovery/send", "anon");
         filterMap.put("/sys/password-recovery/reset", "anon");
         filterMap.put("/captcha.jpg", "anon");

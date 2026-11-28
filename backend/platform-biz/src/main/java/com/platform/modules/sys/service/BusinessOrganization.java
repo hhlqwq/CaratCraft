@@ -20,17 +20,28 @@ public class BusinessOrganization {
 
     /** 未配置时保留未知归属, 无效配置时终止新增. */
     public String defaultOrganization() {
-        if (defaultOrganization.isEmpty()) {
-            return null;
+        String organization = defaultOrganization;
+        if (organization.isEmpty()) {
+            var configured =
+                    jdbc.queryForList(
+                            "SELECT PARAM_VALUE FROM SYS_CONFIG WHERE"
+                                    + " PARAM_KEY='caratcraft.business.org'",
+                            String.class);
+            if (configured.size() != 1
+                    || configured.get(0) == null
+                    || configured.get(0).isBlank()) {
+                return null;
+            }
+            organization = configured.get(0).trim();
         }
         Long count =
                 jdbc.queryForObject(
                         "SELECT COUNT(*) FROM SYS_ORG WHERE ORG_NO=? AND STATUS=1",
                         Long.class,
-                        defaultOrganization);
+                        organization);
         if (count == null || count != 1) {
             throw new IllegalStateException("商城默认业务归属机构不可用");
         }
-        return defaultOrganization;
+        return organization;
     }
 }

@@ -1,3 +1,5 @@
+projectVersion: ${BUILD_VERSION:unknown}
+
 spring:
   datasource:
     druid:
@@ -36,3 +38,13 @@ springdoc:
     enabled: false
 knife4j:
   enable: false
+
+caratcraft:
+  environment: ${CARATCRAFT_ENV:production}
+  maintenance-url: http://maintenance:8090
+  maintenance-token-file: /run/platform-maintenance/token
+
+# 运行日志不输出ORM绑定参数, 防止凭据和令牌进入容器日志.
+logging:
+  level:
+    com.platform.modules: INFO

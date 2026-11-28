@@ -67,6 +67,11 @@ public class HostMonitorService {
         return server;
     }
 
+    /** 复用原监控的JVM采集, 来源明确为当前Java应用容器. */
+    public Map<String, Object> currentJvm() {
+        return Map.of("origin", "当前platform-admin应用容器", "metrics", jvmDescription());
+    }
+
     /** 生成服务器描述, 无法解析主机名时仍返回可用快照. */
     private Map<String, Object> systemDescription() {
         String name = "unknown";
